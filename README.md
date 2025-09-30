@@ -6,5 +6,5 @@
 `mvn spring-boot:run -Dspring-boot.run.arguments=generate-openapi`
 
 
-### use this website to view the swagger documentation yaml file ->just copy the yaml file and paste it in the website
+### use this website to view the swagger documentation yaml file 
 `https://editor.swagger.io/`
