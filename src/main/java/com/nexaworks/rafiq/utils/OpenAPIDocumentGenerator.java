@@ -15,9 +15,6 @@ import java.nio.file.Paths;
 @Component
 public class OpenAPIDocumentGenerator implements CommandLineRunner {
 
-    @Autowired
-    private ApplicationContext context;
-
     @Override
     public void run(String... args) {
         if (args.length > 0 && "generate-openapi".equals(args[0])) {
