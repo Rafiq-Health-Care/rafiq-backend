@@ -1,22 +1,43 @@
+
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:15
     container_name: rafiq-db
+    restart: always
     environment:
-      POSTGRES_DB: rafiq
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
+      POSTGRES_DB: rafiq
     ports:
       - "5460:5432"
-    restart: always
+    volumes:
+      - postgres_data_rafiq:/var/lib/postgresql/data/
+    networks:
+      - rafiq-network
 
-  adminer:
-    image: adminer:latest
-    container_name: adminer
+#  rabbitmq:
+#    image: rabbitmq:3-management
+#    container_name: rabbitmq
+#    ports:
+#      - "5672:5672"
+#      - "15672:15672"
+#    environment:
+#      RABBITMQ_DEFAULT_USER: user
+#      RABBITMQ_DEFAULT_PASS: password
+  mail-dev:
+    container_name: rafiq-mail-dev
+    image: maildev/maildev:latest
     ports:
-      - "8888:8080"
-    depends_on:
-      - postgres
-    restart: always
+      - "3080:3080"
+      - "1025:1025"
+    command: [ "--web", "3080", "--smtp", "1025", "--web-ip", "0.0.0.0" ]
+    restart: unless-stopped
+volumes:
+  postgres_data_rafiq: {}
+
+networks:
+  rafiq-network:
+      name: rafiq-network
+
 
 
