@@ -22,5 +22,12 @@ public class DoctorProfile extends BaseEntity {
     @Id
     private UUID id;
     private String description;
+    private String hospitalName;
+    private String personalPhoto;
+    private String nationalId;
+    private String hospitalId;
+    @OneToOne(mappedBy = "doctorProfile")
+    private User user;
+
 
 }

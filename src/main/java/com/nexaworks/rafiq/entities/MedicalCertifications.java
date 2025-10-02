@@ -16,11 +16,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-public class DoctorDocuments extends BaseEntity{
+public class MedicalCertifications extends BaseEntity{
     @Id
     private UUID id;
-    private String nationalId;
-    private String personalPhoto;
-    private String medicalCertificate;
-    private String hospitalId;
+    private String name;
+    private String description;
+    private String code;
+    private String photo;
 }

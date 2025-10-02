@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.security.Principal;
@@ -28,26 +29,50 @@ public class User extends BaseEntity implements UserDetails, Principal {
     private String lastName;
     private String phone;
     private int age;
+    private boolean active;
+    private boolean locked;
+    private boolean enabled;
+    @Enumerated(EnumType.STRING)
     private Gender gender;
+    @ManyToMany
+    @JoinTable(name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private List<Role> roles;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "doctor_profile_id", referencedColumnName = "id")
+    private DoctorProfile doctorProfile;
+
 
 
     @Override
     public String getName() {
-        return "";
+        return this.firstName+" "+this.lastName;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return this.roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.getName()))
+                .toList();
     }
 
     @Override
     public String getPassword() {
-        return "";
+        return this.password;
     }
 
     @Override
     public String getUsername() {
-        return "";
+        return this.email;
     }
+
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return !this.locked;
+    }
+
+
 }
