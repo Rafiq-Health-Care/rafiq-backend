@@ -14,16 +14,20 @@ services:
       - postgres_data_rafiq:/var/lib/postgresql/data/
     networks:
       - rafiq-network
-
-#  rabbitmq:
-#    image: rabbitmq:3-management
-#    container_name: rabbitmq
-#    ports:
-#      - "5672:5672"
-#      - "15672:15672"
-#    environment:
-#      RABBITMQ_DEFAULT_USER: user
-#      RABBITMQ_DEFAULT_PASS: password
+  spring:
+    image: rafiq-spring:1.0
+    container_name: rafiq-spring
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - mail-dev
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/rafiq
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: root
+    networks:
+      - rafiq-network
   mail-dev:
     container_name: rafiq-mail-dev
     image: maildev/maildev:latest
@@ -37,7 +41,7 @@ volumes:
 
 networks:
   rafiq-network:
-      name: rafiq-network
+      driver: bridge
 
 
 
