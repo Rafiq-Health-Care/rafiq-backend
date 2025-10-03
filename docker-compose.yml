@@ -14,20 +14,20 @@ services:
       - postgres_data_rafiq:/var/lib/postgresql/data/
     networks:
       - rafiq-network
-  spring:
-    image: rafiq-spring:1.0
-    container_name: rafiq-spring
-    ports:
-      - "8080:8080"
-    depends_on:
-      - postgres
-      - mail-dev
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/rafiq
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: root
-    networks:
-      - rafiq-network
+#  spring:
+#    image: rafiq-spring:1.0
+#    container_name: rafiq-spring
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - postgres
+#      - mail-dev
+#    environment:
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/rafiq
+#      SPRING_DATASOURCE_USERNAME: postgres
+#      SPRING_DATASOURCE_PASSWORD: root
+#    networks:
+#      - rafiq-network
   mail-dev:
     container_name: rafiq-mail-dev
     image: maildev/maildev:latest
