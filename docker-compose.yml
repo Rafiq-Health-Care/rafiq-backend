@@ -1,22 +1,47 @@
+
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:15
     container_name: rafiq-db
+    restart: always
     environment:
-      POSTGRES_DB: rafiq
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
+      POSTGRES_DB: rafiq
     ports:
       - "5460:5432"
-    restart: always
-
-  adminer:
-    image: adminer:latest
-    container_name: adminer
+    volumes:
+      - postgres_data_rafiq:/var/lib/postgresql/data/
+    networks:
+      - rafiq-network
+#  spring:
+#    image: rafiq-spring:1.0
+#    container_name: rafiq-spring
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - postgres
+#      - mail-dev
+#    environment:
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/rafiq
+#      SPRING_DATASOURCE_USERNAME: postgres
+#      SPRING_DATASOURCE_PASSWORD: root
+#    networks:
+#      - rafiq-network
+  mail-dev:
+    container_name: rafiq-mail-dev
+    image: maildev/maildev:latest
     ports:
-      - "8888:8080"
-    depends_on:
-      - postgres
-    restart: always
+      - "3080:3080"
+      - "1025:1025"
+    command: [ "--web", "3080", "--smtp", "1025", "--web-ip", "0.0.0.0" ]
+    restart: unless-stopped
+volumes:
+  postgres_data_rafiq: {}
+
+networks:
+  rafiq-network:
+      driver: bridge
+
 
 
