@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.entities;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import lombok.*;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @Entity
 public class Role {
     @Id
+    @GeneratedValue
     private UUID id;
     private String name;
     @ManyToMany(mappedBy = "roles")

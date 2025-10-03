@@ -1,7 +1,6 @@
 package com.nexaworks.rafiq.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -15,11 +14,18 @@ import java.util.UUID;
 @Entity
 public class Address extends BaseEntity {
     @Id
+    @GeneratedValue
     public UUID id;
     private String street;
     private String city;
     private String state;
     private String country;
     private String postalCode;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id",nullable = false)
+    private User user;
+
+
 
 }

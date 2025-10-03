@@ -1,15 +1,13 @@
 package com.nexaworks.rafiq.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -20,6 +18,7 @@ import java.util.UUID;
 @Entity
 public class DoctorProfile extends BaseEntity {
     @Id
+    @GeneratedValue
     private UUID id;
     private String description;
     private String hospitalName;
@@ -28,6 +27,13 @@ public class DoctorProfile extends BaseEntity {
     private String hospitalId;
     @OneToOne(mappedBy = "doctorProfile")
     private User user;
+    @ManyToOne
+    @JoinColumn(name = "specialization_id", nullable = false)
+    private Specialization specialization;
+
+    @OneToMany(mappedBy = "doctor",cascade = CascadeType.ALL,orphanRemoval = true)
+    private List<MedicalCertifications> medicalCertifications;
+
 
 
 }

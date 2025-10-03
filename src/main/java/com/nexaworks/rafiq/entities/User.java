@@ -21,6 +21,7 @@ import java.util.UUID;
 @Table(name = "users")
 public class User extends BaseEntity implements UserDetails, Principal {
     @Id
+    @GeneratedValue
     private UUID id;
     @Column(unique = true)
     private String email;
@@ -43,6 +44,9 @@ public class User extends BaseEntity implements UserDetails, Principal {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "doctor_profile_id", referencedColumnName = "id")
     private DoctorProfile doctorProfile;
+
+    @OneToMany(mappedBy = "user" , cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Address> addresses;
 
 
 
