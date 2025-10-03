@@ -1,8 +1,10 @@
 package com.nexaworks.rafiq.entities;
 
+import com.nexaworks.rafiq.enums.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.UuidGenerator;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,6 +24,7 @@ import java.util.UUID;
 public class User extends BaseEntity implements UserDetails, Principal {
     @Id
     @GeneratedValue
+    @UuidGenerator
     private UUID id;
     @Column(unique = true)
     private String email;
@@ -41,11 +44,11 @@ public class User extends BaseEntity implements UserDetails, Principal {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private List<Role> roles;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "doctor_profile_id", referencedColumnName = "id")
     private DoctorProfile doctorProfile;
 
-    @OneToMany(mappedBy = "user" , cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user" , cascade = CascadeType.REMOVE)
     private List<Address> addresses;
 
 

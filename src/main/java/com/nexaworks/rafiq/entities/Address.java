@@ -3,6 +3,7 @@ package com.nexaworks.rafiq.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;
 
@@ -15,7 +16,8 @@ import java.util.UUID;
 public class Address extends BaseEntity {
     @Id
     @GeneratedValue
-    public UUID id;
+    @UuidGenerator
+    private UUID id;
     private String street;
     private String city;
     private String state;

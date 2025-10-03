@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;
 
@@ -18,6 +19,7 @@ import java.util.UUID;
 public class MedicalCertifications extends BaseEntity{
     @Id
     @GeneratedValue
+    @UuidGenerator
     private UUID id;
     private String name;
     private String description;

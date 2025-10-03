@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.entities;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -8,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;
 
@@ -20,6 +22,7 @@ import java.util.UUID;
 public class PatientProfile  extends BaseEntity{
     @Id
     @GeneratedValue
+    @UuidGenerator
     private UUID id;
     private String description;
 }

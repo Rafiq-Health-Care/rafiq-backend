@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,6 +21,7 @@ import java.util.UUID;
 public class DoctorProfile extends BaseEntity {
     @Id
     @GeneratedValue
+    @UuidGenerator
     private UUID id;
     private String description;
     private String hospitalName;
@@ -31,7 +34,7 @@ public class DoctorProfile extends BaseEntity {
     @JoinColumn(name = "specialization_id", nullable = false)
     private Specialization specialization;
 
-    @OneToMany(mappedBy = "doctor",cascade = CascadeType.ALL,orphanRemoval = true)
+    @OneToMany(mappedBy = "doctor",cascade = CascadeType.REMOVE)
     private List<MedicalCertifications> medicalCertifications;
 
 
