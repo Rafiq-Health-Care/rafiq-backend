@@ -15,7 +15,7 @@ import java.util.UUID;
 @Entity
 public class Address extends BaseEntity {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     @UuidGenerator
     private UUID id;
     private String street;
