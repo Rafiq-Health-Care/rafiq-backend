@@ -1,0 +1,26 @@
+---
+openapi: "3.0.1"
+info:
+  title: "Rafiq API Documentation"
+  description: "API documentation for Rafiq Health Care Application"
+  contact:
+    name: "Rafiq Support"
+    email: "support@rafiq.com"
+  version: "1.0"
+servers:
+- url: "http://localhost:8032"
+  description: "Generated server url"
+paths:
+  /:
+    get:
+      tags:
+      - "test-controller"
+      operationId: "home"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+components: {}

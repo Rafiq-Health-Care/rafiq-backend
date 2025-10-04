@@ -5,9 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class RafiqApplication {
-
-	public static void main(String[] args) {
-		SpringApplication.run(RafiqApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(RafiqApplication.class, args);
+    }
 }
