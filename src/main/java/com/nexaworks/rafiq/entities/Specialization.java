@@ -16,8 +16,7 @@ import java.util.UUID;
 @SuperBuilder
 public class Specialization  extends BaseEntity{
     @Id
-    @GeneratedValue
-    @UuidGenerator
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String name;
     private String description;
