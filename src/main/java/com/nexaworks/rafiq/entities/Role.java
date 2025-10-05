@@ -15,8 +15,7 @@ import java.util.UUID;
 @Entity
 public class Role {
     @Id
-    @GeneratedValue
-    @UuidGenerator
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String name;
     @ManyToMany(mappedBy = "roles")

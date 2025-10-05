@@ -18,8 +18,7 @@ import java.util.UUID;
 @Entity
 public class MedicalCertifications extends BaseEntity{
     @Id
-    @GeneratedValue
-    @UuidGenerator
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String name;
     private String description;
