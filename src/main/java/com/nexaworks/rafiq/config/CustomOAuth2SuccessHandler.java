@@ -35,6 +35,15 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
        String firstName = oAuth2User.getAttribute("given_name");
        String lastName = oAuth2User.getAttribute("family_name");
        String email = oAuth2User.getAttribute("email");
+
+        if(email == null){
+            log.error("Email is null");
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.setContentType("application/json");
+            new ObjectMapper().writeValue(response.getOutputStream(), "Cannot find email");
+            return;
+        }
+
         Optional<User> user = userService.findByEmail(email);
         if(user.isPresent()){
             log.info("User already exists");
@@ -45,16 +54,6 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
             return;
 
         }
-
-
-
-       if(email == null){
-        log.error("Email is null");
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        response.setContentType("application/json");
-        new ObjectMapper().writeValue(response.getOutputStream(), "Cannot find email");
-        return;
-       }
 
        Map<String, Object> attributes = Map.of("first-name",firstName,
                "last-name",lastName, "email", email);
