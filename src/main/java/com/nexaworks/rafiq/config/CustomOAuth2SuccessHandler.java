@@ -2,6 +2,9 @@ package com.nexaworks.rafiq.config;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.service.JwtService;
+import com.nexaworks.rafiq.service.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,20 +17,31 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler {
+    private final UserService userService;
+    private final JwtService jwtService;
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
+                                        Authentication authentication) throws IOException,
+            ServletException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         log.info("OAuth2 user: {}", oAuth2User);
-        String fullName = oAuth2User.getAttribute("name");
-        String email = oAuth2User.getAttribute("email");
-        // todo generate JWT token if the user is store in database
+       String firstName = oAuth2User.getAttribute("given_name");
+       String lastName = oAuth2User.getAttribute("family_name");
+       String email = oAuth2User.getAttribute("email");
+        Optional<User> user = userService.findByEmail(email);
+        if(user.isPresent()){
+            log.info("User already exists");
+            String jwt = jwtService.generateToken(user.get());
+
+        }
+
 
 
        if(email == null){
@@ -38,7 +52,8 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         return;
        }
 
-       Map<String, Object> attributes = Map.of("fullName", fullName, "email", email);
+       Map<String, Object> attributes = Map.of("first-name",firstName,
+               "last-name",lastName, "email", email);
        response.setStatus(HttpServletResponse.SC_OK);
        response.setContentType("application/json");
        new ObjectMapper().writeValue(response.getOutputStream(), attributes);
