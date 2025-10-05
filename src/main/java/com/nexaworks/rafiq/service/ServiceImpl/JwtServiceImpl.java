@@ -26,6 +26,9 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public String generateToken(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("User cannot be null");
+        }
         String email = user.getEmail();
         var authorities = user.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).toList();

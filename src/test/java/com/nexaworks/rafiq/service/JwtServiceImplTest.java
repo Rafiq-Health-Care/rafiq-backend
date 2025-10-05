@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.*;
 
@@ -22,6 +23,7 @@ import java.util.List;
 
 public class JwtServiceImplTest {
     private JwtServiceImpl jwtService;
+
     @BeforeEach
     void setUp() {
         jwtService = new JwtServiceImpl();
@@ -29,6 +31,7 @@ public class JwtServiceImplTest {
         ReflectionTestUtils.setField(jwtService, "JWT_EXPIRATION", 10000L);
     }
 
+    @DisplayName("Generated token should not be null")
     @Test
     void generateTokenMustBeNotNull() {
         User user = mock(User.class);
@@ -40,6 +43,8 @@ public class JwtServiceImplTest {
         String token = jwtService.generateToken(user);
         assertNotNull(token);
     }
+
+    @DisplayName("Generated token must have the email")
     @Test
     void jwtMustHaveTheEmail(){
         User user = mock(User.class);
@@ -55,6 +60,8 @@ public class JwtServiceImplTest {
                 .getPayload();
         assertEquals(claims.getSubject(),user.getEmail());
     }
+
+    @DisplayName("Generated token must have the claims")
     @Test
     void jwtMustHaveTheClaims(){
         User user = mock(User.class);
@@ -69,5 +76,11 @@ public class JwtServiceImplTest {
                 .parseSignedClaims(token)
                 .getPayload();
         assertEquals(claims.get("authorities"),authorities.stream().map(GrantedAuthority::getAuthority).toList());
+    }
+
+    @DisplayName("Generate token with null user should throw exception")
+    @Test
+    void generateTokenWithNullUserShouldThrowException(){
+        assertThrows(IllegalArgumentException.class, () -> jwtService.generateToken(null));
     }
 }
