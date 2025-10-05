@@ -12,8 +12,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -27,21 +27,23 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public String generateToken(User user) {
         String email = user.getEmail();
-        var authorities = user.getAuthorities();
+        var authorities = user.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority).toList();
         return buildToken(email,authorities);
     }
 
-    private String buildToken(String email, Collection<? extends GrantedAuthority> authorities) {
+    private String buildToken(String email, List<String> authorities) {
         return Jwts.builder()
                 .subject(email)
                 .claim("authorities", authorities)
+                .issuer("Rafiq")
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis()+JWT_EXPIRATION))
                 .signWith(getKey())
                 .compact();
 
     }
-    private SecretKey getKey(){
+   public SecretKey getKey(){
         byte [] key = Decoders.BASE64.decode(JWT_SECRET);
         return Keys.hmacShaKeyFor(key);
     }
