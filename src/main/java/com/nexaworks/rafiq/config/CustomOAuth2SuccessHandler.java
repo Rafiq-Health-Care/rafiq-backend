@@ -39,6 +39,10 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         if(user.isPresent()){
             log.info("User already exists");
             String jwt = jwtService.generateToken(user.get());
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.setContentType("application/json");
+            new ObjectMapper().writeValue(response.getOutputStream(), jwt);
+            return;
 
         }
 
