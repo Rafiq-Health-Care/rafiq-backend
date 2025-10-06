@@ -3,6 +3,7 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.TokenType;
+import com.nexaworks.rafiq.exception.UserNotFoundException;
 import com.nexaworks.rafiq.repository.TokenRepository;
 import com.nexaworks.rafiq.service.TokenService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -20,9 +22,12 @@ import java.util.UUID;
 public class TokenServiceImpl implements TokenService {
     private final TokenRepository tokenRepository;
     @Value("${refresh.expiration}")
-    private Long REFRESH_EXPIRATION;
+    public Long REFRESH_EXPIRATION;
     @Value("${otp.expiration}")
     private Long OTP_EXPIRATION;
+    @Value("${access.token.expiration}")
+    private Long ACCESS_TOKEN_EXPIRATION;
+
 
     @Override
     public String generateRefreshToken(User user){
@@ -45,6 +50,25 @@ public class TokenServiceImpl implements TokenService {
         Token token = buildToken(user,otpToken,TokenType.OTP,OTP_EXPIRATION);
         tokenRepository.save(token);
         return otpToken;
+    }
+
+    @Override
+    public Token getToken(String otp) {
+        return tokenRepository.findByToken(otp).orElseThrow(
+                ()->new IllegalArgumentException("Invalid Token"));
+    }
+
+    @Override
+    public String generateAccessToken(Optional<User> user) {
+        if (user.isEmpty()){
+            throw new UserNotFoundException("User not found");
+        }
+        String accessToken = UUID.randomUUID().toString();
+        Token token = buildToken(user.get(),accessToken,
+                TokenType.ACCESS_TOKEN,ACCESS_TOKEN_EXPIRATION);
+        tokenRepository.save(token);
+        log.info("Saved access token {}",accessToken);
+        return accessToken;
     }
 
     public Token buildToken(User user, String token, TokenType tokenType, Long EXPIRATION) {

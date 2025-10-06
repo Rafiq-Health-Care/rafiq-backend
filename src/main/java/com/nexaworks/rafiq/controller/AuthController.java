@@ -1,6 +1,9 @@
 package com.nexaworks.rafiq.controller;
 
+import com.nexaworks.rafiq.dto.ChangePasswordRequest;
 import com.nexaworks.rafiq.dto.ForgetPasswordRequest;
+import com.nexaworks.rafiq.dto.VerifyOtpRequest;
+import com.nexaworks.rafiq.dto.VerifyOtpResponse;
 import com.nexaworks.rafiq.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,11 +17,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
+
     private final AuthService authService;
+
     @PostMapping("/forget-password")
     public ResponseEntity<Void> forgetPassword(@RequestBody @Valid ForgetPasswordRequest forgetPasswordRequest){
         authService.forgetPassword(forgetPasswordRequest);
         return ResponseEntity.noContent().build();
-
     }
+
+    @PostMapping("/verify")
+    public ResponseEntity<VerifyOtpResponse> verify(@RequestBody @Valid VerifyOtpRequest verifyOtpRequest){
+       return ResponseEntity.ok().body(authService.verifyOtp(verifyOtpRequest));
+    }
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@RequestBody @Valid ChangePasswordRequest changePasswordRequest){
+        authService.changePassword(changePasswordRequest);
+        return ResponseEntity.noContent().build();
+    }
+
 }

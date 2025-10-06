@@ -1,7 +1,9 @@
 package com.nexaworks.rafiq.config;
 
+import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.service.JwtService;
+import com.nexaworks.rafiq.service.ServiceImpl.TokenServiceImpl;
 import com.nexaworks.rafiq.service.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +21,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -29,6 +32,8 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class CustomOAuth2SuccessHandlerTest {
+    @Mock
+    TokenServiceImpl tokenService;
     @Mock
     private User user;
     @Mock
@@ -115,11 +120,17 @@ public class CustomOAuth2SuccessHandlerTest {
         when(oAuth2User.getAttribute("email")).thenReturn("bialy@gmail.com");
         when(oAuth2User.getAttribute("name")).thenReturn("Bialy");
         when(userService.findByEmail("bialy@gmail.com")).thenReturn(Optional.of(user));
-        when(jwtService.generateToken(user)).thenReturn("token");
         when(user.isEnabled()).thenReturn(true);
-        customOAuth2SuccessHandler.onAuthenticationSuccess(request,response,authentication);
+        when(jwtService.generateToken(user)).thenReturn("token");
+        when(user.getRoles()).thenReturn(List.of(Role.builder().name("ROLE_USER").build()));
+        when(tokenService.generateRefreshToken(user)).thenReturn("refreshToken");
+        customOAuth2SuccessHandler.onAuthenticationSuccess(request, response, authentication);
         verify(response).setStatus(HttpServletResponse.SC_OK);
         assertTrue(outputStream.toString().contains("token"));
+        assertTrue(outputStream.toString().contains("refreshToken"));
+        assertTrue(outputStream.toString().contains("ROLE_USER"));
+
+
 
     }
 }

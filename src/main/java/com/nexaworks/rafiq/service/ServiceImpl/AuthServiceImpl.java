@@ -1,13 +1,14 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import com.nexaworks.rafiq.dto.ChangePasswordRequest;
 import com.nexaworks.rafiq.dto.ForgetPasswordRequest;
+import com.nexaworks.rafiq.dto.VerifyOtpRequest;
+import com.nexaworks.rafiq.dto.VerifyOtpResponse;
+import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.UserNotFoundException;
 import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.AuthService;
-import com.nexaworks.rafiq.service.EmailContentService;
-import com.nexaworks.rafiq.service.EmailSenderService;
-import com.nexaworks.rafiq.service.TokenService;
+import com.nexaworks.rafiq.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.Map;
 
 @Service
@@ -28,6 +30,7 @@ public class AuthServiceImpl implements AuthService {
     private final TokenService tokenService;
     private final EmailContentService emailContentService;
     private final EmailSenderService emailSenderService;
+    private final UserService userService;
 
     @Override
     public void forgetPassword(ForgetPasswordRequest forgetPasswordRequest) {
@@ -40,6 +43,29 @@ public class AuthServiceImpl implements AuthService {
         // todo send otp to user via email
         Map<String,Object> model = emailContentService.createOtpEmail(otp,user.getName(),URL);
         emailSenderService.sendEmail(model,email,SUBJECT,FORGET_PASSWORD_TEMPLATE);
+    }
+
+    @Override
+    public VerifyOtpResponse verifyOtp(VerifyOtpRequest verifyOtpRequest) {
+        Token otp = tokenService.getToken(verifyOtpRequest.otp());
+        if (!otp.getUser().getEmail().equals(verifyOtpRequest.email())
+                ||otp.getExpiryDate().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Invalid OTP");
+        }
+        String accessToken = tokenService.generateAccessToken
+                (userService.findByEmail(verifyOtpRequest.email()));
+        return new VerifyOtpResponse(accessToken);
+    }
+
+    @Override
+    public void changePassword(ChangePasswordRequest changePasswordRequest) {
+        Token token = tokenService.getToken(changePasswordRequest.accessToken());
+        if (token.getExpiryDate().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Invalid Access Token");
+        }
+        User user = token.getUser();
+        userService.changePassword(user,changePasswordRequest.newPassword());
+        log.info("Password changed for user {}",user.getEmail());
     }
 
     private void authenticateUser(User user) {
