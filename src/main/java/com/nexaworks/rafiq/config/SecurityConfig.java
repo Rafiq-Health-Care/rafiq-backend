@@ -19,6 +19,7 @@ private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/auth/reset-password").authenticated()
                 .anyRequest().permitAll()
             ).sessionManagement(sc->
                         sc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
