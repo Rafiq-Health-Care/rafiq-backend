@@ -56,7 +56,7 @@ public class TokenServiceTest {
     void buildRefreshToken_ShouldReturnCorrectTokenObject(){
         User user = new User();
         String refreshToken = UUID.randomUUID().toString();
-        Token token = tokenService.buildRefreshToken(user,refreshToken);
+        Token token = tokenService.buildToken(user,refreshToken,TokenType.REFRESH, tokenService.REFRESH_EXPIRATION);
         assertNotNull(token);
         assertEquals(user,token.getUser());
         assertEquals(refreshToken,token.getToken());

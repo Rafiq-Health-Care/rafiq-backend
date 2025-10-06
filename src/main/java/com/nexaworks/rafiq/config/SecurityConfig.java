@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -18,10 +20,12 @@ private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
         http
             .authorizeHttpRequests(auth -> auth
                 .anyRequest().permitAll()
-            )
+            ).sessionManagement(sc->
+                        sc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .formLogin(Customizer.withDefaults())
             .httpBasic(Customizer.withDefaults())
-            .csrf(csrf -> csrf.disable())
+            .csrf(AbstractHttpConfigurer::disable)
+                .cors(AbstractHttpConfigurer::disable)
                 .oauth2Login(auth ->
                         auth.successHandler(customOAuth2SuccessHandler));
 
