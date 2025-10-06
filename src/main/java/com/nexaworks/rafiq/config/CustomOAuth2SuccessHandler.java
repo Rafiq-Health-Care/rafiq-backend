@@ -45,6 +45,10 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
         Optional<User> user = userService.findByEmail(email);
         if(user.isPresent()){
+            if (!user.get().isEnabled()){
+                // todo handle exception
+                throw new IllegalStateException("User is disabled");
+            }
             log.info("User already exists");
             String jwt = jwtService.generateToken(user.get());
             response.setStatus(HttpServletResponse.SC_OK);
