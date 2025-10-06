@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import com.nexaworks.rafiq.dto.ResetPasswordRequest;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.UserService;
@@ -26,5 +27,16 @@ public class UserServiceImpl implements UserService {
     public void changePassword(User user, String s) {
         user.setPassword(passwordEncoder.encode(s));
         userRepository.save(user);
+    }
+
+    @Override
+    public void updatePassword(User user, ResetPasswordRequest resetPasswordRequest) {
+        if(!passwordEncoder.matches(resetPasswordRequest.oldPassword(),user.getPassword())){
+            throw new IllegalArgumentException("Old password is not correct");
+        }
+        user.setPassword(passwordEncoder.encode(resetPasswordRequest.newPassword()));
+        userRepository.save(user);
+        log.info("Password updated for user {}",user.getEmail());
+
     }
 }

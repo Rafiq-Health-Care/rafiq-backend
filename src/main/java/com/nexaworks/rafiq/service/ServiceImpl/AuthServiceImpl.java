@@ -1,9 +1,6 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
-import com.nexaworks.rafiq.dto.ChangePasswordRequest;
-import com.nexaworks.rafiq.dto.ForgetPasswordRequest;
-import com.nexaworks.rafiq.dto.VerifyOtpRequest;
-import com.nexaworks.rafiq.dto.VerifyOtpResponse;
+import com.nexaworks.rafiq.dto.*;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.UserNotFoundException;
@@ -14,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -68,6 +66,18 @@ public class AuthServiceImpl implements AuthService {
         authenticateUser(user);
         userService.changePassword(user,changePasswordRequest.newPassword());
         log.info("Password changed for user {}",user.getEmail());
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordRequest resetPasswordRequest) {
+        User user = getAuthenticateUser();
+        userService.updatePassword(user,resetPasswordRequest);
+
+
+    }
+
+    public User getAuthenticateUser() {
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
     private void authenticateUser(User user) {
