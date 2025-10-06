@@ -32,8 +32,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
             ServletException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         log.info("OAuth2 user: {}", oAuth2User);
-       String firstName = oAuth2User.getAttribute("given_name");
-       String lastName = oAuth2User.getAttribute("family_name");
+      String fullName = oAuth2User.getAttribute("name");
        String email = oAuth2User.getAttribute("email");
 
         if(email == null){
@@ -54,9 +53,10 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
             return;
 
         }
-
-       Map<String, Object> attributes = Map.of("first-name",firstName,
-               "last-name",lastName, "email", email);
+        if (fullName == null) {
+            fullName = "Unknown";
+        }
+       Map<String, Object> attributes = Map.of("full-name",fullName, "email", email);
        response.setStatus(HttpServletResponse.SC_OK);
        response.setContentType("application/json");
        new ObjectMapper().writeValue(response.getOutputStream(), attributes);
