@@ -52,6 +52,7 @@ public class AuthServiceImpl implements AuthService {
                 ||otp.getExpiryDate().isBefore(Instant.now())) {
             throw new IllegalArgumentException("Invalid OTP");
         }
+        authenticateUser(otp.getUser());
         String accessToken = tokenService.generateAccessToken
                 (userService.findByEmail(verifyOtpRequest.email()));
         return new VerifyOtpResponse(accessToken);
@@ -64,6 +65,7 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Invalid Access Token");
         }
         User user = token.getUser();
+        authenticateUser(user);
         userService.changePassword(user,changePasswordRequest.newPassword());
         log.info("Password changed for user {}",user.getEmail());
     }

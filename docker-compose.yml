@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:15
     container_name: rafiq-db
     environment:
       POSTGRES_DB: rafiq
