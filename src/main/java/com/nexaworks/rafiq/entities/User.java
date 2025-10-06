@@ -50,6 +50,9 @@ public class User extends BaseEntity implements UserDetails, Principal {
     @OneToMany(mappedBy = "user" , cascade = CascadeType.REMOVE)
     private List<Address> addresses;
 
+    @OneToMany(mappedBy = "user" , cascade = CascadeType.REMOVE)
+    private List<Token> tokens;
+
 
 
     @Override
