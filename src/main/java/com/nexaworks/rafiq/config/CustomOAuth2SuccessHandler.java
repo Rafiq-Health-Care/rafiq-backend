@@ -2,8 +2,11 @@ package com.nexaworks.rafiq.config;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nexaworks.rafiq.dto.LoginResponse;
+import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.service.JwtService;
+import com.nexaworks.rafiq.service.TokenService;
 import com.nexaworks.rafiq.service.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,6 +28,7 @@ import java.util.Optional;
 public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final UserService userService;
     private final JwtService jwtService;
+    private final TokenService tokenService;
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
@@ -51,9 +55,15 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
             }
             log.info("User already exists");
             String jwt = jwtService.generateToken(user.get());
+            String refreshToken = tokenService.generateRefreshToken(user.get());
+            LoginResponse loginResponse = new LoginResponse(
+                    user.get().getRoles().stream().map(Role::getName).toList(),
+                    jwt,
+                    refreshToken
+            );
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json");
-            new ObjectMapper().writeValue(response.getOutputStream(), jwt);
+            new ObjectMapper().writeValue(response.getOutputStream(),loginResponse);
             return;
 
         }

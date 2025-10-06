@@ -25,7 +25,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @MappedSuperclass
 @SuperBuilder
-@EntityListeners({AuditingEntityListener.class})
+@EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
     @CreatedDate
     @Column(updatable = false, nullable = false)
