@@ -28,16 +28,26 @@ public class TokenServiceImpl implements TokenService {
             throw new IllegalArgumentException("User cannot be null");
         }
         String refreshToken = UUID.randomUUID().toString();
-        Token token = buildRefreshToken(user,refreshToken);
+        Token token = buildToken(user,refreshToken,TokenType.REFRESH);
         log.info("Generated refresh token {}",refreshToken);
         tokenRepository.save(token);
         log.info("Saved refresh token {}",refreshToken);
         return refreshToken;
     }
 
-    public Token buildRefreshToken(User user,String refreshToken) {
-       return Token.builder().token(refreshToken).user(user)
-                .tokenType(TokenType.REFRESH)
+    @Override
+    public String generateOtpToken(User user) {
+        String otpToken = String.valueOf(
+                (int) (Math.random() * 900000) + 100000
+        );
+        Token token = buildToken(user,otpToken,TokenType.OTP);
+        tokenRepository.save(token);
+        return otpToken;
+    }
+
+    public Token buildToken(User user,String token,TokenType tokenType) {
+       return Token.builder().token(token).user(user)
+                .tokenType(tokenType)
                 .expiryDate(Instant.now().plusSeconds(REFRESH_EXPIRATION)).build();
     }
 
