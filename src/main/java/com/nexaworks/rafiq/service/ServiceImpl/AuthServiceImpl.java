@@ -40,11 +40,6 @@ public class AuthServiceImpl implements AuthService {
         // todo send otp to user via email
         Map<String,Object> model = emailContentService.createOtpEmail(otp,user.getName(),URL);
         emailSenderService.sendEmail(model,email,SUBJECT,FORGET_PASSWORD_TEMPLATE);
-
-
-
-
-
     }
 
     private void authenticateUser(User user) {

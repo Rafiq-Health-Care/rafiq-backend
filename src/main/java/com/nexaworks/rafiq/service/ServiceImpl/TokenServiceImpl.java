@@ -21,6 +21,8 @@ public class TokenServiceImpl implements TokenService {
     private final TokenRepository tokenRepository;
     @Value("${refresh.expiration}")
     private Long REFRESH_EXPIRATION;
+    @Value("${otp.expiration}")
+    private Long OTP_EXPIRATION;
 
     @Override
     public String generateRefreshToken(User user){
@@ -28,7 +30,7 @@ public class TokenServiceImpl implements TokenService {
             throw new IllegalArgumentException("User cannot be null");
         }
         String refreshToken = UUID.randomUUID().toString();
-        Token token = buildToken(user,refreshToken,TokenType.REFRESH);
+        Token token = buildToken(user,refreshToken,TokenType.REFRESH, REFRESH_EXPIRATION);
         log.info("Generated refresh token {}",refreshToken);
         tokenRepository.save(token);
         log.info("Saved refresh token {}",refreshToken);
@@ -40,15 +42,15 @@ public class TokenServiceImpl implements TokenService {
         String otpToken = String.valueOf(
                 (int) (Math.random() * 900000) + 100000
         );
-        Token token = buildToken(user,otpToken,TokenType.OTP);
+        Token token = buildToken(user,otpToken,TokenType.OTP,OTP_EXPIRATION);
         tokenRepository.save(token);
         return otpToken;
     }
 
-    public Token buildToken(User user,String token,TokenType tokenType) {
+    public Token buildToken(User user, String token, TokenType tokenType, Long EXPIRATION) {
        return Token.builder().token(token).user(user)
                 .tokenType(tokenType)
-                .expiryDate(Instant.now().plusSeconds(REFRESH_EXPIRATION)).build();
+                .expiryDate(Instant.now().plusSeconds(EXPIRATION)).build();
     }
 
 }
