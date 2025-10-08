@@ -47,11 +47,17 @@ public class User extends BaseEntity implements UserDetails, Principal {
     @JoinColumn(name = "doctor_profile_id", referencedColumnName = "id")
     private DoctorProfile doctorProfile;
 
+    @OneToOne(cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "patient_profile_id", referencedColumnName = "id")
+    private PatientProfile patientProfile;
+
     @OneToMany(mappedBy = "user" , cascade = CascadeType.REMOVE)
     private List<Address> addresses;
 
     @OneToMany(mappedBy = "user" , cascade = CascadeType.REMOVE)
     private List<Token> tokens;
+
+
 
 
 

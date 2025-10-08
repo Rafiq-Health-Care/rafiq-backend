@@ -21,4 +21,7 @@ public class PatientProfile  extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String description;
+
+    @OneToOne(mappedBy = "patientProfile")
+    private User user;
 }
