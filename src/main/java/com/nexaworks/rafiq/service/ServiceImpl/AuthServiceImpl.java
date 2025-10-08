@@ -37,7 +37,6 @@ public class AuthServiceImpl implements AuthService {
         String email = forgetPasswordRequest.email();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(()->new UserNotFoundException("User with email " + email + " not found"));
-        authenticateUser(user);
         String otp = tokenService.generateOtpToken(user);
         log.info("Generated OTP {}",otp);
         // todo send otp to user via email
@@ -52,7 +51,6 @@ public class AuthServiceImpl implements AuthService {
                 ||otp.getExpiryDate().isBefore(Instant.now())) {
             throw new IllegalArgumentException("Invalid OTP");
         }
-        authenticateUser(otp.getUser());
         String accessToken = tokenService.generateAccessToken
                 (userService.findByEmail(verifyOtpRequest.email()));
         return new VerifyOtpResponse(accessToken);
@@ -65,7 +63,6 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Invalid Access Token");
         }
         User user = token.getUser();
-        authenticateUser(user);
         userService.changePassword(user,changePasswordRequest.newPassword());
         log.info("Password changed for user {}",user.getEmail());
     }
