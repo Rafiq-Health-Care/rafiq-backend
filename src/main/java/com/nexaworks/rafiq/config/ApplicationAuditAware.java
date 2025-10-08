@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -21,25 +21,16 @@ public class ApplicationAuditAware implements AuditorAware<UUID> {
     @Override
     public Optional<UUID> getCurrentAuditor() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new IllegalStateException("Unauthenticated user cannot access this resource");
+        if(authentication.getPrincipal() instanceof OAuth2User){
+            String email = ((OAuth2User) authentication.getPrincipal()).getAttribute("email");
+            return userRepository.findByEmail(email).map(User::getId);
         }
-
-        Object principal = authentication.getPrincipal();
-
-        if (principal instanceof User user) {
+        if( authentication.isAuthenticated()&&!authentication.getName().equals("anonymousUser")){
+            User user = (User) authentication.getPrincipal();
             return Optional.of(user.getId());
-        } else if (principal instanceof DefaultOAuth2User oauth2User) {
-            String email = oauth2User.getAttribute("email");
-            return userRepository.findByEmail(email)
-                    .map(User::getId)
-                    .or(() -> {
-                        throw new IllegalStateException("OAuth2 user not found in database");
-                    });
         }
-
-        throw new IllegalStateException("Unsupported principal type: " + principal.getClass().getName());
+        return Optional.of(
+                UUID.fromString("00000000-0000-0000-0000-000000000000"));
     }
 }
 
