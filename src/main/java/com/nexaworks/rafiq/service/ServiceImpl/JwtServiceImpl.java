@@ -35,6 +35,11 @@ public class JwtServiceImpl implements JwtService {
         return buildToken(email,authorities);
     }
 
+    @Override
+    public void invalidateJwtToken(String s) {
+
+    }
+
     private String buildToken(String email, List<String> authorities) {
         return Jwts.builder()
                 .subject(email)
