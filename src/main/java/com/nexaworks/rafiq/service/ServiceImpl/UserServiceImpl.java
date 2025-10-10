@@ -1,10 +1,13 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import com.nexaworks.rafiq.dto.ResetPasswordRequest;
+
 import com.nexaworks.rafiq.dto.request.DoctorRegistrationRequest;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.entities.Role;
-import com.nexaworks.rafiq.entities.Token;
+
+
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.RegistrationException;
 import com.nexaworks.rafiq.mapper.UserMapper;
@@ -47,6 +50,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void updatePassword(User user, ResetPasswordRequest resetPasswordRequest) {
+        if(!passwordEncoder.matches(resetPasswordRequest.oldPassword(),user.getPassword())){
+            throw new IllegalArgumentException("Old password is not correct");
+        }
+        user.setPassword(passwordEncoder.encode(resetPasswordRequest.newPassword()));
+        userRepository.save(user);
+        log.info("Password updated for user {}",user.getEmail());
+
+    }
     public void registerPatient(User user) {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new RegistrationException("User with email " + user.getEmail() + " already exists");

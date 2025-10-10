@@ -1,5 +1,7 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import com.nexaworks.rafiq.dto.*;
+
 import com.nexaworks.rafiq.dto.request.*;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.dto.response.VerifyOtpResponse;
@@ -15,6 +17,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -71,6 +74,16 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public void resetPassword(ResetPasswordRequest resetPasswordRequest) {
+        User user = getAuthenticateUser();
+        userService.updatePassword(user,resetPasswordRequest);
+
+
+    }
+
+    public User getAuthenticateUser() {
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
     public LoginResponse login(String email, String password) {
         Authentication authentication = authenticationManager
                 .authenticate(

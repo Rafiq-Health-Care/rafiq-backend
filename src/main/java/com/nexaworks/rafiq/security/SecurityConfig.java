@@ -22,6 +22,11 @@ private final JwtFilter jwtFilter;
     @Bean
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
+<<<<<<< HEAD:src/main/java/com/nexaworks/rafiq/config/SecurityConfig.java
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/auth/reset-password").authenticated()
+                .anyRequest().permitAll()
+=======
             .authorizeHttpRequests(auth ->
                     auth.requestMatchers("/auth/login",
                             "/auth/refresh",
@@ -33,6 +38,7 @@ private final JwtFilter jwtFilter;
                             "/user/verification",
                                     "/error").permitAll()
                             .anyRequest().authenticated()
+>>>>>>> dev:src/main/java/com/nexaworks/rafiq/security/SecurityConfig.java
             ).sessionManagement(sc->
                         sc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .csrf(AbstractHttpConfigurer::disable)
