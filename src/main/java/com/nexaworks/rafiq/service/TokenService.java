@@ -15,4 +15,6 @@ public interface TokenService {
     Token getToken(@NotBlank @Size(min = 6,max = 6) String otp);
 
     String generateAccessToken(Optional<User> byEmail);
+
+    User verifyOtp(String email, String otp);
 }

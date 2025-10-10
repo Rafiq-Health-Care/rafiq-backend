@@ -2,6 +2,8 @@ package com.nexaworks.rafiq.controller;
 
 import com.nexaworks.rafiq.dto.request.DoctorRegistrationRequest;
 import com.nexaworks.rafiq.dto.request.UserRegistrationRequest;
+import com.nexaworks.rafiq.dto.request.VerificationRequest;
+import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.service.UserService;
 import jakarta.validation.Valid;
@@ -27,5 +29,11 @@ public class UserController {
     public ResponseEntity<Void> registerDoctor(@RequestBody @Valid DoctorRegistrationRequest request){
         userService.registerDoctor(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+    @PostMapping("/verification")
+    public ResponseEntity<LoginResponse> verification(@RequestBody @Valid VerificationRequest request){
+
+        return ResponseEntity.ok().body(userService.verifyOtp(request.email(),request.otp()));
+
     }
 }

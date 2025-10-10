@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
 import com.nexaworks.rafiq.dto.request.DoctorRegistrationRequest;
+import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.Token;
@@ -32,6 +33,8 @@ public class UserServiceImpl implements UserService {
     private final TokenService tokenService;
     private final EmailSenderService emailSenderService;
     private final EmailContentService emailContentService;
+    private final AuthService authService;
+    private final JwtService jwtService;
 
     @Override
     public Optional<User> findByEmail(String email) {
@@ -78,6 +81,16 @@ public class UserServiceImpl implements UserService {
         doctor.setPatientProfile(patientService.createPatientProfile(doctor));
         doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization()));
         generateOtpAndSendEmail(user);
+    }
+
+    @Override
+    public LoginResponse verifyOtp(String email, String otp) {
+     User user = tokenService.verifyOtp(email,otp);
+     user.setEnabled(true);
+     userRepository.save(user);
+     String jwt = jwtService.generateToken(user);
+     String refreshToken = tokenService.generateRefreshToken(user);
+     return new LoginResponse(user.getRoles().stream().map(Role::getName).toList(),jwt,refreshToken);
     }
 
     private void generateOtpAndSendEmail(User user) {
