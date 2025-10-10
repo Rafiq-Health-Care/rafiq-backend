@@ -71,6 +71,23 @@ public class TokenServiceImpl implements TokenService {
         return accessToken;
     }
 
+    @Override
+    public User verifyOtp(String email, String otp) {
+        // todo handle exception
+        Token token = tokenRepository.findByToken(otp).orElseThrow(
+                ()->new IllegalArgumentException("Invalid Token"));
+        if (!token.getUser().getEmail().equals(email)
+                ||token.getExpiryDate().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Invalid OTP");
+        }
+        return token.getUser();
+    }
+
+    @Override
+    public void invalidateRefreshToken(Token token) {
+        tokenRepository.delete(token);
+    }
+
     public Token buildToken(User user, String token, TokenType tokenType, Long EXPIRATION) {
        return Token.builder().token(token).user(user)
                 .tokenType(tokenType)

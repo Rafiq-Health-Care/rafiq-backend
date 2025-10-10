@@ -1,10 +1,10 @@
 package com.nexaworks.rafiq.service;
 
-import com.nexaworks.rafiq.dto.ChangePasswordRequest;
-import com.nexaworks.rafiq.dto.ForgetPasswordRequest;
-import com.nexaworks.rafiq.dto.VerifyOtpRequest;
-import com.nexaworks.rafiq.dto.VerifyOtpResponse;
+import com.nexaworks.rafiq.dto.request.*;
+import com.nexaworks.rafiq.dto.response.LoginResponse;
+import com.nexaworks.rafiq.dto.response.VerifyOtpResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 
 public interface AuthService {
     void forgetPassword(@Valid ForgetPasswordRequest forgetPasswordRequest);
@@ -12,4 +12,10 @@ public interface AuthService {
     VerifyOtpResponse verifyOtp(@Valid VerifyOtpRequest verifyOtpRequest);
 
     void changePassword(@Valid ChangePasswordRequest changePasswordRequest);
+
+    LoginResponse login(@NotBlank String email, @NotBlank String password);
+
+    LoginResponse refresh(@Valid RefreshRequest request);
+
+    void logout(@Valid LogoutRequest request);
 }
