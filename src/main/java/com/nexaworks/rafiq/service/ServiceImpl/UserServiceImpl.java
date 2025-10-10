@@ -33,7 +33,6 @@ public class UserServiceImpl implements UserService {
     private final TokenService tokenService;
     private final EmailSenderService emailSenderService;
     private final EmailContentService emailContentService;
-    private final AuthService authService;
     private final JwtService jwtService;
 
     @Override
@@ -77,7 +76,7 @@ public class UserServiceImpl implements UserService {
         }
         User doctor = extracted(user);
         userRepository.save(doctor);
-        doctor.setRoles(List.of(roleService.getRole(ROLE_USER),roleService.getRole(ROLE_DOCTOR)));
+        doctor.setRoles(List.of(roleService.getRole(ROLE_USER),roleService.getRole(ROLE_DOCTOR),roleService.getRole(ROLE_PATIENT)));
         doctor.setPatientProfile(patientService.createPatientProfile(doctor));
         doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization()));
         generateOtpAndSendEmail(user);

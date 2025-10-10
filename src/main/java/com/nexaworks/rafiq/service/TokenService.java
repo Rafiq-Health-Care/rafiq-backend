@@ -17,4 +17,6 @@ public interface TokenService {
     String generateAccessToken(Optional<User> byEmail);
 
     User verifyOtp(String email, String otp);
+
+    void invalidateRefreshToken(Token token);
 }

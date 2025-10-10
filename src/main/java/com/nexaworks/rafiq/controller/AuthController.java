@@ -1,9 +1,6 @@
 package com.nexaworks.rafiq.controller;
 
-import com.nexaworks.rafiq.dto.request.ChangePasswordRequest;
-import com.nexaworks.rafiq.dto.request.ForgetPasswordRequest;
-import com.nexaworks.rafiq.dto.request.LoginRequest;
-import com.nexaworks.rafiq.dto.request.VerifyOtpRequest;
+import com.nexaworks.rafiq.dto.request.*;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.dto.response.VerifyOtpResponse;
 import com.nexaworks.rafiq.service.AuthService;
@@ -42,9 +39,14 @@ public class AuthController {
         return ResponseEntity.ok().body(authService.login(request.email(),request.password()));
     }
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestBody @Valid String accessToken){
-
+    public ResponseEntity<Void> logout(@RequestBody @Valid LogoutRequest request){
+        authService.logout(request);
         return ResponseEntity.noContent().build();
     }
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponse> refresh(@RequestBody @Valid RefreshRequest request){
+        return ResponseEntity.ok().body(authService.refresh(request));
+    }
+    @
 
 }

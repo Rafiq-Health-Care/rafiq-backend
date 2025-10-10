@@ -1,8 +1,6 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
-import com.nexaworks.rafiq.dto.request.ChangePasswordRequest;
-import com.nexaworks.rafiq.dto.request.ForgetPasswordRequest;
-import com.nexaworks.rafiq.dto.request.VerifyOtpRequest;
+import com.nexaworks.rafiq.dto.request.*;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.dto.response.VerifyOtpResponse;
 import com.nexaworks.rafiq.entities.Role;
@@ -13,6 +11,7 @@ import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -83,6 +82,26 @@ public class AuthServiceImpl implements AuthService {
         return new LoginResponse(
                user.getRoles().stream().map(Role::getName).toList(),jwt,refreshToken
         );
+
+    }
+
+    @Override
+    public LoginResponse refresh(RefreshRequest request) {
+        Token token = tokenService.getToken(request.refreshToken());
+        if (token.getExpiryDate().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Invalid Refresh Token");
+        }
+        User user = token.getUser();
+        tokenService.invalidateRefreshToken(token);
+        String refreshToken = tokenService.generateRefreshToken(user);
+        String jwt = jwtService.generateToken(user);
+        return new LoginResponse(user.getRoles().stream().map(Role::getName).toList(),jwt,refreshToken );
+    }
+
+    @Override
+    public void logout(LogoutRequest request) {
+        tokenService.invalidateRefreshToken(tokenService.getToken(request.refreshToken()));
+        jwtService.invalidateJwtToken(request.jwtToken());
 
     }
 

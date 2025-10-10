@@ -83,6 +83,11 @@ public class TokenServiceImpl implements TokenService {
         return token.getUser();
     }
 
+    @Override
+    public void invalidateRefreshToken(Token token) {
+        tokenRepository.delete(token);
+    }
+
     public Token buildToken(User user, String token, TokenType tokenType, Long EXPIRATION) {
        return Token.builder().token(token).user(user)
                 .tokenType(tokenType)
