@@ -9,26 +9,37 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
 
 private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
+private final JwtFilter jwtFilter;
 
     @Bean
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll()
+            .authorizeHttpRequests(auth ->
+                    auth.requestMatchers("/auth/login",
+                            "/auth/refresh",
+                            "/auth/forget-password",
+                            "/auth/verify",
+                            "/auth/change-password",
+                            "/user/register/doctor",
+                            "/user/register/patient",
+                            "/user/verification",
+                                    "/error").permitAll()
+                            .anyRequest().authenticated()
             ).sessionManagement(sc->
                         sc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .formLogin(Customizer.withDefaults())
-            .httpBasic(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .oauth2Login(auth ->
-                        auth.successHandler(customOAuth2SuccessHandler));
+                        auth.successHandler(customOAuth2SuccessHandler))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

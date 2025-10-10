@@ -12,7 +12,7 @@ public interface TokenService {
 
     String generateOtpToken(User user);
 
-    Token getToken(@NotBlank @Size(min = 6,max = 6) String otp);
+    Token getToken(String otp);
 
     String generateAccessToken(Optional<User> byEmail);
 
