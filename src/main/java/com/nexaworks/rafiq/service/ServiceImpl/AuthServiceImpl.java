@@ -3,7 +3,9 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 import com.nexaworks.rafiq.dto.request.ChangePasswordRequest;
 import com.nexaworks.rafiq.dto.request.ForgetPasswordRequest;
 import com.nexaworks.rafiq.dto.request.VerifyOtpRequest;
+import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.dto.response.VerifyOtpResponse;
+import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.UserNotFoundException;
@@ -11,6 +13,7 @@ import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,6 +34,8 @@ public class AuthServiceImpl implements AuthService {
     private final EmailContentService emailContentService;
     private final EmailSenderService emailSenderService;
     private final UserService userService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
     @Override
     public void forgetPassword(ForgetPasswordRequest forgetPasswordRequest) {
@@ -65,6 +70,20 @@ public class AuthServiceImpl implements AuthService {
         User user = token.getUser();
         userService.changePassword(user,changePasswordRequest.newPassword());
         log.info("Password changed for user {}",user.getEmail());
+    }
+
+    @Override
+    public LoginResponse login(String email, String password) {
+        Authentication authentication = authenticationManager
+                .authenticate(
+                        new UsernamePasswordAuthenticationToken(email,password));
+        User user = (User) authentication.getPrincipal();
+        String jwt = jwtService.generateToken(user);
+        String refreshToken = tokenService.generateRefreshToken(user);
+        return new LoginResponse(
+               user.getRoles().stream().map(Role::getName).toList(),jwt,refreshToken
+        );
+
     }
 
     private void authenticateUser(User user) {
