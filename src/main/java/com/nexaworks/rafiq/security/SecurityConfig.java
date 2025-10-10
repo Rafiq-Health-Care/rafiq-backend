@@ -1,5 +1,6 @@
-package com.nexaworks.rafiq.config;
+package com.nexaworks.rafiq.security;
 
+import com.nexaworks.rafiq.config.CustomOAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
