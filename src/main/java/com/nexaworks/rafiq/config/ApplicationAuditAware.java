@@ -20,7 +20,12 @@ public class ApplicationAuditAware implements AuditorAware<UUID> {
 
     @Override
     public Optional<UUID> getCurrentAuditor() {
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication==null){
+            return Optional.of(
+                    UUID.fromString("00000000-0000-0000-0000-000000000000"));
+        }
         if(authentication.getPrincipal() instanceof OAuth2User){
             String email = ((OAuth2User) authentication.getPrincipal()).getAttribute("email");
             return userRepository.findByEmail(email).map(User::getId);

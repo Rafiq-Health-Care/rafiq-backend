@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.UUID;
 
 public interface SpecializationRepository extends JpaRepository<Specialization, UUID> {
+    boolean existsByCode(String code);
 }

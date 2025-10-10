@@ -50,7 +50,8 @@ public class JwtFilter extends OncePerRequestFilter {
     }
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        return false;
+        String path = request.getRequestURI();
+        return path.startsWith("/specialization/");
     }
 
 }

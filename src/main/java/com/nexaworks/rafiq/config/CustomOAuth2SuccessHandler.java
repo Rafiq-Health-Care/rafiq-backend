@@ -70,7 +70,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         if (fullName == null) {
             fullName = "Unknown";
         }
-       Map<String, Object> attributes = Map.of("full-name",fullName, "email", email);
+       Map<String, Object> attributes = Map.of("fullName",fullName, "email", email);
        response.setStatus(HttpServletResponse.SC_OK);
        response.setContentType("application/json");
        new ObjectMapper().writeValue(response.getOutputStream(), attributes);
