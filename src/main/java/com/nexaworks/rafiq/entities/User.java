@@ -88,6 +88,10 @@ public class User extends BaseEntity implements UserDetails, Principal {
     public boolean isAccountNonLocked() {
         return !this.locked;
     }
+    @Override
+    public boolean isEnabled() {
+        return this.enabled;
+    }
 
 
 }

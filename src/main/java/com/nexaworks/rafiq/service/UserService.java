@@ -1,6 +1,8 @@
 package com.nexaworks.rafiq.service;
 
+import com.nexaworks.rafiq.dto.request.DoctorRegistrationRequest;
 import com.nexaworks.rafiq.entities.User;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -10,4 +12,8 @@ public interface UserService {
     public Optional<User> findByEmail(String email);
 
     void changePassword(User user, @NotBlank @Size(min = 8,max = 20) String s);
+
+    void registerPatient(User user);
+
+    void registerDoctor(@Valid DoctorRegistrationRequest request);
 }
