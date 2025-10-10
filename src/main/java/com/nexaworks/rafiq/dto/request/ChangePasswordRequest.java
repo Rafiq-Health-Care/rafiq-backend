@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.dto;
+package com.nexaworks.rafiq.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
