@@ -1,7 +1,5 @@
 package com.nexaworks.rafiq.controller;
 
-import com.nexaworks.rafiq.dto.*;
-
 import com.nexaworks.rafiq.dto.request.*;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.dto.response.VerifyOtpResponse;
