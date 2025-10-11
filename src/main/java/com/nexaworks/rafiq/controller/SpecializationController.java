@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SpecializationController {
     private final SpecializationService specializationService;
-    @GetMapping("/get")
+    @GetMapping
     public ResponseEntity<List<SpecializationResponse>> getSpecializations(){
         return ResponseEntity.ok().body(specializationService.getSpecializations());
     }

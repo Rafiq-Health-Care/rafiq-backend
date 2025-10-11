@@ -8,7 +8,9 @@ import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.entities.Role;
 
 
+import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.enums.TokenType;
 import com.nexaworks.rafiq.exception.RegistrationException;
 import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.repository.UserRepository;
@@ -17,7 +19,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,6 +42,7 @@ public class UserServiceImpl implements UserService {
     private final EmailSenderService emailSenderService;
     private final EmailContentService emailContentService;
     private final JwtService jwtService;
+    private final ImageService imageService;
 
     @Override
     public Optional<User> findByEmail(String email) {
@@ -81,16 +87,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void registerDoctor(DoctorRegistrationRequest request) {
+    public void registerDoctor(DoctorRegistrationRequest request, MultipartFile nationalId) throws IOException {
         User user = UserMapper.toUser(request.user());
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new RegistrationException("User with email " + user.getEmail() + " already exists");
         }
         User doctor = extracted(user);
         userRepository.save(doctor);
+        String nationalIdImage = imageService.uploadFile(nationalId);
         doctor.setRoles(List.of(roleService.getRole(ROLE_USER),roleService.getRole(ROLE_DOCTOR),roleService.getRole(ROLE_PATIENT)));
         doctor.setPatientProfile(patientService.createPatientProfile(doctor));
-        doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization()));
+        doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization(),nationalIdImage));
         generateOtpAndSendEmail(user);
     }
 
@@ -102,6 +109,20 @@ public class UserServiceImpl implements UserService {
      String jwt = jwtService.generateToken(user);
      String refreshToken = tokenService.generateRefreshToken(user);
      return new LoginResponse(user.getRoles().stream().map(Role::getName).toList(),jwt,refreshToken);
+    }
+
+    @Override
+    public void getNewOtp(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(
+                ()->new IllegalArgumentException("User with email " + email + " not found"));
+        Token otpToken = user.getTokens().stream().filter(token ->
+                token.getTokenType().equals(TokenType.OTP)&&
+                token.getExpiryDate().isAfter(Instant.now())).findFirst().orElseThrow(
+                        //todo handle exception
+                ()->new IllegalArgumentException("No OTP token found for user " + email)
+        );
+        otpToken.setExpiryDate(Instant.now());
+        generateOtpAndSendEmail(user);
     }
 
     private void generateOtpAndSendEmail(User user) {

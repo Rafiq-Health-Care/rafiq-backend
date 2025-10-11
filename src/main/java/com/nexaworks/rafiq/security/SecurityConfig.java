@@ -24,6 +24,7 @@ private final JwtFilter jwtFilter;
         http
             .authorizeHttpRequests(auth ->
                     auth.requestMatchers("/auth/login",
+                                    "/user/new-otp",
                                     "/auth/refresh",
                                     "/auth/forget-password",
                                     "/auth/verify",
@@ -32,7 +33,7 @@ private final JwtFilter jwtFilter;
                                     "/user/register/patient",
                                     "/user/verification",
                                     "/error",
-                                    "specialization/**",
+                                    "/specialization/**",
                                     "/v2/api-docs",
                                     "/v3/api-docs",
                                     "/v3/api-docs/**",
@@ -42,7 +43,8 @@ private final JwtFilter jwtFilter;
                                     "/configuration/security",
                                     "/swagger-ui/**",
                                     "/webjars/**",
-                                    "/swagger-ui.html").permitAll()
+                                    "/swagger-ui.html",
+                                    "/favicon.ico").permitAll()
                             .anyRequest().authenticated()
             ).sessionManagement(sc->
                         sc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
