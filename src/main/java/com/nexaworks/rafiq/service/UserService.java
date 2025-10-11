@@ -1,6 +1,6 @@
 package com.nexaworks.rafiq.service;
 
-import com.nexaworks.rafiq.dto.ResetPasswordRequest;
+import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
 
 import com.nexaworks.rafiq.dto.request.DoctorRegistrationRequest;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
