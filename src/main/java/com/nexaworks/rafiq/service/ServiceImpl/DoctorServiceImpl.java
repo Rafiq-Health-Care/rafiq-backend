@@ -18,11 +18,12 @@ public class DoctorServiceImpl implements DoctorService {
     private final DoctorRepository doctorRepository;
     private final SpecializationService specializationService;
     @Override
-    public DoctorProfile createProfile(User doctor, String description, UUID specialization) {
+    public DoctorProfile createProfile(User doctor, String description, UUID specialization,String id) {
         DoctorProfile doctorProfile = new DoctorProfile();
         doctorProfile.setUser(doctor);
         doctorProfile.setDescription(description);
         doctorProfile.setSpecialization(specializationService.getSpecialization(specialization));
+        doctorProfile.setNationalId(id);
         return doctorRepository.save(doctorProfile);
     }
 }
