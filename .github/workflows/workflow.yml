@@ -11,7 +11,6 @@ jobs:
     environment: development
 
     steps:
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -24,11 +23,11 @@ jobs:
       - name: Build JAR with Maven
         run: mvn clean package -DskipTests
 
-      - name: Build Docker image
-        run: docker build -t elbialy/elbialyhealth-tracker:latest .
-
       - name: Log in to Docker Hub
-        run: echo "pass@elbialy.1" | docker login -u "elbialy" --password-stdin
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ vars.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Docker image
+        run: docker build -t "${{ vars.DOCKER_USERNAME }}/rafiq-health-tracker:latest" .
 
       - name: Push Docker image
-        run: docker push elbialy/elbialyhealth-tracker:latest
+        run: docker push "${{ vars.DOCKER_USERNAME }}/rafiq-health-tracker:latest"
