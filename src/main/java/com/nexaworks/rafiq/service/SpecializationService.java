@@ -8,6 +8,10 @@ import java.util.UUID;
 
 public interface SpecializationService {
     Specialization getSpecialization(UUID specialization);
+    
+    Specialization getSpecializationByCode(String code);
 
     List<SpecializationResponse> getSpecializations();
+    
+    List<Specialization> getAllSpecializations();
 }
