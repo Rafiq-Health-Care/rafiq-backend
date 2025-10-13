@@ -15,6 +15,7 @@ import com.nexaworks.rafiq.exception.RegistrationException;
 import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -87,6 +88,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(rollbackOn =  Exception.class)
     public void registerDoctor(DoctorRegistrationRequest request, MultipartFile nationalId) throws IOException {
         User user = UserMapper.toUser(request.user());
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
