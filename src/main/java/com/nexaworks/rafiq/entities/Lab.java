@@ -17,12 +17,9 @@ import java.util.UUID;
 @SuperBuilder
 @Entity
 public class Lab extends BaseEntity{
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-    private String name;
-//    @OneToMany(mappedBy = "lab")
-//    private List<Address> addresses;
-//    @OneToMany(mappedBy = "lab")
-//    private List<LabTest>  tests;
+
+    @OneToMany(mappedBy = "lab")
+    private List<Address> addresses;
+    @OneToMany(mappedBy = "lab")
+    private List<LabTest>  tests;
 }

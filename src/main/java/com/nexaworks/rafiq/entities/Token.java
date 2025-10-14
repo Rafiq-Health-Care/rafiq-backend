@@ -18,9 +18,7 @@ import java.util.UUID;
 @SuperBuilder
 @Entity
 public class Token  extends BaseEntity{
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+
     private String token;
     @Enumerated(EnumType.STRING)
     private TokenType tokenType;

@@ -19,9 +19,6 @@ import java.util.UUID;
 @SuperBuilder
 @Entity
 public class DoctorProfile extends BaseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
     private String description;
     private String hospitalName;
     private String personalPhoto;

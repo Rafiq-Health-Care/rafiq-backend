@@ -17,9 +17,7 @@ import java.util.UUID;
 @SuperBuilder
 @Entity
 public class PatientProfile  extends BaseEntity{
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+
     private String description;
 
     @OneToOne(mappedBy = "patientProfile")

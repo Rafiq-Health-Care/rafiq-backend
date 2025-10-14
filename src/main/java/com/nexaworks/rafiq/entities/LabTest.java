@@ -19,9 +19,6 @@ import java.util.UUID;
 @SuperBuilder
 @Entity
 public class LabTest extends BaseEntity{
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
 
 
 }

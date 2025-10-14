@@ -14,9 +14,6 @@ import java.util.UUID;
 @SuperBuilder
 @Entity
 public class Address extends BaseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
     private String street;
     private String city;
     private String state;
