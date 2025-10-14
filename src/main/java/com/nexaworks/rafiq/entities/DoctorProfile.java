@@ -34,6 +34,9 @@ public class DoctorProfile extends BaseEntity {
     private List<MedicalCertifications> medicalCertifications;
     @OneToMany(mappedBy = "doctor")
     private List<LabTest> labTests;
+    @OneToOne
+    @JoinColumn(name = "social_links_id")
+    private SocialLinks socialLinks;
 
 
 

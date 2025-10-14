@@ -23,4 +23,7 @@ public class Lab extends BaseEntity{
     @OneToMany(mappedBy = "lab")
     private List<LabTest>  tests;
     private String logo;
+    @OneToOne
+    @JoinColumn(name = "social_links_id")
+    private SocialLinks socialLinks;
 }
