@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * Global Exception Handler that coordinates all exception handling.
@@ -82,5 +83,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SpecializationValidationException.class)
     public ResponseEntity<ErrorResponse> handleSpecializationValidationException(SpecializationValidationException ex, WebRequest request) {
         return specializationHandler.handleSpecializationValidationException(ex, request);
+    }
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFoundException(NoResourceFoundException exception){
+        return ResponseEntity.notFound().build();
     }
 }

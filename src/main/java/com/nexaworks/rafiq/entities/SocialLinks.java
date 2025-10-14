@@ -15,7 +15,7 @@ import java.net.URL;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@MappedSuperclass
+
 @SuperBuilder
 @Entity
 public abstract class SocialLinks extends BaseEntity{
@@ -26,8 +26,8 @@ public abstract class SocialLinks extends BaseEntity{
     private String youtube;
     private String whatsapp;
     private String website;
-    @OneToOne
+    @OneToOne(mappedBy = "socialLinks")
     private DoctorProfile doctorProfile;
-    @OneToOne
+    @OneToOne(mappedBy = "socialLinks")
     private Lab lab;
 }

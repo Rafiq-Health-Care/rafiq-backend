@@ -35,7 +35,7 @@ public class DoctorProfile extends BaseEntity {
     @OneToMany(mappedBy = "doctor")
     private List<LabTest> labTests;
     @OneToOne
-    @JoinColumn(name = "social_links_id")
+    @JoinColumn(name = "social_links_id",referencedColumnName = "id")
     private SocialLinks socialLinks;
     private String publicId;
 
