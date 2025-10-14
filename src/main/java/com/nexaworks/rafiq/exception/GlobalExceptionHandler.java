@@ -3,9 +3,6 @@ package com.nexaworks.rafiq.exception;
 import com.nexaworks.rafiq.dto.response.ErrorResponse;
 import com.nexaworks.rafiq.dto.response.ValidationErrorResponse;
 import com.nexaworks.rafiq.exception.handler.*;
-import com.nexaworks.rafiq.exception.SpecializationNotFoundException;
-import com.nexaworks.rafiq.exception.SpecializationAlreadyExistsException;
-import com.nexaworks.rafiq.exception.SpecializationValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -22,7 +19,7 @@ import org.springframework.web.context.request.WebRequest;
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
-    
+
     private final RegistrationExceptionHandler registrationHandler;
     private final UserNotFoundExceptionHandler userNotFoundHandler;
     private final ValidationExceptionHandler validationHandler;

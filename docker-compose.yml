@@ -15,36 +15,36 @@ services:
     networks:
       - rafiq-network
 
-#  spring:
-#    image: rafiqhealthcare/rafiq-api:2.0
-#    container_name: rafiq-api
-#    ports:
-#      - "8032:8032"
-#    depends_on:
-#      - postgres
-#      - mail-dev
-#    environment:
-#      # Database config
-#      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/rafiq
-#      SPRING_DATASOURCE_USERNAME: postgres
-#      SPRING_DATASOURCE_PASSWORD: root
-#
-#      # Mail config (use MailDev)
-#      MAIL_HOST: mail-dev
-#      MAIL_PORT: 1025
-#      MAIL_USERNAME: bialy
-#      MAIL_PASSWORD: bialy
-#      MAIL_PROTOCOL: smtp
-#      MAIL_SMTP_AUTH: "true"
-#      MAIL_SMTP_STARTTLS_ENABLE: "true"
-#      MAIL_SMTP_STARTTLS_REQUIRE: "true"
-#      MAIL_SMTP_CONNECTION_TIMEOUT: 5000
-#      MAIL_SMTP_TIMEOUT: 3000
-#      MAIL_SMTP_WRITE_TIMEOUT: 5000
-#      MAIL_SMTP_TRUST: "*"
-#    networks:
-#      - rafiq-network
-#    restart: always
+  spring:
+    image: rafiqhealthcare/rafiq-api:2.0
+    container_name: rafiq-api
+    ports:
+      - "8032:8032"
+    depends_on:
+      - postgres
+      - mail-dev
+    environment:
+      # Database config
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/rafiq
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: root
+
+      # Mail config (use MailDev)
+      MAIL_HOST: mail-dev
+      MAIL_PORT: 1025
+      MAIL_USERNAME: bialy
+      MAIL_PASSWORD: bialy
+      MAIL_PROTOCOL: smtp
+      MAIL_SMTP_AUTH: "true"
+      MAIL_SMTP_STARTTLS_ENABLE: "true"
+      MAIL_SMTP_STARTTLS_REQUIRE: "true"
+      MAIL_SMTP_CONNECTION_TIMEOUT: 5000
+      MAIL_SMTP_TIMEOUT: 3000
+      MAIL_SMTP_WRITE_TIMEOUT: 5000
+      MAIL_SMTP_TRUST: "*"
+    networks:
+      - rafiq-network
+    restart: always
 
   adminer:
     image: adminer:latest
