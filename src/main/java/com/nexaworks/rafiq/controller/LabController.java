@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/labs")
@@ -38,5 +39,16 @@ public class LabController {
                                                                 @RequestParam(value= "direction",defaultValue = "asc")String direction){
         return ResponseEntity.ok().body(pageMapper.mapToLabPage(labService.getAll(page,size,sort,direction)));
 
+    }
+    @PutMapping("/{lab-id}")
+    public ResponseEntity<Void> updateLab(@RequestPart("lab") @Valid AddLabRequest request,
+                                          @RequestPart("logo") MultipartFile file){
+        labService.updateLab(request.name(),addressMapper.toEntity(request.addresses()),file);
+        return ResponseEntity.ok().build();
+    }
+    @DeleteMapping("/{lab-id}")
+    public ResponseEntity<Void> updateLab(@PathVariable("lab-id") UUID labId){
+        labService.deleteLab(labId);
+        return ResponseEntity.ok().build();
     }
 }

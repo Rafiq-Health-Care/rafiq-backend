@@ -37,6 +37,7 @@ public class DoctorProfile extends BaseEntity {
     @OneToOne
     @JoinColumn(name = "social_links_id")
     private SocialLinks socialLinks;
+    private String publicId;
 
 
 

@@ -8,9 +8,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 public interface LabService {
     void addLab(@NotBlank String name, List<Address> entity, MultipartFile file) throws IOException;
 
     Page<Lab> getAll(int page, int size, String sort, String direction);
+
+    void deleteLab(UUID labId);
+
+    void updateLab(@NotBlank String name, List<Address> entity, MultipartFile file);
 }

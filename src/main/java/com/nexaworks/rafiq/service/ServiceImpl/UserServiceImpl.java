@@ -96,10 +96,10 @@ public class UserServiceImpl implements UserService {
         }
         User doctor = extracted(user);
         userRepository.save(doctor);
-        String nationalIdImage = imageService.uploadFile(nationalId);
+       List<String > nationalIdImage = imageService.uploadFile(nationalId);
         doctor.setRoles(List.of(roleService.getRole(ROLE_USER),roleService.getRole(ROLE_DOCTOR),roleService.getRole(ROLE_PATIENT)));
         doctor.setPatientProfile(patientService.createPatientProfile(doctor));
-        doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization(),nationalIdImage));
+        doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization(),nationalIdImage.get(0),nationalIdImage.get(1)));
         generateOtpAndSendEmail(user);
     }
 

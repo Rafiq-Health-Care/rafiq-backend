@@ -18,12 +18,13 @@ import java.util.UUID;
 @Entity
 public class Lab extends BaseEntity{
     private String name;
-    @OneToMany(mappedBy = "lab")
+    @OneToMany(mappedBy = "lab",cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Address> addresses;
     @OneToMany(mappedBy = "lab")
     private List<LabTest>  tests;
     private String logo;
-    @OneToOne
-    @JoinColumn(name = "social_links_id")
+    private String publicId;
+    @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JoinColumn(name = "social_links_id" , referencedColumnName = "id")
     private SocialLinks socialLinks;
 }
