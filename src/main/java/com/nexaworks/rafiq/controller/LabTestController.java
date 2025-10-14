@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.controller;
 
+import com.nexaworks.rafiq.dto.request.TestResultRequest;
 import com.nexaworks.rafiq.service.PdfExtractorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

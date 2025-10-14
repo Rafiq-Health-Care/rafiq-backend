@@ -41,19 +41,32 @@ public class PdfExtractorServiceImpl implements PdfExtractorService {
             }
           String json  = Objects.requireNonNull(chatClient.prompt()
                     .user("You are an expert medical data extractor. Your task is to process the following medical lab report text.\n" +
-                            "\n" + text +
+                            "\n" +
+                            "\" "+ text +
+                            "\n" +
                             "**Strictly adhere to these rules:**\n" +
-                            "1.  Identify all distinct **medical lab test names**, their associated **numerical results**, and the **units** of measure.\n" +
-                            "2.  Ignore reference intervals, methodologies, interpretations, doctor names, patient demographics, and report metadata.\n" +
-                            "3.  For tests that report an abnormal status (e.g., 'H' for High, 'L' for Low, or 'Non Reactive') only include the numerical result and unit if present. If the result is a non-numerical status (e.g., \"Non Reactive\"), use the status as the result, and if no unit is available, use an empty string for the unit.\n" +
-                            "4.  For calculated ratios (e.g., CHOL/HDL Ratio), use the calculated numerical value as the result.\n" +
-                            "5.  Return the output as a single, valid JSON array, strictly conforming to the provided format.\n" +
+                            "\n" +
+                            "1. Identify all distinct **medical lab test names**, their associated **numerical results**, the **units** of measure, and their **status**.\n" +
+                            "2. Ignore reference intervals, methodologies, interpretations, doctor names, patient demographics, and report metadata.\n" +
+                            "3. For tests that explicitly mention an abnormal status (e.g., 'H' for High, 'L' for Low, 'A' for Abnormal, or 'Non Reactive'):\n" +
+                            "   - Use the provided status directly.\n" +
+                            "   - If the result is non-numerical (e.g., 'Non Reactive', 'Positive', 'Negative'), set `\"result\"` to that text and `\"unit\"` to an empty string.\n" +
+                            "4. For tests **without an explicit status**, infer it automatically using **standard adult reference ranges**:\n" +
+                            "   - `\"H\"` → High (above normal range)\n" +
+                            "   - `\"L\"` → Low (below normal range)\n" +
+                            "   - `\"N\"` → Normal (within range)\n" +
+                            "   - `\"Unknown\"` → if the range cannot be inferred\n" +
+                            "5. For calculated ratios (e.g., CHOL/HDL Ratio), include the calculated value and infer `\"status\"` if possible.\n" +
+                            "6. Return the output as **one valid JSON object** following the exact structure below — no text or explanations, just the JSON.\n" +
                             "\n" +
                             "**Required JSON Format (Exact Structure):**\n" +
-                            "*{ tests= {" +
-                            "    {\"testName\": \"Hemoglobin\", \"result\": \"13.5\", \"unit\": \"g/dL\"},\n" +
-                            "    {\"testName\": \"Ferritin\", \"result\": \"20\", \"unit\": \"µg/L\"}\n" +
-                            " }}@")
+                            "{\n" +
+                            "  \"tests\": [\n" +
+                            "    {\"testName\": \"Hemoglobin\", \"result\": \"13.5\", \"unit\": \"g/dL\", \"status\": \"N\"},\n" +
+                            "    {\"testName\": \"Ferritin\", \"result\": \"20\", \"unit\": \"µg/L\", \"status\": \"L\"},\n" +
+                            "    {\"testName\": \"HIV\", \"result\": \"Non Reactive\", \"unit\": \"\", \"status\": \"Non Reactive\"}\n" +
+                            "  ]\n" +
+                            "}\n")
                     .call()
                     .chatResponse()).getResult()
                    .getOutput().getText();
