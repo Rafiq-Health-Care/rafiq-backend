@@ -23,6 +23,9 @@ public class Address extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "user_id",nullable = false)
     private User user;
+    @ManyToOne
+    @JoinColumn(name = "lab_id")
+    private Lab lab;
 
 
 

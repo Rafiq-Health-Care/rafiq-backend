@@ -32,6 +32,8 @@ public class DoctorProfile extends BaseEntity {
 
     @OneToMany(mappedBy = "doctor",cascade = CascadeType.REMOVE)
     private List<MedicalCertifications> medicalCertifications;
+    @OneToMany(mappedBy = "doctor")
+    private List<LabTest> labTests;
 
 
 

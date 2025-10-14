@@ -25,8 +25,8 @@ public class LabResult extends BaseEntity {
     private Status status;
     private String description;
     private String normalResult;
-//    @ManyToOne
-//    @JoinColumn(name = "lab_test_id")
-//    private LabTest labTest;
+    @ManyToOne
+    @JoinColumn(name = "lab_test_id")
+    private LabTest labTest;
 
 }

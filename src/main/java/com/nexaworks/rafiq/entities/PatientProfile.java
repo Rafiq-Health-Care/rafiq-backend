@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -22,4 +23,6 @@ public class PatientProfile  extends BaseEntity{
 
     @OneToOne(mappedBy = "patientProfile")
     private User user;
+    @OneToMany(mappedBy = "patient")
+    private List<LabTest> labTests;
 }

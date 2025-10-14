@@ -17,7 +17,7 @@ import java.util.UUID;
 @SuperBuilder
 @Entity
 public class Lab extends BaseEntity{
-
+    private String name;
     @OneToMany(mappedBy = "lab")
     private List<Address> addresses;
     @OneToMany(mappedBy = "lab")
