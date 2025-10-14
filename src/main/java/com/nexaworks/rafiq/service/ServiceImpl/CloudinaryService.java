@@ -20,25 +20,8 @@ public class CloudinaryService implements ImageService {
     public String uploadFile(MultipartFile file) throws IOException {
 
             return  cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap())
-                    .get("public_id").toString();
+                    .get("secure_url").toString();
     }
 
-    public String generateSignedUrl(String publicId) {
-        long timestamp = System.currentTimeMillis() / 1000L;
 
-        Map<String, Object> params = ObjectUtils.asMap(
-                "public_id", publicId,
-                "timestamp", timestamp,
-                "resource_type", "image"
-        );
-
-        String signature = cloudinary.apiSignRequest(params, (String) cloudinary.config.apiSecret);
-
-        return String.format(
-                "https://res.cloudinary.com/%s/image/upload/s--%s--/%s.jpg",
-                cloudinary.config.cloudName,
-                signature,
-                publicId
-        );
-    }
 }

@@ -22,4 +22,5 @@ public class Lab extends BaseEntity{
     private List<Address> addresses;
     @OneToMany(mappedBy = "lab")
     private List<LabTest>  tests;
+    private String logo;
 }
