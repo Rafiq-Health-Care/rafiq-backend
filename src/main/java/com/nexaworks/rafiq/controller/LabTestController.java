@@ -1,6 +1,8 @@
 package com.nexaworks.rafiq.controller;
 
 import com.nexaworks.rafiq.dto.request.TestResultRequest;
+import com.nexaworks.rafiq.dto.response.PageResponse;
+import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.mapper.ResultMapper;
 import com.nexaworks.rafiq.service.LabTestService;
 import com.nexaworks.rafiq.service.PdfExtractorService;
@@ -18,6 +20,7 @@ public class LabTestController {
     private final PdfExtractorService  pdfExtractorService;
     private final LabTestService labTestService;
     private final ResultMapper resultMapper;
+    private final PageMapper pageMapper;
 
     @PostMapping(
             value = "/upload",
@@ -33,5 +36,15 @@ public class LabTestController {
 
         labTestService.addTest(testResultRequest, resultMapper.toEntity(testResultRequest.tests()));
         return ResponseEntity.ok().build();
+    }
+    @GetMapping
+    public ResponseEntity<PageResponse<TestResultRequest>> getAllTests(
+            @RequestParam(value= "page",defaultValue = "0")int page,
+            @RequestParam(value= "size",defaultValue = "10")int size,
+            @RequestParam(value= "sort",defaultValue = "name")String sort,
+            @RequestParam(value= "direction",defaultValue = "asc")String direction
+    ){
+        return ResponseEntity.ok().body(pageMapper.mapToTestResponse(labTestService.getAll(page,
+                size,sort,direction)));
     }
 }

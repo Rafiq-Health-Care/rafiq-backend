@@ -10,13 +10,16 @@ import com.nexaworks.rafiq.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -39,8 +42,18 @@ public class LabTestServiceImpl implements LabTestService {
         lab = labService.save(lab);
         patient.getLabTests().add(labTest);
         labTest.setLab(lab);
+        labTest.setDate(testResultRequest.date()==null? Instant.now(): testResultRequest.date().toInstant());
         labTestRepository.save(labTest);
         entity.forEach(e -> e.setLabTest(labTest));
         labResultService.saveAll(entity);
+    }
+
+    @Override
+    public Page<LabTest> getAll(int page, int size, String sort, String direction) {
+        Sort sorting = Sort.by(Sort.Direction
+                .fromString(direction.equalsIgnoreCase("desc")?"desc":"asc"), sort);
+        Pageable pageable = PageRequest.of(page, size, sorting);
+        PatientProfile patient = userService.getUser().getPatientProfile();
+        return labTestRepository.findAllByPatientId(patient.getId(),pageable);
     }
 }
