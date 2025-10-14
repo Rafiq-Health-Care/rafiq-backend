@@ -7,4 +7,7 @@ import java.util.List;
 
 public interface LabResultService {
    List<LabResult> saveAll(List<LabResult> entity);
+
+    void deleteAll(List<LabResult> labResults);
+
 }

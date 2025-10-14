@@ -19,4 +19,11 @@ public class LabResultServiceImpl implements LabResultService {
     public List<LabResult> saveAll(List<LabResult> entity ) {
         return labResultRepository.saveAll(entity);
     }
+
+    @Override
+    public void deleteAll(List<LabResult> labResults) {
+        labResultRepository.deleteAll(labResults);
+    }
+
+
 }
