@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 
 @Service
@@ -55,5 +56,16 @@ public class LabTestServiceImpl implements LabTestService {
         Pageable pageable = PageRequest.of(page, size, sorting);
         PatientProfile patient = userService.getUser().getPatientProfile();
         return labTestRepository.findAllByPatientId(patient.getId(),pageable);
+    }
+
+    @Override
+    public LabTest getTest(UUID testId) {
+        LabTest test = labTestRepository.findById(testId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Test Id"));
+        PatientProfile patient = userService.getUser().getPatientProfile();
+        if (!test.getPatient().getId().equals(patient.getId())) {
+            throw new IllegalArgumentException("Invalid Test Id");
+        }
+        return test;
     }
 }

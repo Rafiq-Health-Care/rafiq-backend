@@ -4,6 +4,7 @@ import com.nexaworks.rafiq.dto.request.TestResultRequest;
 import com.nexaworks.rafiq.dto.response.PageResponse;
 import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.mapper.ResultMapper;
+import com.nexaworks.rafiq.mapper.TestMapper;
 import com.nexaworks.rafiq.service.LabTestService;
 import com.nexaworks.rafiq.service.PdfExtractorService;
 import jakarta.validation.Valid;
@@ -13,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/lab-test")
 @RequiredArgsConstructor
@@ -21,6 +24,7 @@ public class LabTestController {
     private final LabTestService labTestService;
     private final ResultMapper resultMapper;
     private final PageMapper pageMapper;
+    private final TestMapper testMapper;
 
     @PostMapping(
             value = "/upload",
@@ -46,5 +50,9 @@ public class LabTestController {
     ){
         return ResponseEntity.ok().body(pageMapper.mapToTestResponse(labTestService.getAll(page,
                 size,sort,direction)));
+    }
+    @GetMapping("/{test-id}")
+    public ResponseEntity<TestResultRequest> getTest(@PathVariable("test-id") UUID testId){
+        return ResponseEntity.ok().body(testMapper.mapToTestResponse(labTestService.getTest(testId)));
     }
 }
