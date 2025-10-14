@@ -17,5 +17,5 @@ public interface LabService {
 
     void deleteLab(UUID labId);
 
-    void updateLab(@NotBlank String name, List<Address> entity, MultipartFile file);
+    void updateLab(@NotBlank String name, List<Address> entity, MultipartFile file,UUID labId) throws IOException;
 }

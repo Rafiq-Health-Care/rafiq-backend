@@ -42,8 +42,9 @@ public class LabController {
     }
     @PutMapping("/{lab-id}")
     public ResponseEntity<Void> updateLab(@RequestPart("lab") @Valid AddLabRequest request,
-                                          @RequestPart("logo") MultipartFile file){
-        labService.updateLab(request.name(),addressMapper.toEntity(request.addresses()),file);
+                                          @RequestPart("logo") MultipartFile file,
+                                          @PathVariable("lab-id") UUID labId) throws IOException {
+        labService.updateLab(request.name(),addressMapper.toEntity(request.addresses()),file,labId);
         return ResponseEntity.ok().build();
     }
     @DeleteMapping("/{lab-id}")

@@ -64,7 +64,18 @@ public class LabServiceImpl implements LabService {
     }
 
     @Override
-    public void updateLab(String name, List<Address> entity, MultipartFile file) {
-
+    @Transactional
+    public void updateLab(String name, List<Address> entity, MultipartFile file, UUID labId) throws IOException {
+        // todo handle exception
+        Lab lab = labRepository.findById(labId)
+                .orElseThrow(()->new IllegalArgumentException("Invalid Lab Id"));
+        imageService.delete(lab.getPublicId());
+        List<String > result = imageService.uploadFile(file);
+        lab.setLogo(result.get(0));
+        lab.setPublicId(result.get(1));
+        lab.setName(name);
+        addressService.deleteAll(lab.getAddresses());
+        lab.setAddresses(addressService.saveAll(entity));
+        labRepository.save(lab);
     }
 }
