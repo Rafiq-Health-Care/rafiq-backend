@@ -9,6 +9,11 @@ import com.nexaworks.rafiq.service.LabService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,5 +39,13 @@ public class LabServiceImpl implements LabService {
         String logo = imageService.uploadFile(file);
         lab.setLogo(logo);
         labRepository.save(lab);
+    }
+
+    @Override
+    public Page<Lab> getAll(int page, int size, String sort, String direction) {
+        Sort sorting = Sort.by(Sort.Direction
+                .fromString(direction.equalsIgnoreCase("desc")?"desc":"asc"), sort);
+        Pageable pageable = PageRequest.of(page, size, sorting);
+        return labRepository.findAll(pageable);
     }
 }

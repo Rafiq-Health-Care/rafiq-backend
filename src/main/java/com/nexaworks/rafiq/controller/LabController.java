@@ -1,7 +1,10 @@
 package com.nexaworks.rafiq.controller;
 
 import com.nexaworks.rafiq.dto.request.AddLabRequest;
+import com.nexaworks.rafiq.dto.response.LabResponse;
+import com.nexaworks.rafiq.dto.response.PageResponse;
 import com.nexaworks.rafiq.mapper.AddressMapper;
+import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.service.LabService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,15 +22,21 @@ import java.io.IOException;
 public class LabController {
     private final LabService labService;
     private final AddressMapper addressMapper;
+    private final PageMapper pageMapper;
 
     @PostMapping(value = "/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> addLab(@RequestPart("lab") @Valid AddLabRequest request,
-                                       @RequestPart("logo")MultipartFile file) throws IOException {
-        labService.addLab(request.name(),addressMapper.toEntity(request.addresses()),file);
+                                       @RequestPart("logo") MultipartFile file) throws IOException {
+        labService.addLab(request.name(), addressMapper.toEntity(request.addresses()), file);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
-//    @GetMapping
-//    public ResponseEntity<> getAllLabs(){
 
+    @GetMapping
+    public ResponseEntity<PageResponse<LabResponse>> getAllLabs(@RequestParam(value= "page",defaultValue = "0")int page,
+                                                                @RequestParam(value= "size",defaultValue = "10")int size,
+                                                                @RequestParam(value= "sort",defaultValue = "name")String sort,
+                                                                @RequestParam(value= "direction",defaultValue = "asc")String direction){
+        return ResponseEntity.ok().body(pageMapper.mapToLabPage(labService.getAll(page,size,sort,direction)));
 
+    }
 }
