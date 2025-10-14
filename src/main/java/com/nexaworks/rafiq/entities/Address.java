@@ -21,7 +21,7 @@ public class Address extends BaseEntity {
     private String postalCode;
 
     @ManyToOne
-    @JoinColumn(name = "user_id",nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
     @ManyToOne
     @JoinColumn(name = "lab_id")

@@ -34,9 +34,10 @@ public class LabServiceImpl implements LabService {
     @Override
     @Transactional
     public void addLab(String name, List<Address> entity, MultipartFile file) throws IOException {
-        List<Address> addresses = addressService.saveAll(entity);
         Lab lab = new Lab();
         lab.setName(name);
+        entity.forEach(address -> address.setLab(lab));
+        List<Address> addresses = addressService.saveAll(entity);
         lab.setAddresses(addresses);
         List<String > logo = imageService.uploadFile(file);
         lab.setLogo(logo.get(0));
