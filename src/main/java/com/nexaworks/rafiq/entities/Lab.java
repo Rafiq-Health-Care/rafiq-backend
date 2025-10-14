@@ -24,7 +24,7 @@ public class Lab extends BaseEntity{
     private List<LabTest>  tests;
     private String logo;
     private String publicId;
-    @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "social_links_id" , referencedColumnName = "id")
     private SocialLinks socialLinks;
 }

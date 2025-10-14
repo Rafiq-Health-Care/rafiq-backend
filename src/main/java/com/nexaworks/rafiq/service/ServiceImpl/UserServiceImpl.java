@@ -12,12 +12,14 @@ import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.TokenType;
 import com.nexaworks.rafiq.exception.RegistrationException;
+import com.nexaworks.rafiq.exception.UserNotFoundException;
 import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -125,6 +127,16 @@ public class UserServiceImpl implements UserService {
         );
         otpToken.setExpiryDate(Instant.now());
         generateOtpAndSendEmail(user);
+    }
+
+    @Override
+    public User getUser() {
+        User user = userRepository.findByEmail(
+                SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString()
+        ).orElseThrow(()->
+                new UserNotFoundException("User not found"));
+        log.info("User found {}",user.getEmail());
+        return user;
     }
 
     private void generateOtpAndSendEmail(User user) {

@@ -31,7 +31,7 @@ public class ApplicationAuditAware implements AuditorAware<UUID> {
             return userRepository.findByEmail(email).map(User::getId);
         }
         if( authentication.isAuthenticated()&&!authentication.getName().equals("anonymousUser")){
-            User user = (User) authentication.getPrincipal();
+            User user = userRepository.findByEmail(authentication.getPrincipal().toString()).get();
             return Optional.of(user.getId());
         }
         return Optional.of(

@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -36,13 +37,12 @@ public class LabServiceImpl implements LabService {
     public void addLab(String name, List<Address> entity, MultipartFile file) throws IOException {
         Lab lab = new Lab();
         lab.setName(name);
-        entity.forEach(address -> address.setLab(lab));
-        List<Address> addresses = addressService.saveAll(entity);
-        lab.setAddresses(addresses);
-        List<String > logo = imageService.uploadFile(file);
-        lab.setLogo(logo.get(0));
-        lab.setPublicId(logo.get(1));
+        List<String > result = imageService.uploadFile(file);
+        lab.setLogo(result.get(0));
+        lab.setPublicId(result.get(1));
         labRepository.save(lab);
+        entity.forEach(e -> e.setLab(lab));
+        addressService.saveAll(entity);
     }
 
     @Override
@@ -78,5 +78,15 @@ public class LabServiceImpl implements LabService {
         addressService.deleteAll(lab.getAddresses());
         lab.setAddresses(addressService.saveAll(entity));
         labRepository.save(lab);
+    }
+
+    @Override
+    public Optional<Lab> getLabById(UUID id) {
+        return labRepository.findById(id);
+    }
+
+    @Override
+    public Lab save(Lab lab) {
+        return labRepository.save(lab);
     }
 }

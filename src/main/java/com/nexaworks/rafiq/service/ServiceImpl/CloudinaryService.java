@@ -22,7 +22,7 @@ public class CloudinaryService implements ImageService {
     public List<String> uploadFile(MultipartFile file) throws IOException {
 
 
-            Map result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+            Map<String ,Object> result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
             return List.of( result.get("secure_url").toString(),result.get("public_id").toString());
     }
 

@@ -1,6 +1,8 @@
 package com.nexaworks.rafiq.controller;
 
 import com.nexaworks.rafiq.dto.request.TestResultRequest;
+import com.nexaworks.rafiq.mapper.ResultMapper;
+import com.nexaworks.rafiq.service.LabTestService;
 import com.nexaworks.rafiq.service.PdfExtractorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class LabTestController {
     private final PdfExtractorService  pdfExtractorService;
+    private final LabTestService labTestService;
+    private final ResultMapper resultMapper;
 
     @PostMapping(
             value = "/upload",
@@ -26,6 +30,8 @@ public class LabTestController {
     }
     @PostMapping("/test-results")
     public ResponseEntity<Void> testResults(@RequestBody @Valid TestResultRequest testResultRequest){
+
+        labTestService.addTest(testResultRequest, resultMapper.toEntity(testResultRequest.tests()));
         return ResponseEntity.ok().build();
     }
 }

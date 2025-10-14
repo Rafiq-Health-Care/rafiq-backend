@@ -18,7 +18,7 @@ import java.net.URL;
 
 @SuperBuilder
 @Entity
-public abstract class SocialLinks extends BaseEntity{
+public class SocialLinks extends BaseEntity{
     private String facebook;
     private String twitter;
     private String instagram;
