@@ -55,4 +55,19 @@ public class LabTestController {
     public ResponseEntity<TestResultRequest> getTest(@PathVariable("test-id") UUID testId){
         return ResponseEntity.ok().body(testMapper.mapToTestResponse(labTestService.getTest(testId)));
     }
+    @DeleteMapping("/{test-id}")
+    public ResponseEntity<Void> deleteTest(@PathVariable("test-id")UUID testId){
+        labTestService.deleteTest(testId);
+        return ResponseEntity.ok().build();
+    }
+    @DeleteMapping
+    public ResponseEntity<Integer> deleteAllTests(){
+        return ResponseEntity.ok().body(labTestService.deleteAll());
+    }
+    @PutMapping("/update/{test-id}")
+    public ResponseEntity<Void> updateTest(@RequestBody @Valid TestResultRequest testResultRequest,
+                                           @PathVariable("test-id") UUID testId){
+        labTestService.update(testId,testResultRequest,resultMapper.toEntity(testResultRequest.tests()));
+        return ResponseEntity.ok().build();
+    }
 }

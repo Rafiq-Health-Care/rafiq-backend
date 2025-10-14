@@ -15,4 +15,10 @@ public interface LabTestService {
     Page<LabTest> getAll(int page, int size, String sort, String direction);
 
     LabTest getTest(UUID testId);
+
+    void deleteTest(UUID testId);
+
+    Integer deleteAll();
+
+    void update(UUID testId, @Valid TestResultRequest testResultRequest, List<LabResult> entity);
 }

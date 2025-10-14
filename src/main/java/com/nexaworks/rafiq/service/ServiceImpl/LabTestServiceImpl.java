@@ -68,4 +68,30 @@ public class LabTestServiceImpl implements LabTestService {
         }
         return test;
     }
+
+    @Override
+    public void deleteTest(UUID testId) {
+        LabTest test = labTestRepository.findById(testId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Test Id"));
+        PatientProfile patient = userService.getUser().getPatientProfile();
+        if (!test.getPatient().getId().equals(patient.getId())) {
+            throw new IllegalArgumentException("Invalid Test Id");
+        }
+        test.getLab().getTests().remove(test);
+        labTestRepository.delete(test);
+    }
+
+    @Override
+    public Integer deleteAll() {
+        PatientProfile patient = userService.getUser().getPatientProfile();
+        List<LabTest> tests = patient.getLabTests();
+        int size = tests.size();
+        labTestRepository.deleteAll(tests);
+        return size;
+    }
+
+    @Override
+    public void update(UUID testId, TestResultRequest testResultRequest, List<LabResult> entity) {
+
+    }
 }
