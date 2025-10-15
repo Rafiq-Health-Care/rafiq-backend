@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -17,28 +19,36 @@ public class CloudinaryService implements ImageService {
         this.cloudinary = cloudinary;
     }
 
-    public String uploadFile(MultipartFile file) throws IOException {
+    public List<String> uploadFile(MultipartFile file) throws IOException {
 
-            return  cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap())
-                    .get("public_id").toString();
+
+            Map<String ,Object> result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+            return List.of( result.get("secure_url").toString(),result.get("public_id").toString());
     }
 
-    public String generateSignedUrl(String publicId) {
-        long timestamp = System.currentTimeMillis() / 1000L;
+    @Override
+    public void delete(String publicId) {
+        try {
+            cloudinary.uploader().destroy(publicId, Collections.emptyMap());
+        }catch (Exception e){
+            throw new RuntimeException(e.getMessage());
+        }
 
-        Map<String, Object> params = ObjectUtils.asMap(
-                "public_id", publicId,
-                "timestamp", timestamp,
-                "resource_type", "image"
-        );
-
-        String signature = cloudinary.apiSignRequest(params, (String) cloudinary.config.apiSecret);
-
-        return String.format(
-                "https://res.cloudinary.com/%s/image/upload/s--%s--/%s.jpg",
-                cloudinary.config.cloudName,
-                signature,
-                publicId
-        );
     }
+
+    @Override
+    public List<String> uploadPdf(MultipartFile file) throws IOException {
+        Map<String ,Object> map =
+                cloudinary.uploader().upload(
+                        file.getBytes(),
+                        ObjectUtils.asMap(
+                                "resource_type", "auto",
+                                "folder", "pdf"
+                        )
+                );
+        return List.of(map.get("secure_url").toString(),map.get("public_id").toString());
+
+    }
+
+
 }

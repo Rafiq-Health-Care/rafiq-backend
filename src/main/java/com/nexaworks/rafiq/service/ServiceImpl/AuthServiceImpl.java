@@ -38,25 +38,28 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void forgetPassword(ForgetPasswordRequest forgetPasswordRequest) {
         String email = forgetPasswordRequest.email();
-        User user = userRepository.findByEmail(email)
+        User user = userService.findByEmail(email)
                 .orElseThrow(()->new UserNotFoundException("User with email " + email + " not found"));
         String otp = tokenService.generateOtpToken(user);
         log.info("Generated OTP {}",otp);
-        // todo send otp to user via email
         Map<String,Object> model = emailContentService.createOtpEmail(otp,user.getName(),URL);
         emailSenderService.sendEmail(model,email,SUBJECT,FORGET_PASSWORD_TEMPLATE);
     }
 
     @Override
     public VerifyOtpResponse verifyOtp(VerifyOtpRequest verifyOtpRequest) {
+        validateToken(verifyOtpRequest);
+        String accessToken = tokenService.generateAccessToken
+                (userService.findByEmail(verifyOtpRequest.email()));
+        return new VerifyOtpResponse(accessToken);
+    }
+
+    private void validateToken(VerifyOtpRequest verifyOtpRequest) {
         Token otp = tokenService.getToken(verifyOtpRequest.otp());
         if (!otp.getUser().getEmail().equals(verifyOtpRequest.email())
                 ||otp.getExpiryDate().isBefore(Instant.now())) {
             throw new IllegalArgumentException("Invalid OTP");
         }
-        String accessToken = tokenService.generateAccessToken
-                (userService.findByEmail(verifyOtpRequest.email()));
-        return new VerifyOtpResponse(accessToken);
     }
 
     @Override
@@ -81,6 +84,7 @@ public class AuthServiceImpl implements AuthService {
     public User getAuthenticateUser() {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
+
     public LoginResponse login(String email, String password) {
         Authentication authentication = authenticationManager
                 .authenticate(

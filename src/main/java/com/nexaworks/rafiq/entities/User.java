@@ -22,9 +22,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "users")
 public class User extends BaseEntity implements UserDetails, Principal {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+
     @Column(unique = true)
     private String email;
     private String password;

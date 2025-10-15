@@ -2,6 +2,7 @@ package com.nexaworks.rafiq.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.util.List;
@@ -11,12 +12,10 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 @Entity
-public class Role {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class Role extends BaseEntity {
+
     private String name;
     @ManyToMany(mappedBy = "roles")
     private List<User> users;

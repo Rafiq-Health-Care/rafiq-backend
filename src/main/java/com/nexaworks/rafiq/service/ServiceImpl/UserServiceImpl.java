@@ -12,12 +12,14 @@ import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.TokenType;
 import com.nexaworks.rafiq.exception.RegistrationException;
+import com.nexaworks.rafiq.exception.UserNotFoundException;
 import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -96,10 +98,10 @@ public class UserServiceImpl implements UserService {
         }
         User doctor = extracted(user);
         userRepository.save(doctor);
-        String nationalIdImage = imageService.uploadFile(nationalId);
+       List<String > nationalIdImage = imageService.uploadFile(nationalId);
         doctor.setRoles(List.of(roleService.getRole(ROLE_USER),roleService.getRole(ROLE_DOCTOR),roleService.getRole(ROLE_PATIENT)));
         doctor.setPatientProfile(patientService.createPatientProfile(doctor));
-        doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization(),nationalIdImage));
+        doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization(),nationalIdImage.get(0),nationalIdImage.get(1)));
         generateOtpAndSendEmail(user);
     }
 
@@ -125,6 +127,12 @@ public class UserServiceImpl implements UserService {
         );
         otpToken.setExpiryDate(Instant.now());
         generateOtpAndSendEmail(user);
+    }
+
+    @Override
+    public User getUser() {
+
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
     private void generateOtpAndSendEmail(User user) {

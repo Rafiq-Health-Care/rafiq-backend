@@ -16,7 +16,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ApplicationAuditAware implements AuditorAware<UUID> {
 
-    private final UserRepository userRepository;
+
 
     @Override
     public Optional<UUID> getCurrentAuditor() {
@@ -26,10 +26,7 @@ public class ApplicationAuditAware implements AuditorAware<UUID> {
             return Optional.of(
                     UUID.fromString("00000000-0000-0000-0000-000000000000"));
         }
-        if(authentication.getPrincipal() instanceof OAuth2User){
-            String email = ((OAuth2User) authentication.getPrincipal()).getAttribute("email");
-            return userRepository.findByEmail(email).map(User::getId);
-        }
+
         if( authentication.isAuthenticated()&&!authentication.getName().equals("anonymousUser")){
             User user = (User) authentication.getPrincipal();
             return Optional.of(user.getId());

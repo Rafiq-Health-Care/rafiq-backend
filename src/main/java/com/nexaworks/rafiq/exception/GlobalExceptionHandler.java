@@ -3,9 +3,6 @@ package com.nexaworks.rafiq.exception;
 import com.nexaworks.rafiq.dto.response.ErrorResponse;
 import com.nexaworks.rafiq.dto.response.ValidationErrorResponse;
 import com.nexaworks.rafiq.exception.handler.*;
-import com.nexaworks.rafiq.exception.SpecializationNotFoundException;
-import com.nexaworks.rafiq.exception.SpecializationAlreadyExistsException;
-import com.nexaworks.rafiq.exception.SpecializationValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -14,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * Global Exception Handler that coordinates all exception handling.
@@ -22,7 +20,7 @@ import org.springframework.web.context.request.WebRequest;
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
-    
+
     private final RegistrationExceptionHandler registrationHandler;
     private final UserNotFoundExceptionHandler userNotFoundHandler;
     private final ValidationExceptionHandler validationHandler;
@@ -85,5 +83,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SpecializationValidationException.class)
     public ResponseEntity<ErrorResponse> handleSpecializationValidationException(SpecializationValidationException ex, WebRequest request) {
         return specializationHandler.handleSpecializationValidationException(ex, request);
+    }
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFoundException(NoResourceFoundException exception){
+        return ResponseEntity.notFound().build();
     }
 }

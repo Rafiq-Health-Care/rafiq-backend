@@ -27,4 +27,7 @@ public interface UserService {
     LoginResponse verifyOtp(@NotBlank @Email String email, @NotBlank String otp);
 
     void getNewOtp(String email);
+
+    User getUser();
+
 }

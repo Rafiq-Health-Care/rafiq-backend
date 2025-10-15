@@ -1,6 +1,6 @@
 package com.nexaworks.rafiq.entities;
 
-import com.nexaworks.rafiq.enums.TokenType;
+import com.nexaworks.rafiq.enums.Status;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-import java.time.Instant;
 import java.util.UUID;
 
 @Getter
@@ -17,13 +16,17 @@ import java.util.UUID;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-public class Token  extends BaseEntity{
+public class LabResult extends BaseEntity {
 
-    private String token;
+    private String name;
+    private double result;
+    private String unit;
     @Enumerated(EnumType.STRING)
-    private TokenType tokenType;
-    private Instant expiryDate;
+    private Status status;
+    private String description;
+    private String normalResult;
     @ManyToOne
-    @JoinColumn(name = "user_id",nullable = false)
-    private User user;
+    @JoinColumn(name = "lab_test_id")
+    private LabTest labTest;
+
 }
