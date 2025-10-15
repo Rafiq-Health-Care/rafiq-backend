@@ -100,7 +100,7 @@ public class PdfExtractorServiceImpl implements PdfExtractorService {
     private String ocrExtractor(PDDocument document) throws IOException, TesseractException {
         PDFRenderer renderer = new PDFRenderer(document);
         ITesseract tesseract = new Tesseract();
-        tesseract.setDatapath("/usr/share/tesseract-ocr/5/tessdata");
+        tesseract.setDatapath("/usr/share/tessdata");
         tesseract.setLanguage("eng");
         StringBuilder text = new StringBuilder();
         for (int page = 0; page < document.getNumberOfPages(); page++) {
