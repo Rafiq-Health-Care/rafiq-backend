@@ -17,25 +17,8 @@ public class SpecializationController {
     private final SpecializationService specializationService;
     
     @GetMapping
-    public ResponseEntity<List<SpecializationResponse>> getSpecializations(){
+    public ResponseEntity<List<SpecializationResponse>> getSpecializations() {
         return ResponseEntity.ok().body(specializationService.getSpecializations());
     }
-    
-    @GetMapping("/{id}")
-    public ResponseEntity<Specialization> getSpecializationById(@PathVariable UUID id){
-        Specialization specialization = specializationService.getSpecialization(id);
-        return ResponseEntity.ok().body(specialization);
-    }
-    
-    @GetMapping("/code/{code}")
-    public ResponseEntity<Specialization> getSpecializationByCode(@PathVariable String code){
-        Specialization specialization = specializationService.getSpecializationByCode(code);
-        return ResponseEntity.ok().body(specialization);
-    }
-    
-    @GetMapping("/all")
-    public ResponseEntity<List<Specialization>> getAllSpecializations(){
-        List<Specialization> specializations = specializationService.getAllSpecializations();
-        return ResponseEntity.ok().body(specializations);
-    }
+
 }
