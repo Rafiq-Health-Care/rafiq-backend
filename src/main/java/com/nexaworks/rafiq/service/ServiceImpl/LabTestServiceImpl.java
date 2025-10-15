@@ -33,31 +33,53 @@ public class LabTestServiceImpl implements LabTestService {
     private final LabTestRepository labTestRepository;
     private final UserService userService;
     private final ImageService imageService;
+
     @Override
     @Transactional
     public void addTest(TestResultRequest testResultRequest, List<LabResult> entity) {
-        LabTest labTest = new LabTest();
-        labTest.setName(testResultRequest.name());
-        PatientProfile patient = userService.getUser().getPatientProfile();
+        LabTest labTest = getLabTest(testResultRequest);
+        setTestFields(labTest, testResultRequest, Instant.now());
+        PatientProfile patient = getPatientProfile();
         labTest.setPatient(patient);
-        Lab lab = labService.getLabById(testResultRequest.id())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid Lab Id"));
-//        lab.getTests().add(labTest);
+        Lab lab = getLab(testResultRequest);
+        lab.getTests().add(labTest);
         lab = labService.save(lab);
-//        patient.getLabTests().add(labTest);
         labTest.setLab(lab);
-        labTest.setDate(testResultRequest.date()==null? Instant.now(): testResultRequest.date().toInstant());
         labTestRepository.save(labTest);
         entity.forEach(e -> e.setLabTest(labTest));
         labResultService.saveAll(entity);
     }
+
+    private PatientProfile getPatientProfile() {
+        return userService.getUser().getPatientProfile();
+    }
+
+    private Lab getLab(TestResultRequest testResultRequest) {
+        return labService.getLabById(testResultRequest.id())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Lab Id"));
+    }
+
+
+    private static void setTestFields(LabTest labTest, TestResultRequest testResultRequest, Instant now) {
+        labTest.setName(testResultRequest.name());
+        labTest.setDate(testResultRequest.date() == null ? now : testResultRequest.date().toInstant());
+    }
+
+    @NotNull
+    private LabTest getLabTest(TestResultRequest testResultRequest) {
+        LabTest labTest = labTestRepository.findById(testResultRequest.testId())
+                .orElseGet(LabTest::new);
+        log.info("Test Id {}",labTest.getId());
+        return labTest;
+    }
+
 
     @Override
     public Page<LabTest> getAll(int page, int size, String sort, String direction) {
         Sort sorting = Sort.by(Sort.Direction
                 .fromString(direction.equalsIgnoreCase("desc")?"desc":"asc"), sort);
         Pageable pageable = PageRequest.of(page, size, sorting);
-        PatientProfile patient = userService.getUser().getPatientProfile();
+        PatientProfile patient = getPatientProfile();
         return labTestRepository.findAllByPatientId(patient.getId(),pageable);
     }
 
@@ -75,7 +97,7 @@ public class LabTestServiceImpl implements LabTestService {
 
     @Override
     public Integer deleteAll() {
-        PatientProfile patient = userService.getUser().getPatientProfile();
+        PatientProfile patient = getPatientProfile();
         List<LabTest> tests = patient.getLabTests();
         int size = tests.size();
         labTestRepository.deleteAll(tests);
@@ -115,15 +137,14 @@ public class LabTestServiceImpl implements LabTestService {
     }
 
     private static void updateTestFields(TestResultRequest testResultRequest, LabTest test) {
-        test.setName(testResultRequest.name());
-        test.setDate(testResultRequest.date()==null? test.getDate(): testResultRequest.date().toInstant());
+        setTestFields(test, testResultRequest, test.getDate());
     }
 
     @NotNull
     private LabTest validateOwnership(UUID testId) {
         LabTest test = labTestRepository.findById(testId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Test Id"));
-        PatientProfile patient = userService.getUser().getPatientProfile();
+        PatientProfile patient = getPatientProfile();
         if (!test.getPatient().getId().equals(patient.getId())) {
             throw new IllegalArgumentException("Invalid Test Id");
         }

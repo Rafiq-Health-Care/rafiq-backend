@@ -24,13 +24,13 @@ public class LabTest extends BaseEntity{
     private String pdf;
     private String publicId;
     @ManyToOne
-    @JoinColumn(name = "lab_id")
+    @JoinColumn(name = "lab_id", nullable = true)
     private Lab lab;
     @ManyToOne
-    @JoinColumn(name = "doctor_id")
+    @JoinColumn(name = "doctor_id", nullable = true)
     private DoctorProfile doctor;
     @ManyToOne
-    @JoinColumn(name = "patient_id")
+    @JoinColumn(name = "patient_id", nullable = true)
     private PatientProfile patient;
     @OneToMany(mappedBy = "labTest")
     private List<LabResult> labResults;

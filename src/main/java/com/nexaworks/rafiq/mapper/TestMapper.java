@@ -20,6 +20,6 @@ public class TestMapper {
                                 t.getResult(),
                                 t.getUnit(),
                                 t.getStatus())
-                ).toList());
+                ).toList(),test.getId());
     }
 }

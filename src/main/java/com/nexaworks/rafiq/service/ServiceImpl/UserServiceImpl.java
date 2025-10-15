@@ -131,12 +131,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUser() {
-        User user = userRepository.findByEmail(
-                SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString()
-        ).orElseThrow(()->
-                new UserNotFoundException("User not found"));
-        log.info("User found {}",user.getEmail());
-        return user;
+
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
     private void generateOtpAndSendEmail(User user) {

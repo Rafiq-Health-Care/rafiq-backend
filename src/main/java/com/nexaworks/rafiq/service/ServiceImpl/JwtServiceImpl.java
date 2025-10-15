@@ -1,8 +1,8 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
 import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.JwtService;
-import com.nexaworks.rafiq.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -28,6 +28,8 @@ public class JwtServiceImpl implements JwtService {
     private  String JWT_SECRET;
     @Value("${jwt.expiration}")
     private  Long JWT_EXPIRATION;
+    private final UserRepository userRepository;
+
 
 
     @Override
@@ -61,10 +63,13 @@ public class JwtServiceImpl implements JwtService {
                 throw new IllegalArgumentException("Token has no authorities");
             }
             var username = claims.getSubject();
+            log.info("Validated token for user {}",username);
+            User user = userRepository.findByEmail(username).orElseThrow(()->new IllegalArgumentException("User not found"));
+            log.info("User found {}",user.getEmail());
             List<String > authorities = claims.get("authorities", List.class);
             List<SimpleGrantedAuthority> authorityList =
                     authorities.stream().map(SimpleGrantedAuthority::new).toList();
-            return new UsernamePasswordAuthenticationToken(username,null,authorityList);
+            return new UsernamePasswordAuthenticationToken(user,null,authorityList);
 
 
 

@@ -51,7 +51,7 @@ public class PageMapper {
                             labTest.getName(),
                             labTest.getId(),
                             date,
-                            tests
+                            tests,labTest.getId()
                     );
                 })
                 .collect(Collectors.toList());

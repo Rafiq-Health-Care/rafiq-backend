@@ -29,4 +29,5 @@ public interface UserService {
     void getNewOtp(String email);
 
     User getUser();
+
 }
