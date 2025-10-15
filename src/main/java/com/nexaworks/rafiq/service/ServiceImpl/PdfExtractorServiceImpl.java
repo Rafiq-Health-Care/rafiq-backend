@@ -1,9 +1,7 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.nexaworks.rafiq.service.ImageService;
 import com.nexaworks.rafiq.service.LabTestService;
 import com.nexaworks.rafiq.service.PdfExtractorService;
 import lombok.RequiredArgsConstructor;
@@ -15,13 +13,11 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -34,7 +30,6 @@ import java.util.concurrent.ExecutionException;
 public class PdfExtractorServiceImpl implements PdfExtractorService {
 
     private final ChatClient chatClient;
-    private final ImageService imageService;
     private final LabTestService labTestService;
 
     @Override
@@ -100,7 +95,7 @@ public class PdfExtractorServiceImpl implements PdfExtractorService {
     private String ocrExtractor(PDDocument document) throws IOException, TesseractException {
         PDFRenderer renderer = new PDFRenderer(document);
         ITesseract tesseract = new Tesseract();
-        tesseract.setDatapath("/usr/share/tessdata");
+        tesseract.setDatapath("/usr/share/tesseract-ocr/5/tessdata");
         tesseract.setLanguage("eng");
         StringBuilder text = new StringBuilder();
         for (int page = 0; page < document.getNumberOfPages(); page++) {

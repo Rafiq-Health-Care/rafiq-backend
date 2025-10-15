@@ -32,7 +32,7 @@ public class LabTest extends BaseEntity{
     @ManyToOne
     @JoinColumn(name = "patient_id", nullable = true)
     private PatientProfile patient;
-    @OneToMany(mappedBy = "labTest")
+    @OneToMany(mappedBy = "labTest",cascade = CascadeType.REMOVE)
     private List<LabResult> labResults;
     private Instant date;
 

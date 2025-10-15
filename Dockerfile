@@ -1,28 +1,30 @@
-# Use JDK 17 on Alpine
-FROM eclipse-temurin:17-jdk-alpine
+# Use full Debian-based JDK 17
+FROM eclipse-temurin:17-jdk
 
-# Set working directory
 WORKDIR /app
 
-# Install Tesseract OCR and dependencies
-RUN apk add --no-cache \
+# Install Tesseract 5 and dependencies
+RUN apt-get update && apt-get install -y \
     tesseract-ocr \
-    tesseract-ocr-data-eng \
-    tesseract-ocr-data-osd \
-    leptonica \
-    libstdc++ \
-    gcc \
-    g++ \
-    libc6-compat
+    tesseract-ocr-eng \
+    libleptonica-dev \
+    libtesseract-dev \
+    libgif-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libtiff-dev \
+    libwebp-dev \
+    libicu-dev \
+    build-essential \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
 
-# Optional: Verify installation (debugging)
-RUN tesseract --version
+# Set TESSDATA_PREFIX for Tesseract 5
+ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata
 
-# Copy app jar
+# Copy your Spring Boot jar
 COPY target/*.jar app.jar
 
-# Expose port
 EXPOSE 8080
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["java", "-jar", "app.jar"]

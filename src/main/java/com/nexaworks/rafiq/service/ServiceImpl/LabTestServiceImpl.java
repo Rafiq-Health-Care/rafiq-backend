@@ -3,6 +3,7 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 import com.nexaworks.rafiq.dto.request.TestResultRequest;
 import com.nexaworks.rafiq.entities.*;
 import com.nexaworks.rafiq.repository.LabTestRepository;
+import com.nexaworks.rafiq.repository.PatientRepository;
 import com.nexaworks.rafiq.service.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ public class LabTestServiceImpl implements LabTestService {
     private final LabTestRepository labTestRepository;
     private final UserService userService;
     private final ImageService imageService;
+    private final PatientRepository patientRepository;
 
     @Override
     @Transactional
@@ -50,7 +52,8 @@ public class LabTestServiceImpl implements LabTestService {
         labResultService.saveAll(entity);
     }
 
-    private PatientProfile getPatientProfile() {
+
+    protected PatientProfile getPatientProfile() {
         return userService.getUser().getPatientProfile();
     }
 
@@ -96,8 +99,11 @@ public class LabTestServiceImpl implements LabTestService {
     }
 
     @Override
+    @Transactional
     public Integer deleteAll() {
         PatientProfile patient = getPatientProfile();
+        patient = patientRepository.findById(patient.getId()).orElseThrow(()->
+                new IllegalArgumentException("Invalid Patient Id"));
         List<LabTest> tests = patient.getLabTests();
         int size = tests.size();
         labTestRepository.deleteAll(tests);

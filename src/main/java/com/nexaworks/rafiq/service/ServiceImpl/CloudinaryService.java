@@ -42,7 +42,7 @@ public class CloudinaryService implements ImageService {
                 cloudinary.uploader().upload(
                         file.getBytes(),
                         ObjectUtils.asMap(
-                                "resource_type", "auto",
+                                "resource_type", "raw",
                                 "folder", "pdf"
                         )
                 );
