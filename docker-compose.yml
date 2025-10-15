@@ -19,7 +19,7 @@ services:
     image: rafiqhealthcare/rafiq-api:latest
     container_name: rafiq-api
     ports:
-      - "8032:8032"
+      - "8030:8030"
     depends_on:
       - postgres
       - mail-dev
