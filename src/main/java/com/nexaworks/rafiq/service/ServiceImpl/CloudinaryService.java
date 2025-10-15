@@ -36,5 +36,19 @@ public class CloudinaryService implements ImageService {
 
     }
 
+    @Override
+    public List<String> uploadPdf(MultipartFile file) throws IOException {
+        Map<String ,Object> map =
+                cloudinary.uploader().upload(
+                        file.getBytes(),
+                        ObjectUtils.asMap(
+                                "resource_type", "auto",
+                                "folder", "pdf"
+                        )
+                );
+        return List.of(map.get("secure_url").toString(),map.get("public_id").toString());
+
+    }
+
 
 }

@@ -3,10 +3,7 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 import com.nexaworks.rafiq.dto.request.TestResultRequest;
 import com.nexaworks.rafiq.entities.*;
 import com.nexaworks.rafiq.repository.LabTestRepository;
-import com.nexaworks.rafiq.service.LabResultService;
-import com.nexaworks.rafiq.service.LabService;
-import com.nexaworks.rafiq.service.LabTestService;
-import com.nexaworks.rafiq.service.UserService;
+import com.nexaworks.rafiq.service.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,12 +12,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 
 @Service
@@ -31,6 +32,7 @@ public class LabTestServiceImpl implements LabTestService {
     private final LabResultService labResultService;
     private final LabTestRepository labTestRepository;
     private final UserService userService;
+    private final ImageService imageService;
     @Override
     @Transactional
     public void addTest(TestResultRequest testResultRequest, List<LabResult> entity) {
@@ -40,9 +42,9 @@ public class LabTestServiceImpl implements LabTestService {
         labTest.setPatient(patient);
         Lab lab = labService.getLabById(testResultRequest.id())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Lab Id"));
-        lab.getTests().add(labTest);
+//        lab.getTests().add(labTest);
         lab = labService.save(lab);
-        patient.getLabTests().add(labTest);
+//        patient.getLabTests().add(labTest);
         labTest.setLab(lab);
         labTest.setDate(testResultRequest.date()==null? Instant.now(): testResultRequest.date().toInstant());
         labTestRepository.save(labTest);
@@ -126,5 +128,15 @@ public class LabTestServiceImpl implements LabTestService {
             throw new IllegalArgumentException("Invalid Test Id");
         }
         return test;
+    }
+    @Override
+    @Async
+    public CompletableFuture<UUID> saveTestPdf(MultipartFile file) throws IOException {
+        List<String > result = imageService.uploadPdf(file);
+        LabTest labTest = new LabTest();
+        labTest.setPdf(result.get(0));
+        labTest.setPublicId(result.get(1));
+       labTest = labTestRepository.save(labTest);
+        return CompletableFuture.completedFuture(labTest.getId());
     }
 }

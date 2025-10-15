@@ -9,4 +9,6 @@ public interface ImageService {
     public List<String >uploadFile(MultipartFile file) throws IOException;
 
     void delete(String publicId);
+
+    List<String> uploadPdf(MultipartFile file) throws IOException;
 }

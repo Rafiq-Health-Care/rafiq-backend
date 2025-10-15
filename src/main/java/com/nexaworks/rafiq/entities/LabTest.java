@@ -22,6 +22,7 @@ public class LabTest extends BaseEntity{
     private String description;
     private String code;
     private String pdf;
+    private String publicId;
     @ManyToOne
     @JoinColumn(name = "lab_id")
     private Lab lab;

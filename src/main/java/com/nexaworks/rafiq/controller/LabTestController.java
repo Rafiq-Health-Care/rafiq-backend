@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.UUID;
 
 @RestController
@@ -30,13 +31,14 @@ public class LabTestController {
             value = "/upload",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE )
-    public ResponseEntity<String > upload(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String > upload(@RequestParam("file") MultipartFile file) throws IOException {
         return  ResponseEntity.ok().body(
             pdfExtractorService.extractPdf(file)
         );
     }
-    @PostMapping("/test-results")
-    public ResponseEntity<Void> testResults(@RequestBody @Valid TestResultRequest testResultRequest){
+    @PostMapping(value = "/test-results")
+    public ResponseEntity<Void> testResults(@RequestBody @Valid TestResultRequest testResultRequest
+                                           ){
 
         labTestService.addTest(testResultRequest, resultMapper.toEntity(testResultRequest.tests()));
         return ResponseEntity.ok().build();

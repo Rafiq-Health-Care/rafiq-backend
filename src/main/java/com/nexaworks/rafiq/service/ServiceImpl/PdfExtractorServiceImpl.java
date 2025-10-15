@@ -2,6 +2,9 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.nexaworks.rafiq.service.ImageService;
+import com.nexaworks.rafiq.service.LabTestService;
 import com.nexaworks.rafiq.service.PdfExtractorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +21,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 
 @Service
@@ -27,9 +34,12 @@ import java.util.Objects;
 public class PdfExtractorServiceImpl implements PdfExtractorService {
 
     private final ChatClient chatClient;
+    private final ImageService imageService;
+    private final LabTestService labTestService;
 
     @Override
-    public String extractPdf(MultipartFile pdfFile) {
+    public String extractPdf(MultipartFile pdfFile) throws IOException {
+        CompletableFuture<UUID> testId = labTestService.saveTestPdf(pdfFile);
         try {
             InputStream inputStream = pdfFile.getInputStream();
             PDDocument document = PDDocument.load(inputStream);
@@ -75,9 +85,13 @@ public class PdfExtractorServiceImpl implements PdfExtractorService {
                 json = json.replace("```", "");
                 json = json.replace("json", "");
             }
+            UUID test = testId.get();
+            ObjectNode jsonNode = (ObjectNode) new ObjectMapper().readTree(json);
+            jsonNode.put("testId", test.toString());
 
-            return json;
-        } catch (IOException | TesseractException e) {
+
+            return jsonNode.toString();
+        } catch (IOException | TesseractException | InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
 
