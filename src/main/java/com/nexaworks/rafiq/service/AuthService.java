@@ -5,6 +5,7 @@ import com.nexaworks.rafiq.dto.request.*;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.dto.response.VerifyOtpResponse;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 
@@ -18,10 +19,10 @@ public interface AuthService {
 
     void resetPassword(@Valid ResetPasswordRequest resetPasswordRequest);
 
-    LoginResponse login(@NotBlank String email, @NotBlank String password);
+    LoginResponse login(@NotBlank String email, @NotBlank String password, HttpServletResponse response);
 
-    LoginResponse refresh(@Valid RefreshRequest request);
+    LoginResponse refresh(@Valid RefreshRequest request,HttpServletResponse response);
 
-    void logout(@Valid LogoutRequest request);
+    void logout(@Valid LogoutRequest request,HttpServletResponse response);
 
 }

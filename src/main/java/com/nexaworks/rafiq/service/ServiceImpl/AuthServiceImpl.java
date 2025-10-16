@@ -9,6 +9,9 @@ import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.UserNotFoundException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -85,21 +88,30 @@ public class AuthServiceImpl implements AuthService {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
-    public LoginResponse login(String email, String password) {
+    public LoginResponse login(String email, String password, HttpServletResponse response) {
         Authentication authentication = authenticationManager
                 .authenticate(
                         new UsernamePasswordAuthenticationToken(email,password));
         User user = (User) authentication.getPrincipal();
         String jwt = jwtService.generateToken(user);
+        addJwtCookie(response,jwt);
         String refreshToken = tokenService.generateRefreshToken(user);
         return new LoginResponse(
-               user.getRoles().stream().map(Role::getName).toList(),jwt,refreshToken
+               user.getRoles().stream().map(Role::getName).toList(),refreshToken
         );
 
     }
 
+    private void addJwtCookie(HttpServletResponse response, String jwt) {
+        Cookie cookie = new Cookie("jwt",jwt);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(60*60*24);
+        response.addCookie(cookie);
+    }
+
     @Override
-    public LoginResponse refresh(RefreshRequest request) {
+    public LoginResponse refresh(RefreshRequest request, HttpServletResponse response) {
         Token token = tokenService.getToken(request.refreshToken());
         if (token.getExpiryDate().isBefore(Instant.now())) {
             throw new IllegalArgumentException("Invalid Refresh Token");
@@ -108,14 +120,24 @@ public class AuthServiceImpl implements AuthService {
         tokenService.invalidateRefreshToken(token);
         String refreshToken = tokenService.generateRefreshToken(user);
         String jwt = jwtService.generateToken(user);
-        return new LoginResponse(user.getRoles().stream().map(Role::getName).toList(),jwt,refreshToken );
+       addJwtCookie(response,jwt);
+        return new LoginResponse(user.getRoles().stream().map(Role::getName).toList(),refreshToken );
     }
 
     @Override
-    public void logout(LogoutRequest request) {
+    public void logout(LogoutRequest request,HttpServletResponse response) {
         tokenService.invalidateRefreshToken(tokenService.getToken(request.refreshToken()));
         jwtService.invalidateJwtToken(request.jwtToken());
+        removeJwtFromCookies(response);
 
+    }
+
+    private void removeJwtFromCookies(HttpServletResponse response ){
+        Cookie cookie = new Cookie("jwt",null);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
     }
 
     private void authenticateUser(User user) {

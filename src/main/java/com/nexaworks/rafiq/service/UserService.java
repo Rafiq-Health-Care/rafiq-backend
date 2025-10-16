@@ -5,6 +5,7 @@ import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
 import com.nexaworks.rafiq.dto.request.DoctorRegistrationRequest;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.entities.User;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -24,7 +25,7 @@ public interface UserService {
 
     void registerDoctor(@Valid DoctorRegistrationRequest request, MultipartFile nationalId) throws IOException;
 
-    LoginResponse verifyOtp(@NotBlank @Email String email, @NotBlank String otp);
+    LoginResponse verifyOtp(@NotBlank @Email String email, @NotBlank String otp, HttpServletResponse response);
 
     void getNewOtp(String email);
 
