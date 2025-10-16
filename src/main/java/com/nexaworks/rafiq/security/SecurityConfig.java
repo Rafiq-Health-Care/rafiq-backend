@@ -47,7 +47,8 @@ public class SecurityConfig {
                                     "/webjars/**",
                                     "/swagger-ui.html",
                                     "/favicon.ico",
-                                    "/labs").permitAll()
+                                    "/labs",
+                                    "/auth/google").permitAll()
                             .anyRequest().authenticated()
             ).sessionManagement(sc->
                         sc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

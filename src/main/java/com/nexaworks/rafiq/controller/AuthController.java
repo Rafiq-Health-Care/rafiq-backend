@@ -8,10 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -20,6 +17,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:3000")
 public class AuthController {
 
     private final AuthService authService;
@@ -58,8 +56,8 @@ public class AuthController {
         return ResponseEntity.ok().body(authService.refresh(request,response));
     }
     @PostMapping("/google")
-    public ResponseEntity<LoginResponse> oAuth2(@RequestBody Map<String,String> request,HttpServletResponse response) throws GeneralSecurityException, IOException {
-        return ResponseEntity.ok().body(authService.oAuth2(request.get("idToken"),response));
+    public ResponseEntity<LoginResponse> oAuth2(@RequestBody OAuthRequest request,HttpServletResponse response) throws GeneralSecurityException, IOException {
+        return ResponseEntity.ok().body(authService.oAuth2(request.idToken(),response));
 
     }
 

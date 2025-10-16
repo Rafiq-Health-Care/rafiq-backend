@@ -153,8 +153,8 @@ public class AuthServiceImpl implements AuthService {
         GoogleIdToken googleIdToken = verifier.verify(idToken);
         if (googleIdToken!=null){
             String email = googleIdToken.getPayload().getEmail();
-            String firstName = googleIdToken.getPayload().get("first_name").toString();
-            String lastName = googleIdToken.getPayload().get("last_name").toString();
+            String firstName = googleIdToken.getPayload().get("given_name").toString();
+            String lastName = googleIdToken.getPayload().get("family_name").toString();
             Optional<User> user = userService.findByEmail(email);
             if (user.isPresent()){
                 User existingUser = user.get();
