@@ -58,7 +58,6 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
             String refreshToken = tokenService.generateRefreshToken(user.get());
             LoginResponse loginResponse = new LoginResponse(
                     user.get().getRoles().stream().map(Role::getName).toList(),
-                    jwt,
                     refreshToken
             );
             response.setStatus(HttpServletResponse.SC_OK);

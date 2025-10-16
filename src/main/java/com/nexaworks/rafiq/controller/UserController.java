@@ -7,6 +7,7 @@ import com.nexaworks.rafiq.dto.request.VerificationRequest;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,9 +35,9 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
     @PostMapping("/verification")
-    public ResponseEntity<LoginResponse> verification(@RequestBody @Valid VerificationRequest request){
+    public ResponseEntity<LoginResponse> verification(@RequestBody @Valid VerificationRequest request, HttpServletResponse response){
 
-        return ResponseEntity.ok().body(userService.verifyOtp(request.email(),request.otp()));
+        return ResponseEntity.ok().body(userService.verifyOtp(request.email(),request.otp(),response));
 
     }
     @PostMapping("/new-otp")

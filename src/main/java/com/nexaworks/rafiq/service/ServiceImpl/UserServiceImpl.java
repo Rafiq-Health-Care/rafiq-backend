@@ -16,6 +16,9 @@ import com.nexaworks.rafiq.exception.UserNotFoundException;
 import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -99,20 +102,29 @@ public class UserServiceImpl implements UserService {
         User doctor = extracted(user);
         userRepository.save(doctor);
        List<String > nationalIdImage = imageService.uploadFile(nationalId);
-        doctor.setRoles(List.of(roleService.getRole(ROLE_USER),roleService.getRole(ROLE_DOCTOR),roleService.getRole(ROLE_PATIENT)));
-        doctor.setPatientProfile(patientService.createPatientProfile(doctor));
+        doctor.setRoles(List.of(roleService.getRole(ROLE_USER),roleService.getRole(ROLE_DOCTOR)));
+//        doctor.setPatientProfile(patientService.createPatientProfile(doctor));
         doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization(),nationalIdImage.get(0),nationalIdImage.get(1)));
         generateOtpAndSendEmail(user);
     }
 
     @Override
-    public LoginResponse verifyOtp(String email, String otp) {
+    public LoginResponse verifyOtp(String email, String otp, HttpServletResponse response) {
      User user = tokenService.verifyOtp(email,otp);
      user.setEnabled(true);
      userRepository.save(user);
      String jwt = jwtService.generateToken(user);
+     addJwtToCookie(response,jwt);
      String refreshToken = tokenService.generateRefreshToken(user);
-     return new LoginResponse(user.getRoles().stream().map(Role::getName).toList(),jwt,refreshToken);
+     return new LoginResponse(user.getRoles().stream().map(Role::getName).toList(),refreshToken);
+    }
+
+    private void addJwtToCookie(HttpServletResponse response, String jwt) {
+        Cookie cookie = new Cookie("jwt",jwt);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(60*60*24);
+        response.addCookie(cookie);
     }
 
     @Override

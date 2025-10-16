@@ -4,6 +4,7 @@ import com.nexaworks.rafiq.dto.request.*;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.dto.response.VerifyOtpResponse;
 import com.nexaworks.rafiq.service.AuthService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -40,8 +41,8 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request){
-        return ResponseEntity.ok().body(authService.login(request.email(),request.password()));
+    public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request, HttpServletResponse response){
+        return ResponseEntity.ok().body(authService.login(request.email(),request.password(),response));
     }
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestBody @Valid LogoutRequest request){
@@ -49,8 +50,8 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
     @PostMapping("/refresh")
-    public ResponseEntity<LoginResponse> refresh(@RequestBody @Valid RefreshRequest request){
-        return ResponseEntity.ok().body(authService.refresh(request));
+    public ResponseEntity<LoginResponse> refresh(@RequestBody @Valid RefreshRequest request,HttpServletResponse response){
+        return ResponseEntity.ok().body(authService.refresh(request,response));
     }
 
 
