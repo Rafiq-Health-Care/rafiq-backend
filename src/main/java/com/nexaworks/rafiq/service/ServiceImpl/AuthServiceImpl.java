@@ -11,6 +11,7 @@ import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -124,10 +125,19 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void logout(LogoutRequest request) {
+    public void logout(LogoutRequest request,HttpServletResponse response) {
         tokenService.invalidateRefreshToken(tokenService.getToken(request.refreshToken()));
         jwtService.invalidateJwtToken(request.jwtToken());
+        removeJwtFromCookies(response);
 
+    }
+
+    private void removeJwtFromCookies(HttpServletResponse response ){
+        Cookie cookie = new Cookie("jwt",null);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
     }
 
     private void authenticateUser(User user) {

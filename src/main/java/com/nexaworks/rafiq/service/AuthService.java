@@ -23,6 +23,6 @@ public interface AuthService {
 
     LoginResponse refresh(@Valid RefreshRequest request,HttpServletResponse response);
 
-    void logout(@Valid LogoutRequest request);
+    void logout(@Valid LogoutRequest request,HttpServletResponse response);
 
 }

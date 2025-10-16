@@ -45,8 +45,8 @@ public class AuthController {
         return ResponseEntity.ok().body(authService.login(request.email(),request.password(),response));
     }
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestBody @Valid LogoutRequest request){
-        authService.logout(request);
+    public ResponseEntity<Void> logout(@RequestBody @Valid LogoutRequest request,HttpServletResponse response){
+        authService.logout(request,response);
         return ResponseEntity.noContent().build();
     }
     @PostMapping("/refresh")
