@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Map;
 
 @RestController
@@ -56,7 +58,7 @@ public class AuthController {
         return ResponseEntity.ok().body(authService.refresh(request,response));
     }
     @PostMapping("/google")
-    public ResponseEntity<LoginResponse> oAuth2(@RequestBody Map<String,String> request,HttpServletResponse response){
+    public ResponseEntity<LoginResponse> oAuth2(@RequestBody Map<String,String> request,HttpServletResponse response) throws GeneralSecurityException, IOException {
         return ResponseEntity.ok().body(authService.oAuth2(request.get("idToken"),response));
 
     }
