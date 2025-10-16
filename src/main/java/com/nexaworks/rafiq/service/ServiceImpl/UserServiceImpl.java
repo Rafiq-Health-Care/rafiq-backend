@@ -147,6 +147,20 @@ public class UserServiceImpl implements UserService {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
+    @Override
+    public User addUser(String email, String firstName, String lastName) {
+        User user = new User();
+        user.setEmail(email);
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setEnabled(false);
+        user.setRoles(List.of(roleService.getRole(ROLE_USER)));
+        User oAuthUser = userRepository.save(user);
+        log.info("User created {}",user.getEmail());
+        return oAuthUser;
+
+    }
+
     private void generateOtpAndSendEmail(User user) {
         String otpToken = tokenService.generateOtpToken(user);
         Map<String ,Object> model = emailContentService.createOtpEmail(otpToken,user.getName(),"url");

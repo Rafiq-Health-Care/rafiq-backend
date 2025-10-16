@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -52,6 +54,11 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<LoginResponse> refresh(@RequestBody @Valid RefreshRequest request,HttpServletResponse response){
         return ResponseEntity.ok().body(authService.refresh(request,response));
+    }
+    @PostMapping("/google")
+    public ResponseEntity<LoginResponse> oAuth2(@RequestBody Map<String,String> request,HttpServletResponse response){
+        return ResponseEntity.ok().body(authService.oAuth2(request.get("idToken"),response));
+
     }
 
 
