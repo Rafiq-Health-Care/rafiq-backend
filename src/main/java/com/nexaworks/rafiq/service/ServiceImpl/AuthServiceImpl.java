@@ -1,5 +1,10 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.nexaworks.rafiq.dto.request.*;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.dto.response.VerifyOtpResponse;
@@ -14,14 +19,19 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +40,8 @@ public class AuthServiceImpl implements AuthService {
     public static final String SUBJECT = "Reset password";
     public static final String FORGET_PASSWORD_TEMPLATE = "forget-password.html";
     public static final String URL = "http://localhost:8032/auth/verfiy";
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String clientId;
     private final UserRepository userRepository;
     private final TokenService tokenService;
     private final EmailContentService emailContentService;
@@ -129,6 +141,46 @@ public class AuthServiceImpl implements AuthService {
         tokenService.invalidateRefreshToken(tokenService.getToken(request.refreshToken()));
         jwtService.invalidateJwtToken(request.jwtToken());
         removeJwtFromCookies(response);
+
+    }
+
+    @Override
+    public LoginResponse oAuth2(String idToken,HttpServletResponse response) throws GeneralSecurityException, IOException {
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                new NetHttpTransport(),
+                new JacksonFactory()
+        ).setAudience(Collections.singleton(clientId)).build();
+        GoogleIdToken googleIdToken = verifier.verify(idToken);
+        if (googleIdToken!=null){
+            String email = googleIdToken.getPayload().getEmail();
+            String firstName = googleIdToken.getPayload().get("given_name").toString();
+            String lastName = googleIdToken.getPayload().get("family_name").toString();
+            Optional<User> user = userService.findByEmail(email);
+            if (user.isPresent()){
+                User existingUser = user.get();
+                if (!existingUser.isEnabled()){
+                    existingUser.setEnabled(true);
+                    userRepository.save(existingUser);
+                }
+            }
+            else {
+                user = Optional.ofNullable(userService.addUser(email, firstName, lastName));
+            }
+            if (user.isPresent()) {
+                String jwt = jwtService.generateToken(user.get());
+                addJwtCookie(response, jwt);
+                String refreshToken = tokenService.generateRefreshToken(user.get());
+                return new LoginResponse(user.get().getRoles().stream().map(Role::getName).toList(), refreshToken);
+            }
+            else {
+                throw new IllegalArgumentException("User not found");
+            }
+
+        }
+        else {
+            throw new IllegalArgumentException("Invalid id token");
+        }
+
 
     }
 

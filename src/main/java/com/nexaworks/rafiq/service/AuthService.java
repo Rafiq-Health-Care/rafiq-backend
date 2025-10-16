@@ -9,6 +9,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+
 public interface AuthService {
     void forgetPassword(@Valid ForgetPasswordRequest forgetPasswordRequest);
 
@@ -25,4 +28,5 @@ public interface AuthService {
 
     void logout(@Valid LogoutRequest request,HttpServletResponse response);
 
+    LoginResponse oAuth2(@NotBlank String idToken,HttpServletResponse response) throws GeneralSecurityException, IOException;
 }

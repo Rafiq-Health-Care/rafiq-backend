@@ -4,6 +4,7 @@ import com.nexaworks.rafiq.config.CustomOAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -47,7 +48,8 @@ public class SecurityConfig {
                                     "/webjars/**",
                                     "/swagger-ui.html",
                                     "/favicon.ico",
-                                    "/labs").permitAll()
+                                    "/labs",
+                                    "/auth/google").permitAll()
                             .anyRequest().authenticated()
             ).sessionManagement(sc->
                         sc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
