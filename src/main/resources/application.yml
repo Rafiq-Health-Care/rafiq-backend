@@ -2,6 +2,8 @@ spring:
   # Application config
   application:
     name: rafiq
+  config:
+    import: optional:file:./.env.properties
   # Database config
   datasource:
     url: ${DATASOURCE_URL}
@@ -41,8 +43,7 @@ spring:
         smtp:
           auth: true
           starttls:
-            enable: true
-            required: true
+            enable: false
           connectiontimeout: 5000
           timeout: 3000
           writetimeout: 5000
@@ -57,6 +58,20 @@ cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME}
   api-key: ${CLOUDINARY_API_KEY}
   api-secret: ${CLOUDINARY_API_SECRET}
+  # JWT config
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION}
+  # Refresh token config
+refresh:
+  expiration: ${REFRESH_EXPIRATION}
+  # OTP config
+otp:
+  expiration: ${OTP_EXPIRATION}
+  # Access token config
+access:
+  token:
+    expiration: ${ACCESS_TOKEN_EXPIRATION}
   # Server config
 server:
   port: 8030
