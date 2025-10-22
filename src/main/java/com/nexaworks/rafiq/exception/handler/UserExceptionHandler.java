@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.exception.handler;
 
+import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.exception.custom.UserException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.exception.model.ErrorResponse;
@@ -21,6 +22,11 @@ public class UserExceptionHandler {
 
     @ExceptionHandler(UserException.class)
     public ResponseEntity<ErrorResponse> handleUserException(UserException ex, HttpServletRequest request) {
+        return buildError(ex, request, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(RegistrationException.class)
+    public ResponseEntity<ErrorResponse> handleRegistrationException(RegistrationException ex, HttpServletRequest request) {
         return buildError(ex, request, HttpStatus.BAD_REQUEST);
     }
 
