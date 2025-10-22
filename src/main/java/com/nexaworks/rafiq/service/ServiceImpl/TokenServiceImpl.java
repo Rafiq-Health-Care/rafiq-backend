@@ -3,7 +3,7 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.TokenType;
-import com.nexaworks.rafiq.exception.UserNotFoundException;
+import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.TokenRepository;
 import com.nexaworks.rafiq.service.TokenService;
 import lombok.RequiredArgsConstructor;

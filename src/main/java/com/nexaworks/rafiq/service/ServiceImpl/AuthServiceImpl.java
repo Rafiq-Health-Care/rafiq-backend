@@ -2,7 +2,6 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.nexaworks.rafiq.dto.request.*;
@@ -11,13 +10,12 @@ import com.nexaworks.rafiq.dto.response.VerifyOtpResponse;
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.exception.TokenInvalidException;
-import com.nexaworks.rafiq.exception.UserNotFoundException;
+import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
+import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -83,7 +81,7 @@ public class AuthServiceImpl implements AuthService {
     public void changePassword(ChangePasswordRequest changePasswordRequest) {
         Token token = tokenService.getToken(changePasswordRequest.accessToken());
         if (token.getExpiryDate().isBefore(Instant.now())) {
-            throw new IllegalArgumentException("Invalid Access Token");
+            throw new TokenInvalidException("Invalid Access Token");
         }
         User user = token.getUser();
         userService.changePassword(user,changePasswordRequest.newPassword());
@@ -128,7 +126,7 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse refresh(RefreshRequest request, HttpServletResponse response) {
         Token token = tokenService.getToken(request.refreshToken());
         if (token.getExpiryDate().isBefore(Instant.now())) {
-            throw new IllegalArgumentException("Invalid Refresh Token");
+            throw new TokenInvalidException("Invalid Refresh Token");
         }
         User user = token.getUser();
         tokenService.invalidateRefreshToken(token);

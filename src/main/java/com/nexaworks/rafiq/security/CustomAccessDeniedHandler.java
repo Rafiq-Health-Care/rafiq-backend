@@ -1,7 +1,7 @@
 package com.nexaworks.rafiq.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nexaworks.rafiq.dto.response.ErrorResponse;
+import com.nexaworks.rafiq.exception.model.ErrorResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

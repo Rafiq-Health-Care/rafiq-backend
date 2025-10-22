@@ -1,4 +1,4 @@
 package com.nexaworks.rafiq.exception.handler;
 
-public class SpecializationExceptionHandler {
+public class LabTestExceptionHandler {
 }

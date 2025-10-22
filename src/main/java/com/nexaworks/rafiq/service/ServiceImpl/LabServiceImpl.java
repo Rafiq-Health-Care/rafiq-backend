@@ -3,6 +3,7 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 import com.nexaworks.rafiq.entities.Address;
 import com.nexaworks.rafiq.entities.Lab;
 import com.nexaworks.rafiq.entities.LabTest;
+import com.nexaworks.rafiq.exception.custom.LabException;
 import com.nexaworks.rafiq.repository.LabRepository;
 import com.nexaworks.rafiq.service.AddressService;
 import com.nexaworks.rafiq.service.ImageService;
@@ -57,7 +58,7 @@ public class LabServiceImpl implements LabService {
     @Transactional
     public void deleteLab(UUID labId) {
         Lab lab = labRepository.findById(labId).orElseThrow(()->
-                new IllegalArgumentException("Invalid Lab Id"));
+                new LabException("Invalid Lab Id"));
         List<LabTest> labTests = lab.getTests();
         imageService.delete(lab.getPublicId());
         labTests.forEach(labTest -> labTest.setLab(null));
@@ -69,7 +70,7 @@ public class LabServiceImpl implements LabService {
     public void updateLab(String name, List<Address> entity, MultipartFile file, UUID labId) throws IOException {
         // todo handle exception
         Lab lab = labRepository.findById(labId)
-                .orElseThrow(()->new IllegalArgumentException("Invalid Lab Id"));
+                .orElseThrow(()->new LabException("Invalid Lab Id"));
         imageService.delete(lab.getPublicId());
         List<String > result = imageService.uploadFile(file);
         lab.setLogo(result.get(0));
