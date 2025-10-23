@@ -2,6 +2,7 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 
 import com.nexaworks.rafiq.entities.DoctorProfile;
 import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.enums.Status;
 import com.nexaworks.rafiq.repository.DoctorRepository;
 import com.nexaworks.rafiq.service.DoctorService;
 import com.nexaworks.rafiq.service.SpecializationService;
@@ -25,6 +26,7 @@ public class DoctorServiceImpl implements DoctorService {
         doctorProfile.setSpecialization(specializationService.getSpecialization(specialization));
         doctorProfile.setNationalId(id);
         doctorProfile.setPublicId(logo);
+        doctorProfile.setStatus(Status.IN_REVIEW);
         return doctorRepository.save(doctorProfile);
     }
 }

@@ -21,8 +21,7 @@ public class LabResult extends BaseEntity {
     private String name;
     private double result;
     private String unit;
-    @Enumerated(EnumType.STRING)
-    private Status status;
+    private String status;
     private String description;
     private String normalResult;
     @ManyToOne

@@ -1,5 +1,5 @@
 package com.nexaworks.rafiq.enums;
 
 public enum Status {
-    N,L,H,Unknown
+    IN_REVIEW, VERIFIED, REJECTED
 }

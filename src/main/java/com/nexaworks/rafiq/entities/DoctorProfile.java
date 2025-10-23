@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.entities;
 
+import com.nexaworks.rafiq.enums.Status;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,6 +39,8 @@ public class DoctorProfile extends BaseEntity {
     @JoinColumn(name = "social_links_id",referencedColumnName = "id")
     private SocialLinks socialLinks;
     private String publicId;
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
 
 
