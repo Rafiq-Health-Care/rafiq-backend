@@ -1,7 +1,9 @@
 package com.nexaworks.rafiq.exception.handler;
 
+import com.nexaworks.rafiq.exception.ExceptionUtils;
 import com.nexaworks.rafiq.exception.custom.LabTesException;
 import com.nexaworks.rafiq.exception.model.ErrorResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -11,18 +13,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class LabTestExceptionHandler {
+    private final ExceptionUtils exceptionUtils;
 
     @ExceptionHandler(LabTesException.class)
     public ResponseEntity<ErrorResponse> handleLabTestException(LabTesException ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
-        ErrorResponse error = new ErrorResponse(
-                status.value(),
-                status.getReasonPhrase(),
-                ex.getMessage(),
-                LocalDateTime.now(),
-                request.getRequestURI()
-        );
+        ErrorResponse error = exceptionUtils.getErrorResponse(ex, request, status);
         return new ResponseEntity<>(error, status);
     }
 }
