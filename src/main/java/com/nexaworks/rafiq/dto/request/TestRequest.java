@@ -6,5 +6,5 @@ import jakarta.validation.constraints.NotBlank;
 public record TestRequest(@NotBlank String testName,
                           @NotBlank double result,
                           @NotBlank String unit,
-                          @NotBlank Status status) {
+                          @NotBlank String status) {
 }

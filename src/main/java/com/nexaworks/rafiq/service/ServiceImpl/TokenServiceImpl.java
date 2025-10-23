@@ -4,6 +4,8 @@ import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.TokenType;
 import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
+import com.nexaworks.rafiq.exception.custom.TokenNotFoundException;
+import com.nexaworks.rafiq.exception.custom.UserException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.TokenRepository;
 import com.nexaworks.rafiq.service.TokenService;
@@ -33,7 +35,7 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public String generateRefreshToken(User user){
         if(user == null){
-            throw new IllegalArgumentException("User cannot be null");
+            throw new UserException("User cannot be null");
         }
         String refreshToken = UUID.randomUUID().toString();
         Token token = buildToken(user,refreshToken,TokenType.REFRESH, REFRESH_EXPIRATION);
@@ -56,7 +58,7 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public Token getToken(String otp) {
         return tokenRepository.findByToken(otp).orElseThrow(
-                ()->new TokenInvalidException("Invalid Token"));
+                ()->new TokenNotFoundException("Invalid Token"));
     }
 
     @Override
@@ -74,9 +76,8 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public User verifyOtp(String email, String otp) {
-        // todo handle exception
         Token token = tokenRepository.findByToken(otp).orElseThrow(
-                ()->new TokenInvalidException("Invalid Token"));
+                ()->new TokenNotFoundException("Invalid Token"));
         if (!token.getUser().getEmail().equals(email)
                 ||token.getExpiryDate().isBefore(Instant.now())) {
             throw new TokenInvalidException("Invalid OTP");

@@ -16,7 +16,7 @@ services:
       - rafiq-network
 
   spring:
-    image: rafiqhealthcare/rafiq:latest
+    image: myapp:latest
     container_name: rafiq-api
     ports:
       - "8030:8030"

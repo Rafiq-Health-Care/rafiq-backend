@@ -128,15 +128,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void getNewOtp(String email) {
         User user = userRepository.findByEmail(email).orElseThrow(
                 ()->new UserNotFoundException("User with email " + email + " not found"));
-        Token otpToken = user.getTokens().stream().filter(token ->
+        Optional<Token> otpToken = user.getTokens().stream().filter(token ->
                 token.getTokenType().equals(TokenType.OTP)&&
-                token.getExpiryDate().isAfter(Instant.now())).findFirst().orElseThrow(
-                ()->new TokenInvalidException("No OTP token found for user " + email)
-        );
-        otpToken.setExpiryDate(Instant.now());
+                token.getExpiryDate().isAfter(Instant.now())).findFirst();
+        otpToken.ifPresent(token -> token.setExpiryDate(Instant.now()));
         generateOtpAndSendEmail(user);
     }
 
