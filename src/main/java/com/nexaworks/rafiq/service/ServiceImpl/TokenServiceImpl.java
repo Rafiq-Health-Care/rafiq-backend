@@ -3,6 +3,7 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.TokenType;
+import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.TokenRepository;
 import com.nexaworks.rafiq.service.TokenService;
@@ -55,7 +56,7 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public Token getToken(String otp) {
         return tokenRepository.findByToken(otp).orElseThrow(
-                ()->new IllegalArgumentException("Invalid Token"));
+                ()->new TokenInvalidException("Invalid Token"));
     }
 
     @Override
@@ -75,10 +76,10 @@ public class TokenServiceImpl implements TokenService {
     public User verifyOtp(String email, String otp) {
         // todo handle exception
         Token token = tokenRepository.findByToken(otp).orElseThrow(
-                ()->new IllegalArgumentException("Invalid Token"));
+                ()->new TokenInvalidException("Invalid Token"));
         if (!token.getUser().getEmail().equals(email)
                 ||token.getExpiryDate().isBefore(Instant.now())) {
-            throw new IllegalArgumentException("Invalid OTP");
+            throw new TokenInvalidException("Invalid OTP");
         }
         return token.getUser();
     }

@@ -12,6 +12,8 @@ import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.TokenType;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
+import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
+import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
@@ -128,12 +130,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public void getNewOtp(String email) {
         User user = userRepository.findByEmail(email).orElseThrow(
-                ()->new IllegalArgumentException("User with email " + email + " not found"));
+                ()->new UserNotFoundException("User with email " + email + " not found"));
         Token otpToken = user.getTokens().stream().filter(token ->
                 token.getTokenType().equals(TokenType.OTP)&&
                 token.getExpiryDate().isAfter(Instant.now())).findFirst().orElseThrow(
-                        //todo handle exception
-                ()->new IllegalArgumentException("No OTP token found for user " + email)
+                ()->new TokenInvalidException("No OTP token found for user " + email)
         );
         otpToken.setExpiryDate(Instant.now());
         generateOtpAndSendEmail(user);
