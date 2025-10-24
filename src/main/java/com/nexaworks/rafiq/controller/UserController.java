@@ -24,7 +24,7 @@ import java.io.IOException;
 public class UserController {
     private final UserService userService;
     @PostMapping("/register/patient")
-    public ResponseEntity<Void> registerPatient(@RequestBody @Valid UserRegistrationRequest request){
+    public ResponseEntity<Void> registerPatient(@Valid @RequestBody UserRegistrationRequest request){
         userService.registerPatient(UserMapper.toUser(request));
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

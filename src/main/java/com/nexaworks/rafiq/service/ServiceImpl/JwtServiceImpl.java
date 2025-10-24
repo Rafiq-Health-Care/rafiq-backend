@@ -1,6 +1,9 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
 import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
+import com.nexaworks.rafiq.exception.custom.UserException;
+import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.JwtService;
 import io.jsonwebtoken.Claims;
@@ -10,6 +13,7 @@ import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -35,7 +39,7 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public String generateToken(User user) {
         if (user == null) {
-            throw new IllegalArgumentException("User cannot be null");
+            throw new UserException("User cannot be null");
         }
         String email = user.getEmail();
         var authorities = user.getAuthorities().stream()
@@ -57,14 +61,14 @@ public class JwtServiceImpl implements JwtService {
                     .parseSignedClaims(jwt)
                     .getPayload();
             if (claims.getExpiration().before(new Date())) {
-                throw new IllegalArgumentException("Token has expired");
+                throw new TokenInvalidException("Token has expired");
             }
             if (claims.get("authorities") == null) {
-                throw new IllegalArgumentException("Token has no authorities");
+                throw new BadCredentialsException("Token has no authorities");
             }
             var username = claims.getSubject();
             log.info("Validated token for user {}",username);
-            User user = userRepository.findByEmail(username).orElseThrow(()->new IllegalArgumentException("User not found"));
+            User user = userRepository.findByEmail(username).orElseThrow(()->new UserNotFoundException("User not found"));
             log.info("User found {}",user.getEmail());
             List<String > authorities = claims.get("authorities", List.class);
             List<SimpleGrantedAuthority> authorityList =

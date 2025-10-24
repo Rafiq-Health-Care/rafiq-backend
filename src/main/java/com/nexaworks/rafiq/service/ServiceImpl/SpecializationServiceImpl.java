@@ -2,7 +2,7 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 
 import com.nexaworks.rafiq.dto.response.SpecializationResponse;
 import com.nexaworks.rafiq.entities.Specialization;
-import com.nexaworks.rafiq.exception.SpecializationNotFoundException;
+import com.nexaworks.rafiq.exception.custom.SpecializationNotFoundException;
 import com.nexaworks.rafiq.repository.SpecializationRepository;
 import com.nexaworks.rafiq.service.SpecializationService;
 import lombok.RequiredArgsConstructor;

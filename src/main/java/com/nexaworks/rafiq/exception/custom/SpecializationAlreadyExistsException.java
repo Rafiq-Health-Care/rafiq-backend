@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.exception;
+package com.nexaworks.rafiq.exception.custom;
 
 public class SpecializationAlreadyExistsException extends RuntimeException {
     

@@ -11,13 +11,13 @@ import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.TokenType;
-import com.nexaworks.rafiq.exception.RegistrationException;
-import com.nexaworks.rafiq.exception.UserNotFoundException;
+import com.nexaworks.rafiq.exception.custom.RegistrationException;
+import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
+import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -128,16 +128,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void getNewOtp(String email) {
         User user = userRepository.findByEmail(email).orElseThrow(
-                ()->new IllegalArgumentException("User with email " + email + " not found"));
-        Token otpToken = user.getTokens().stream().filter(token ->
+                ()->new UserNotFoundException("User with email " + email + " not found"));
+        Optional<Token> otpToken = user.getTokens().stream().filter(token ->
                 token.getTokenType().equals(TokenType.OTP)&&
-                token.getExpiryDate().isAfter(Instant.now())).findFirst().orElseThrow(
-                        //todo handle exception
-                ()->new IllegalArgumentException("No OTP token found for user " + email)
-        );
-        otpToken.setExpiryDate(Instant.now());
+                token.getExpiryDate().isAfter(Instant.now())).findFirst();
+        otpToken.ifPresent(token -> token.setExpiryDate(Instant.now()));
         generateOtpAndSendEmail(user);
     }
 

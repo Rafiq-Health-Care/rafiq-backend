@@ -2,6 +2,9 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 
 import com.nexaworks.rafiq.dto.request.TestResultRequest;
 import com.nexaworks.rafiq.entities.*;
+import com.nexaworks.rafiq.exception.custom.LabException;
+import com.nexaworks.rafiq.exception.custom.LabTestException;
+import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.LabTestRepository;
 import com.nexaworks.rafiq.repository.PatientRepository;
 import com.nexaworks.rafiq.service.*;
@@ -59,7 +62,7 @@ public class LabTestServiceImpl implements LabTestService {
 
     private Lab getLab(TestResultRequest testResultRequest) {
         return labService.getLabById(testResultRequest.id())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid Lab Id"));
+                .orElseThrow(() -> new LabException("Invalid Lab Id"));
     }
 
 
@@ -103,7 +106,7 @@ public class LabTestServiceImpl implements LabTestService {
     public Integer deleteAll() {
         PatientProfile patient = getPatientProfile();
         patient = patientRepository.findById(patient.getId()).orElseThrow(()->
-                new IllegalArgumentException("Invalid Patient Id"));
+                new UserNotFoundException("Invalid Patient Id"));
         List<LabTest> tests = patient.getLabTests();
         int size = tests.size();
         labTestRepository.deleteAll(tests);
@@ -137,7 +140,7 @@ public class LabTestServiceImpl implements LabTestService {
                 lab.getTests().add(test);
                 test.setLab(lab);
             } else {
-                throw new IllegalArgumentException("Invalid Lab Id");
+                throw new LabException("Invalid Lab Id");
             }
         }
     }
@@ -149,10 +152,10 @@ public class LabTestServiceImpl implements LabTestService {
     @NotNull
     private LabTest validateOwnership(UUID testId) {
         LabTest test = labTestRepository.findById(testId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid Test Id"));
+                .orElseThrow(() -> new LabTestException("Invalid Test Id"));
         PatientProfile patient = getPatientProfile();
         if (!test.getPatient().getId().equals(patient.getId())) {
-            throw new IllegalArgumentException("Invalid Test Id");
+            throw new LabTestException("Invalid Test Id");
         }
         return test;
     }

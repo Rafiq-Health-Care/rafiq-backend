@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.dto.response;
+package com.nexaworks.rafiq.exception.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

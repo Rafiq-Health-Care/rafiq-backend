@@ -1,51 +1,43 @@
 package com.nexaworks.rafiq.exception.handler;
 
-import com.nexaworks.rafiq.dto.response.ErrorResponse;
-import com.nexaworks.rafiq.exception.SpecializationAlreadyExistsException;
-import com.nexaworks.rafiq.exception.SpecializationNotFoundException;
-import com.nexaworks.rafiq.exception.SpecializationValidationException;
-import lombok.RequiredArgsConstructor;
+import com.nexaworks.rafiq.exception.custom.SpecializationAlreadyExistsException;
+import com.nexaworks.rafiq.exception.custom.SpecializationNotFoundException;
+import com.nexaworks.rafiq.exception.custom.SpecializationValidationException;
+import com.nexaworks.rafiq.exception.model.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 
-@Component
-@RequiredArgsConstructor
+@RestControllerAdvice
 public class SpecializationExceptionHandler {
 
-    public ResponseEntity<ErrorResponse> handleSpecializationNotFoundException(SpecializationNotFoundException ex, WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
-                "Specialization Not Found",
-                ex.getMessage(),
-                LocalDateTime.now(),
-                request.getDescription(false)
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    @ExceptionHandler(SpecializationNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(SpecializationNotFoundException ex, HttpServletRequest request) {
+        return build(ex, request, HttpStatus.NOT_FOUND);
     }
 
-    public ResponseEntity<ErrorResponse> handleSpecializationAlreadyExistsException(SpecializationAlreadyExistsException ex, WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.CONFLICT.value(),
-                "Specialization Already Exists",
-                ex.getMessage(),
-                LocalDateTime.now(),
-                request.getDescription(false)
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    @ExceptionHandler(SpecializationAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleAlreadyExists(SpecializationAlreadyExistsException ex, HttpServletRequest request) {
+        return build(ex, request, HttpStatus.CONFLICT);
     }
 
-    public ResponseEntity<ErrorResponse> handleSpecializationValidationException(SpecializationValidationException ex, WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                "Specialization Validation Failed",
+    @ExceptionHandler(SpecializationValidationException.class)
+    public ResponseEntity<ErrorResponse> handleValidation(SpecializationValidationException ex, HttpServletRequest request) {
+        return build(ex, request, HttpStatus.BAD_REQUEST);
+    }
+
+    private ResponseEntity<ErrorResponse> build(RuntimeException ex, HttpServletRequest request, HttpStatus status) {
+        ErrorResponse error = new ErrorResponse(
+                status.value(),
+                status.getReasonPhrase(),
                 ex.getMessage(),
                 LocalDateTime.now(),
-                request.getDescription(false)
+                request.getRequestURI()
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(error, status);
     }
 }
