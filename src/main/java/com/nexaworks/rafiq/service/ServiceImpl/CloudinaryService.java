@@ -2,6 +2,7 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.nexaworks.rafiq.exception.custom.EmptyFileException;
 import com.nexaworks.rafiq.service.ImageService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,10 +21,12 @@ public class CloudinaryService implements ImageService {
     }
 
     public List<String> uploadFile(MultipartFile file) throws IOException {
+        if (file.isEmpty()) {
+            throw new EmptyFileException("File is empty");
+        }
 
-
-            Map<String ,Object> result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-            return List.of( result.get("secure_url").toString(),result.get("public_id").toString());
+        Map<String ,Object> result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+        return List.of( result.get("secure_url").toString(),result.get("public_id").toString());
     }
 
     @Override
