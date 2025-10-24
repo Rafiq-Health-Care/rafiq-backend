@@ -22,7 +22,7 @@ public class RateLimitingFilter implements Filter {
 
         Bandwidth limit = Bandwidth.builder()
                 .capacity(20)
-                .refillGreedy(1,Duration.ofSeconds(10))
+                .refillGreedy(1,Duration.ofSeconds(3))
                 .build();
         return bucketMap.computeIfAbsent(clientIp, k -> Bucket.builder().addLimit(limit).build());
 
