@@ -23,6 +23,7 @@ public class LabTest extends BaseEntity{
     private String code;
     private String pdf;
     private String publicId;
+    private String fileType;
     @ManyToOne
     @JoinColumn(name = "lab_id", nullable = true)
     private Lab lab;

@@ -21,6 +21,6 @@ public class TestMapper {
                                 t.getResult(),
                                 t.getUnit(),
                                 t.getStatus())
-                ).toList(),test.getId()),test.getPdf());
+                ).toList(),test.getId()),test.getPdf(), test.getFileType());
     }
 }

@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.controller;
 
+import com.itextpdf.text.DocumentException;
 import com.nexaworks.rafiq.dto.request.TestResultRequest;
 import com.nexaworks.rafiq.dto.response.PageResponse;
 import com.nexaworks.rafiq.dto.response.TestResponse;
@@ -17,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/lab-test")
@@ -32,7 +34,7 @@ public class LabTestController {
             value = "/upload",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE )
-    public ResponseEntity<String > upload(@RequestParam("file") MultipartFile file) throws IOException {
+    public ResponseEntity<String > upload(@RequestParam("file") MultipartFile file) throws IOException, DocumentException, ExecutionException, InterruptedException {
         return  ResponseEntity.ok().body(
             pdfExtractorService.extractPdf(file)
         );
@@ -45,7 +47,7 @@ public class LabTestController {
         return ResponseEntity.ok().build();
     }
     @GetMapping
-    public ResponseEntity<PageResponse<TestResultRequest>> getAllTests(
+    public ResponseEntity<PageResponse<TestResponse>> getAllTests(
             @RequestParam(value= "page",defaultValue = "0")int page,
             @RequestParam(value= "size",defaultValue = "10")int size,
             @RequestParam(value= "sort",defaultValue = "name")String sort,

@@ -163,11 +163,20 @@ public class LabTestServiceImpl implements LabTestService {
     }
     @Override
     @Async
-    public CompletableFuture<UUID> saveTestPdf(MultipartFile file) throws IOException {
-        List<String > result = imageService.uploadPdf(file);
+    public CompletableFuture<UUID> saveTestPdf(MultipartFile file,User user) throws IOException {
+        String fileType = file.getContentType();
+        List<String> result;
+        if (fileType!=null&&fileType.startsWith("image/")) {
+            result=imageService.uploadFile(file);
+        } else {
+            result = imageService.uploadPdf(file);
+        }
         LabTest labTest = new LabTest();
         labTest.setPdf(result.get(0));
         labTest.setPublicId(result.get(1));
+        labTest.setFileType(fileType);
+        PatientProfile patient = user.getPatientProfile();
+        labTest.setPatient(patient);
        labTest = labTestRepository.save(labTest);
         return CompletableFuture.completedFuture(labTest.getId());
     }

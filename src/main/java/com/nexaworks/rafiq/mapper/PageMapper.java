@@ -4,6 +4,7 @@ import com.nexaworks.rafiq.dto.request.TestRequest;
 import com.nexaworks.rafiq.dto.request.TestResultRequest;
 import com.nexaworks.rafiq.dto.response.LabResponse;
 import com.nexaworks.rafiq.dto.response.PageResponse;
+import com.nexaworks.rafiq.dto.response.TestResponse;
 import com.nexaworks.rafiq.entities.Lab;
 import com.nexaworks.rafiq.entities.LabResult;
 import com.nexaworks.rafiq.entities.LabTest;
@@ -31,8 +32,8 @@ public class PageMapper {
         );
     }
 
-    public PageResponse<TestResultRequest> mapToTestResponse(Page<LabTest> all) {
-        List<TestResultRequest> content = all.getContent().stream()
+    public PageResponse<TestResponse> mapToTestResponse(Page<LabTest> all) {
+        List<TestResponse> content = all.getContent().stream()
                 .map(labTest -> {
                     List<TestRequest> tests = (labTest.getLabResults() == null ? List.<LabResult>of() : labTest.getLabResults())
                             .stream()
@@ -47,11 +48,12 @@ public class PageMapper {
                     Instant instant = labTest.getDate();
                     Date date = instant != null ? Date.from(instant) : null;
 
-                    return new TestResultRequest(
+                    return new TestResponse(
+                            new TestResultRequest(
                             labTest.getName(),
                             labTest.getId(),
                             date,
-                            tests,labTest.getId()
+                            tests,labTest.getId()),labTest.getPdf(), labTest.getFileType()
                     );
                 })
                 .collect(Collectors.toList());
