@@ -9,6 +9,7 @@ import com.nexaworks.rafiq.exception.custom.UserException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.TokenRepository;
 import com.nexaworks.rafiq.service.TokenService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ public class TokenServiceImpl implements TokenService {
 
 
     @Override
+    @Transactional
     public String generateRefreshToken(User user){
         if(user == null){
             throw new UserException("User cannot be null");
@@ -62,6 +64,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
+    @Transactional
     public String generateAccessToken(Optional<User> user) {
         if (user.isEmpty()){
             throw new UserNotFoundException("User not found");
@@ -86,6 +89,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
+    @Transactional
     public void invalidateRefreshToken(Token token) {
         tokenRepository.delete(token);
     }

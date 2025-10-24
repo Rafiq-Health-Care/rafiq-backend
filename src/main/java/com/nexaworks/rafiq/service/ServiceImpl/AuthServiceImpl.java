@@ -25,6 +25,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -51,6 +52,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
 
     @Override
+    @Transactional
     public void forgetPassword(ForgetPasswordRequest forgetPasswordRequest) {
         String email = forgetPasswordRequest.email();
         User user = userService.findByEmail(email)
@@ -62,6 +64,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public VerifyOtpResponse verifyOtp(VerifyOtpRequest verifyOtpRequest) {
         validateToken(verifyOtpRequest);
         String accessToken = tokenService.generateAccessToken
@@ -78,6 +81,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public void changePassword(ChangePasswordRequest changePasswordRequest) {
         Token token = tokenService.getToken(changePasswordRequest.accessToken());
         if (token.getExpiryDate().isBefore(Instant.now())) {
@@ -123,6 +127,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public LoginResponse refresh(RefreshRequest request, HttpServletResponse response) {
         Token token = tokenService.getToken(request.refreshToken());
         if (token.getExpiryDate().isBefore(Instant.now())) {
@@ -137,6 +142,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public void logout(LogoutRequest request,HttpServletResponse response) {
         tokenService.invalidateRefreshToken(tokenService.getToken(request.refreshToken()));
         jwtService.invalidateJwtToken(request.jwtToken());
@@ -145,6 +151,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public LoginResponse oAuth2(String idToken,HttpServletResponse response) throws GeneralSecurityException, IOException {
         GoogleIdToken googleIdToken = getGoogleIdToken(idToken);
         if (googleIdToken!=null){

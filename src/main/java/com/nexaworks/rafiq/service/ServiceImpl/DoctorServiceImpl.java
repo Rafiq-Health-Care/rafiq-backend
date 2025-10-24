@@ -9,6 +9,7 @@ import com.nexaworks.rafiq.service.SpecializationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -19,6 +20,7 @@ public class DoctorServiceImpl implements DoctorService {
     private final DoctorRepository doctorRepository;
     private final SpecializationService specializationService;
     @Override
+    @Transactional
     public DoctorProfile createProfile(User doctor, String description, UUID specialization,String id,String logo) {
         DoctorProfile doctorProfile = new DoctorProfile();
         doctorProfile.setUser(doctor);

@@ -68,7 +68,6 @@ public class LabServiceImpl implements LabService {
     @Override
     @Transactional
     public void updateLab(String name, List<Address> entity, MultipartFile file, UUID labId) throws IOException {
-        // todo handle exception
         Lab lab = labRepository.findById(labId)
                 .orElseThrow(()->new LabException("Invalid Lab Id"));
         imageService.delete(lab.getPublicId());
