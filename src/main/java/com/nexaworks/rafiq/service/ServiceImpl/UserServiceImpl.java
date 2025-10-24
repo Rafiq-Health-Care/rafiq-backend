@@ -1,5 +1,7 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import com.nexaworks.rafiq.dto.event.NewOtpEvent;
+import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
 
 import com.nexaworks.rafiq.dto.request.DoctorRegistrationRequest;
@@ -22,11 +24,13 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.reactive.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -51,6 +55,7 @@ public class UserServiceImpl implements UserService {
     private final EmailContentService emailContentService;
     private final JwtService jwtService;
     private final ImageService imageService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public Optional<User> findByEmail(String email) {
@@ -87,7 +92,9 @@ public class UserServiceImpl implements UserService {
         patient.setPatientProfile(patientProfile);
         log.info("User registered {}",user.getEmail());
        String otp =  generateOtp(user);
-       sendRegistrationMail(patient,otp);
+       log.info("OTP generated {}",otp);
+        eventPublisher.publishEvent(
+                new UserRegistrationEvent(user.getEmail(),otp,user.getFirstName()));
     }
 
     private User extracted(User user) {
@@ -112,7 +119,10 @@ public class UserServiceImpl implements UserService {
 //        doctor.setPatientProfile(patientService.createPatientProfile(doctor));
         doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization(),nationalIdImage.get(0),nationalIdImage.get(1)));
        String otp = generateOtp(user);
-       sendRegistrationMail(doctor,otp);
+       log.info("OTP generated {}",otp);
+        eventPublisher.publishEvent(
+                new UserRegistrationEvent(user.getEmail(),otp,user.getFirstName()));
+
     }
 
     @Override
@@ -145,7 +155,10 @@ public class UserServiceImpl implements UserService {
                 token.getExpiryDate().isAfter(Instant.now())).findFirst();
         otpToken.ifPresent(token -> token.setExpiryDate(Instant.now()));
         String otp  = generateOtp(user);
-        sendRegistrationMail(user,otp);
+        log.info("New OTP generated {}",otp);
+        eventPublisher.publishEvent(
+                new NewOtpEvent(user.getEmail(),otp,user.getFirstName()));
+
     }
 
     @Override

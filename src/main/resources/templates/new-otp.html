@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New OTP - Rafiq</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .email-wrapper {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #0d6efd;
+            padding: 24px;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .content {
+            padding: 30px;
+            text-align: center;
+        }
+
+        .content h2 {
+            color: #0d6efd;
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+
+        .content p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .otp-box {
+            display: inline-block;
+            background-color: #0d6efd;
+            color: #ffffff;
+            font-size: 24px;
+            letter-spacing: 6px;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-color: #0d6efd;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 12px 28px;
+            border-radius: 8px;
+            margin-top: 24px;
+            font-size: 16px;
+        }
+
+        .cta-button:hover {
+            background-color: #0b5ed7;
+        }
+
+        .footer {
+            background-color: #f0f2f5;
+            text-align: center;
+            font-size: 13px;
+            color: #777;
+            padding: 16px;
+        }
+
+        .footer p {
+            margin: 6px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="email-wrapper">
+    <div class="header">
+        <h1>Your New OTP Code</h1>
+    </div>
+
+    <div class="content">
+        <h2>Hello <span th:text="${name}">User</span>,</h2>
+        <p>We’ve received a request to generate a new one-time password (OTP) for your account.</p>
+
+        <div class="otp-box" th:text="${otp}">123456</div>
+
+        <p>This OTP is valid for <strong>5 minutes</strong>. Please do not share it with anyone.</p>
+
+        <a th:href="${url}" class="cta-button" th:if="${url != null}">Verify Now</a>
+
+        <p style="margin-top: 30px; font-size: 14px; color: #666;">
+            Didn’t request this code? You can safely ignore this email.
+        </p>
+    </div>
+
+    <div class="footer">
+        <p>&copy; <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2025</span> Rafiq. All rights reserved.</p>
+        <p>This is an automated message — please do not reply.</p>
+    </div>
+</div>
+</body>
+</html>
