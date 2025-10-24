@@ -6,5 +6,5 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 public interface AiService {
-    String extractLabResultsFromPdf(MultipartFile pdfFile) throws IOException, DocumentException;
+    String extractLabResultsFromPdf(byte[] pdfFile) throws IOException, DocumentException;
 }

@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.Document;
@@ -30,22 +31,24 @@ public class GeminiService implements AiService {
     private final Gemini gemini;
 
     @Override
-    public String extractLabResultsFromPdf(MultipartFile pdfFile) throws IOException, DocumentException {
-        byte[] pdfBytes = pdfFile.getBytes();
-      if (Objects.equals(pdfFile.getContentType(), "image/")) {
-          pdfBytes = convertImage(pdfBytes);
-      }
+    public String extractLabResultsFromPdf(byte[] pdfBytes) throws IOException, DocumentException {
+
+
         String encodedPdf = Base64.getEncoder().encodeToString(pdfBytes);
         RequestBodyDTO requestBody = prepareGeminiRequest(encodedPdf);
 
+        return handleGeminiResponse(requestBody);
 
+    }
+
+    @NotNull
+    private String handleGeminiResponse(RequestBodyDTO requestBody) throws JsonProcessingException {
         String result = gemini.getResult(requestBody);
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(result);
-       String jsonResponse = jsonNode.get("candidates").get(0).get("content").get("parts").get(0).get("text").asText();
-       jsonResponse = jsonResponse.replace("```json", "").replace("```", "").trim();
-       return jsonResponse;
-
+        String jsonResponse = jsonNode.get("candidates").get(0).get("content").get("parts").get(0).get("text").asText();
+        jsonResponse = jsonResponse.replace("```json", "").replace("```", "").trim();
+        return jsonResponse;
     }
 
     @NotNull
@@ -56,20 +59,5 @@ public class GeminiService implements AiService {
 
         ContentPart content = new ContentPart(List.of(pdfPart, textPart));
         return new RequestBodyDTO(List.of(content));
-    }
-
-    private static byte[] convertImage(byte[] pdfBytes) throws DocumentException, IOException {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        Document document = new Document();
-        PdfWriter.getInstance(document, outputStream);
-        document.open();
-
-        Image img = Image.getInstance(pdfBytes);
-        img.scaleToFit(document.getPageSize().getWidth(), document.getPageSize().getHeight());
-        img.setAlignment(Image.ALIGN_CENTER);
-        document.add(img);
-        document.close();
-        pdfBytes = outputStream.toByteArray();
-        return pdfBytes;
     }
 }
