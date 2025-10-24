@@ -124,7 +124,7 @@ public class LabTestServiceImpl implements LabTestService {
     }
 
     @Transactional
-    public void updateLabResults(List<LabResult> entity, LabTest test) {
+    protected void updateLabResults(List<LabResult> entity, LabTest test) {
        labResultService.deleteAll(test.getLabResults());
        entity.forEach(e -> e.setLabTest(test));
        labResultService.saveAll(entity);
@@ -133,7 +133,7 @@ public class LabTestServiceImpl implements LabTestService {
     }
 
 
-    public void updateLabAssociation(TestResultRequest testResultRequest, LabTest test) {
+    private void updateLabAssociation(TestResultRequest testResultRequest, LabTest test) {
         Lab lab = test.getLab();
         if (lab.getId()!= testResultRequest.id()) {
             Optional<Lab> labOptional = labService.getLabById(testResultRequest.id());

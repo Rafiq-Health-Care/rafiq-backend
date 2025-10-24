@@ -40,6 +40,7 @@ public class NotificationListener {
                 "new-otp.html");
     }
     @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleForgetPasswordEvent(ForgetPasswordEvent event){
         Map<String ,Object> model = emailContentService.createOtpEmail(event.otp(), event.name(),"url");
         log.info("Sending email to {}",event.email());
