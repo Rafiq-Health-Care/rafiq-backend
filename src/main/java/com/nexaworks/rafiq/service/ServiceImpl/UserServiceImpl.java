@@ -180,11 +180,5 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    @Async
-    public void sendRegistrationMail(User user,String otpToken) {
-        Map<String ,Object> model = emailContentService.createOtpEmail(otpToken, user.getName(),"url");
-        emailSenderService.sendEmail(model,
-                user.getEmail(),"Verify your email address",
-                "OTP_TEMPLATE.html");
-    }
+
 }
