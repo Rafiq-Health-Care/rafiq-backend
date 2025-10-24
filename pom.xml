@@ -196,6 +196,10 @@
             <artifactId>bucket4j-core</artifactId>
             <version>8.10.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
