@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.controller;
 
+import com.itextpdf.text.DocumentException;
 import com.nexaworks.rafiq.dto.request.TestResultRequest;
 import com.nexaworks.rafiq.dto.response.PageResponse;
 import com.nexaworks.rafiq.dto.response.TestResponse;
@@ -32,7 +33,7 @@ public class LabTestController {
             value = "/upload",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE )
-    public ResponseEntity<String > upload(@RequestParam("file") MultipartFile file) throws IOException {
+    public ResponseEntity<String > upload(@RequestParam("file") MultipartFile file) throws IOException, DocumentException {
         return  ResponseEntity.ok().body(
             pdfExtractorService.extractPdf(file)
         );

@@ -2,6 +2,7 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.itextpdf.text.DocumentException;
 import com.nexaworks.rafiq.exception.custom.EmptyFileException;
 import com.nexaworks.rafiq.service.AiService;
 import com.nexaworks.rafiq.service.LabTestService;
@@ -36,12 +37,12 @@ public class PdfExtractorServiceImpl implements PdfExtractorService {
     private final AiService aiService;
 
     @Override
-    public String extractPdf(MultipartFile pdfFile) throws IOException {
+    public String extractPdf(MultipartFile pdfFile) throws IOException, DocumentException {
         if (pdfFile.isEmpty()) {
             throw new EmptyFileException("The provided PDF file is empty. Please upload a valid file.");
         }
         CompletableFuture<UUID> testId = labTestService.saveTestPdf(pdfFile);
-        String result = aiService.extractLabResultsFromPdf(pdfFile);
+        return aiService.extractLabResultsFromPdf(pdfFile);
 
 
 
