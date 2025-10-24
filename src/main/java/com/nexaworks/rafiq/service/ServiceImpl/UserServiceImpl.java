@@ -91,7 +91,7 @@ public class UserServiceImpl implements UserService {
         PatientProfile patientProfile = patientService.createPatientProfile(patient);
         patient.setPatientProfile(patientProfile);
         log.info("User registered {}",user.getEmail());
-       String otp =  generateOtp(user);
+       String otp =  tokenService.generateOtpToken(patient);
        log.info("OTP generated {}",otp);
         eventPublisher.publishEvent(
                 new UserRegistrationEvent(user.getEmail(),otp,user.getFirstName()));
@@ -116,9 +116,8 @@ public class UserServiceImpl implements UserService {
         userRepository.save(doctor);
        List<String > nationalIdImage = imageService.uploadFile(nationalId);
         doctor.setRoles(List.of(roleService.getRole(ROLE_USER),roleService.getRole(ROLE_DOCTOR)));
-//        doctor.setPatientProfile(patientService.createPatientProfile(doctor));
         doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization(),nationalIdImage.get(0),nationalIdImage.get(1)));
-       String otp = generateOtp(user);
+       String otp = tokenService.generateOtpToken(doctor);
        log.info("OTP generated {}",otp);
         eventPublisher.publishEvent(
                 new UserRegistrationEvent(user.getEmail(),otp,user.getFirstName()));
@@ -154,7 +153,7 @@ public class UserServiceImpl implements UserService {
                 token.getTokenType().equals(TokenType.OTP)&&
                 token.getExpiryDate().isAfter(Instant.now())).findFirst();
         otpToken.ifPresent(token -> token.setExpiryDate(Instant.now()));
-        String otp  = generateOtp(user);
+        String otp  = tokenService.generateOtpToken(user);
         log.info("New OTP generated {}",otp);
         eventPublisher.publishEvent(
                 new NewOtpEvent(user.getEmail(),otp,user.getFirstName()));
@@ -182,11 +181,6 @@ public class UserServiceImpl implements UserService {
 
     }
 
-//    @Transactional
-    public String  generateOtp(User user) {
-        return  tokenService.generateOtpToken(user);
-
-    }
 
     @Async
     public void sendRegistrationMail(User user,String otpToken) {

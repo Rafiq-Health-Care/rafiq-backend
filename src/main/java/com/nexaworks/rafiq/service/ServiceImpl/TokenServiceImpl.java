@@ -48,6 +48,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
+    @Transactional
     public String generateOtpToken(User user) {
         String otpToken = String.valueOf(
                 (int) (Math.random() * 900000) + 100000
