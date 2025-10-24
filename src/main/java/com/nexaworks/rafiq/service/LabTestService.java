@@ -3,6 +3,7 @@ package com.nexaworks.rafiq.service;
 import com.nexaworks.rafiq.dto.request.TestResultRequest;
 import com.nexaworks.rafiq.entities.LabResult;
 import com.nexaworks.rafiq.entities.LabTest;
+import com.nexaworks.rafiq.entities.User;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,5 +25,5 @@ public interface LabTestService {
     Integer deleteAll();
 
     void update(UUID testId, @Valid TestResultRequest testResultRequest, List<LabResult> entity);
-    public CompletableFuture<UUID> saveTestPdf(MultipartFile file) throws IOException;
+    public CompletableFuture<UUID> saveTestPdf(MultipartFile file, User user) throws IOException;
 }

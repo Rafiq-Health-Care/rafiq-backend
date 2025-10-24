@@ -10,6 +10,7 @@ import com.nexaworks.rafiq.exception.custom.EmptyFileException;
 import com.nexaworks.rafiq.service.AiService;
 import com.nexaworks.rafiq.service.LabTestService;
 import com.nexaworks.rafiq.service.PdfExtractorService;
+import com.nexaworks.rafiq.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
@@ -31,15 +32,16 @@ public class PdfExtractorServiceImpl implements PdfExtractorService {
     private final ChatClient chatClient;
     private final LabTestService labTestService;
     private final AiService aiService;
+    private final UserService userService;
 
     @Override
     public String extractPdf(MultipartFile pdfFile) throws IOException, DocumentException, ExecutionException, InterruptedException {
         if (pdfFile.isEmpty()) {
             throw new EmptyFileException("The provided PDF file is empty. Please upload a valid file.");
         }
-        CompletableFuture<UUID> testId = labTestService.saveTestPdf(pdfFile);
+        CompletableFuture<UUID> testId = labTestService.saveTestPdf(pdfFile, userService.getUser());
         byte[] pdfBytes = pdfFile.getBytes();
-        if (Objects.equals(pdfFile.getContentType(), "image/")) {
+        if (pdfFile.getContentType() != null && pdfFile.getContentType().startsWith("image/")) {
             pdfBytes = convertImage(pdfBytes);
         }
         String result = aiService.extractLabResultsFromPdf(pdfBytes);

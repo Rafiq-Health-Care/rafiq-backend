@@ -47,7 +47,7 @@ public class LabTestController {
         return ResponseEntity.ok().build();
     }
     @GetMapping
-    public ResponseEntity<PageResponse<TestResultRequest>> getAllTests(
+    public ResponseEntity<PageResponse<TestResponse>> getAllTests(
             @RequestParam(value= "page",defaultValue = "0")int page,
             @RequestParam(value= "size",defaultValue = "10")int size,
             @RequestParam(value= "sort",defaultValue = "name")String sort,
