@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/lab-test")
@@ -33,7 +34,7 @@ public class LabTestController {
             value = "/upload",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE )
-    public ResponseEntity<String > upload(@RequestParam("file") MultipartFile file) throws IOException, DocumentException {
+    public ResponseEntity<String > upload(@RequestParam("file") MultipartFile file) throws IOException, DocumentException, ExecutionException, InterruptedException {
         return  ResponseEntity.ok().body(
             pdfExtractorService.extractPdf(file)
         );
