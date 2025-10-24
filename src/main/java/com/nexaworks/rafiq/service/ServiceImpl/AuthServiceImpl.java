@@ -4,6 +4,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.nexaworks.rafiq.dto.event.ForgetPasswordEvent;
 import com.nexaworks.rafiq.dto.request.*;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.dto.response.VerifyOtpResponse;
@@ -20,11 +21,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -37,31 +40,29 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class AuthServiceImpl implements AuthService {
-    public static final String SUBJECT = "Reset password";
-    public static final String FORGET_PASSWORD_TEMPLATE = "forget-password.html";
-    public static final String URL = "http://localhost:8032/auth/verfiy";
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String clientId;
     private final UserRepository userRepository;
     private final TokenService tokenService;
-    private final EmailContentService emailContentService;
-    private final EmailSenderService emailSenderService;
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
+    @Transactional
     public void forgetPassword(ForgetPasswordRequest forgetPasswordRequest) {
         String email = forgetPasswordRequest.email();
         User user = userService.findByEmail(email)
                 .orElseThrow(()->new UserNotFoundException("User with email " + email + " not found"));
         String otp = tokenService.generateOtpToken(user);
         log.info("Generated OTP {}",otp);
-        Map<String,Object> model = emailContentService.createOtpEmail(otp,user.getName(),URL);
-        emailSenderService.sendEmail(model,email,SUBJECT,FORGET_PASSWORD_TEMPLATE);
+        eventPublisher.publishEvent(
+                new ForgetPasswordEvent(email,otp,user.getFirstName()));
     }
 
     @Override
+    @Transactional
     public VerifyOtpResponse verifyOtp(VerifyOtpRequest verifyOtpRequest) {
         validateToken(verifyOtpRequest);
         String accessToken = tokenService.generateAccessToken
@@ -78,6 +79,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public void changePassword(ChangePasswordRequest changePasswordRequest) {
         Token token = tokenService.getToken(changePasswordRequest.accessToken());
         if (token.getExpiryDate().isBefore(Instant.now())) {
@@ -123,6 +125,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public LoginResponse refresh(RefreshRequest request, HttpServletResponse response) {
         Token token = tokenService.getToken(request.refreshToken());
         if (token.getExpiryDate().isBefore(Instant.now())) {
@@ -137,6 +140,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public void logout(LogoutRequest request,HttpServletResponse response) {
         tokenService.invalidateRefreshToken(tokenService.getToken(request.refreshToken()));
         jwtService.invalidateJwtToken(request.jwtToken());
@@ -145,6 +149,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public LoginResponse oAuth2(String idToken,HttpServletResponse response) throws GeneralSecurityException, IOException {
         GoogleIdToken googleIdToken = getGoogleIdToken(idToken);
         if (googleIdToken!=null){

@@ -9,11 +9,13 @@ import com.nexaworks.rafiq.exception.custom.UserException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.TokenRepository;
 import com.nexaworks.rafiq.service.TokenService;
+
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -33,6 +35,7 @@ public class TokenServiceImpl implements TokenService {
 
 
     @Override
+    @Transactional
     public String generateRefreshToken(User user){
         if(user == null){
             throw new UserException("User cannot be null");
@@ -46,6 +49,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
+    @Transactional
     public String generateOtpToken(User user) {
         String otpToken = String.valueOf(
                 (int) (Math.random() * 900000) + 100000
@@ -62,6 +66,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
+    @Transactional
     public String generateAccessToken(Optional<User> user) {
         if (user.isEmpty()){
             throw new UserNotFoundException("User not found");
@@ -86,6 +91,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
+    @Transactional
     public void invalidateRefreshToken(Token token) {
         tokenRepository.delete(token);
     }

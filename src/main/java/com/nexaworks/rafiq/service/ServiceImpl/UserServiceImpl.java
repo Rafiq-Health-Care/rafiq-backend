@@ -1,5 +1,7 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import com.nexaworks.rafiq.dto.event.NewOtpEvent;
+import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
 
 import com.nexaworks.rafiq.dto.request.DoctorRegistrationRequest;
@@ -12,19 +14,21 @@ import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.TokenType;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
-import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -49,6 +53,7 @@ public class UserServiceImpl implements UserService {
     private final EmailContentService emailContentService;
     private final JwtService jwtService;
     private final ImageService imageService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public Optional<User> findByEmail(String email) {
@@ -56,12 +61,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void changePassword(User user, String s) {
         user.setPassword(passwordEncoder.encode(s));
         userRepository.save(user);
     }
 
     @Override
+    @Transactional
     public void updatePassword(User user, ResetPasswordRequest resetPasswordRequest) {
         if(!passwordEncoder.matches(resetPasswordRequest.oldPassword(),user.getPassword())){
             throw new IllegalArgumentException("Old password is not correct");
@@ -71,6 +78,8 @@ public class UserServiceImpl implements UserService {
         log.info("Password updated for user {}",user.getEmail());
 
     }
+    @Override
+    @Transactional
     public void registerPatient(User user) {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new RegistrationException("User with email " + user.getEmail() + " already exists");
@@ -80,8 +89,10 @@ public class UserServiceImpl implements UserService {
         PatientProfile patientProfile = patientService.createPatientProfile(patient);
         patient.setPatientProfile(patientProfile);
         log.info("User registered {}",user.getEmail());
-        generateOtpAndSendEmail(user);
-
+       String otp =  tokenService.generateOtpToken(patient);
+       log.info("OTP generated {}",otp);
+        eventPublisher.publishEvent(
+                new UserRegistrationEvent(user.getEmail(),otp,user.getFirstName()));
     }
 
     private User extracted(User user) {
@@ -93,7 +104,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(rollbackOn =  Exception.class)
+    @Transactional
     public void registerDoctor(DoctorRegistrationRequest request, MultipartFile nationalId) throws IOException {
         User user = UserMapper.toUser(request.user());
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
@@ -103,12 +114,16 @@ public class UserServiceImpl implements UserService {
         userRepository.save(doctor);
        List<String > nationalIdImage = imageService.uploadFile(nationalId);
         doctor.setRoles(List.of(roleService.getRole(ROLE_USER),roleService.getRole(ROLE_DOCTOR)));
-//        doctor.setPatientProfile(patientService.createPatientProfile(doctor));
         doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization(),nationalIdImage.get(0),nationalIdImage.get(1)));
-        generateOtpAndSendEmail(user);
+       String otp = tokenService.generateOtpToken(doctor);
+       log.info("OTP generated {}",otp);
+        eventPublisher.publishEvent(
+                new UserRegistrationEvent(user.getEmail(),otp,user.getFirstName()));
+
     }
 
     @Override
+    @Transactional
     public LoginResponse verifyOtp(String email, String otp, HttpServletResponse response) {
      User user = tokenService.verifyOtp(email,otp);
      user.setEnabled(true);
@@ -136,7 +151,11 @@ public class UserServiceImpl implements UserService {
                 token.getTokenType().equals(TokenType.OTP)&&
                 token.getExpiryDate().isAfter(Instant.now())).findFirst();
         otpToken.ifPresent(token -> token.setExpiryDate(Instant.now()));
-        generateOtpAndSendEmail(user);
+        String otp  = tokenService.generateOtpToken(user);
+        log.info("New OTP generated {}",otp);
+        eventPublisher.publishEvent(
+                new NewOtpEvent(user.getEmail(),otp,user.getFirstName()));
+
     }
 
     @Override
@@ -146,6 +165,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public User addUser(String email, String firstName, String lastName) {
         User user = new User();
         user.setEmail(email);
@@ -159,11 +179,6 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    private void generateOtpAndSendEmail(User user) {
-        String otpToken = tokenService.generateOtpToken(user);
-        Map<String ,Object> model = emailContentService.createOtpEmail(otpToken,user.getName(),"url");
-        emailSenderService.sendEmail(model,
-                user.getEmail(),"Verify your email address",
-                "OTP_TEMPLATE.html");
-    }
+
+
 }

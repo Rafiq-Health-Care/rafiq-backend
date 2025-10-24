@@ -123,13 +123,15 @@ public class LabTestServiceImpl implements LabTestService {
         labTestRepository.save(test);
     }
 
-    private void updateLabResults(List<LabResult> entity, LabTest test) {
+    @Transactional
+    protected void updateLabResults(List<LabResult> entity, LabTest test) {
        labResultService.deleteAll(test.getLabResults());
        entity.forEach(e -> e.setLabTest(test));
        labResultService.saveAll(entity);
 
 
     }
+
 
     private void updateLabAssociation(TestResultRequest testResultRequest, LabTest test) {
         Lab lab = test.getLab();
