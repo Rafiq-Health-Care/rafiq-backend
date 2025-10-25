@@ -3,7 +3,10 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.nexaworks.rafiq.exception.custom.EmptyFileException;
+import com.nexaworks.rafiq.exception.custom.FileUploadException;
 import com.nexaworks.rafiq.service.ImageService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,20 +16,29 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class CloudinaryService implements ImageService {
     private final Cloudinary cloudinary;
 
-    public CloudinaryService(Cloudinary cloudinary) {
-        this.cloudinary = cloudinary;
-    }
 
-    public List<String> uploadFile(MultipartFile file) throws IOException {
+    public UploadResults uploadPhoto(MultipartFile file,UploadType type) throws IOException {
         if (file.isEmpty()) {
             throw new EmptyFileException("File is empty");
         }
+        try (var inputStream = file.getInputStream()){
+            var map = cloudinary.uploader().upload(
+                            inputStream,
+                            ObjectUtils.asMap(
+                                    "resource_type", "auto"
+                            )
+                    );
+            return List.of(map.get("secure_url").toString(),map.get("public_id").toString());
 
-        Map<String ,Object> result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-        return List.of( result.get("secure_url").toString(),result.get("public_id").toString());
+        } catch (IOException e) {
+            throw new FileUploadException("Filed to upload the file, please try again");
+        }
+
     }
 
     @Override

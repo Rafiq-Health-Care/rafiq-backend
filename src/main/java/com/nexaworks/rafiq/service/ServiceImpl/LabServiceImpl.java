@@ -38,7 +38,7 @@ public class LabServiceImpl implements LabService {
     public void addLab(String name, List<Address> entity, MultipartFile file) throws IOException {
         Lab lab = new Lab();
         lab.setName(name);
-        List<String > result = imageService.uploadFile(file);
+        List<String > result = imageService.uploadPhoto(file);
         lab.setLogo(result.get(0));
         lab.setPublicId(result.get(1));
         labRepository.save(lab);
@@ -71,7 +71,7 @@ public class LabServiceImpl implements LabService {
         Lab lab = labRepository.findById(labId)
                 .orElseThrow(()->new LabException("Invalid Lab Id"));
         imageService.delete(lab.getPublicId());
-        List<String > result = imageService.uploadFile(file);
+        List<String > result = imageService.uploadPhoto(file);
         lab.setLogo(result.get(0));
         lab.setPublicId(result.get(1));
         lab.setName(name);

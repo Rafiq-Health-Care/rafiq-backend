@@ -167,7 +167,7 @@ public class LabTestServiceImpl implements LabTestService {
         String fileType = file.getContentType();
         List<String> result;
         if (fileType!=null&&fileType.startsWith("image/")) {
-            result=imageService.uploadFile(file);
+            result=imageService.uploadPhoto(file);
         } else {
             result = imageService.uploadPdf(file);
         }
