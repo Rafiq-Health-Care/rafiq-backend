@@ -3,6 +3,7 @@ package com.nexaworks.rafiq.service;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.TokenType;
+import com.nexaworks.rafiq.exception.custom.UserException;
 import com.nexaworks.rafiq.repository.TokenRepository;
 import com.nexaworks.rafiq.service.ServiceImpl.TokenServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +48,7 @@ public class TokenServiceTest {
     @DisplayName("Generate refresh token should throw exception when user is null")
     @Test
     void generateRefreshToken_ShouldThrowException_WhenUserIsNull(){
-        assertThrows(IllegalArgumentException.class, () -> tokenService.generateRefreshToken(null));
+        assertThrows(UserException.class, () -> tokenService.generateRefreshToken(null));
         verify(tokenRepository, never()).save(any(Token.class));
     }
 
