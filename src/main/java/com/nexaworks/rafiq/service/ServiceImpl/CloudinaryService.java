@@ -48,7 +48,7 @@ public class CloudinaryService implements ImageService {
         try {
             cloudinary.uploader().destroy(publicId, Collections.emptyMap());
         }catch (Exception e){
-            throw new RuntimeException(e.getMessage());
+            throw new FileUploadException("Filed to delete the file, please try again");
         }
 
     }
