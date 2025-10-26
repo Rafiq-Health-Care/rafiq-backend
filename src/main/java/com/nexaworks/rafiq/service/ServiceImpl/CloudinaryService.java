@@ -5,6 +5,7 @@ import com.cloudinary.utils.ObjectUtils;
 import com.nexaworks.rafiq.dto.UploadResults;
 import com.nexaworks.rafiq.enums.UploadType;
 import com.nexaworks.rafiq.exception.custom.EmptyFileException;
+import com.nexaworks.rafiq.exception.custom.FileException;
 import com.nexaworks.rafiq.exception.custom.FileUploadException;
 import com.nexaworks.rafiq.service.ImageService;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +47,7 @@ public class CloudinaryService implements ImageService {
         try {
             cloudinary.uploader().destroy(publicId, Collections.emptyMap());
         }catch (Exception e){
-            throw new FileUploadException("Filed to delete the file, please try again");
+            throw new FileException("Filed to delete the file, please try again");
         }
 
     }

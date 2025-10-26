@@ -6,6 +6,7 @@ import com.nexaworks.rafiq.dto.UploadResults;
 import com.nexaworks.rafiq.enums.UploadType;
 
 import com.nexaworks.rafiq.exception.custom.EmptyFileException;
+import com.nexaworks.rafiq.exception.custom.FileException;
 import com.nexaworks.rafiq.exception.custom.FileUploadException;
 import com.nexaworks.rafiq.service.ServiceImpl.CloudinaryService;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,6 +87,25 @@ class CloudinaryServiceTest {
 
         assertThrows(FileUploadException.class, () ->
                 cloudinaryService.uploadResource(file, UploadType.IMAGE));
+    }
+
+    @DisplayName("Should delete resource without exception")
+    @Test
+    void shouldDeleteResourceWithoutException() throws IOException {
+        when(cloudinary.uploader()).thenReturn(uploader);
+        when(uploader.destroy(anyString(), anyMap()))
+                .thenReturn(Map.of("result", "ok"));
+
+        assertDoesNotThrow(() -> cloudinaryService.delete("abc123"));
+    }
+
+    @DisplayName("Should throw exception when delete fails")
+    @Test
+    void shouldThrowExceptionWhenDeleteFails() throws IOException {
+        when(cloudinary.uploader()).thenReturn(uploader);
+        when(uploader.destroy(anyString(), anyMap()))
+                .thenThrow(new IOException("Delete failed"));
+        assertThrows(FileException.class, () -> cloudinaryService.delete("abc123"));
     }
 
 }
