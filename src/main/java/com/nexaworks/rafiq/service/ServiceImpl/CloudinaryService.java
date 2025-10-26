@@ -2,6 +2,8 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.nexaworks.rafiq.dto.UploadResults;
+import com.nexaworks.rafiq.enums.UploadType;
 import com.nexaworks.rafiq.exception.custom.EmptyFileException;
 import com.nexaworks.rafiq.exception.custom.FileUploadException;
 import com.nexaworks.rafiq.service.ImageService;
@@ -22,7 +24,7 @@ public class CloudinaryService implements ImageService {
     private final Cloudinary cloudinary;
 
 
-    public UploadResults uploadPhoto(MultipartFile file,UploadType type) throws IOException {
+    public UploadResults uploadResource(MultipartFile file, UploadType type) throws IOException {
         if (file.isEmpty()) {
             throw new EmptyFileException("File is empty");
         }
@@ -30,10 +32,10 @@ public class CloudinaryService implements ImageService {
             var map = cloudinary.uploader().upload(
                             inputStream,
                             ObjectUtils.asMap(
-                                    "resource_type", "auto"
-                            )
-                    );
-            return List.of(map.get("secure_url").toString(),map.get("public_id").toString());
+                                    "resource_type", type ));
+
+            return new UploadResults(map.get("secure_url")
+                    .toString(), map.get("public_id").toString());
 
         } catch (IOException e) {
             throw new FileUploadException("Filed to upload the file, please try again");
@@ -51,19 +53,6 @@ public class CloudinaryService implements ImageService {
 
     }
 
-    @Override
-    public List<String> uploadPdf(MultipartFile file) throws IOException {
-        Map<String ,Object> map =
-                cloudinary.uploader().upload(
-                        file.getBytes(),
-                        ObjectUtils.asMap(
-                                "resource_type", "raw",
-                                "folder", "pdf"
-                        )
-                );
-        return List.of(map.get("secure_url").toString(),map.get("public_id").toString());
-
-    }
 
 
 }

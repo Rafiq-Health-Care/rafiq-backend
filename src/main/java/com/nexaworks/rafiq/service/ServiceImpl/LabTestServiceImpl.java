@@ -1,7 +1,9 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import com.nexaworks.rafiq.dto.UploadResults;
 import com.nexaworks.rafiq.dto.request.TestResultRequest;
 import com.nexaworks.rafiq.entities.*;
+import com.nexaworks.rafiq.enums.UploadType;
 import com.nexaworks.rafiq.exception.custom.LabException;
 import com.nexaworks.rafiq.exception.custom.LabTestException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
@@ -165,15 +167,15 @@ public class LabTestServiceImpl implements LabTestService {
     @Async
     public CompletableFuture<UUID> saveTestPdf(MultipartFile file,User user) throws IOException {
         String fileType = file.getContentType();
-        List<String> result;
+        UploadResults result;
         if (fileType!=null&&fileType.startsWith("image/")) {
-            result=imageService.uploadPhoto(file);
+            result=imageService.uploadResource(file, UploadType.IMAGE);
         } else {
-            result = imageService.uploadPdf(file);
+            result = imageService.uploadResource(file, UploadType.PDF);
         }
         LabTest labTest = new LabTest();
-        labTest.setPdf(result.get(0));
-        labTest.setPublicId(result.get(1));
+        labTest.setPdf(result.url());
+        labTest.setPublicId(result.publicId());
         labTest.setFileType(fileType);
         PatientProfile patient = user.getPatientProfile();
         labTest.setPatient(patient);

@@ -110,7 +110,7 @@ public class UserServiceImpl implements UserService {
         }
         User doctor = extracted(user);
         userRepository.save(doctor);
-       List<String > nationalIdImage = imageService.uploadPhoto(nationalId);
+       List<String > nationalIdImage = imageService.uploadResource(nationalId);
         doctor.setRoles(List.of(roleService.getRole(ROLE_USER),roleService.getRole(ROLE_DOCTOR)));
         doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization(),nationalIdImage.get(0),nationalIdImage.get(1)));
        String otp = tokenService.generateOtpToken(doctor);

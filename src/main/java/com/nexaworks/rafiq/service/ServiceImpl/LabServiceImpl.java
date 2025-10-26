@@ -1,8 +1,10 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import com.nexaworks.rafiq.dto.UploadResults;
 import com.nexaworks.rafiq.entities.Address;
 import com.nexaworks.rafiq.entities.Lab;
 import com.nexaworks.rafiq.entities.LabTest;
+import com.nexaworks.rafiq.enums.UploadType;
 import com.nexaworks.rafiq.exception.custom.LabException;
 import com.nexaworks.rafiq.repository.LabRepository;
 import com.nexaworks.rafiq.service.AddressService;
@@ -38,9 +40,7 @@ public class LabServiceImpl implements LabService {
     public void addLab(String name, List<Address> entity, MultipartFile file) throws IOException {
         Lab lab = new Lab();
         lab.setName(name);
-        List<String > result = imageService.uploadPhoto(file);
-        lab.setLogo(result.get(0));
-        lab.setPublicId(result.get(1));
+        setLogo(file, lab);
         labRepository.save(lab);
         entity.forEach(e -> e.setLab(lab));
         addressService.saveAll(entity);
@@ -71,13 +71,17 @@ public class LabServiceImpl implements LabService {
         Lab lab = labRepository.findById(labId)
                 .orElseThrow(()->new LabException("Invalid Lab Id"));
         imageService.delete(lab.getPublicId());
-        List<String > result = imageService.uploadPhoto(file);
-        lab.setLogo(result.get(0));
-        lab.setPublicId(result.get(1));
+        setLogo(file, lab);
         lab.setName(name);
         addressService.deleteAll(lab.getAddresses());
         lab.setAddresses(addressService.saveAll(entity));
         labRepository.save(lab);
+    }
+
+    private void setLogo(MultipartFile file, Lab lab) throws IOException {
+        UploadResults result = imageService.uploadResource(file, UploadType.IMAGE);
+        lab.setLogo(result.url());
+        lab.setPublicId(result.publicId());
     }
 
     @Override

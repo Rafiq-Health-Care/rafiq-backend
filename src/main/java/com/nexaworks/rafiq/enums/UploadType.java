@@ -1,6 +1,19 @@
 package com.nexaworks.rafiq.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum UploadType {
-    IMAGE, VIDEO, DOCUMENT, PDF, VOICE
+    IMAGE("image"),
+    VIDEO("video"),
+    DOCUMENT("raw"),
+    PDF("raw"),
+    VOICE("video");
+
+    private final String cloudinaryType;
+
+    UploadType(String cloudinaryType) {
+        this.cloudinaryType = cloudinaryType;
+    }
 
 }
