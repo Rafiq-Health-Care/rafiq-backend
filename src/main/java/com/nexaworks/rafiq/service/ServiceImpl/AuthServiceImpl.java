@@ -102,6 +102,8 @@ public class AuthServiceImpl implements AuthService {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
+    @Override
+    @Transactional
     public LoginResponse login(String email, String password, HttpServletResponse response) {
         Authentication authentication = authenticationManager
                 .authenticate(

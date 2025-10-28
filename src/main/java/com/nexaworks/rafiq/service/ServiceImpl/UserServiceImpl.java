@@ -49,8 +49,6 @@ public class UserServiceImpl implements UserService {
     private final PatientService patientService;
     private final DoctorService doctorService;
     private final TokenService tokenService;
-    private final EmailSenderService emailSenderService;
-    private final EmailContentService emailContentService;
     private final JwtService jwtService;
     private final ImageService imageService;
     private final ApplicationEventPublisher eventPublisher;
