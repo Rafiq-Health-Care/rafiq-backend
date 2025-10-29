@@ -5,11 +5,11 @@ import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.service.JwtService;
 import com.nexaworks.rafiq.service.TokenService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -30,10 +30,13 @@ public class Security {
                         .filter(role -> !role.equals("ROLE_USER")).findFirst());
     }
     public void addTokenToCookie(HttpServletResponse response,String token,String cookieName,int expiry){
-        Cookie cookie = new Cookie(cookieName, token);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge( expiry);
-        response.addCookie(cookie);
+        ResponseCookie cookie = ResponseCookie.from(cookieName, token)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(expiry)
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 }

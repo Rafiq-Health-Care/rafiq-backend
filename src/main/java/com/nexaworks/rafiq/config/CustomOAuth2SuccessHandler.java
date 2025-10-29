@@ -56,8 +56,6 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
                 throw new IllegalStateException("User is disabled");
             }
             log.info("User already exists");
-            String jwt = jwtService.generateToken(user.get());
-            String refreshToken = tokenService.generateRefreshToken(user.get());
             LoginResponse loginResponse =  security.createLoginSession(response, user.get());
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json");
