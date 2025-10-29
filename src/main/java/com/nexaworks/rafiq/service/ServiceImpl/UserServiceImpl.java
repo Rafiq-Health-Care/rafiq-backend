@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import com.nexaworks.rafiq.dto.UploadResults;
 import com.nexaworks.rafiq.dto.event.NewOtpEvent;
 import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
@@ -13,6 +14,7 @@ import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.TokenType;
+import com.nexaworks.rafiq.enums.UploadType;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.mapper.UserMapper;
@@ -24,7 +26,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static com.nexaworks.rafiq.enums.Roles.*;
@@ -49,8 +49,6 @@ public class UserServiceImpl implements UserService {
     private final PatientService patientService;
     private final DoctorService doctorService;
     private final TokenService tokenService;
-    private final EmailSenderService emailSenderService;
-    private final EmailContentService emailContentService;
     private final JwtService jwtService;
     private final ImageService imageService;
     private final ApplicationEventPublisher eventPublisher;
@@ -112,9 +110,9 @@ public class UserServiceImpl implements UserService {
         }
         User doctor = extracted(user);
         userRepository.save(doctor);
-       List<String > nationalIdImage = imageService.uploadFile(nationalId);
+       UploadResults nationalIdImage = imageService.uploadResource(nationalId, UploadType.IMAGE);
         doctor.setRoles(List.of(roleService.getRole(ROLE_USER),roleService.getRole(ROLE_DOCTOR)));
-        doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization(),nationalIdImage.get(0),nationalIdImage.get(1)));
+        doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization(),nationalIdImage.url(),nationalIdImage.publicId()));
        String otp = tokenService.generateOtpToken(doctor);
        log.info("OTP generated {}",otp);
         eventPublisher.publishEvent(

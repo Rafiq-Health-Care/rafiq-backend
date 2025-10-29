@@ -2,6 +2,7 @@ package com.nexaworks.rafiq.exception.handler;
 
 import com.nexaworks.rafiq.exception.ExceptionUtils;
 import com.nexaworks.rafiq.exception.custom.EmptyFileException;
+import com.nexaworks.rafiq.exception.custom.FileUploadException;
 import com.nexaworks.rafiq.exception.model.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -19,5 +20,9 @@ public class FileExceptionHandler {
     public ResponseEntity<ErrorResponse> handleEmptyFile(EmptyFileException ex, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.BAD_REQUEST));
 
+    }
+    @ExceptionHandler(FileUploadException.class)
+    public ResponseEntity<ErrorResponse> handleFileUpload(FileUploadException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.BAD_REQUEST));
     }
 }
