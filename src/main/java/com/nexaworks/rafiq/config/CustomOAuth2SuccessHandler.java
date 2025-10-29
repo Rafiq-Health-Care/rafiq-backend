@@ -8,6 +8,7 @@ import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.service.JwtService;
 import com.nexaworks.rafiq.service.TokenService;
 import com.nexaworks.rafiq.service.UserService;
+import com.nexaworks.rafiq.utils.Security;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,6 +30,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
     private final UserService userService;
     private final JwtService jwtService;
     private final TokenService tokenService;
+    private final Security security;
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
@@ -56,10 +58,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
             log.info("User already exists");
             String jwt = jwtService.generateToken(user.get());
             String refreshToken = tokenService.generateRefreshToken(user.get());
-            LoginResponse loginResponse = new LoginResponse(
-                    user.get().getRoles().stream().map(Role::getName).toList(),
-                    refreshToken
-            );
+            LoginResponse loginResponse =  security.createLoginSession(response, user.get());
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json");
             new ObjectMapper().writeValue(response.getOutputStream(),loginResponse);

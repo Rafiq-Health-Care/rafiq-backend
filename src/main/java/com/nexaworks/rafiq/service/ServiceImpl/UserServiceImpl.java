@@ -49,7 +49,6 @@ public class UserServiceImpl implements UserService {
     private final PatientService patientService;
     private final DoctorService doctorService;
     private final TokenService tokenService;
-    private final JwtService jwtService;
     private final ImageService imageService;
     private final ApplicationEventPublisher eventPublisher;
     private final Security security;
@@ -89,14 +88,12 @@ public class UserServiceImpl implements UserService {
         patient.setPatientProfile(patientProfile);
         log.info("User registered {}",user.getEmail());
         String otp =  tokenService.generateOtpToken(patient);
-        logOtp(otp);
+        log.info("OTP generated {}",otp);
         eventPublisher.publishEvent(
                 new UserRegistrationEvent(user.getEmail(),otp,user.getFirstName()));
     }
 
-    private static void logOtp(String otp) {
-        log.info("OTP generated {}", otp);
-    }
+
 
     private User extracted(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -115,11 +112,11 @@ public class UserServiceImpl implements UserService {
         }
         User doctor = extracted(user);
         userRepository.save(doctor);
-       UploadResults nationalIdImage = imageService.uploadResource(nationalId, UploadType.IMAGE);
+        UploadResults nationalIdImage = imageService.uploadResource(nationalId, UploadType.IMAGE);
         doctor.setRoles(List.of(roleService.getRole(ROLE_USER),roleService.getRole(ROLE_DOCTOR)));
         doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization(),nationalIdImage.url(),nationalIdImage.publicId()));
-       String otp = tokenService.generateOtpToken(doctor);
-        logOtp(otp);
+        String otp = tokenService.generateOtpToken(doctor);
+        log.info("OTP generated {}",otp);
         eventPublisher.publishEvent(
                 new UserRegistrationEvent(user.getEmail(),otp,user.getFirstName()));
 
@@ -131,10 +128,6 @@ public class UserServiceImpl implements UserService {
      User user = tokenService.verifyOtp(email,otp);
      user.setEnabled(true);
      userRepository.save(user);
-     String jwt = jwtService.generateToken(user);
-     String refreshToken = tokenService.generateRefreshToken(user);
-     security.addTokenToCookie(response,jwt,"jwt",60*60*24);
-     security.addTokenToCookie(response,refreshToken,"refreshToken",60*60*24*30);
      return  security.createLoginSession(response, user);
     }
 
