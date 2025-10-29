@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.dto.response;
 
 import java.util.List;
+import java.util.Optional;
 
-public record LoginResponse(List<String> roles,String refreshToken) {
+public record LoginResponse(Optional<String> role) {
 }

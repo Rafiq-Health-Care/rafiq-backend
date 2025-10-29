@@ -20,7 +20,7 @@ import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
-import jakarta.servlet.http.Cookie;
+import com.nexaworks.rafiq.utils.Security;
 import jakarta.servlet.http.HttpServletResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -52,6 +52,7 @@ public class UserServiceImpl implements UserService {
     private final JwtService jwtService;
     private final ImageService imageService;
     private final ApplicationEventPublisher eventPublisher;
+    private final Security security;
 
     @Override
     public Optional<User> findByEmail(String email) {
@@ -87,10 +88,14 @@ public class UserServiceImpl implements UserService {
         PatientProfile patientProfile = patientService.createPatientProfile(patient);
         patient.setPatientProfile(patientProfile);
         log.info("User registered {}",user.getEmail());
-       String otp =  tokenService.generateOtpToken(patient);
-       log.info("OTP generated {}",otp);
+        String otp =  tokenService.generateOtpToken(patient);
+        logOtp(otp);
         eventPublisher.publishEvent(
                 new UserRegistrationEvent(user.getEmail(),otp,user.getFirstName()));
+    }
+
+    private static void logOtp(String otp) {
+        log.info("OTP generated {}", otp);
     }
 
     private User extracted(User user) {
@@ -114,7 +119,7 @@ public class UserServiceImpl implements UserService {
         doctor.setRoles(List.of(roleService.getRole(ROLE_USER),roleService.getRole(ROLE_DOCTOR)));
         doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization(),nationalIdImage.url(),nationalIdImage.publicId()));
        String otp = tokenService.generateOtpToken(doctor);
-       log.info("OTP generated {}",otp);
+        logOtp(otp);
         eventPublisher.publishEvent(
                 new UserRegistrationEvent(user.getEmail(),otp,user.getFirstName()));
 
@@ -127,18 +132,12 @@ public class UserServiceImpl implements UserService {
      user.setEnabled(true);
      userRepository.save(user);
      String jwt = jwtService.generateToken(user);
-     addJwtToCookie(response,jwt);
      String refreshToken = tokenService.generateRefreshToken(user);
-     return new LoginResponse(user.getRoles().stream().map(Role::getName).toList(),refreshToken);
+     security.addTokenToCookie(response,jwt,"jwt",60*60*24);
+     security.addTokenToCookie(response,refreshToken,"refreshToken",60*60*24*30);
+     return  security.createLoginSession(response, user);
     }
 
-    private void addJwtToCookie(HttpServletResponse response, String jwt) {
-        Cookie cookie = new Cookie("jwt",jwt);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(60*60*24);
-        response.addCookie(cookie);
-    }
 
     @Override
     @Transactional

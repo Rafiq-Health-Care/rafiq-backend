@@ -8,13 +8,13 @@ import com.nexaworks.rafiq.dto.event.ForgetPasswordEvent;
 import com.nexaworks.rafiq.dto.request.*;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.dto.response.VerifyOtpResponse;
-import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
+import com.nexaworks.rafiq.utils.Security;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -48,6 +47,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final ApplicationEventPublisher eventPublisher;
+    private final Security  security;
 
     @Override
     @Transactional
@@ -109,23 +109,9 @@ public class AuthServiceImpl implements AuthService {
                 .authenticate(
                         new UsernamePasswordAuthenticationToken(email,password));
         User user = (User) authentication.getPrincipal();
-        String jwt = jwtService.generateToken(user);
-        addJwtCookie(response,jwt);
-        String refreshToken = tokenService.generateRefreshToken(user);
-        return new LoginResponse(
-               user.getRoles().stream().map(Role::getName).toList(),refreshToken
-        );
+        return security.createLoginSession(response, user);
 
     }
-
-    private void addJwtCookie(HttpServletResponse response, String jwt) {
-        Cookie cookie = new Cookie("jwt",jwt);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(60*60*24);
-        response.addCookie(cookie);
-    }
-
     @Override
     @Transactional
     public LoginResponse refresh(RefreshRequest request, HttpServletResponse response) {
@@ -134,11 +120,7 @@ public class AuthServiceImpl implements AuthService {
             throw new TokenInvalidException("Invalid Refresh Token");
         }
         User user = token.getUser();
-        tokenService.invalidateRefreshToken(token);
-        String refreshToken = tokenService.generateRefreshToken(user);
-        String jwt = jwtService.generateToken(user);
-       addJwtCookie(response,jwt);
-        return new LoginResponse(user.getRoles().stream().map(Role::getName).toList(),refreshToken );
+        return  security.createLoginSession(response, user);
     }
 
     @Override
@@ -160,10 +142,7 @@ public class AuthServiceImpl implements AuthService {
             String lastName = googleIdToken.getPayload().get("family_name").toString();
             Optional<User> user = getUser(email, firstName, lastName);
             if (user.isPresent()) {
-                String jwt = jwtService.generateToken(user.get());
-                addJwtCookie(response, jwt);
-                String refreshToken = tokenService.generateRefreshToken(user.get());
-                return new LoginResponse(user.get().getRoles().stream().map(Role::getName).toList(), refreshToken);
+                return  security.createLoginSession(response, user.get());
             }
             else {
                 throw new UserNotFoundException("User not found");
@@ -207,11 +186,5 @@ public class AuthServiceImpl implements AuthService {
         cookie.setPath("/");
         cookie.setMaxAge(0);
         response.addCookie(cookie);
-    }
-
-    private void authenticateUser(User user) {
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                user,null,user.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 }
