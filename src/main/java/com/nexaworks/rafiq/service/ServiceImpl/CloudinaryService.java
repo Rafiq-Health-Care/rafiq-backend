@@ -23,7 +23,7 @@ public class CloudinaryService implements ImageService {
     private final Cloudinary cloudinary;
 
 
-    public UploadResults uploadResource(MultipartFile file, UploadType type) throws IOException {
+    public UploadResults uploadResource(MultipartFile file, UploadType type) {
         if (file.isEmpty()) {
             throw new EmptyFileException("File is empty");
         }
