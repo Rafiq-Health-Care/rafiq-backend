@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.exception.handler;
 
 import com.nexaworks.rafiq.exception.ExceptionUtils;
+import com.nexaworks.rafiq.exception.custom.InvalidPasswordException;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.exception.custom.UserException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
@@ -31,6 +32,10 @@ public class UserExceptionHandler {
     @ExceptionHandler(RegistrationException.class)
     public ResponseEntity<ErrorResponse> handleRegistrationException(RegistrationException ex, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.CONFLICT));
+    }
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidPasswordException(InvalidPasswordException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.UNAUTHORIZED));
     }
 
 

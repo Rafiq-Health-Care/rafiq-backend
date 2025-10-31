@@ -15,6 +15,7 @@ import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.TokenType;
 import com.nexaworks.rafiq.enums.UploadType;
+import com.nexaworks.rafiq.exception.custom.InvalidPasswordException;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.mapper.UserMapper;
@@ -69,7 +70,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void updatePassword(User user, ResetPasswordRequest resetPasswordRequest) {
         if(!passwordEncoder.matches(resetPasswordRequest.oldPassword(),user.getPassword())){
-            throw new IllegalArgumentException("Old password is not correct");
+            throw new InvalidPasswordException("Old password is not correct");
         }
         user.setPassword(passwordEncoder.encode(resetPasswordRequest.newPassword()));
         userRepository.save(user);
