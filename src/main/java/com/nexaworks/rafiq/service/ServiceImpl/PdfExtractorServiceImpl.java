@@ -29,7 +29,6 @@ import java.util.concurrent.ExecutionException;
 @Slf4j
 public class PdfExtractorServiceImpl implements PdfExtractorService {
 
-    private final ChatClient chatClient;
     private final LabTestService labTestService;
     private final AiService aiService;
     private final UserService userService;
