@@ -48,10 +48,10 @@ public class LabTestServiceImpl implements LabTestService {
         setTestFields(labTest, testResultRequest, Instant.now());
         PatientProfile patient = getPatientProfile();
         labTest.setPatient(patient);
-        Lab lab = getLab(testResultRequest);
-        lab.getTests().add(labTest);
-        lab = labService.save(lab);
-        labTest.setLab(lab);
+//        Lab lab = getLab(testResultRequest);
+//        lab.getTests().add(labTest);
+//        lab = labService.save(lab);
+//        labTest.setLab(lab);
         labTestRepository.save(labTest);
         entity.forEach(e -> e.setLabTest(labTest));
         labResultService.saveAll(entity);
@@ -62,10 +62,10 @@ public class LabTestServiceImpl implements LabTestService {
         return userService.getUser().getPatientProfile();
     }
 
-    private Lab getLab(TestResultRequest testResultRequest) {
-        return labService.getLabById(testResultRequest.id())
-                .orElseThrow(() -> new LabException("Invalid Lab Id"));
-    }
+//    private Lab getLab(TestResultRequest testResultRequest) {
+//        return labService.getLabById(testResultRequest.id())
+//                .orElseThrow(() -> new LabException("Invalid Lab Id"));
+//    }
 
 
     private static void setTestFields(LabTest labTest, TestResultRequest testResultRequest, Instant now) {
@@ -122,7 +122,7 @@ public class LabTestServiceImpl implements LabTestService {
         LabTest test = validateOwnership(testId);
         updateTestFields(testResultRequest, test);
         updateLabResults(entity, test);
-        updateLabAssociation(testResultRequest, test);
+//        updateLabAssociation(testResultRequest, test);
         labTestRepository.save(test);
     }
 
@@ -136,19 +136,19 @@ public class LabTestServiceImpl implements LabTestService {
     }
 
 
-    private void updateLabAssociation(TestResultRequest testResultRequest, LabTest test) {
-        Lab lab = test.getLab();
-        if (lab.getId()!= testResultRequest.id()) {
-            Optional<Lab> labOptional = labService.getLabById(testResultRequest.id());
-            if (labOptional.isPresent()) {
-                lab = labOptional.get();
-                lab.getTests().add(test);
-                test.setLab(lab);
-            } else {
-                throw new LabException("Invalid Lab Id");
-            }
-        }
-    }
+//    private void updateLabAssociation(TestResultRequest testResultRequest, LabTest test) {
+//        Lab lab = test.getLab();
+//        if (lab.getId()!= testResultRequest.id()) {
+//            Optional<Lab> labOptional = labService.getLabById(testResultRequest.id());
+//            if (labOptional.isPresent()) {
+//                lab = labOptional.get();
+//                lab.getTests().add(test);
+//                test.setLab(lab);
+//            } else {
+//                throw new LabException("Invalid Lab Id");
+//            }
+//        }
+//    }
 
     private static void updateTestFields(TestResultRequest testResultRequest, LabTest test) {
         setTestFields(test, testResultRequest, test.getDate());

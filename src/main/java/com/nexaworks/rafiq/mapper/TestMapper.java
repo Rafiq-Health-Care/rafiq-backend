@@ -17,8 +17,6 @@ public class TestMapper {
     public TestResultsResponse mapToTestResponse(LabTest test) {
         return new TestResultsResponse(
                 test.getName(),
-                test.getLab().getId(),
-                test.getLab().getName(),
                 test.getId(),
                 test.getPdf(),
                 test.getFileType(),
