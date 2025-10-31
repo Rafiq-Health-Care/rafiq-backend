@@ -38,15 +38,6 @@ public class PageMapper {
                         labTest.getName(),
                         labTest.getLab().getId(),
                         labTest.getLab().getName(),
-                        Date.from(labTest.getDate()),
-                        labTest.getLabResults().stream()
-                                .map(labResult -> new TestRequest(
-                                        labResult.getName(),
-                                        labResult.getResult(),
-                                        labResult.getUnit(),
-                                        labResult.getStatus()
-                                ))
-                                .collect(Collectors.toList()),
                         labTest.getId(),
                         labTest.getPdf(),
                         labTest.getFileType()
