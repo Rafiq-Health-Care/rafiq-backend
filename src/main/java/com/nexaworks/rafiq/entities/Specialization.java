@@ -15,10 +15,7 @@ import java.util.UUID;
 @Entity
 @SuperBuilder
 public class Specialization  extends BaseEntity{
-    @Id
-    @GeneratedValue
-    @UuidGenerator
-    private UUID id;
+
     private String name;
     private String description;
     private String code;

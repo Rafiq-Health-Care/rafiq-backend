@@ -1,9 +1,6 @@
 package com.nexaworks.rafiq.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +8,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -20,9 +18,11 @@ import java.util.UUID;
 @SuperBuilder
 @Entity
 public class PatientProfile  extends BaseEntity{
-    @Id
-    @GeneratedValue
-    @UuidGenerator
-    private UUID id;
+
     private String description;
+
+    @OneToOne(mappedBy = "patientProfile")
+    private User user;
+    @OneToMany(mappedBy = "patient")
+    private List<LabTest> labTests;
 }

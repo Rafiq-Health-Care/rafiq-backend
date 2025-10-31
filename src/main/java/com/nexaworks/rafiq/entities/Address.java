@@ -14,9 +14,6 @@ import java.util.UUID;
 @SuperBuilder
 @Entity
 public class Address extends BaseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
     private String street;
     private String city;
     private String state;
@@ -24,8 +21,11 @@ public class Address extends BaseEntity {
     private String postalCode;
 
     @ManyToOne
-    @JoinColumn(name = "user_id",nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
+    @ManyToOne
+    @JoinColumn(name = "lab_id")
+    private Lab lab;
 
 
 

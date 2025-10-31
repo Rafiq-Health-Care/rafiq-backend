@@ -1,0 +1,33 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: development
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build JAR with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ vars.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Docker image
+        run: docker build -t "${{ vars.DOCKER_USERNAME }}/rafiq:latest" .
+
+      - name: Push Docker image
+        run: docker push "${{ vars.DOCKER_USERNAME }}/rafiq:latest"

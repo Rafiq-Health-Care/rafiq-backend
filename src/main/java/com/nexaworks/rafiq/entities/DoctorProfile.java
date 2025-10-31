@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.entities;
 
+import com.nexaworks.rafiq.enums.Status;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,10 +20,6 @@ import java.util.UUID;
 @SuperBuilder
 @Entity
 public class DoctorProfile extends BaseEntity {
-    @Id
-    @GeneratedValue
-    @UuidGenerator
-    private UUID id;
     private String description;
     private String hospitalName;
     private String personalPhoto;
@@ -36,6 +33,14 @@ public class DoctorProfile extends BaseEntity {
 
     @OneToMany(mappedBy = "doctor",cascade = CascadeType.REMOVE)
     private List<MedicalCertifications> medicalCertifications;
+    @OneToMany(mappedBy = "doctor")
+    private List<LabTest> labTests;
+    @OneToOne
+    @JoinColumn(name = "social_links_id",referencedColumnName = "id")
+    private SocialLinks socialLinks;
+    private String publicId;
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
 
 
