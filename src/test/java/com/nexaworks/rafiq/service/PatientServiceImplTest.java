@@ -5,6 +5,7 @@ import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.repository.PatientRepository;
 import com.nexaworks.rafiq.service.ServiceImpl.PatientServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -14,7 +15,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.*;
-
+@DisplayName("PatientService Test Cases")
 public class PatientServiceImplTest {
     @Mock
     PatientRepository patientRepository;

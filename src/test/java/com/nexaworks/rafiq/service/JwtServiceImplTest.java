@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.List;
 
 
+@DisplayName("JwtServiceImpl Test")
 public class JwtServiceImplTest {
     private JwtServiceImpl jwtService;
     @Mock

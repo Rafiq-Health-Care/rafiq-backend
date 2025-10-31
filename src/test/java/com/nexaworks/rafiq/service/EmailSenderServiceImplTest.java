@@ -58,6 +58,7 @@ public class EmailSenderServiceImplTest {
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
         verify(templateEngine, times(1)).process(eq("testTemplate"), any(Context.class));
     }
+    @DisplayName("Should retry if mail send exception occurs")
     @Test
     void shouldRetryIfMailExceptionOccurs() {
         MimeMessage mimeMessage = new MimeMessage(Session.getDefaultInstance(System.getProperties()));
@@ -80,6 +81,7 @@ public class EmailSenderServiceImplTest {
 
         verify(javaMailSender, times(4)).send(any(MimeMessage.class));
     }
+    @DisplayName("Should retry if mail send exception occurs")
     @Test
     void shouldRetryIfMessageExceptionOccurs()  {
         MimeMessage mimeMessage = new MimeMessage(Session.getDefaultInstance(System.getProperties()));

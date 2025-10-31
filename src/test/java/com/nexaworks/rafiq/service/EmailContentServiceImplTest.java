@@ -10,6 +10,7 @@ import java.util.Map;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 
+@DisplayName("EmailContentService Test Cases")
 public class EmailContentServiceImplTest {
     @DisplayName("Should Return OTP Email Content")
     @Test
