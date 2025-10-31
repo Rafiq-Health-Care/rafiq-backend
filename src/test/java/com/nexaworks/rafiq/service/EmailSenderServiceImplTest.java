@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mail.MailException;
-import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.test.context.ContextConfiguration;
@@ -70,7 +69,6 @@ public class EmailSenderServiceImplTest {
                 .when(javaMailSender)
                 .send(any(MimeMessage.class));
 
-        // Act + Assert
         assertThrows(MailSenderException.class, () ->
                 emailSenderService.sendEmail(
                         Map.of("username", "Elbialy"),
