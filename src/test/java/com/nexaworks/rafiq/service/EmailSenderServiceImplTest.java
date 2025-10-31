@@ -41,15 +41,14 @@ public class EmailSenderServiceImplTest {
     @DisplayName("Should send email successfully")
     @Test
     void shouldSendEmailSuccessfully() {
-        // Arrange
+
         MimeMessage mimeMessage = new MimeMessage(Session.getDefaultInstance(System.getProperties()));
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(anyString(), any(Context.class))).thenReturn("<html>email</html>");
 
-        // Act
+
         emailSenderService.sendEmail(Map.of("username", "Elbialy"), "test@example.com", "Test Email", "testTemplate");
 
-        // Assert
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
         verify(templateEngine, times(1)).process(eq("testTemplate"), any(Context.class));
     }
