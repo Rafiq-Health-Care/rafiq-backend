@@ -7,6 +7,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-public record TestResultRequest(@NotBlank String name, @NotNull UUID id, Date date, List<TestRequest> tests,UUID testId) {
+public record TestResultRequest(@NotBlank String name, Date date, List<TestRequest> tests,UUID testId) {
 
 }

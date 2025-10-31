@@ -36,8 +36,6 @@ public class PageMapper {
         List<TestResponse> content = all.getContent().stream()
                 .map(labTest -> new TestResponse(
                         labTest.getName(),
-                        labTest.getLab().getId(),
-                        labTest.getLab().getName(),
                         labTest.getId(),
                         labTest.getPdf(),
                         labTest.getFileType()
