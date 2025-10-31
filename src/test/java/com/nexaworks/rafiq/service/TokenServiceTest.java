@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@DisplayName("TokenService Test Cases")
 public class TokenServiceTest {
     @Mock
     TokenRepository tokenRepository;

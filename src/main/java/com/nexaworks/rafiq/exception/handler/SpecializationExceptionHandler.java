@@ -1,9 +1,11 @@
 package com.nexaworks.rafiq.exception.handler;
 
+import com.nexaworks.rafiq.exception.ExceptionUtils;
 import com.nexaworks.rafiq.exception.custom.SpecializationAlreadyExistsException;
 import com.nexaworks.rafiq.exception.custom.SpecializationNotFoundException;
 import com.nexaworks.rafiq.exception.custom.SpecializationValidationException;
 import com.nexaworks.rafiq.exception.model.ErrorResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -13,31 +15,24 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class SpecializationExceptionHandler {
+    private final ExceptionUtils exceptionUtils;
 
     @ExceptionHandler(SpecializationNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(SpecializationNotFoundException ex, HttpServletRequest request) {
-        return build(ex, request, HttpStatus.NOT_FOUND);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.NOT_FOUND));
     }
 
     @ExceptionHandler(SpecializationAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleAlreadyExists(SpecializationAlreadyExistsException ex, HttpServletRequest request) {
-        return build(ex, request, HttpStatus.CONFLICT);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.CONFLICT));
     }
 
     @ExceptionHandler(SpecializationValidationException.class)
     public ResponseEntity<ErrorResponse> handleValidation(SpecializationValidationException ex, HttpServletRequest request) {
-        return build(ex, request, HttpStatus.BAD_REQUEST);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.BAD_REQUEST));
     }
 
-    private ResponseEntity<ErrorResponse> build(RuntimeException ex, HttpServletRequest request, HttpStatus status) {
-        ErrorResponse error = new ErrorResponse(
-                status.value(),
-                status.getReasonPhrase(),
-                ex.getMessage(),
-                LocalDateTime.now(),
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(error, status);
-    }
+
 }

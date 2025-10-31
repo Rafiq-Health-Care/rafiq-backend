@@ -34,30 +34,15 @@ public class PageMapper {
 
     public PageResponse<TestResponse> mapToTestResponse(Page<LabTest> all) {
         List<TestResponse> content = all.getContent().stream()
-                .map(labTest -> {
-                    List<TestRequest> tests = (labTest.getLabResults() == null ? List.<LabResult>of() : labTest.getLabResults())
-                            .stream()
-                            .map(lr -> new TestRequest(
-                                    lr.getName(),
-                                    lr.getResult(),
-                                    lr.getUnit(),
-                                    lr.getStatus()
-                            ))
-                            .collect(Collectors.toList());
-
-                    Instant instant = labTest.getDate();
-                    Date date = instant != null ? Date.from(instant) : null;
-
-                    return new TestResponse(
-                            new TestResultRequest(
-                            labTest.getName(),
-                            labTest.getId(),
-                            date,
-                            tests,labTest.getId()),labTest.getPdf(), labTest.getFileType()
-                    );
-                })
+                .map(labTest -> new TestResponse(
+                        labTest.getName(),
+                        labTest.getLab().getId(),
+                        labTest.getLab().getName(),
+                        labTest.getId(),
+                        labTest.getPdf(),
+                        labTest.getFileType()
+                ))
                 .collect(Collectors.toList());
-
         return new PageResponse<>(
                 content,
                 (int) all.getTotalElements(),
@@ -66,5 +51,6 @@ public class PageMapper {
                 all.isLast(),
                 all.isFirst()
         );
+
     }
 }

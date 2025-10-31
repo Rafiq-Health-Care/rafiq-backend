@@ -18,13 +18,13 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+@DisplayName("CloudinaryService Test Cases")
 class CloudinaryServiceTest {
 
     @Mock
@@ -49,21 +49,23 @@ class CloudinaryServiceTest {
     void shouldUploadResourceSuccessfully() throws IOException {
 
         when(file.isEmpty()).thenReturn(false);
-        InputStream inputStream = mock(InputStream.class);
-        when(file.getInputStream()).thenReturn(inputStream);
+
+        byte[] mockBytes = new byte[10];
+        when(file.getBytes()).thenReturn(mockBytes);
 
         when(cloudinary.uploader()).thenReturn(uploader);
-        when(uploader.upload(any(InputStream.class), anyMap()))
+
+        when(uploader.upload(any(byte[].class), anyMap()))
                 .thenReturn(Map.of(
                         "secure_url", "https://example.com/image.jpg",
                         "public_id", "abc123"
                 ));
 
-
         UploadResults result = cloudinaryService.uploadResource(file, UploadType.IMAGE);
 
         assertEquals("https://example.com/image.jpg", result.url());
         assertEquals("abc123", result.publicId());
+
     }
 
     @DisplayName("Should throw exception when file is empty")
@@ -78,12 +80,15 @@ class CloudinaryServiceTest {
     @Test
     void  shouldThrowExceptionWhenUploadFails() throws IOException {
         when(file.isEmpty()).thenReturn(false);
-        InputStream inputStream = mock(InputStream.class);
-        when(file.getInputStream()).thenReturn(inputStream);
+
+        byte[] mockBytes = new byte[10];
+        when(file.getBytes()).thenReturn(mockBytes);
 
         when(cloudinary.uploader()).thenReturn(uploader);
-        when(uploader.upload(any(InputStream.class), anyMap()))
-                .thenThrow(new IOException("Upload failed"));
+
+        when(uploader.upload(any(byte[].class), anyMap()))
+          .thenThrow(new IOException("Upload failed"));
+
 
         assertThrows(FileUploadException.class, () ->
                 cloudinaryService.uploadResource(file, UploadType.IMAGE));

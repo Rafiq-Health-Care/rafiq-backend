@@ -4,6 +4,7 @@ import com.itextpdf.text.DocumentException;
 import com.nexaworks.rafiq.dto.request.TestResultRequest;
 import com.nexaworks.rafiq.dto.response.PageResponse;
 import com.nexaworks.rafiq.dto.response.TestResponse;
+import com.nexaworks.rafiq.dto.response.TestResultsResponse;
 import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.mapper.ResultMapper;
 import com.nexaworks.rafiq.mapper.TestMapper;
@@ -57,7 +58,7 @@ public class LabTestController {
                 size,sort,direction)));
     }
     @GetMapping("/{test-id}")
-    public ResponseEntity<TestResponse> getTest(@PathVariable("test-id") UUID testId){
+    public ResponseEntity<TestResultsResponse> getTest(@PathVariable("test-id") UUID testId){
         return ResponseEntity.ok().body(testMapper.mapToTestResponse(labTestService.getTest(testId)));
     }
     @DeleteMapping("/{test-id}")

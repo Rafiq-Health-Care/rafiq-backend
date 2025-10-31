@@ -3,11 +3,11 @@ package com.nexaworks.rafiq.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
-import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.service.JwtService;
 import com.nexaworks.rafiq.service.TokenService;
 import com.nexaworks.rafiq.service.UserService;
+import com.nexaworks.rafiq.utils.AuthSessionManager;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,6 +29,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
     private final UserService userService;
     private final JwtService jwtService;
     private final TokenService tokenService;
+    private final AuthSessionManager authSessionManager;
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
@@ -54,12 +55,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
                 throw new IllegalStateException("User is disabled");
             }
             log.info("User already exists");
-            String jwt = jwtService.generateToken(user.get());
-            String refreshToken = tokenService.generateRefreshToken(user.get());
-            LoginResponse loginResponse = new LoginResponse(
-                    user.get().getRoles().stream().map(Role::getName).toList(),
-                    refreshToken
-            );
+            LoginResponse loginResponse =  authSessionManager.createLoginSession(response, user.get());
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json");
             new ObjectMapper().writeValue(response.getOutputStream(),loginResponse);

@@ -86,6 +86,7 @@ public class LabTestServiceImpl implements LabTestService {
     public Page<LabTest> getAll(int page, int size, String sort, String direction) {
         Sort sorting = Sort.by(Sort.Direction
                 .fromString(direction.equalsIgnoreCase("desc")?"desc":"asc"), sort);
+
         Pageable pageable = PageRequest.of(page, size, sorting);
         PatientProfile patient = getPatientProfile();
         return labTestRepository.findAllByPatientId(patient.getId(),pageable);

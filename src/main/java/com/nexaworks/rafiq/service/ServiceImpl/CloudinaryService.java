@@ -23,15 +23,15 @@ public class CloudinaryService implements ImageService {
     private final Cloudinary cloudinary;
 
 
-    public UploadResults uploadResource(MultipartFile file, UploadType type) throws IOException {
+    public UploadResults uploadResource(MultipartFile file, UploadType type) {
         if (file.isEmpty()) {
             throw new EmptyFileException("File is empty");
         }
-        try (var inputStream = file.getInputStream()){
+        try {
             var map = cloudinary.uploader().upload(
-                            inputStream,
+                            file.getBytes(),
                             ObjectUtils.asMap(
-                                    "resource_type", type ));
+                                    "resource_type", type.getCloudinaryType() ));
 
             return new UploadResults(map.get("secure_url")
                     .toString(), map.get("public_id").toString());

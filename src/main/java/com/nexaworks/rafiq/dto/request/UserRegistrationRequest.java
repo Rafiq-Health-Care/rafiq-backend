@@ -23,9 +23,10 @@ public record UserRegistrationRequest(
 
         @NotBlank
         @Pattern(
-                regexp = "^[0-9]{10}$",
-                message = "Phone number must be 10 digits"
+                regexp = "^\\+?[1-9]\\d{1,14}$",
+                message = "Invalid phone number format"
         )
+
         String phone,
 
         @Min(1)

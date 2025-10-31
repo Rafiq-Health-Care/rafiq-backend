@@ -1,10 +1,12 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import com.nexaworks.rafiq.exception.custom.MailSenderException;
 import com.nexaworks.rafiq.service.EmailSenderService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -27,7 +29,7 @@ public class EmailSenderServiceImpl implements EmailSenderService {
     @Async
     @Override
     @Retryable(
-            retryFor = {MailException.class,MessagingException.class},
+            retryFor = {MailSenderException.class,MessagingException.class},
             maxAttempts = 4,
             backoff = @Backoff(delay = 10000)
     )
@@ -46,7 +48,7 @@ public class EmailSenderServiceImpl implements EmailSenderService {
             log.info("Email sent successfully");
 
         }catch (MailException | MessagingException e){
-            log.error("Error sending email: {}",e.getMessage());
+            throw new MailSenderException("Failed to send email");
         }
 
     }

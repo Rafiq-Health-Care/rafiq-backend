@@ -15,12 +15,13 @@ import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.TokenType;
 import com.nexaworks.rafiq.enums.UploadType;
+import com.nexaworks.rafiq.exception.custom.InvalidPasswordException;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
-import jakarta.servlet.http.Cookie;
+import com.nexaworks.rafiq.utils.AuthSessionManager;
 import jakarta.servlet.http.HttpServletResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -49,9 +50,9 @@ public class UserServiceImpl implements UserService {
     private final PatientService patientService;
     private final DoctorService doctorService;
     private final TokenService tokenService;
-    private final JwtService jwtService;
     private final ImageService imageService;
     private final ApplicationEventPublisher eventPublisher;
+    private final AuthSessionManager authSessionManager;
 
     @Override
     public Optional<User> findByEmail(String email) {
@@ -69,7 +70,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void updatePassword(User user, ResetPasswordRequest resetPasswordRequest) {
         if(!passwordEncoder.matches(resetPasswordRequest.oldPassword(),user.getPassword())){
-            throw new IllegalArgumentException("Old password is not correct");
+            throw new InvalidPasswordException("Old password is not correct");
         }
         user.setPassword(passwordEncoder.encode(resetPasswordRequest.newPassword()));
         userRepository.save(user);
@@ -87,11 +88,13 @@ public class UserServiceImpl implements UserService {
         PatientProfile patientProfile = patientService.createPatientProfile(patient);
         patient.setPatientProfile(patientProfile);
         log.info("User registered {}",user.getEmail());
-       String otp =  tokenService.generateOtpToken(patient);
-       log.info("OTP generated {}",otp);
+        String otp =  tokenService.generateOtpToken(patient);
+        log.info("OTP generated {}",otp);
         eventPublisher.publishEvent(
                 new UserRegistrationEvent(user.getEmail(),otp,user.getFirstName()));
     }
+
+
 
     private User extracted(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -110,11 +113,11 @@ public class UserServiceImpl implements UserService {
         }
         User doctor = extracted(user);
         userRepository.save(doctor);
-       UploadResults nationalIdImage = imageService.uploadResource(nationalId, UploadType.IMAGE);
+        UploadResults nationalIdImage = imageService.uploadResource(nationalId, UploadType.IMAGE);
         doctor.setRoles(List.of(roleService.getRole(ROLE_USER),roleService.getRole(ROLE_DOCTOR)));
         doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization(),nationalIdImage.url(),nationalIdImage.publicId()));
-       String otp = tokenService.generateOtpToken(doctor);
-       log.info("OTP generated {}",otp);
+        String otp = tokenService.generateOtpToken(doctor);
+        log.info("OTP generated {}",otp);
         eventPublisher.publishEvent(
                 new UserRegistrationEvent(user.getEmail(),otp,user.getFirstName()));
 
@@ -126,19 +129,9 @@ public class UserServiceImpl implements UserService {
      User user = tokenService.verifyOtp(email,otp);
      user.setEnabled(true);
      userRepository.save(user);
-     String jwt = jwtService.generateToken(user);
-     addJwtToCookie(response,jwt);
-     String refreshToken = tokenService.generateRefreshToken(user);
-     return new LoginResponse(user.getRoles().stream().map(Role::getName).toList(),refreshToken);
+     return  authSessionManager.createLoginSession(response, user);
     }
 
-    private void addJwtToCookie(HttpServletResponse response, String jwt) {
-        Cookie cookie = new Cookie("jwt",jwt);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(60*60*24);
-        response.addCookie(cookie);
-    }
 
     @Override
     @Transactional
