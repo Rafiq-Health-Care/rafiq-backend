@@ -21,7 +21,7 @@ import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
-import com.nexaworks.rafiq.utils.Security;
+import com.nexaworks.rafiq.utils.AuthSessionManager;
 import jakarta.servlet.http.HttpServletResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
     private final TokenService tokenService;
     private final ImageService imageService;
     private final ApplicationEventPublisher eventPublisher;
-    private final Security security;
+    private final AuthSessionManager authSessionManager;
 
     @Override
     public Optional<User> findByEmail(String email) {
@@ -129,7 +129,7 @@ public class UserServiceImpl implements UserService {
      User user = tokenService.verifyOtp(email,otp);
      user.setEnabled(true);
      userRepository.save(user);
-     return  security.createLoginSession(response, user);
+     return  authSessionManager.createLoginSession(response, user);
     }
 
 

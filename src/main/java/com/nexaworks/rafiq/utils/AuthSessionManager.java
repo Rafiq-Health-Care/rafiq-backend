@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Security {
+public class AuthSessionManager {
     private final JwtService jwtService;
     private final TokenService tokenService;
 

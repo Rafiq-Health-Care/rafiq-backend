@@ -14,7 +14,7 @@ import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
-import com.nexaworks.rafiq.utils.Security;
+import com.nexaworks.rafiq.utils.AuthSessionManager;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -48,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final ApplicationEventPublisher eventPublisher;
-    private final Security  security;
+    private final AuthSessionManager authSessionManager;
 
     @Override
     @Transactional
@@ -110,19 +110,19 @@ public class AuthServiceImpl implements AuthService {
                 .authenticate(
                         new UsernamePasswordAuthenticationToken(email,password));
         User user = (User) authentication.getPrincipal();
-        return security.createLoginSession(response, user);
+        return authSessionManager.createLoginSession(response, user);
 
     }
     @Override
     @Transactional
     public LoginResponse refresh(HttpServletResponse response, HttpServletRequest request) {
-        Token token = tokenService.getToken(security.getCookie(request, "refreshToken"));
+        Token token = tokenService.getToken(authSessionManager.getCookie(request, "refreshToken"));
 
         if (token.getExpiryDate().isBefore(Instant.now())) {
             throw new TokenInvalidException("Invalid Refresh Token");
         }
         User user = token.getUser();
-        return  security.createLoginSession(response, user);
+        return  authSessionManager.createLoginSession(response, user);
     }
 
     @Override
@@ -144,7 +144,7 @@ public class AuthServiceImpl implements AuthService {
             String lastName = googleIdToken.getPayload().get("family_name").toString();
             Optional<User> user = getUser(email, firstName, lastName);
             if (user.isPresent()) {
-                return  security.createLoginSession(response, user.get());
+                return  authSessionManager.createLoginSession(response, user.get());
             }
             else {
                 throw new UserNotFoundException("User not found");
