@@ -16,6 +16,7 @@ import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
 import com.nexaworks.rafiq.utils.Security;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -114,8 +115,9 @@ public class AuthServiceImpl implements AuthService {
     }
     @Override
     @Transactional
-    public LoginResponse refresh(RefreshRequest request, HttpServletResponse response) {
-        Token token = tokenService.getToken(request.refreshToken());
+    public LoginResponse refresh(HttpServletResponse response, HttpServletRequest request) {
+        Token token = tokenService.getToken(security.getCookie(request, "refreshToken"));
+
         if (token.getExpiryDate().isBefore(Instant.now())) {
             throw new TokenInvalidException("Invalid Refresh Token");
         }

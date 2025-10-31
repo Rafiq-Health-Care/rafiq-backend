@@ -3,8 +3,11 @@ package com.nexaworks.rafiq.utils;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
 import com.nexaworks.rafiq.service.JwtService;
 import com.nexaworks.rafiq.service.TokenService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -38,5 +41,15 @@ public class Security {
                 .maxAge(expiry)
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
+    }
+    public String getCookie(HttpServletRequest request,String cookieName){
+        if (request.getCookies()!=null){
+            for (Cookie cookie : request.getCookies()) {
+                if (cookie.getName().equals(cookieName)) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        throw new TokenInvalidException("Invalid or missing token");
     }
 }
