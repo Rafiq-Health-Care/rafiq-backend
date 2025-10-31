@@ -14,13 +14,22 @@ import java.util.Date;
 @Component
 public class TestMapper {
     public TestResponse mapToTestResponse(LabTest test) {
-        return new TestResponse(new TestResultRequest(test.getName(),
-                test.getId(),Date.from(test.getDate()),
-                test.getLabResults().stream().map(
-                        t -> new TestRequest(t.getName(),
-                                t.getResult(),
-                                t.getUnit(),
-                                t.getStatus())
-                ).toList(),test.getId()),test.getPdf(), test.getFileType());
+        return new TestResponse(
+                test.getName(),
+                test.getLab().getId(),
+                test.getLab().getName(),
+                Date.from(test.getDate()),
+                test.getLabResults().stream()
+                        .map(labResult -> new TestRequest(
+                                labResult.getName(),
+                                labResult.getResult(),
+                                labResult.getUnit(),
+                                labResult.getStatus()
+                        ))
+                        .toList(),
+                test.getId(),
+                test.getPdf(),
+                test.getFileType()
+        );
     }
 }
