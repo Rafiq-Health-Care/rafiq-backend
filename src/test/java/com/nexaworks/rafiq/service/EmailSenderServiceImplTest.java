@@ -11,16 +11,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.retry.annotation.EnableRetry;
-import org.springframework.test.context.ContextConfiguration;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
 
-import java.util.Collections;
+
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -76,6 +73,7 @@ public class EmailSenderServiceImplTest {
         verify(templateEngine, times(1)).process(eq("testTemplate"), any(Context.class));
 
     }
+    @DisplayName("Should throw MailSenderException on MessagingException")
     @Test
     void shouldThrowMailSenderExceptionOnMessagingException() {
         MimeMessage mimeMessage = new MimeMessage(Session.getDefaultInstance(System.getProperties()));
