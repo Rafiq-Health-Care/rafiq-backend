@@ -60,6 +60,23 @@ public class TokenServiceTest {
         assertThrows(UserException.class, () -> tokenService.generateRefreshToken(null));
         verify(tokenRepository, never()).save(any(Token.class));
     }
+    @DisplayName("Generate token must build the token and return it")
+    @Test
+    void generateAccessToken_ShouldBuildTheTokenAndReturnIt(){
+        User user = User.builder().firstName("John").lastName("Doe").build();
+        user.setEmail("john@gmail.com");
+        when(tokenRepository.save(any(Token.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        String accessToken = tokenService.generateAccessToken(Optional.of(user));
+        assertNotNull(accessToken);
+        assertFalse(accessToken.isEmpty());
+        verify(tokenRepository, times(1)).save(any(Token.class));
+        verify(tokenRepository).save(argThat(savedToken ->
+                savedToken.getUser().equals(user)
+                        && savedToken.getTokenType() == TokenType.ACCESS_TOKEN
+        ));
+
+    }
     @DisplayName("Generate access token should throw exception when user is null")
     @Test
     void generateAccessToken_ShouldThrowException_WhenUserIsNull(){
