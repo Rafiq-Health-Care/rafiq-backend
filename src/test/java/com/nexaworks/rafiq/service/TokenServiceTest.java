@@ -124,6 +124,22 @@ public class TokenServiceTest {
         verify(tokenRepository, times(1)).findByToken(anyString());
 
     }
+    @DisplayName("Verify otp should throw an exception if the email doesn't match")
+    @Test
+    void verifyOtp_shouldThrowException_WhenEmailDoesNotMatch(){
+        User user = User.builder().firstName("John").lastName("Doe").build();
+        user.setEmail("john@gmail.com");
+        Token token = new Token();
+        token.setUser(user);
+        token.setToken("123456");
+        token.setTokenType(TokenType.OTP);
+        token.setExpiryDate(java.time.Instant.now());
+        when(tokenRepository.findByToken(anyString())).thenReturn(Optional.of(token));
+        assertThrows(TokenInvalidException.class,
+                () -> tokenService.verifyOtp("elbialy@gmail.com", "123456"));
+        verify(tokenRepository, times(1)).findByToken(anyString());
+    }
+
     @DisplayName("Invalidate refresh token should delete the token from repository")
     @Test
     void invalidateRefreshToken_ShouldDeleteTheTokenFromRepository(){
