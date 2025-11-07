@@ -54,12 +54,14 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public void forgetPassword(ForgetPasswordRequest forgetPasswordRequest) {
         String email = forgetPasswordRequest.email();
-        User user = userService.findByEmail(email)
-                .orElseThrow(()->new UserNotFoundException("User with email " + email + " not found"));
-        String otp = tokenService.generateOtpToken(user);
+        Optional<User> user = userService.findByEmail(email);
+        if (user.isEmpty()) {
+            return;
+        }
+        String otp = tokenService.generateOtpToken(user.get());
         log.info("Generated OTP {}",otp);
         eventPublisher.publishEvent(
-                new ForgetPasswordEvent(email,otp,user.getFirstName()));
+                new ForgetPasswordEvent(email,otp,user.get().getFirstName()));
     }
 
     @Override
