@@ -12,10 +12,7 @@ import com.nexaworks.rafiq.service.ServiceImpl.TokenServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
+import org.mockito.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
@@ -148,6 +145,45 @@ public class TokenServiceTest {
         tokenService.invalidateRefreshToken(token);
         verify(tokenRepository,times(1)).delete(any(Token.class));
 
+    }
+    @DisplayName("Get token should return the token if it exists")
+    @Test
+    void getToken_ShouldReturnTheToken_IfItExists() {
+        Token token = new Token();
+        token.setToken("123456");
+        when(tokenRepository.findByToken(anyString())).thenReturn(Optional.of(token));
+        Token foundToken = tokenService.getToken("123456");
+        assertNotNull(foundToken);
+        assertEquals(token, foundToken);
+        verify(tokenRepository, times(1)).findByToken(anyString());
+    }
+    @DisplayName("Get token should throw exception if it doesn't exist")
+    @Test
+    void getToken_ShouldThrowException_IfItDoesNotExist() {
+        when(tokenRepository.findByToken(anyString())).thenReturn(Optional.empty());
+        assertThrows(TokenNotFoundException.class,
+                () -> tokenService.getToken("123456"));
+    }
+    @DisplayName("Generate otp token should generate token and save it")
+    @Test
+    void generateOtpToken_ShouldGenerateTokenAndSaveIt() {
+        User user = new User();
+        user.setEmail("test@gmail.com");
+        when(tokenRepository.save(any(Token.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        String otpToken = tokenService.generateOtpToken(user);
+        assertNotNull(otpToken);
+        assertFalse(otpToken.isEmpty());
+        verify(tokenRepository, times(1)).save(any(Token.class));
+        verify(tokenRepository).save(argThat(savedToken ->
+                savedToken.getUser().equals(user)
+                        && savedToken.getTokenType() == TokenType.OTP&&savedToken.getExpiryDate().isAfter(java.time.Instant.now())
+        ));
+    }
+    @DisplayName("Generate otp token should throw user exception if the user is null")
+    @Test
+    void generateOtpToken_ShouldThrowUserException_WhenUserIsNull(){
+        assertThrows(UserException.class, () -> tokenService.generateOtpToken(null));
+        verify(tokenRepository, never()).save(any(Token.class));
     }
 
 }

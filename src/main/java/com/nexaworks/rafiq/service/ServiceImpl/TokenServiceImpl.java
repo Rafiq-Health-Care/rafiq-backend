@@ -51,6 +51,9 @@ public class TokenServiceImpl implements TokenService {
     @Override
     @Transactional
     public String generateOtpToken(User user) {
+        if(user == null){
+            throw new UserException("User cannot be null");
+        }
         String otpToken = String.valueOf(
                 (int) (Math.random() * 900000) + 100000
         );
