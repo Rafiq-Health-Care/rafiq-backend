@@ -143,7 +143,7 @@ public class AuthServiceImpl implements AuthService {
             return  authSessionManager.createLoginSession(response, user.get());
         }
         else {
-            throw new UserNotFoundException("User not found");
+            throw new GoogleAuthException("Failed to authenticate user with Google");
         }
 
 
