@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
