@@ -1,23 +1,30 @@
 package com.nexaworks.rafiq.config;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import com.nexaworks.rafiq.repository.UserRepository;
-import jakarta.validation.Validation;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.validation.Validator;
-import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Collections;
 
 @Configuration
 public class ProjectConfig {
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String clientId;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -37,13 +44,15 @@ public class ProjectConfig {
 
     @Bean
     public UserDetailsService userDetailsService(UserRepository userRepository){
-        return new UserDetailsService() {
-            @Override
-            public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-                return userRepository.findByEmail(username)
-                        .orElseThrow(()->new UsernameNotFoundException("User not found"));
-
-            }
-        };
+        return username -> userRepository.findByEmail(username)
+                .orElseThrow(()->new UsernameNotFoundException("User not found"));
+    }
+    @Bean
+    public GoogleIdTokenVerifier googleIdTokenVerifier() throws GeneralSecurityException, IOException {
+        NetHttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
+        GsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+        return new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
+                .setAudience(Collections.singletonList(clientId))
+                .build();
     }
 }

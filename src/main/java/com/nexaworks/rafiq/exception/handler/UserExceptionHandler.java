@@ -1,10 +1,7 @@
 package com.nexaworks.rafiq.exception.handler;
 
 import com.nexaworks.rafiq.exception.ExceptionUtils;
-import com.nexaworks.rafiq.exception.custom.InvalidPasswordException;
-import com.nexaworks.rafiq.exception.custom.RegistrationException;
-import com.nexaworks.rafiq.exception.custom.UserException;
-import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
+import com.nexaworks.rafiq.exception.custom.*;
 import com.nexaworks.rafiq.exception.model.ErrorResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -35,6 +32,10 @@ public class UserExceptionHandler {
     }
     @ExceptionHandler(InvalidPasswordException.class)
     public ResponseEntity<ErrorResponse> handleInvalidPasswordException(InvalidPasswordException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.UNAUTHORIZED));
+    }
+    @ExceptionHandler(GoogleAuthException.class)
+    public ResponseEntity<ErrorResponse> handleGoogleAuthException(GoogleAuthException ex, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.UNAUTHORIZED));
     }
 

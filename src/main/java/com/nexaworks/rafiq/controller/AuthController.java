@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -26,7 +25,7 @@ public class AuthController {
     @PostMapping("/forget-password")
     public ResponseEntity<Void> forgetPassword(@RequestBody @Valid ForgetPasswordRequest forgetPasswordRequest){
         authService.forgetPassword(forgetPasswordRequest);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/verify")
