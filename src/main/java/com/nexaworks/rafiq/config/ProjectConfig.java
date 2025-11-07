@@ -1,6 +1,5 @@
 package com.nexaworks.rafiq.config;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -13,7 +12,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -46,14 +44,8 @@ public class ProjectConfig {
 
     @Bean
     public UserDetailsService userDetailsService(UserRepository userRepository){
-        return new UserDetailsService() {
-            @Override
-            public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-                return userRepository.findByEmail(username)
-                        .orElseThrow(()->new UsernameNotFoundException("User not found"));
-
-            }
-        };
+        return username -> userRepository.findByEmail(username)
+                .orElseThrow(()->new UsernameNotFoundException("User not found"));
     }
     @Bean
     public GoogleIdTokenVerifier googleIdTokenVerifier() throws GeneralSecurityException, IOException {
