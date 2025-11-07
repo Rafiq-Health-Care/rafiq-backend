@@ -73,7 +73,7 @@ public class TokenServiceTest {
         verify(tokenRepository, times(1)).save(any(Token.class));
         verify(tokenRepository).save(argThat(savedToken ->
                 savedToken.getUser().equals(user)
-                        && savedToken.getTokenType() == TokenType.ACCESS_TOKEN
+                        && savedToken.getTokenType() == TokenType.ACCESS_TOKEN&&savedToken.getExpiryDate().isAfter(java.time.Instant.now())
         ));
 
     }
