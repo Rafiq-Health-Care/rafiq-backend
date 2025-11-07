@@ -96,7 +96,7 @@ public class TokenServiceImpl implements TokenService {
         tokenRepository.delete(token);
     }
 
-    public Token buildToken(User user, String token, TokenType tokenType, Long EXPIRATION) {
+    private Token buildToken(User user, String token, TokenType tokenType, Long EXPIRATION) {
        return Token.builder().token(token).user(user)
                 .tokenType(tokenType)
                 .expiryDate(Instant.now().plusSeconds(EXPIRATION)).build();

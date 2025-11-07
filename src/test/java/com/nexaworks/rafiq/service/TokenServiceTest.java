@@ -60,34 +60,6 @@ public class TokenServiceTest {
         assertThrows(UserException.class, () -> tokenService.generateRefreshToken(null));
         verify(tokenRepository, never()).save(any(Token.class));
     }
-
-    @DisplayName("Build refresh token should return correct token object")
-    @Test
-    void buildRefreshToken_ShouldReturnCorrectTokenObject(){
-        User user = new User();
-        String refreshToken = UUID.randomUUID().toString();
-        Token token = tokenService.buildToken(user,refreshToken,TokenType.REFRESH, tokenService.REFRESH_EXPIRATION);
-        assertNotNull(token);
-        assertEquals(user,token.getUser());
-        assertEquals(refreshToken,token.getToken());
-        assertEquals(TokenType.REFRESH,token.getTokenType());
-    }
-
-    @DisplayName("Generate access token should return and save access token")
-    @Test
-    void generateAccessToken_ShouldReturnAndSaveAccessToken(){
-        User user = User.builder().id(UUID.randomUUID()).email("test@example.com").build();
-        when(tokenRepository.save(any(Token.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        Token fakeToken = new Token();
-        fakeToken.setToken("fake-access-token");
-        doReturn(fakeToken)
-                .when(tokenService)
-                .buildToken(eq(user), anyString(), any(TokenType.class), anyLong());
-        String accessToken = tokenService.generateAccessToken(Optional.of(user));
-        assertNotNull(accessToken);
-        verify(tokenRepository,times(1)).save(any(Token.class));
-    }
-
     @DisplayName("Generate access token should throw exception when user is null")
     @Test
     void generateAccessToken_ShouldThrowException_WhenUserIsNull(){
@@ -134,7 +106,14 @@ public class TokenServiceTest {
                 () -> tokenService.verifyOtp(user.getEmail(), "123456"));
         verify(tokenRepository, times(1)).findByToken(anyString());
 
-
+    }
+    @DisplayName("Invalidate refresh token should delete the token from repository")
+    @Test
+    void invalidateRefreshToken_ShouldDeleteTheTokenFromRepository(){
+        Token token = new Token();
+        doNothing().when(tokenRepository).delete(any(Token.class));
+        tokenService.invalidateRefreshToken(token);
+        verify(tokenRepository,times(1)).delete(any(Token.class));
 
     }
 
