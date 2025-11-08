@@ -35,8 +35,8 @@ public class AuthSessionManager {
     public void addTokenToCookie(HttpServletResponse response,String token,String cookieName,int expiry){
         ResponseCookie cookie = ResponseCookie.from(cookieName, token)
                 .httpOnly(true)
-                .secure(true)
-                .sameSite("Strict")
+                .secure(false)
+                .sameSite("Lax")
                 .path("/")
                 .maxAge(expiry)
                 .build();

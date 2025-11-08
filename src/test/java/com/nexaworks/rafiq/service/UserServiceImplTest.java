@@ -1,7 +1,11 @@
 package com.nexaworks.rafiq.service;
 
+import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
+import com.nexaworks.rafiq.entities.PatientProfile;
+import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.enums.Roles;
 import com.nexaworks.rafiq.exception.custom.InvalidPasswordException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.ServiceImpl.*;
@@ -14,6 +18,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -65,6 +71,53 @@ public class UserServiceImplTest {
         when(passwordEncoder.encode(anyString())).thenReturn("123");
         assertThrows(InvalidPasswordException.class,()->userService.updatePassword(user,resetPasswordRequest));
         verify(userRepository,never()).save(user);
+    }
+    @DisplayName("Register patient should add user and publish event to send the activation email")
+    @Test
+    void registerPatient_ShouldAddUserAndPublishEventToSendActivationEmail_WhenPatientIsRegistered() {
+        User user = getUser();
+
+        PatientProfile expectedProfile = new PatientProfile();
+        String expectedToken = "123456";
+        Role patientRole = new Role();
+        patientRole.setName("PATIENT");
+
+        when(roleService.getRole(any())).thenReturn(patientRole);
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(patientService.createPatientProfile(any(User.class))).thenReturn(expectedProfile);
+        when(tokenService.generateOtpToken(any(User.class))).thenReturn(expectedToken);
+
+
+        userService.registerPatient(user);
+
+        verify(roleService, times(1)).getRole(Roles.ROLE_USER);
+        verify(roleService, times(1)).getRole(Roles.ROLE_PATIENT);
+        verify(userRepository, times(1)).save(any(User.class));
+        verify(patientService, times(1)).createPatientProfile(any(User.class));
+        verify(tokenService, times(1)).generateOtpToken(any(User.class));
+        verify(eventPublisher, times(1)).publishEvent(any(UserRegistrationEvent.class));
+    }
+
+    private static User getUser() {
+
+        return User.builder()
+                .id(UUID.randomUUID())
+                .email("john.doe@example.com")
+                .firstName("John")
+                .lastName("Doe")
+                .password("encodedPassword123")
+                .build();
+    }
+
+    @DisplayName("Register patient should throw exception when user with email already exists")
+    @Test
+    void registerPatient_ShouldThrowException_WhenUserWithEmailAlreadyExists() {
+        User user = getUser();
+        when(userRepository.findByEmail(anyString())).thenReturn(java.util.Optional.of(user));
+        assertThrows(com.nexaworks.rafiq.exception.custom.RegistrationException.class,()->userService.registerPatient(user));
+        verify(userRepository,never()).save(any(User.class));
+        verify(eventPublisher,never()).publishEvent(any(UserRegistrationEvent.class));
+
     }
 
 }
