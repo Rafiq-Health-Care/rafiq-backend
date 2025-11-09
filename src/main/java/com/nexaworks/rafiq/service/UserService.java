@@ -25,7 +25,7 @@ public interface UserService {
 
     void registerDoctor(@Valid DoctorRegistrationRequest request, MultipartFile nationalId) throws IOException;
 
-    LoginResponse verifyOtp(@NotBlank @Email String email, @NotBlank String otp, HttpServletResponse response);
+    LoginResponse verifyUserEmail(@NotBlank @Email String email, @NotBlank String otp, HttpServletResponse response);
 
     void getNewOtp(String email);
 

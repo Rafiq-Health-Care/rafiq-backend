@@ -125,7 +125,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public LoginResponse verifyOtp(String email, String otp, HttpServletResponse response) {
+    public LoginResponse verifyUserEmail(String email, String otp, HttpServletResponse response) {
      User user = tokenService.verifyOtp(email,otp);
      user.setEnabled(true);
      userRepository.save(user);

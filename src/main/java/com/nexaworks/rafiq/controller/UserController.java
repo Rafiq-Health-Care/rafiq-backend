@@ -37,7 +37,7 @@ public class UserController {
     @PostMapping("/verification")
     public ResponseEntity<LoginResponse> verification(@RequestBody @Valid VerificationRequest request, HttpServletResponse response){
 
-        return ResponseEntity.ok().body(userService.verifyOtp(request.email(),request.otp(),response));
+        return ResponseEntity.ok().body(userService.verifyUserEmail(request.email(),request.otp(),response));
 
     }
     @PostMapping("/new-otp")
