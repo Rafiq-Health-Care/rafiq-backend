@@ -2,9 +2,7 @@ package com.nexaworks.rafiq.service;
 
 import com.nexaworks.rafiq.dto.UploadResults;
 import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
-import com.nexaworks.rafiq.dto.request.DoctorRegistrationRequest;
 import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
-import com.nexaworks.rafiq.dto.request.UserRegistrationRequest;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.entities.DoctorProfile;
 import com.nexaworks.rafiq.entities.PatientProfile;
@@ -13,6 +11,8 @@ import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.Roles;
 import com.nexaworks.rafiq.exception.custom.InvalidPasswordException;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
+import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
+import com.nexaworks.rafiq.exception.custom.TokenNotFoundException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.ServiceImpl.*;
 import com.nexaworks.rafiq.utils.AuthSessionManager;
@@ -188,6 +188,27 @@ public class UserServiceImplTest {
         verify(tokenService, times(1)).verifyOtp(anyString(), anyString());
         verify(userRepository, times(1)).save(any(User.class));
         verify(authSessionManager, times(1)).createLoginSession(any(), any());
+    }
+
+    @DisplayName("Verify user email should throw exception when otp is invalid")
+    @Test
+    void verifyUserEmail_ShouldThrowException_WhenOtpIsInvalid() {
+        when(tokenService.verifyOtp(anyString(), anyString())).thenThrow(TokenNotFoundException.class);
+        assertThrows(TokenNotFoundException.class, () ->
+                userService.verifyUserEmail("john@gmail.com", "1234", new MockHttpServletResponse()));
+        verify(tokenService, times(1)).verifyOtp(anyString(), anyString());
+        verify(userRepository, never()).save(any(User.class));
+        verify(authSessionManager, never()).createLoginSession(any(), any());
+    }
+    @DisplayName("Verify user email should throw exception when otp is expired")
+    @Test
+    void verifyUserEmail_ShouldThrowException_WhenOtpIsExpired() {
+        when(tokenService.verifyOtp(anyString(), anyString())).thenThrow(TokenInvalidException.class);
+        assertThrows(TokenInvalidException.class,()->
+                userService.verifyUserEmail("john@gmail.com", "1234", new MockHttpServletResponse()));
+        verify(tokenService, times(1)).verifyOtp(anyString(), anyString());
+        verify(userRepository, never()).save(any(User.class));
+        verify(authSessionManager, never()).createLoginSession(any(), any());
     }
 
 }
