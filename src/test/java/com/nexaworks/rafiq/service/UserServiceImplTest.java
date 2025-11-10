@@ -5,6 +5,7 @@ import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.dto.request.DoctorRegistrationRequest;
 import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
 import com.nexaworks.rafiq.dto.request.UserRegistrationRequest;
+import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.entities.DoctorProfile;
 import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.entities.Role;
@@ -15,6 +16,7 @@ import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.ServiceImpl.*;
 import com.nexaworks.rafiq.utils.AuthSessionManager;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,12 +24,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -164,6 +169,25 @@ public class UserServiceImplTest {
         assertThrows(RegistrationException.class,()->userService.registerDoctor(user,null,null,null));
         verify(userRepository,never()).save(any(User.class));
         verify(eventPublisher,never()).publishEvent(any(UserRegistrationEvent.class));
+    }
+
+    @DisplayName("Verify user email should create login tokens")
+    @Test
+    void verifyUserEmail_ShouldCreateLoginTokens_WhenOtpIsValid() {
+        User user = getUser();
+
+        when(tokenService.verifyOtp(anyString(), anyString())).thenReturn(user);
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(authSessionManager.createLoginSession(any(HttpServletResponse.class), eq(user)))
+                .thenReturn(new LoginResponse(Optional.of("ROLE_USER")));
+
+        LoginResponse response = userService.verifyUserEmail("john.doe@example.com",
+                "123456", new MockHttpServletResponse());
+
+        assertEquals(Optional.of("ROLE_USER"), response.role());
+        verify(tokenService, times(1)).verifyOtp(anyString(), anyString());
+        verify(userRepository, times(1)).save(any(User.class));
+        verify(authSessionManager, times(1)).createLoginSession(any(), any());
     }
 
 }
