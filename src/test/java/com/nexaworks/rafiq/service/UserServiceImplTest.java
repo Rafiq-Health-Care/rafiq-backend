@@ -1,12 +1,17 @@
 package com.nexaworks.rafiq.service;
 
+import com.nexaworks.rafiq.dto.UploadResults;
 import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
+import com.nexaworks.rafiq.dto.request.DoctorRegistrationRequest;
 import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
+import com.nexaworks.rafiq.dto.request.UserRegistrationRequest;
+import com.nexaworks.rafiq.entities.DoctorProfile;
 import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.Roles;
 import com.nexaworks.rafiq.exception.custom.InvalidPasswordException;
+import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.ServiceImpl.*;
 import com.nexaworks.rafiq.utils.AuthSessionManager;
@@ -17,8 +22,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.io.IOException;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -118,6 +125,45 @@ public class UserServiceImplTest {
         verify(userRepository,never()).save(any(User.class));
         verify(eventPublisher,never()).publishEvent(any(UserRegistrationEvent.class));
 
+    }
+
+    @DisplayName("Register doctor should add user and publish event to send the activation email")
+    @Test
+    void registerDoctor_ShouldAddUserAndPublishEventToSendActivationEmail_WhenDoctorIsRegistered() throws IOException {
+        User user = getUser();
+        Role doctorRole = new Role();
+        doctorRole.setName("DOCTOR");
+        DoctorProfile expectedProfile = new DoctorProfile();
+        String expectedToken = "123456";
+
+        when(imageService.uploadResource(any(),any())).thenReturn(new UploadResults("url","publicId"));
+        when(roleService.getRole(any())).thenReturn(doctorRole);
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(tokenService.generateOtpToken(any(User.class))).thenReturn(expectedToken);
+        when(doctorService.createProfile(any(),anyString(),any(),anyString(),anyString())).thenReturn(expectedProfile);
+
+        userService.registerDoctor(user,
+                new MockMultipartFile("nationalId","nationalId.png","image/png","dummy image content".getBytes()),
+                UUID.randomUUID(),
+                "Experienced doctor");
+
+        verify(roleService, times(1)).getRole(Roles.ROLE_USER);
+        verify(roleService, times(1)).getRole(Roles.ROLE_DOCTOR);
+        verify(userRepository, times(1)).save(any(User.class));
+        verify(tokenService, times(1)).generateOtpToken(any(User.class));
+        verify(eventPublisher, times(1)).publishEvent(any(UserRegistrationEvent.class));
+        verify(doctorService, times(1)).createProfile(any(User.class),anyString(),any(),anyString(),anyString());
+        verify(imageService, times(1)).uploadResource(any(),any());
+
+    }
+    @DisplayName("Register doctor should throw exception when user with email already exists")
+    @Test
+    void registerDoctor_ShouldThrowException_WhenUserWithEmailAlreadyExists() {
+        User user = getUser();
+        when(userRepository.findByEmail(anyString())).thenReturn(java.util.Optional.of(user));
+        assertThrows(RegistrationException.class,()->userService.registerDoctor(user,null,null,null));
+        verify(userRepository,never()).save(any(User.class));
+        verify(eventPublisher,never()).publishEvent(any(UserRegistrationEvent.class));
     }
 
 }

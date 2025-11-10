@@ -31,7 +31,7 @@ public class UserController {
     @PostMapping(value = "/register/doctor",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> registerDoctor(@RequestPart("doctorData")@Valid DoctorRegistrationRequest request,
                                                @RequestPart(value = "nationalId",required = false) MultipartFile nationalId) throws IOException {
-        userService.registerDoctor(request,nationalId);
+        userService.registerDoctor(UserMapper.toUser(request.user()),nationalId,request.specialization(),request.description());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
     @PostMapping("/verification")
