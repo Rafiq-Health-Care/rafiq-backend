@@ -91,9 +91,6 @@ class AuthServiceImplTest {
     @Captor
     private ArgumentCaptor<ForgetPasswordEvent> eventCaptor;
 
-    @Captor
-    private ArgumentCaptor<Cookie> cookieCaptor;
-
     private User testUser;
     private Token testToken;
 
