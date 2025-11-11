@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service;
+package com.nexaworks.rafiq.unit.service;
 
 import com.nexaworks.rafiq.entities.LabResult;
 import com.nexaworks.rafiq.repository.LabResultRepository;

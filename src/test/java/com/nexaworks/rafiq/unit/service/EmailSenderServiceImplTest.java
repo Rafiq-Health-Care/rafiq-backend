@@ -1,6 +1,7 @@
-package com.nexaworks.rafiq.service;
+package com.nexaworks.rafiq.unit.service;
 
 import com.nexaworks.rafiq.exception.custom.MailSenderException;
+import com.nexaworks.rafiq.service.EmailSenderService;
 import com.nexaworks.rafiq.service.ServiceImpl.EmailSenderServiceImpl;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;

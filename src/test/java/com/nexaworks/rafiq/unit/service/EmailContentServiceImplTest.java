@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service;
+package com.nexaworks.rafiq.unit.service;
 
 
 import com.nexaworks.rafiq.service.ServiceImpl.EmailContentServiceImpl;

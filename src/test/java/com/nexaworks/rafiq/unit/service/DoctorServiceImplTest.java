@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service;
+package com.nexaworks.rafiq.unit.service;
 
 import com.nexaworks.rafiq.entities.DoctorProfile;
 import com.nexaworks.rafiq.entities.Specialization;
@@ -6,6 +6,7 @@ import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.Status;
 import com.nexaworks.rafiq.repository.DoctorRepository;
 import com.nexaworks.rafiq.service.ServiceImpl.DoctorServiceImpl;
+import com.nexaworks.rafiq.service.SpecializationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

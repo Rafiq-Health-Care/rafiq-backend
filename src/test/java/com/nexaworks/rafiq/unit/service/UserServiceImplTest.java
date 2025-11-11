@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service;
+package com.nexaworks.rafiq.unit.service;
 
 import com.nexaworks.rafiq.dto.UploadResults;
 import com.nexaworks.rafiq.dto.event.NewOtpEvent;
@@ -15,6 +15,7 @@ import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
 import com.nexaworks.rafiq.exception.custom.TokenNotFoundException;
 import com.nexaworks.rafiq.repository.UserRepository;
+import com.nexaworks.rafiq.service.ImageService;
 import com.nexaworks.rafiq.service.ServiceImpl.*;
 import com.nexaworks.rafiq.utils.AuthSessionManager;
 import jakarta.servlet.http.HttpServletResponse;

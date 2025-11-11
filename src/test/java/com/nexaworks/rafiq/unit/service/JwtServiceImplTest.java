@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service;
+package com.nexaworks.rafiq.unit.service;
 
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.custom.UserException;

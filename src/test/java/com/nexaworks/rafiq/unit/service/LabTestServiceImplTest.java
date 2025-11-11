@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service;
+package com.nexaworks.rafiq.unit.service;
 
 import com.nexaworks.rafiq.entities.LabTest;
 import com.nexaworks.rafiq.entities.PatientProfile;
@@ -7,6 +7,7 @@ import com.nexaworks.rafiq.exception.custom.LabTestException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.LabTestRepository;
 import com.nexaworks.rafiq.repository.PatientRepository;
+import com.nexaworks.rafiq.service.ImageService;
 import com.nexaworks.rafiq.service.ServiceImpl.LabResultServiceImpl;
 import com.nexaworks.rafiq.service.ServiceImpl.LabTestServiceImpl;
 import com.nexaworks.rafiq.service.ServiceImpl.PatientServiceImpl;
