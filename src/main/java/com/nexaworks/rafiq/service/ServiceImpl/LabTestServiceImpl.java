@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,7 +35,6 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 @Slf4j
 public class LabTestServiceImpl implements LabTestService {
-    private final LabService labService;
     private final LabResultService labResultService;
     private final LabTestRepository labTestRepository;
     private final UserService userService;
@@ -43,15 +43,11 @@ public class LabTestServiceImpl implements LabTestService {
 
     @Override
     @Transactional
-    public void addTest(TestResultRequest testResultRequest, List<LabResult> entity) {
-        LabTest labTest = getLabTest(testResultRequest);
-        setTestFields(labTest, testResultRequest, Instant.now());
+    public void addTest(UUID testId,String testName,Date testDate, List<LabResult> entity) {
+        LabTest labTest = getLabTest(Optional.of(testId));
+        setTestFields(labTest, testName, testDate);
         PatientProfile patient = getPatientProfile();
         labTest.setPatient(patient);
-//        Lab lab = getLab(testResultRequest);
-//        lab.getTests().add(labTest);
-//        lab = labService.save(lab);
-//        labTest.setLab(lab);
         labTestRepository.save(labTest);
         entity.forEach(e -> e.setLabTest(labTest));
         labResultService.saveAll(entity);
@@ -62,23 +58,16 @@ public class LabTestServiceImpl implements LabTestService {
         return userService.getUser().getPatientProfile();
     }
 
-//    private Lab getLab(TestResultRequest testResultRequest) {
-//        return labService.getLabById(testResultRequest.id())
-//                .orElseThrow(() -> new LabException("Invalid Lab Id"));
-//    }
 
-
-    private static void setTestFields(LabTest labTest, TestResultRequest testResultRequest, Instant now) {
-        labTest.setName(testResultRequest.name());
-        labTest.setDate(testResultRequest.date() == null ? now : testResultRequest.date().toInstant());
+    private static void setTestFields(LabTest labTest, String testName, Date testDate) {
+        labTest.setName(testName);
+        labTest.setDate(testDate==null?Instant.now():testDate.toInstant());
     }
 
     @NotNull
-    private LabTest getLabTest(TestResultRequest testResultRequest) {
-        LabTest labTest = labTestRepository.findById(testResultRequest.testId())
-                .orElseGet(LabTest::new);
-        log.info("Test Id {}",labTest.getId());
-        return labTest;
+    private LabTest getLabTest(Optional<UUID> testId) {
+        return testId.map(id -> labTestRepository.findById(id).orElse(new LabTest()))
+                .orElse(new LabTest());
     }
 
 
@@ -120,9 +109,8 @@ public class LabTestServiceImpl implements LabTestService {
     @Transactional
     public void update(UUID testId, TestResultRequest testResultRequest, List<LabResult> entity) {
         LabTest test = validateOwnership(testId);
-        updateTestFields(testResultRequest, test);
+        setTestFields(test, testResultRequest.name(), testResultRequest.date());
         updateLabResults(entity, test);
-//        updateLabAssociation(testResultRequest, test);
         labTestRepository.save(test);
     }
 
@@ -136,23 +124,8 @@ public class LabTestServiceImpl implements LabTestService {
     }
 
 
-//    private void updateLabAssociation(TestResultRequest testResultRequest, LabTest test) {
-//        Lab lab = test.getLab();
-//        if (lab.getId()!= testResultRequest.id()) {
-//            Optional<Lab> labOptional = labService.getLabById(testResultRequest.id());
-//            if (labOptional.isPresent()) {
-//                lab = labOptional.get();
-//                lab.getTests().add(test);
-//                test.setLab(lab);
-//            } else {
-//                throw new LabException("Invalid Lab Id");
-//            }
-//        }
-//    }
 
-    private static void updateTestFields(TestResultRequest testResultRequest, LabTest test) {
-        setTestFields(test, testResultRequest, test.getDate());
-    }
+
 
     @NotNull
     private LabTest validateOwnership(UUID testId) {

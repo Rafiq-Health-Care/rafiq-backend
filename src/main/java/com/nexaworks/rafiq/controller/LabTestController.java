@@ -44,7 +44,9 @@ public class LabTestController {
     public ResponseEntity<Void> testResults(@RequestBody @Valid TestResultRequest testResultRequest
                                            ){
 
-        labTestService.addTest(testResultRequest, resultMapper.toEntity(testResultRequest.tests()));
+        labTestService.addTest(testResultRequest.testId(),
+                testResultRequest.name(),testResultRequest.date(),
+                resultMapper.toEntity(testResultRequest.tests()));
         return ResponseEntity.ok().build();
     }
     @GetMapping
