@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.service;
 
 import com.nexaworks.rafiq.dto.UploadResults;
+import com.nexaworks.rafiq.dto.event.NewOtpEvent;
 import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
@@ -118,6 +119,7 @@ public class UserServiceImplTest {
                 .firstName("John")
                 .lastName("Doe")
                 .password("encodedPassword123")
+                .tokens(new java.util.ArrayList<>())
                 .build();
     }
 
@@ -210,5 +212,24 @@ public class UserServiceImplTest {
         verify(userRepository, never()).save(any(User.class));
         verify(authSessionManager, never()).createLoginSession(any(), any());
     }
+    @DisplayName("Get new otp should throw event if the user is existed")
+    @Test
+    void getNewOtp_ShouldThrowNewOtpEvent_WhenUserIsExisted(){
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(getUser()));
+        when(tokenService.generateOtpToken(any(User.class))).thenReturn("123456");
+
+        userService.getNewOtp("test@email.com");
+
+        verify(eventPublisher,times(1)).publishEvent(any(NewOtpEvent.class));
+    }
+    @DisplayName("Get new otp should throw user not found exception if the user is not found")
+    @Test
+    void getNewOtp_ShouldThrowUserNotFoundException_WhenUserIsNotFound() {
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        assertThrows(com.nexaworks.rafiq.exception.custom.UserNotFoundException.class,
+                () -> userService.getNewOtp("test@email.com"));
+        verify(eventPublisher,never()).publishEvent(any(NewOtpEvent.class));
+    }
+
 
 }
