@@ -88,7 +88,6 @@ public class LabTestServiceImpl implements LabTestService {
     @Override
     public void deleteTest(UUID testId) {
         LabTest test = validateOwnership(testId);
-        test.getLab().getTests().remove(test);
         labTestRepository.delete(test);
     }
 
@@ -118,8 +117,6 @@ public class LabTestServiceImpl implements LabTestService {
        labResultService.deleteAll(test.getLabResults());
        entity.forEach(e -> e.setLabTest(test));
        labResultService.saveAll(entity);
-
-
     }
 
 
