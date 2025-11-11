@@ -73,6 +73,7 @@ public class AuthServiceImpl implements AuthService {
         Token otp = tokenService.getToken(verifyOtpRequest.otp());
         if (!otp.getUser().getEmail().equals(verifyOtpRequest.email())
                 ||otp.getExpiryDate().isBefore(Instant.now())) {
+            log.error(otp.getUser().getEmail()+" "+verifyOtpRequest.email());
             throw new TokenInvalidException("Invalid OTP");
         }
     }
