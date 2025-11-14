@@ -23,6 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Specialization Controller Integration Testing")
 public class SpecializationControllerIntegrationTest extends BaseIntegrationTest {
 
+
     @Autowired
     private MockMvc mockMvc;
 
