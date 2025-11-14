@@ -134,16 +134,19 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void getNewOtp(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new UserNotFoundException("User with email " + email + " not found"));
-        Optional<Token> otpToken = user.getTokens().stream()
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isEmpty()) {
+            return;
+        }
+
+        Optional<Token> otpToken = user.get().getTokens().stream()
                 .filter(token -> token.getTokenType().equals(TokenType.OTP)
                         && token.getExpiryDate().isAfter(Instant.now()))
                 .findFirst();
         otpToken.ifPresent(token -> token.setExpiryDate(Instant.now()));
-        String otp = tokenService.generateOtpToken(user);
+        String otp = tokenService.generateOtpToken(user.get());
         log.info("New OTP generated {}", otp);
-        eventPublisher.publishEvent(new NewOtpEvent(user.getEmail(), otp, user.getFirstName()));
+        eventPublisher.publishEvent(new NewOtpEvent(user.get().getEmail(), otp, user.get().getFirstName()));
     }
 
     @Override

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.UUID;
 
+import com.nexaworks.rafiq.integration.BaseIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -36,22 +37,9 @@ import com.nexaworks.rafiq.repository.SpecializationRepository;
 import com.nexaworks.rafiq.repository.TokenRepository;
 import com.nexaworks.rafiq.repository.UserRepository;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureMockMvc
-@Testcontainers
-@ActiveProfiles("test")
-@DisplayName("User Controller Integration Test Cases")
-public class UserControllerIntegrationTest {
-    @Container
-    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:15")
-            .withDatabaseName("testdb").withUsername("testuser").withPassword("testpass");
 
-    @DynamicPropertySource
-    static void properties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
-        registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
-    }
+@DisplayName("User Controller Integration Test Cases")
+public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -292,7 +280,7 @@ public class UserControllerIntegrationTest {
                         "application/json", doctorDataJson.getBytes());
 
                 MockMultipartFile nationalId = new MockMultipartFile("nationalId",
-                        "national-id.jpg", "image/jpeg", "fake-image-content".getBytes());
+                        "national-id.jpg", "image/jpeg", createMinimalPngImage());
 
                 // Act & Assert HTTP response
                 mockMvc.perform(MockMvcRequestBuilders.multipart(REGISTER_DOCTOR_ENDPOINT)
@@ -362,7 +350,7 @@ public class UserControllerIntegrationTest {
                         "application/json", doctorDataJson.getBytes());
 
                 MockMultipartFile nationalId = new MockMultipartFile("nationalId",
-                        "national-id.jpg", "image/jpeg", "fake-image-content".getBytes());
+                        "national-id.jpg", "image/jpeg", createMinimalPngImage());
 
                 // Act & Assert HTTP response 400
                 mockMvc.perform(MockMvcRequestBuilders.multipart(REGISTER_DOCTOR_ENDPOINT)
@@ -525,7 +513,7 @@ public class UserControllerIntegrationTest {
                         "application/json", firstDoctorDataJson.getBytes());
 
                 MockMultipartFile firstNationalId = new MockMultipartFile("nationalId",
-                        "national-id.jpg", "image/jpeg", "fake-image-content".getBytes());
+                        "national-id.jpg", "image/jpeg", createMinimalPngImage());
 
                 // Register first doctor
                 mockMvc.perform(MockMvcRequestBuilders.multipart(REGISTER_DOCTOR_ENDPOINT)
@@ -559,6 +547,16 @@ public class UserControllerIntegrationTest {
                 assertEquals(1, userRepository.count(),
                         "Should have only one user after duplicate attempt");
             }
+        }
+        private byte[] createMinimalPngImage() {
+            return new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
+                    0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
+                    0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 dimensions
+                    0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, (byte) 0xC4, (byte) 0x89, 0x00, 0x00,
+                    0x00, 0x0A, 0x49, 0x44, 0x41, 0x54, // IDAT chunk
+                    0x78, (byte) 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00, 0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D,
+                    (byte) 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, // IEND chunk
+                    (byte) 0xAE, 0x42, 0x60, (byte) 0x82};
         }
     }
 
