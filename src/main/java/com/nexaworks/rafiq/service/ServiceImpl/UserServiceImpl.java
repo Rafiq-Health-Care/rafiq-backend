@@ -1,31 +1,13 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
-import com.nexaworks.rafiq.dto.UploadResults;
-import com.nexaworks.rafiq.dto.event.NewOtpEvent;
-import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
-import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
+import static com.nexaworks.rafiq.enums.Roles.*;
 
-import com.nexaworks.rafiq.dto.request.DoctorRegistrationRequest;
-import com.nexaworks.rafiq.dto.response.LoginResponse;
-import com.nexaworks.rafiq.entities.PatientProfile;
-import com.nexaworks.rafiq.entities.Role;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Optional;
+import java.util.UUID;
 
-
-import com.nexaworks.rafiq.entities.Token;
-import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.enums.TokenType;
-import com.nexaworks.rafiq.enums.UploadType;
-import com.nexaworks.rafiq.exception.custom.InvalidPasswordException;
-import com.nexaworks.rafiq.exception.custom.RegistrationException;
-import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
-import com.nexaworks.rafiq.mapper.UserMapper;
-import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.*;
-import com.nexaworks.rafiq.utils.AuthSessionManager;
-import jakarta.servlet.http.HttpServletResponse;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,12 +15,27 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
+import com.nexaworks.rafiq.dto.UploadResults;
+import com.nexaworks.rafiq.dto.event.NewOtpEvent;
+import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
+import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
+import com.nexaworks.rafiq.dto.response.LoginResponse;
+import com.nexaworks.rafiq.entities.PatientProfile;
+import com.nexaworks.rafiq.entities.Role;
+import com.nexaworks.rafiq.entities.Token;
+import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.enums.TokenType;
+import com.nexaworks.rafiq.enums.UploadType;
+import com.nexaworks.rafiq.exception.custom.InvalidPasswordException;
+import com.nexaworks.rafiq.exception.custom.RegistrationException;
+import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
+import com.nexaworks.rafiq.repository.UserRepository;
+import com.nexaworks.rafiq.service.*;
+import com.nexaworks.rafiq.utils.AuthSessionManager;
 
-import static com.nexaworks.rafiq.enums.Roles.*;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -69,84 +66,87 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void updatePassword(User user, ResetPasswordRequest resetPasswordRequest) {
-        if(!passwordEncoder.matches(resetPasswordRequest.oldPassword(),user.getPassword())){
+        if (!passwordEncoder.matches(resetPasswordRequest.oldPassword(), user.getPassword())) {
             throw new InvalidPasswordException("Old password is not correct");
         }
         user.setPassword(passwordEncoder.encode(resetPasswordRequest.newPassword()));
         userRepository.save(user);
-        log.info("Password updated for user {}",user.getEmail());
-
+        log.info("Password updated for user {}", user.getEmail());
     }
+
     @Override
     @Transactional
     public void registerPatient(User user) {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new RegistrationException("User with email " + user.getEmail() + " already exists");
+            throw new RegistrationException(
+                    "User with email " + user.getEmail() + " already exists");
         }
         User patient = extracted(user);
+        patient.getRoles().add(roleService.getRole(ROLE_PATIENT));
         userRepository.save(patient);
         PatientProfile patientProfile = patientService.createPatientProfile(patient);
         patient.setPatientProfile(patientProfile);
-        log.info("User registered {}",user.getEmail());
-        String otp =  tokenService.generateOtpToken(patient);
-        log.info("OTP generated {}",otp);
-        eventPublisher.publishEvent(
-                new UserRegistrationEvent(user.getEmail(),otp,user.getFirstName()));
+        log.info("User registered {}", user.getEmail());
+        String otp = tokenService.generateOtpToken(patient);
+        log.info("OTP generated {}", otp);
+        eventPublisher
+                .publishEvent(new UserRegistrationEvent(user.getEmail(), otp, user.getFirstName()));
     }
-
-
 
     private User extracted(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         Role role = roleService.getRole(ROLE_USER);
-        Role role1 = roleService.getRole(ROLE_PATIENT);
-        user.setRoles(List.of(role,role1));
+        // Role role1 = roleService.getRole(ROLE_PATIENT);
+        user.setRoles(new ArrayList<>());
+        user.getRoles().add(role);
         return user;
     }
 
     @Override
     @Transactional
-    public void registerDoctor(DoctorRegistrationRequest request, MultipartFile nationalId) throws IOException {
-        User user = UserMapper.toUser(request.user());
+    public void registerDoctor(User user, MultipartFile nationalId, UUID specialization,
+            String description) throws IOException {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new RegistrationException("User with email " + user.getEmail() + " already exists");
+            throw new RegistrationException(
+                    "User with email " + user.getEmail() + " already exists");
         }
         User doctor = extracted(user);
         userRepository.save(doctor);
         UploadResults nationalIdImage = imageService.uploadResource(nationalId, UploadType.IMAGE);
-        doctor.setRoles(List.of(roleService.getRole(ROLE_USER),roleService.getRole(ROLE_DOCTOR)));
-        doctor.setDoctorProfile(doctorService.createProfile(doctor,request.description(),request.specialization(),nationalIdImage.url(),nationalIdImage.publicId()));
+        doctor.getRoles().add(roleService.getRole(ROLE_DOCTOR));
+        doctor.setDoctorProfile(doctorService.createProfile(doctor, description, specialization,
+                nationalIdImage.url(), nationalIdImage.publicId()));
         String otp = tokenService.generateOtpToken(doctor);
-        log.info("OTP generated {}",otp);
-        eventPublisher.publishEvent(
-                new UserRegistrationEvent(user.getEmail(),otp,user.getFirstName()));
-
+        log.info("OTP generated {}", otp);
+        eventPublisher
+                .publishEvent(new UserRegistrationEvent(user.getEmail(), otp, user.getFirstName()));
     }
 
     @Override
     @Transactional
-    public LoginResponse verifyOtp(String email, String otp, HttpServletResponse response) {
-     User user = tokenService.verifyOtp(email,otp);
-     user.setEnabled(true);
-     userRepository.save(user);
-     return  authSessionManager.createLoginSession(response, user);
+    public LoginResponse verifyUserEmail(String email, String otp, HttpServletResponse response) {
+        User user = tokenService.verifyOtp(email, otp);
+        user.setEnabled(true);
+        userRepository.save(user);
+        return authSessionManager.createLoginSession(response, user);
     }
-
 
     @Override
     @Transactional
     public void getNewOtp(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(
-                ()->new UserNotFoundException("User with email " + email + " not found"));
-        Optional<Token> otpToken = user.getTokens().stream().filter(token ->
-                token.getTokenType().equals(TokenType.OTP)&&
-                token.getExpiryDate().isAfter(Instant.now())).findFirst();
-        otpToken.ifPresent(token -> token.setExpiryDate(Instant.now()));
-        String otp  = tokenService.generateOtpToken(user);
-        log.info("New OTP generated {}",otp);
-        eventPublisher.publishEvent(
-                new NewOtpEvent(user.getEmail(),otp,user.getFirstName()));
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isEmpty()) {
+            return;
+        }
 
+        Optional<Token> otpToken = user.get().getTokens().stream()
+                .filter(token -> token.getTokenType().equals(TokenType.OTP)
+                        && token.getExpiryDate().isAfter(Instant.now()))
+                .findFirst();
+        otpToken.ifPresent(token -> token.setExpiryDate(Instant.now()));
+        String otp = tokenService.generateOtpToken(user.get());
+        log.info("New OTP generated {}", otp);
+        eventPublisher.publishEvent(new NewOtpEvent(user.get().getEmail(), otp, user.get().getFirstName()));
     }
 
     @Override
@@ -163,13 +163,10 @@ public class UserServiceImpl implements UserService {
         user.setFirstName(firstName);
         user.setLastName(lastName);
         user.setEnabled(false);
-        user.setRoles(List.of(roleService.getRole(ROLE_USER)));
+        user.setRoles(new ArrayList<>());
+        user.getRoles().add(roleService.getRole(ROLE_USER));
         User oAuthUser = userRepository.save(user);
-        log.info("User created {}",user.getEmail());
+        log.info("User created {}", user.getEmail());
         return oAuthUser;
-
     }
-
-
-
 }

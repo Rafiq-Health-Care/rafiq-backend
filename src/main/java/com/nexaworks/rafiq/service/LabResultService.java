@@ -1,13 +1,11 @@
 package com.nexaworks.rafiq.service;
 
-import com.nexaworks.rafiq.entities.LabResult;
-import com.nexaworks.rafiq.entities.LabTest;
-
 import java.util.List;
 
+import com.nexaworks.rafiq.entities.LabResult;
+
 public interface LabResultService {
-   List<LabResult> saveAll(List<LabResult> entity);
+    List<LabResult> saveAll(List<LabResult> entity);
 
     void deleteAll(List<LabResult> labResults);
-
 }

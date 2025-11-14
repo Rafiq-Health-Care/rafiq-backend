@@ -1,14 +1,12 @@
 package com.nexaworks.rafiq.service;
 
-import com.nexaworks.rafiq.entities.Token;
-import com.nexaworks.rafiq.entities.User;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-
 import java.util.Optional;
 
+import com.nexaworks.rafiq.entities.Token;
+import com.nexaworks.rafiq.entities.User;
+
 public interface TokenService {
-    public String  generateRefreshToken(User user);
+    public String generateRefreshToken(User user);
 
     String generateOtpToken(User user);
 

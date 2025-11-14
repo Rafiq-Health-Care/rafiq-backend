@@ -1,17 +1,15 @@
 package com.nexaworks.rafiq.entities;
 
+import java.util.List;
+
 import com.nexaworks.rafiq.enums.Status;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.UuidGenerator;
-
-import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -25,23 +23,26 @@ public class DoctorProfile extends BaseEntity {
     private String personalPhoto;
     private String nationalId;
     private String hospitalId;
+
     @OneToOne(mappedBy = "doctorProfile")
     private User user;
+
     @ManyToOne
     @JoinColumn(name = "specialization_id", nullable = false)
     private Specialization specialization;
 
-    @OneToMany(mappedBy = "doctor",cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "doctor", cascade = CascadeType.REMOVE)
     private List<MedicalCertifications> medicalCertifications;
+
     @OneToMany(mappedBy = "doctor")
     private List<LabTest> labTests;
+
     @OneToOne
-    @JoinColumn(name = "social_links_id",referencedColumnName = "id")
+    @JoinColumn(name = "social_links_id", referencedColumnName = "id")
     private SocialLinks socialLinks;
+
     private String publicId;
+
     @Enumerated(EnumType.STRING)
     private Status status;
-
-
-
 }

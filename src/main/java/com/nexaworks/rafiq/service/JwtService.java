@@ -1,8 +1,10 @@
 package com.nexaworks.rafiq.service;
 
-import com.nexaworks.rafiq.entities.User;
-import jakarta.validation.constraints.NotBlank;
 import org.springframework.security.core.Authentication;
+
+import com.nexaworks.rafiq.entities.User;
+
+import jakarta.validation.constraints.NotBlank;
 
 public interface JwtService {
 

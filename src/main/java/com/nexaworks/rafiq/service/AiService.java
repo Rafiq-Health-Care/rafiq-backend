@@ -1,9 +1,8 @@
 package com.nexaworks.rafiq.service;
 
-import com.itextpdf.text.DocumentException;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
+
+import com.itextpdf.text.DocumentException;
 
 public interface AiService {
     String extractLabResultsFromPdf(byte[] pdfFile) throws IOException, DocumentException;

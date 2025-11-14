@@ -1,5 +1,19 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.time.Instant;
+import java.util.Optional;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.nexaworks.rafiq.dto.event.ForgetPasswordEvent;
@@ -13,24 +27,12 @@ import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
 import com.nexaworks.rafiq.utils.AuthSessionManager;
+
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.time.Instant;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -55,24 +57,24 @@ public class AuthServiceImpl implements AuthService {
             return;
         }
         String otp = tokenService.generateOtpToken(user.get());
-        log.info("Generated OTP {}",otp);
-        eventPublisher.publishEvent(
-                new ForgetPasswordEvent(email,otp,user.get().getFirstName()));
+        log.info("Generated OTP {}", otp);
+        eventPublisher.publishEvent(new ForgetPasswordEvent(email, otp, user.get().getFirstName()));
     }
 
     @Override
     @Transactional
     public VerifyOtpResponse verifyOtp(VerifyOtpRequest verifyOtpRequest) {
         validateToken(verifyOtpRequest);
-        String accessToken = tokenService.generateAccessToken
-                (userService.findByEmail(verifyOtpRequest.email()));
+        String accessToken = tokenService
+                .generateAccessToken(userService.findByEmail(verifyOtpRequest.email()));
         return new VerifyOtpResponse(accessToken);
     }
 
     private void validateToken(VerifyOtpRequest verifyOtpRequest) {
         Token otp = tokenService.getToken(verifyOtpRequest.otp());
         if (!otp.getUser().getEmail().equals(verifyOtpRequest.email())
-                ||otp.getExpiryDate().isBefore(Instant.now())) {
+                || otp.getExpiryDate().isBefore(Instant.now())) {
+            log.error(otp.getUser().getEmail() + " " + verifyOtpRequest.email());
             throw new TokenInvalidException("Invalid OTP");
         }
     }
@@ -85,14 +87,14 @@ public class AuthServiceImpl implements AuthService {
             throw new TokenInvalidException("Invalid Access Token");
         }
         User user = token.getUser();
-        userService.changePassword(user,changePasswordRequest.newPassword());
-        log.info("Password changed for user {}",user.getEmail());
+        userService.changePassword(user, changePasswordRequest.newPassword());
+        log.info("Password changed for user {}", user.getEmail());
     }
 
     @Override
     public void resetPassword(ResetPasswordRequest resetPasswordRequest) {
         User user = getAuthenticateUser();
-        userService.updatePassword(user,resetPasswordRequest);
+        userService.updatePassword(user, resetPasswordRequest);
     }
 
     public User getAuthenticateUser() {
@@ -103,12 +105,11 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public LoginResponse login(String email, String password, HttpServletResponse response) {
         Authentication authentication = authenticationManager
-                .authenticate(
-                        new UsernamePasswordAuthenticationToken(email,password));
+                .authenticate(new UsernamePasswordAuthenticationToken(email, password));
         User user = (User) authentication.getPrincipal();
         return authSessionManager.createLoginSession(response, user);
-
     }
+
     @Override
     @Transactional
     public LoginResponse refresh(HttpServletResponse response, HttpServletRequest request) {
@@ -118,56 +119,51 @@ public class AuthServiceImpl implements AuthService {
             throw new TokenInvalidException("Invalid Refresh Token");
         }
         User user = token.getUser();
-        return  authSessionManager.createLoginSession(response, user);
+        return authSessionManager.createLoginSession(response, user);
     }
 
     @Override
     @Transactional
-    public void logout(LogoutRequest request,HttpServletResponse response) {
+    public void logout(LogoutRequest request, HttpServletResponse response) {
         tokenService.invalidateRefreshToken(tokenService.getToken(request.refreshToken()));
         jwtService.invalidateJwtToken(request.jwtToken());
         removeJwtFromCookies(response);
-
     }
 
     @Override
     @Transactional
-    public LoginResponse oAuth2(String idToken,HttpServletResponse response) {
+    public LoginResponse oAuth2(String idToken, HttpServletResponse response) {
         GoogleIdToken googleIdToken = getGoogleIdToken(idToken);
         String email = googleIdToken.getPayload().getEmail();
         String firstName = googleIdToken.getPayload().get("given_name").toString();
         String lastName = googleIdToken.getPayload().get("family_name").toString();
         Optional<User> user = getUser(email, firstName, lastName);
         if (user.isPresent()) {
-            return  authSessionManager.createLoginSession(response, user.get());
-        }
-        else {
+            return authSessionManager.createLoginSession(response, user.get());
+        } else {
             throw new GoogleAuthException("Failed to authenticate user with Google");
         }
-
-
     }
 
     @NotNull
     private Optional<User> getUser(String email, String firstName, String lastName) {
         Optional<User> user = userService.findByEmail(email);
-        if (user.isPresent()){
+        if (user.isPresent()) {
             User existingUser = user.get();
-            if (!existingUser.isEnabled()){
+            if (!existingUser.isEnabled()) {
                 existingUser.setEnabled(true);
                 userRepository.save(existingUser);
             }
-        }
-        else {
+        } else {
             user = Optional.ofNullable(userService.addUser(email, firstName, lastName));
         }
         return user;
     }
 
-    private GoogleIdToken getGoogleIdToken(String idToken)  {
+    private GoogleIdToken getGoogleIdToken(String idToken) {
         try {
             GoogleIdToken token = verifier.verify(idToken);
-            if (token == null){
+            if (token == null) {
                 throw new GoogleAuthException("Invalid id token");
             }
             return token;
@@ -175,11 +171,10 @@ public class AuthServiceImpl implements AuthService {
             log.error("Error verifying Google ID token", e);
             throw new GoogleAuthException("Failed to verify Google ID token");
         }
-
     }
 
-    private void removeJwtFromCookies(HttpServletResponse response ){
-        Cookie cookie = new Cookie("jwt",null);
+    private void removeJwtFromCookies(HttpServletResponse response) {
+        Cookie cookie = new Cookie("jwt", null);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setMaxAge(0);

@@ -9,6 +9,5 @@ public class AIConfig {
     @Bean
     public ChatClient chatClient(ChatClient.Builder chatClientBuilder) {
         return chatClientBuilder.build();
-
     }
 }

@@ -1,13 +1,13 @@
 package com.nexaworks.rafiq.utils;
 
 public abstract class Prompt {
-    public static final String EXTRACT_PDF= """
+    public static final String EXTRACT_PDF = """
             You are an expert medical data extractor. Process the following medical lab report **exactly as specified**:
-            
+
              [PASTE THE CONTENT OF THE LAB REPORT FILE HERE]
-            
+
              **Strictly follow these rules:**
-            
+
              1. Identify all distinct **medical lab test names**, their **numerical results**, **units**, and **status**. \s
              2. Ignore reference intervals, methodologies, interpretations, doctor names, patient demographics, and any report metadata. \s
              3. For tests with an **explicit abnormal status** (e.g., 'High', 'Low', 'Abnormal', 'Non Reactive'): \s
@@ -20,7 +20,7 @@ public abstract class Prompt {
                 - `"Unknown"` → if the reference range cannot be inferred \s
              5. For **calculated ratios** (e.g., CHOL/HDL Ratio), include the calculated value and infer `"status"` if possible. \s
              6. **Output ONLY JSON** in this exact structure — do **not** include explanations or any text outside the JSON:
-            
+
              {
                "tests": [
                  {"testName": "Hemoglobin", "result": "13.5", "unit": "g/dL", "status": "Normal"},

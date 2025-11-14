@@ -1,4 +1,14 @@
-package com.nexaworks.rafiq.service;
+package com.nexaworks.rafiq.unit.service;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
+import java.util.UUID;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
 
 import com.nexaworks.rafiq.entities.DoctorProfile;
 import com.nexaworks.rafiq.entities.Specialization;
@@ -6,14 +16,7 @@ import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.Status;
 import com.nexaworks.rafiq.repository.DoctorRepository;
 import com.nexaworks.rafiq.service.ServiceImpl.DoctorServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.*;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import com.nexaworks.rafiq.service.SpecializationService;
 
 @DisplayName("DoctorService Test Cases")
 class DoctorServiceImplTest {
@@ -51,8 +54,7 @@ class DoctorServiceImplTest {
         String nationalId = "123456789";
         String logo = "logo_public_id";
 
-        when(specializationService.getSpecialization(specializationId))
-                .thenReturn(specialization);
+        when(specializationService.getSpecialization(specializationId)).thenReturn(specialization);
 
         DoctorProfile savedProfile = new DoctorProfile();
         savedProfile.setId(UUID.randomUUID());
@@ -60,7 +62,8 @@ class DoctorServiceImplTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        DoctorProfile result = doctorService.createProfile(doctor, description, specializationId, nationalId, logo);
+        DoctorProfile result = doctorService.createProfile(doctor, description, specializationId,
+                nationalId, logo);
 
         // then
         assertThat(result).isNotNull();

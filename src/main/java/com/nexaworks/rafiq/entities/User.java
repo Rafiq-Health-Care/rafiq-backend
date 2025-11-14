@@ -1,18 +1,18 @@
 package com.nexaworks.rafiq.entities;
 
-import com.nexaworks.rafiq.enums.Gender;
-import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.UuidGenerator;
+import java.security.Principal;
+import java.util.Collection;
+import java.util.List;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.security.Principal;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import com.nexaworks.rafiq.enums.Gender;
+
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
@@ -25,6 +25,7 @@ public class User extends BaseEntity implements UserDetails, Principal {
 
     @Column(unique = true)
     private String email;
+
     private String password;
     private String firstName;
     private String lastName;
@@ -33,12 +34,12 @@ public class User extends BaseEntity implements UserDetails, Principal {
     private boolean active;
     private boolean locked;
     private boolean enabled;
+
     @Enumerated(EnumType.STRING)
     private Gender gender;
+
     @ManyToMany
-    @JoinTable(name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private List<Role> roles;
 
     @OneToOne(cascade = CascadeType.REMOVE)
@@ -49,26 +50,20 @@ public class User extends BaseEntity implements UserDetails, Principal {
     @JoinColumn(name = "patient_profile_id", referencedColumnName = "id")
     private PatientProfile patientProfile;
 
-    @OneToMany(mappedBy = "user" , cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Address> addresses;
 
-    @OneToMany(mappedBy = "user" , cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Token> tokens;
-
-
-
-
 
     @Override
     public String getName() {
-        return this.firstName+" "+this.lastName;
+        return this.firstName + " " + this.lastName;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.roles.stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName()))
-                .toList();
+        return this.roles.stream().map(role -> new SimpleGrantedAuthority(role.getName())).toList();
     }
 
     @Override
@@ -81,15 +76,13 @@ public class User extends BaseEntity implements UserDetails, Principal {
         return this.email;
     }
 
-
     @Override
     public boolean isAccountNonLocked() {
         return !this.locked;
     }
+
     @Override
     public boolean isEnabled() {
         return this.enabled;
     }
-
-
 }

@@ -34,4 +34,6 @@ build/
 
 .env.properties
 docker-compose.yml
+/api
+./src/main/resources/db/migration
 

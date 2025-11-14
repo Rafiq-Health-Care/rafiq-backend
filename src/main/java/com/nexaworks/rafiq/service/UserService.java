@@ -1,31 +1,34 @@
 package com.nexaworks.rafiq.service;
 
-import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
+import java.io.IOException;
+import java.util.Optional;
+import java.util.UUID;
 
-import com.nexaworks.rafiq.dto.request.DoctorRegistrationRequest;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.entities.User;
+
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.Optional;
 
 public interface UserService {
-    public Optional<User> findByEmail(String email);
+    Optional<User> findByEmail(String email);
 
-    void changePassword(User user, @NotBlank @Size(min = 8,max = 20) String s);
+    void changePassword(User user, @NotBlank @Size(min = 8, max = 20) String s);
 
     void updatePassword(User user, ResetPasswordRequest resetPasswordRequest);
+
     void registerPatient(User user);
 
-    void registerDoctor(@Valid DoctorRegistrationRequest request, MultipartFile nationalId) throws IOException;
+    void registerDoctor(User user, MultipartFile nationalId, UUID specialization,
+            String description) throws IOException;
 
-    LoginResponse verifyOtp(@NotBlank @Email String email, @NotBlank String otp, HttpServletResponse response);
+    LoginResponse verifyUserEmail(@NotBlank @Email String email, @NotBlank String otp,
+            HttpServletResponse response);
 
     void getNewOtp(String email);
 

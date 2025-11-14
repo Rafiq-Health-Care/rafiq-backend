@@ -1,12 +1,10 @@
 package com.nexaworks.rafiq.entities;
 
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.UuidGenerator;
-
-import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -14,7 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @SuperBuilder
-public class Specialization  extends BaseEntity{
+public class Specialization extends BaseEntity {
 
     private String name;
     private String description;
@@ -22,5 +20,4 @@ public class Specialization  extends BaseEntity{
 
     @OneToMany(mappedBy = "specialization")
     private List<DoctorProfile> doctorProfiles;
-
 }
