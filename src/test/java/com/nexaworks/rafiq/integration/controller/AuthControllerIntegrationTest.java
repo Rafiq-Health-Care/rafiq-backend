@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nexaworks.rafiq.dto.request.ChangePasswordRequest;
 import com.nexaworks.rafiq.dto.request.ForgetPasswordRequest;
 import com.nexaworks.rafiq.dto.request.VerifyOtpRequest;
 import com.nexaworks.rafiq.entities.Role;
@@ -73,6 +74,12 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
 
     private Token createOtpToken(User user, String otpValue, Instant expiryDate) {
         Token token = Token.builder().token(otpValue).user(user).tokenType(TokenType.OTP)
+                .expiryDate(expiryDate).build();
+        return tokenRepository.save(token);
+    }
+
+    private Token createAccessToken(User user, String tokenValue, Instant expiryDate) {
+        Token token = Token.builder().token(tokenValue).user(user).tokenType(TokenType.ACCESS_TOKEN)
                 .expiryDate(expiryDate).build();
         return tokenRepository.save(token);
     }
@@ -334,6 +341,122 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
                 mockMvc.perform(MockMvcRequestBuilders.post(VERIFY_OTP_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Change Password")
+    class ChangePassword {
+        private final String CHANGE_PASSWORD_ENDPOINT = "/auth/change-password";
+
+        @Nested
+        @DisplayName("Should Change Password Successfully")
+        class ShouldChangePasswordSuccessfully {
+
+            @Test
+            @DisplayName("Should change password and return 204 when access token is valid")
+            void shouldChangePasswordAndReturnNoContentWhenAccessTokenIsValid() throws Exception {
+                // Arrange - Create user and access token directly
+                String email = "change.password@example.com";
+                String oldPassword = "OldPass@123";
+                User user = createTestUser(email, oldPassword, "Mike", "Johnson");
+
+                String accessTokenValue = "access-token-12345";
+                Instant expiryDate = Instant.now().plus(30, ChronoUnit.MINUTES);
+                createAccessToken(user, accessTokenValue, expiryDate);
+
+                String newPassword = "NewPass@456";
+                ChangePasswordRequest changePasswordRequest = new ChangePasswordRequest(
+                        accessTokenValue, newPassword);
+                String payload = objectMapper.writeValueAsString(changePasswordRequest);
+
+                // Act & Assert - Change password
+                mockMvc.perform(MockMvcRequestBuilders.post(CHANGE_PASSWORD_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                        .andExpect(MockMvcResultMatchers.status().isNoContent());
+
+                // Verify password was changed
+                User updatedUser = userRepository.findByEmail(email).orElseThrow();
+                assertThat(passwordEncoder.matches(newPassword, updatedUser.getPassword())).isTrue()
+                        .as("Password should be updated to new password");
+            }
+        }
+
+        @Nested
+        @DisplayName("Should Fail Changing Password")
+        class ShouldFailChangingPassword {
+
+            @Test
+            @DisplayName("Should return 404 Not Found when access token does not exist")
+            void shouldReturnNotFoundWhenAccessTokenDoesNotExist() throws Exception {
+                // Arrange
+                String fakeAccessToken = "fake-access-token-99999";
+                String newPassword = "NewPass@456";
+
+                ChangePasswordRequest changePasswordRequest = new ChangePasswordRequest(
+                        fakeAccessToken, newPassword);
+                String payload = objectMapper.writeValueAsString(changePasswordRequest);
+
+                // Act & Assert - Should return 404
+                mockMvc.perform(MockMvcRequestBuilders.post(CHANGE_PASSWORD_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                        .andExpect(MockMvcResultMatchers.status().isNotFound());
+            }
+
+            @Test
+            @DisplayName("Should return 401 Unauthorized when access token is expired")
+            void shouldReturnUnauthorizedWhenAccessTokenIsExpired() throws Exception {
+                // Arrange - Create user and expired access token
+                String email = "expired.token@example.com";
+                User user = createTestUser(email, "OldPass@123", "Tom", "Davis");
+
+                String accessTokenValue = "expired-access-token";
+                Instant expiredDate = Instant.now().minus(1, ChronoUnit.HOURS); // Expired
+                createAccessToken(user, accessTokenValue, expiredDate);
+
+                String newPassword = "NewPass@456";
+                ChangePasswordRequest changePasswordRequest = new ChangePasswordRequest(
+                        accessTokenValue, newPassword);
+                String payload = objectMapper.writeValueAsString(changePasswordRequest);
+
+                // Act & Assert - Should return 401
+                mockMvc.perform(MockMvcRequestBuilders.post(CHANGE_PASSWORD_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                        .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+
+                // Verify password was NOT changed
+                User unchangedUser = userRepository.findByEmail(email).orElseThrow();
+                assertThat(passwordEncoder.matches("OldPass@123", unchangedUser.getPassword()))
+                        .isTrue().as("Password should remain unchanged");
+            }
+
+            @Test
+            @DisplayName("Should return 400 Bad Request when password is too short (validation)")
+            void shouldReturnBadRequestForInvalidPasswordLength() throws Exception {
+                // Arrange - Create user and valid access token
+                String email = "short.password@example.com";
+                User user = createTestUser(email, "OldPass@123", "Sarah", "Miller");
+
+                String accessTokenValue = "valid-access-token";
+                Instant expiryDate = Instant.now().plus(30, ChronoUnit.MINUTES);
+                createAccessToken(user, accessTokenValue, expiryDate);
+
+                String shortPassword = "Short1"; // Only 6 chars, min is 8
+
+                ChangePasswordRequest changePasswordRequest = new ChangePasswordRequest(
+                        accessTokenValue, shortPassword);
+                String payload = objectMapper.writeValueAsString(changePasswordRequest);
+
+                // Act & Assert - Should return 400 for validation error
+                mockMvc.perform(MockMvcRequestBuilders.post(CHANGE_PASSWORD_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                        .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+                // Verify password was NOT changed
+                User unchangedUser = userRepository.findByEmail(email).orElseThrow();
+                assertThat(passwordEncoder.matches("OldPass@123", unchangedUser.getPassword()))
+                        .isTrue().as("Password should remain unchanged");
             }
         }
     }
