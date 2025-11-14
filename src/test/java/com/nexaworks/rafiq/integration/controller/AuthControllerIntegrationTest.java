@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.integration.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -19,6 +20,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexaworks.rafiq.dto.request.ChangePasswordRequest;
 import com.nexaworks.rafiq.dto.request.ForgetPasswordRequest;
+import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
 import com.nexaworks.rafiq.dto.request.VerifyOtpRequest;
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.Token;
@@ -456,6 +458,122 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
                 // Verify password was NOT changed
                 User unchangedUser = userRepository.findByEmail(email).orElseThrow();
                 assertThat(passwordEncoder.matches("OldPass@123", unchangedUser.getPassword()))
+                        .isTrue().as("Password should remain unchanged");
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Reset Password")
+    class ResetPassword {
+        private final String RESET_PASSWORD_ENDPOINT = "/auth/reset-password";
+
+        @Nested
+        @DisplayName("Should Reset Password Successfully")
+        class ShouldResetPasswordSuccessfully {
+
+            @Test
+            @DisplayName("Should reset password and return 204 when authenticated with valid old password")
+            void shouldResetPasswordWhenAuthenticatedWithValidOldPassword() throws Exception {
+                // Arrange - Create authenticated user
+                String email = "reset.password@example.com";
+                String oldPassword = "OldPass@123";
+                User user = createTestUser(email, oldPassword, "Emma", "Watson");
+
+                String newPassword = "NewPass@789";
+                ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest(oldPassword,
+                        newPassword);
+                String payload = objectMapper.writeValueAsString(resetPasswordRequest);
+
+                // Act & Assert - Reset password with authentication
+                mockMvc.perform(MockMvcRequestBuilders.post(RESET_PASSWORD_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload).with(user(user))) // Authenticate
+                                                                                                    // as
+                                                                                                    // this
+                                                                                                    // user
+                        .andExpect(MockMvcResultMatchers.status().isNoContent());
+
+                // Verify password was changed
+                User updatedUser = userRepository.findByEmail(email).orElseThrow();
+                assertThat(passwordEncoder.matches(newPassword, updatedUser.getPassword())).isTrue()
+                        .as("Password should be updated to new password");
+                assertThat(passwordEncoder.matches(oldPassword, updatedUser.getPassword()))
+                        .isFalse().as("Old password should no longer work");
+            }
+        }
+
+        @Nested
+        @DisplayName("Should Fail Resetting Password")
+        class ShouldFailResettingPassword {
+
+            @Test
+            @DisplayName("Should return 401 Unauthorized when not authenticated")
+            void shouldReturnUnauthorizedWhenNotAuthenticated() throws Exception {
+                // Arrange
+                String oldPassword = "OldPass@123";
+                String newPassword = "NewPass@789";
+                ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest(oldPassword,
+                        newPassword);
+                String payload = objectMapper.writeValueAsString(resetPasswordRequest);
+
+                // Act & Assert - Should return 401 without authentication
+                mockMvc.perform(MockMvcRequestBuilders.post(RESET_PASSWORD_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                        .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+            }
+
+            @Test
+            @DisplayName("Should return 401 unauthorized when old password is incorrect")
+            void shouldReturnBadRequestWhenOldPasswordIsIncorrect() throws Exception {
+                // Arrange - Create authenticated user
+                String email = "wrong.old.password@example.com";
+                String correctOldPassword = "OldPass@123";
+                User user = createTestUser(email, correctOldPassword, "David", "Brown");
+
+                String wrongOldPassword = "WrongPass@999";
+                String newPassword = "NewPass@789";
+                ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest(
+                        wrongOldPassword, newPassword);
+                String payload = objectMapper.writeValueAsString(resetPasswordRequest);
+
+                // Act & Assert - Should return 400 for incorrect old password
+                mockMvc.perform(MockMvcRequestBuilders.post(RESET_PASSWORD_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload).with(user(user))) // Authenticate
+                                                                                                    // as
+                                                                                                    // this
+                                                                                                    // user
+                        .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+
+                // Verify password was NOT changed
+                User unchangedUser = userRepository.findByEmail(email).orElseThrow();
+                assertThat(passwordEncoder.matches(correctOldPassword, unchangedUser.getPassword()))
+                        .isTrue().as("Password should remain unchanged");
+            }
+
+            @Test
+            @DisplayName("Should return 400 Bad Request when new password is blank (validation)")
+            void shouldReturnBadRequestForBlankNewPassword() throws Exception {
+                // Arrange - Create authenticated user
+                String email = "blank.password@example.com";
+                String oldPassword = "OldPass@123";
+                User user = createTestUser(email, oldPassword, "Lisa", "Anderson");
+
+                String blankNewPassword = "";
+                ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest(oldPassword,
+                        blankNewPassword);
+                String payload = objectMapper.writeValueAsString(resetPasswordRequest);
+
+                // Act & Assert - Should return 400 for validation error
+                mockMvc.perform(MockMvcRequestBuilders.post(RESET_PASSWORD_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload).with(user(user))) // Authenticate
+                                                                                                    // as
+                                                                                                    // this
+                                                                                                    // user
+                        .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+                // Verify password was NOT changed
+                User unchangedUser = userRepository.findByEmail(email).orElseThrow();
+                assertThat(passwordEncoder.matches(oldPassword, unchangedUser.getPassword()))
                         .isTrue().as("Password should remain unchanged");
             }
         }
