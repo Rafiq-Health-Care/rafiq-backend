@@ -5,25 +5,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.UUID;
 
-import com.nexaworks.rafiq.integration.BaseIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexaworks.rafiq.dto.request.DoctorRegistrationRequest;
@@ -33,10 +24,10 @@ import com.nexaworks.rafiq.dto.request.VerificationRequest;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.TokenType;
+import com.nexaworks.rafiq.integration.BaseIntegrationTest;
 import com.nexaworks.rafiq.repository.SpecializationRepository;
 import com.nexaworks.rafiq.repository.TokenRepository;
 import com.nexaworks.rafiq.repository.UserRepository;
-
 
 @DisplayName("User Controller Integration Test Cases")
 public class UserControllerIntegrationTest extends BaseIntegrationTest {
@@ -269,7 +260,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         "Valid@1234", "John", "Doe", "+12345678901", 30, "male");
 
                 UUID specializationId = specializationRepository.findAll().stream().findFirst()
-                        .orElseThrow(() -> new RuntimeException("No specialization found in database"))
+                        .orElseThrow(
+                                () -> new RuntimeException("No specialization found in database"))
                         .getId();
 
                 DoctorRegistrationRequest request = new DoctorRegistrationRequest(userRequest,
@@ -306,7 +298,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         "Valid@1234", "John", "Doe", "+12345678901", 30, "male");
 
                 UUID specializationId = specializationRepository.findAll().stream().findFirst()
-                        .orElseThrow(() -> new RuntimeException("No specialization found in database"))
+                        .orElseThrow(
+                                () -> new RuntimeException("No specialization found in database"))
                         .getId();
 
                 DoctorRegistrationRequest request = new DoctorRegistrationRequest(userRequest,
@@ -339,7 +332,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         "John", "Doe", "+12345678901", 30, "male");
 
                 UUID specializationId = specializationRepository.findAll().stream().findFirst()
-                        .orElseThrow(() -> new RuntimeException("No specialization found in database"))
+                        .orElseThrow(
+                                () -> new RuntimeException("No specialization found in database"))
                         .getId();
 
                 DoctorRegistrationRequest request = new DoctorRegistrationRequest(userRequest,
@@ -372,7 +366,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         30, "male");
 
                 UUID specializationId = specializationRepository.findAll().stream().findFirst()
-                        .orElseThrow(() -> new RuntimeException("No specialization found in database"))
+                        .orElseThrow(
+                                () -> new RuntimeException("No specialization found in database"))
                         .getId();
 
                 DoctorRegistrationRequest request = new DoctorRegistrationRequest(userRequest,
@@ -405,7 +400,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         "male");
 
                 UUID specializationId = specializationRepository.findAll().stream().findFirst()
-                        .orElseThrow(() -> new RuntimeException("No specialization found in database"))
+                        .orElseThrow(
+                                () -> new RuntimeException("No specialization found in database"))
                         .getId();
 
                 DoctorRegistrationRequest request = new DoctorRegistrationRequest(userRequest,
@@ -437,7 +433,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         "Valid@1234", "John", "Doe", "+12345678901", 30, "other"); // Invalid gender
 
                 UUID specializationId = specializationRepository.findAll().stream().findFirst()
-                        .orElseThrow(() -> new RuntimeException("No specialization found in database"))
+                        .orElseThrow(
+                                () -> new RuntimeException("No specialization found in database"))
                         .getId();
 
                 DoctorRegistrationRequest request = new DoctorRegistrationRequest(userRequest,
@@ -470,7 +467,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         "Doe", "+12345678901", 30, "male");
 
                 UUID specializationId = specializationRepository.findAll().stream().findFirst()
-                        .orElseThrow(() -> new RuntimeException("No specialization found in database"))
+                        .orElseThrow(
+                                () -> new RuntimeException("No specialization found in database"))
                         .getId();
 
                 DoctorRegistrationRequest request = new DoctorRegistrationRequest(userRequest,
@@ -502,7 +500,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         "Valid@1234", "John", "Doe", "+12345678901", 30, "male");
 
                 UUID specializationId = specializationRepository.findAll().stream().findFirst()
-                        .orElseThrow(() -> new RuntimeException("No specialization found in database"))
+                        .orElseThrow(
+                                () -> new RuntimeException("No specialization found in database"))
                         .getId();
 
                 DoctorRegistrationRequest firstRequest = new DoctorRegistrationRequest(
@@ -549,13 +548,14 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             }
         }
         private byte[] createMinimalPngImage() {
-            return new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
+            return new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG
+                                                                                     // signature
                     0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
                     0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 dimensions
                     0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, (byte) 0xC4, (byte) 0x89, 0x00, 0x00,
                     0x00, 0x0A, 0x49, 0x44, 0x41, 0x54, // IDAT chunk
-                    0x78, (byte) 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00, 0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D,
-                    (byte) 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, // IEND chunk
+                    0x78, (byte) 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00, 0x05, 0x00, 0x01, 0x0D, 0x0A,
+                    0x2D, (byte) 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, // IEND chunk
                     (byte) 0xAE, 0x42, 0x60, (byte) 0x82};
         }
     }
@@ -583,8 +583,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             User user = userRepository.findByEmail(email).orElseThrow();
             Token otpToken = tokenRepository.findAll().stream()
                     .filter(t -> t.getUser().getId().equals(user.getId()))
-                    .filter(t -> t.getTokenType().equals(TokenType.OTP)).findFirst()
-                    .orElseThrow();
+                    .filter(t -> t.getTokenType().equals(TokenType.OTP)).findFirst().orElseThrow();
             String otp = otpToken.getToken();
 
             // Prepare verification request
