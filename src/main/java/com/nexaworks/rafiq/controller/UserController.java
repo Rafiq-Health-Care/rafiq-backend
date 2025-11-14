@@ -27,7 +27,8 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/register/patient")
-    public ResponseEntity<Void> registerPatient(@Valid @RequestBody UserRegistrationRequest request) {
+    public ResponseEntity<Void> registerPatient(
+            @Valid @RequestBody UserRegistrationRequest request) {
         userService.registerPatient(UserMapper.toUser(request));
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -37,8 +38,8 @@ public class UserController {
             @RequestPart("doctorData") @Valid DoctorRegistrationRequest request,
             @RequestPart(value = "nationalId", required = false) MultipartFile nationalId)
             throws IOException {
-        userService.registerDoctor(
-                UserMapper.toUser(request.user()), nationalId, request.specialization(), request.description());
+        userService.registerDoctor(UserMapper.toUser(request.user()), nationalId,
+                request.specialization(), request.description());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -46,7 +47,8 @@ public class UserController {
     public ResponseEntity<LoginResponse> verification(
             @RequestBody @Valid VerificationRequest request, HttpServletResponse response) {
 
-        return ResponseEntity.ok().body(userService.verifyUserEmail(request.email(), request.otp(), response));
+        return ResponseEntity.ok()
+                .body(userService.verifyUserEmail(request.email(), request.otp(), response));
     }
 
     @PostMapping("/new-otp")

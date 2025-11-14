@@ -24,10 +24,11 @@ public interface UserService {
 
     void registerPatient(User user);
 
-    void registerDoctor(User user, MultipartFile nationalId, UUID specialization, String description)
-            throws IOException;
+    void registerDoctor(User user, MultipartFile nationalId, UUID specialization,
+            String description) throws IOException;
 
-    LoginResponse verifyUserEmail(@NotBlank @Email String email, @NotBlank String otp, HttpServletResponse response);
+    LoginResponse verifyUserEmail(@NotBlank @Email String email, @NotBlank String otp,
+            HttpServletResponse response);
 
     void getNewOtp(String email);
 

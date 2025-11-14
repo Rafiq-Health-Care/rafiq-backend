@@ -21,7 +21,8 @@ public interface AuthService {
 
     void resetPassword(@Valid ResetPasswordRequest resetPasswordRequest);
 
-    LoginResponse login(@NotBlank String email, @NotBlank String password, HttpServletResponse response);
+    LoginResponse login(@NotBlank String email, @NotBlank String password,
+            HttpServletResponse response);
 
     LoginResponse refresh(HttpServletResponse response, HttpServletRequest request);
 

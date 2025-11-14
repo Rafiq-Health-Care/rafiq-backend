@@ -32,9 +32,7 @@ import com.nexaworks.rafiq.repository.UserRepository;
 public class UserControllerIntegrationTest {
     @Container
     static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:15")
-            .withDatabaseName("testdb")
-            .withUsername("testuser")
-            .withPassword("testpass");
+            .withDatabaseName("testdb").withUsername("testuser").withPassword("testpass");
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
@@ -71,20 +69,19 @@ public class UserControllerIntegrationTest {
             void shouldRegisterPatientWithValidRequiredFields() throws Exception {
                 // Arrange
                 String email = "john.doe.integration@example.com";
-                UserRegistrationRequest request =
-                        new UserRegistrationRequest(email, "Valid@1234", "John", "Doe", "+12345678901", 30, "male");
+                UserRegistrationRequest request = new UserRegistrationRequest(email, "Valid@1234",
+                        "John", "Doe", "+12345678901", 30, "male");
 
                 String payload = objectMapper.writeValueAsString(request);
 
                 // Act & Assert HTTP response
                 mockMvc.perform(MockMvcRequestBuilders.post(REGISTER_PATIENT_ENDPOINT)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(payload))
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isCreated());
 
                 // Verify persistence through the service layer
-                assertTrue(
-                        userRepository.findByEmail(email).isPresent(), "User should be persisted after registration");
+                assertTrue(userRepository.findByEmail(email).isPresent(),
+                        "User should be persisted after registration");
             }
         }
 
@@ -96,46 +93,39 @@ public class UserControllerIntegrationTest {
             @DisplayName("Should return 400 Bad Request when email format is invalid")
             void shouldReturnBadRequestForInvalidEmail() throws Exception {
                 String email = "not-an-email";
-                UserRegistrationRequest invalidRequest =
-                        new UserRegistrationRequest(email, "Valid@1234", "John", "Doe", "+12345678901", 30, "male");
+                UserRegistrationRequest invalidRequest = new UserRegistrationRequest(email,
+                        "Valid@1234", "John", "Doe", "+12345678901", 30, "male");
 
                 String payload = objectMapper.writeValueAsString(invalidRequest);
 
                 // Act & Assert HTTP response 400
                 mockMvc.perform(MockMvcRequestBuilders.post(REGISTER_PATIENT_ENDPOINT)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(payload))
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
                 // Ensure no user persisted with the invalid email
-                assertTrue(
-                        userRepository.findByEmail(email).isEmpty(), "User should not be created for invalid request");
+                assertTrue(userRepository.findByEmail(email).isEmpty(),
+                        "User should not be created for invalid request");
             }
 
             @Test
             @DisplayName("Should return 400 Bad Request when password contains spaces")
             void shouldReturnBadRequestForInvalidPassword() throws Exception {
                 String email = "valid.email@example.com";
-                UserRegistrationRequest invalidRequest = new UserRegistrationRequest(
-                        email,
+                UserRegistrationRequest invalidRequest = new UserRegistrationRequest(email,
                         "Val id@1234", // Password with space
-                        "John",
-                        "Doe",
-                        "+12345678901",
-                        30,
-                        "male");
+                        "John", "Doe", "+12345678901", 30, "male");
 
                 String payload = objectMapper.writeValueAsString(invalidRequest);
 
                 // Act & Assert HTTP response 400
                 mockMvc.perform(MockMvcRequestBuilders.post(REGISTER_PATIENT_ENDPOINT)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(payload))
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
                 // Ensure no user persisted with the invalid password
-                assertTrue(
-                        userRepository.findByEmail(email).isEmpty(), "User should not be created for invalid password");
+                assertTrue(userRepository.findByEmail(email).isEmpty(),
+                        "User should not be created for invalid password");
             }
         }
     }

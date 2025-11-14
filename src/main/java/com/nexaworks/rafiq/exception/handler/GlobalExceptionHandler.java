@@ -23,13 +23,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMethodNotAllowed(
             HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
-        return ResponseEntity.status(405)
-                .body(new ErrorResponse(
-                        405, "Method Not Allowed", ex.getMessage(), LocalDateTime.now(), request.getRequestURI()));
+        return ResponseEntity.status(405).body(new ErrorResponse(405, "Method Not Allowed",
+                ex.getMessage(), LocalDateTime.now(), request.getRequestURI()));
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(NoResourceFoundException ex, HttpServletRequest request) {
-        return ResponseEntity.status(404).body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.NOT_FOUND));
+    public ResponseEntity<ErrorResponse> handleNotFound(NoResourceFoundException ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(404)
+                .body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.NOT_FOUND));
     }
 }

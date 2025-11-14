@@ -29,12 +29,11 @@ public class CloudinaryService implements ImageService {
             throw new EmptyFileException("File is empty");
         }
         try {
-            var map = cloudinary
-                    .uploader()
-                    .upload(file.getBytes(), ObjectUtils.asMap("resource_type", type.getCloudinaryType()));
+            var map = cloudinary.uploader().upload(file.getBytes(),
+                    ObjectUtils.asMap("resource_type", type.getCloudinaryType()));
 
-            return new UploadResults(
-                    map.get("secure_url").toString(), map.get("public_id").toString());
+            return new UploadResults(map.get("secure_url").toString(),
+                    map.get("public_id").toString());
 
         } catch (IOException e) {
             throw new FileUploadException("Filed to upload the file, please try again");

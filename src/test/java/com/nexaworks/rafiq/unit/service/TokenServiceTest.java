@@ -43,9 +43,9 @@ public class TokenServiceTest {
     @DisplayName("Generate refresh token should return token and save to repository")
     @Test
     void generateRefreshToken_ShouldReturnTokenAndSaveToRepository() {
-        User user =
-                User.builder().id(UUID.randomUUID()).email("test@example.com").build();
-        when(tokenRepository.save(any(Token.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        User user = User.builder().id(UUID.randomUUID()).email("test@example.com").build();
+        when(tokenRepository.save(any(Token.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         String refreshToken = tokenService.generateRefreshToken(user);
         assertNotNull(refreshToken);
@@ -65,21 +65,22 @@ public class TokenServiceTest {
     void generateAccessToken_ShouldBuildTheTokenAndReturnIt() {
         User user = User.builder().firstName("John").lastName("Doe").build();
         user.setEmail("john@gmail.com");
-        when(tokenRepository.save(any(Token.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(tokenRepository.save(any(Token.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
         String accessToken = tokenService.generateAccessToken(Optional.of(user));
         assertNotNull(accessToken);
         assertFalse(accessToken.isEmpty());
         verify(tokenRepository, times(1)).save(any(Token.class));
-        verify(tokenRepository)
-                .save(argThat(savedToken -> savedToken.getUser().equals(user)
-                        && savedToken.getTokenType() == TokenType.ACCESS_TOKEN
-                        && savedToken.getExpiryDate().isAfter(java.time.Instant.now())));
+        verify(tokenRepository).save(argThat(savedToken -> savedToken.getUser().equals(user)
+                && savedToken.getTokenType() == TokenType.ACCESS_TOKEN
+                && savedToken.getExpiryDate().isAfter(java.time.Instant.now())));
     }
 
     @DisplayName("Generate access token should throw exception when user is null")
     @Test
     void generateAccessToken_ShouldThrowException_WhenUserIsNull() {
-        assertThrows(UserNotFoundException.class, () -> tokenService.generateAccessToken(Optional.empty()));
+        assertThrows(UserNotFoundException.class,
+                () -> tokenService.generateAccessToken(Optional.empty()));
         verify(tokenRepository, never()).save(any(Token.class));
     }
 
@@ -118,7 +119,8 @@ public class TokenServiceTest {
         token.setTokenType(TokenType.OTP);
         token.setExpiryDate(java.time.Instant.now());
         when(tokenRepository.findByToken(anyString())).thenReturn(Optional.of(token));
-        assertThrows(TokenInvalidException.class, () -> tokenService.verifyOtp(user.getEmail(), "123456"));
+        assertThrows(TokenInvalidException.class,
+                () -> tokenService.verifyOtp(user.getEmail(), "123456"));
         verify(tokenRepository, times(1)).findByToken(anyString());
     }
 
@@ -133,7 +135,8 @@ public class TokenServiceTest {
         token.setTokenType(TokenType.OTP);
         token.setExpiryDate(java.time.Instant.now());
         when(tokenRepository.findByToken(anyString())).thenReturn(Optional.of(token));
-        assertThrows(TokenInvalidException.class, () -> tokenService.verifyOtp("elbialy@gmail.com", "123456"));
+        assertThrows(TokenInvalidException.class,
+                () -> tokenService.verifyOtp("elbialy@gmail.com", "123456"));
         verify(tokenRepository, times(1)).findByToken(anyString());
     }
 
@@ -170,15 +173,15 @@ public class TokenServiceTest {
     void generateOtpToken_ShouldGenerateTokenAndSaveIt() {
         User user = new User();
         user.setEmail("test@gmail.com");
-        when(tokenRepository.save(any(Token.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(tokenRepository.save(any(Token.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
         String otpToken = tokenService.generateOtpToken(user);
         assertNotNull(otpToken);
         assertFalse(otpToken.isEmpty());
         verify(tokenRepository, times(1)).save(any(Token.class));
-        verify(tokenRepository)
-                .save(argThat(savedToken -> savedToken.getUser().equals(user)
-                        && savedToken.getTokenType() == TokenType.OTP
-                        && savedToken.getExpiryDate().isAfter(java.time.Instant.now())));
+        verify(tokenRepository).save(argThat(savedToken -> savedToken.getUser().equals(user)
+                && savedToken.getTokenType() == TokenType.OTP
+                && savedToken.getExpiryDate().isAfter(java.time.Instant.now())));
     }
 
     @DisplayName("Generate otp token should throw user exception if the user is null")

@@ -32,8 +32,8 @@ public class JwtServiceImplTest {
     @BeforeEach
     void setUp() {
         jwtService = new JwtServiceImpl(userRepository);
-        ReflectionTestUtils.setField(
-                jwtService, "JWT_SECRET", "5cf7d14433f66174f7ce66b01acef9415f55b04daf4815ad60b62f9c50e8809b");
+        ReflectionTestUtils.setField(jwtService, "JWT_SECRET",
+                "5cf7d14433f66174f7ce66b01acef9415f55b04daf4815ad60b62f9c50e8809b");
         ReflectionTestUtils.setField(jwtService, "JWT_EXPIRATION", 10000L);
     }
 
@@ -42,7 +42,8 @@ public class JwtServiceImplTest {
     void generateTokenMustBeNotNull() {
         User user = mock(User.class);
         when(user.getEmail()).thenReturn("bialy@gmail.com");
-        Collection<? extends GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        Collection<? extends GrantedAuthority> authorities = List
+                .of(new SimpleGrantedAuthority("ROLE_ADMIN"));
         doReturn(authorities).when(user).getAuthorities();
 
         String token = jwtService.generateToken(user);
@@ -54,14 +55,12 @@ public class JwtServiceImplTest {
     void jwtMustHaveTheEmail() {
         User user = mock(User.class);
         when(user.getEmail()).thenReturn("bialy@gmail.com");
-        Collection<? extends GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        Collection<? extends GrantedAuthority> authorities = List
+                .of(new SimpleGrantedAuthority("ROLE_ADMIN"));
         doReturn(authorities).when(user).getAuthorities();
         String token = jwtService.generateToken(user);
-        Claims claims = Jwts.parser()
-                .verifyWith(jwtService.getKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        Claims claims = Jwts.parser().verifyWith(jwtService.getKey()).build()
+                .parseSignedClaims(token).getPayload();
         assertEquals(claims.getSubject(), user.getEmail());
     }
 
@@ -70,16 +69,13 @@ public class JwtServiceImplTest {
     void jwtMustHaveTheClaims() {
         User user = mock(User.class);
         when(user.getEmail()).thenReturn("bialy@gmail.com");
-        Collection<? extends GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        Collection<? extends GrantedAuthority> authorities = List
+                .of(new SimpleGrantedAuthority("ROLE_ADMIN"));
         doReturn(authorities).when(user).getAuthorities();
         String token = jwtService.generateToken(user);
-        Claims claims = Jwts.parser()
-                .verifyWith(jwtService.getKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-        assertEquals(
-                claims.get("authorities"),
+        Claims claims = Jwts.parser().verifyWith(jwtService.getKey()).build()
+                .parseSignedClaims(token).getPayload();
+        assertEquals(claims.get("authorities"),
                 authorities.stream().map(GrantedAuthority::getAuthority).toList());
     }
 

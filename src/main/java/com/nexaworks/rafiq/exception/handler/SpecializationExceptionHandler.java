@@ -20,8 +20,8 @@ public class SpecializationExceptionHandler {
     private final ExceptionUtils exceptionUtils;
 
     @ExceptionHandler(SpecializationNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(
-            SpecializationNotFoundException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleNotFound(SpecializationNotFoundException ex,
+            HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.NOT_FOUND));
     }
@@ -34,8 +34,8 @@ public class SpecializationExceptionHandler {
     }
 
     @ExceptionHandler(SpecializationValidationException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(
-            SpecializationValidationException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleValidation(SpecializationValidationException ex,
+            HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.BAD_REQUEST));
     }

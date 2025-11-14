@@ -44,22 +44,19 @@ public class JwtServiceImpl implements JwtService {
             throw new UserException("User cannot be null");
         }
         String email = user.getEmail();
-        var authorities = user.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
+        var authorities = user.getAuthorities().stream().map(GrantedAuthority::getAuthority)
                 .toList();
         return buildToken(email, authorities);
     }
 
     @Override
-    public void invalidateJwtToken(String s) {}
+    public void invalidateJwtToken(String s) {
+    }
 
     @Override
     public Authentication validate(String jwt) {
         try {
-            Claims claims = Jwts.parser()
-                    .verifyWith(getKey())
-                    .build()
-                    .parseSignedClaims(jwt)
+            Claims claims = Jwts.parser().verifyWith(getKey()).build().parseSignedClaims(jwt)
                     .getPayload();
             if (claims.getExpiration().before(new Date())) {
                 throw new TokenInvalidException("Token has expired");
@@ -69,12 +66,12 @@ public class JwtServiceImpl implements JwtService {
             }
             var username = claims.getSubject();
             log.info("Validated token for user {}", username);
-            User user =
-                    userRepository.findByEmail(username).orElseThrow(() -> new UserNotFoundException("User not found"));
+            User user = userRepository.findByEmail(username)
+                    .orElseThrow(() -> new UserNotFoundException("User not found"));
             log.info("User found {}", user.getEmail());
             List<String> authorities = claims.get("authorities", List.class);
-            List<SimpleGrantedAuthority> authorityList =
-                    authorities.stream().map(SimpleGrantedAuthority::new).toList();
+            List<SimpleGrantedAuthority> authorityList = authorities.stream()
+                    .map(SimpleGrantedAuthority::new).toList();
             return new UsernamePasswordAuthenticationToken(user, null, authorityList);
 
         } catch (Exception e) {
@@ -83,14 +80,10 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private String buildToken(String email, List<String> authorities) {
-        return Jwts.builder()
-                .subject(email)
-                .claim("authorities", authorities)
-                .issuer("Rafiq")
+        return Jwts.builder().subject(email).claim("authorities", authorities).issuer("Rafiq")
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION))
-                .signWith(getKey())
-                .compact();
+                .signWith(getKey()).compact();
     }
 
     public SecretKey getKey() {

@@ -4,11 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum UploadType {
-    IMAGE("image"),
-    VIDEO("video"),
-    DOCUMENT("raw"),
-    PDF("raw"),
-    VOICE("video");
+    IMAGE("image"), VIDEO("video"), DOCUMENT("raw"), PDF("raw"), VOICE("video");
 
     private final String cloudinaryType;
 

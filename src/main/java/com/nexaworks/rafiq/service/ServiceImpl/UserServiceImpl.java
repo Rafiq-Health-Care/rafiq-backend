@@ -78,7 +78,8 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void registerPatient(User user) {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new RegistrationException("User with email " + user.getEmail() + " already exists");
+            throw new RegistrationException(
+                    "User with email " + user.getEmail() + " already exists");
         }
         User patient = extracted(user);
         patient.getRoles().add(roleService.getRole(ROLE_PATIENT));
@@ -88,13 +89,14 @@ public class UserServiceImpl implements UserService {
         log.info("User registered {}", user.getEmail());
         String otp = tokenService.generateOtpToken(patient);
         log.info("OTP generated {}", otp);
-        eventPublisher.publishEvent(new UserRegistrationEvent(user.getEmail(), otp, user.getFirstName()));
+        eventPublisher
+                .publishEvent(new UserRegistrationEvent(user.getEmail(), otp, user.getFirstName()));
     }
 
     private User extracted(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         Role role = roleService.getRole(ROLE_USER);
-        //        Role role1 = roleService.getRole(ROLE_PATIENT);
+        // Role role1 = roleService.getRole(ROLE_PATIENT);
         user.setRoles(new ArrayList<>());
         user.getRoles().add(role);
         return user;
@@ -102,20 +104,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void registerDoctor(User user, MultipartFile nationalId, UUID specialization, String description)
-            throws IOException {
+    public void registerDoctor(User user, MultipartFile nationalId, UUID specialization,
+            String description) throws IOException {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new RegistrationException("User with email " + user.getEmail() + " already exists");
+            throw new RegistrationException(
+                    "User with email " + user.getEmail() + " already exists");
         }
         User doctor = extracted(user);
         userRepository.save(doctor);
         UploadResults nationalIdImage = imageService.uploadResource(nationalId, UploadType.IMAGE);
         doctor.getRoles().add(roleService.getRole(ROLE_DOCTOR));
-        doctor.setDoctorProfile(doctorService.createProfile(
-                doctor, description, specialization, nationalIdImage.url(), nationalIdImage.publicId()));
+        doctor.setDoctorProfile(doctorService.createProfile(doctor, description, specialization,
+                nationalIdImage.url(), nationalIdImage.publicId()));
         String otp = tokenService.generateOtpToken(doctor);
         log.info("OTP generated {}", otp);
-        eventPublisher.publishEvent(new UserRegistrationEvent(user.getEmail(), otp, user.getFirstName()));
+        eventPublisher
+                .publishEvent(new UserRegistrationEvent(user.getEmail(), otp, user.getFirstName()));
     }
 
     @Override
@@ -130,9 +134,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void getNewOtp(String email) {
-        User user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User with email " + email + " not found"));
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new UserNotFoundException("User with email " + email + " not found"));
         Optional<Token> otpToken = user.getTokens().stream()
                 .filter(token -> token.getTokenType().equals(TokenType.OTP)
                         && token.getExpiryDate().isAfter(Instant.now()))

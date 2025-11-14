@@ -48,7 +48,9 @@ public class LabServiceImpl implements LabService {
 
     @Override
     public Page<Lab> getAll(int page, int size, String sort, String direction) {
-        Sort sorting = Sort.by(Sort.Direction.fromString(direction.equalsIgnoreCase("desc") ? "desc" : "asc"), sort);
+        Sort sorting = Sort.by(
+                Sort.Direction.fromString(direction.equalsIgnoreCase("desc") ? "desc" : "asc"),
+                sort);
         Pageable pageable = PageRequest.of(page, size, sorting);
         return labRepository.findAll(pageable);
     }
@@ -56,7 +58,8 @@ public class LabServiceImpl implements LabService {
     @Override
     @Transactional
     public void deleteLab(UUID labId) {
-        Lab lab = labRepository.findById(labId).orElseThrow(() -> new LabException("Invalid Lab Id"));
+        Lab lab = labRepository.findById(labId)
+                .orElseThrow(() -> new LabException("Invalid Lab Id"));
         List<LabTest> labTests = lab.getTests();
         imageService.delete(lab.getPublicId());
         labTests.forEach(labTest -> labTest.setLab(null));
@@ -65,8 +68,10 @@ public class LabServiceImpl implements LabService {
 
     @Override
     @Transactional
-    public void updateLab(String name, List<Address> entity, MultipartFile file, UUID labId) throws IOException {
-        Lab lab = labRepository.findById(labId).orElseThrow(() -> new LabException("Invalid Lab Id"));
+    public void updateLab(String name, List<Address> entity, MultipartFile file, UUID labId)
+            throws IOException {
+        Lab lab = labRepository.findById(labId)
+                .orElseThrow(() -> new LabException("Invalid Lab Id"));
         imageService.delete(lab.getPublicId());
         setLogo(file, lab);
         lab.setName(name);

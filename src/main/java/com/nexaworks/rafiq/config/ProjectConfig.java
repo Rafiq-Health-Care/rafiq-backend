@@ -33,30 +33,32 @@ public class ProjectConfig {
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider(
-            PasswordEncoder passwordEncoder, UserDetailsService userDetailsService) {
-        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider(userDetailsService);
+    public AuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder,
+            UserDetailsService userDetailsService) {
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider(
+                userDetailsService);
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
         return daoAuthenticationProvider;
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationProvider authenticationProvider) {
+    public AuthenticationManager authenticationManager(
+            AuthenticationProvider authenticationProvider) {
         return new ProviderManager(authenticationProvider);
     }
 
     @Bean
     public UserDetailsService userDetailsService(UserRepository userRepository) {
-        return username ->
-                userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return username -> userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
     @Bean
-    public GoogleIdTokenVerifier googleIdTokenVerifier() throws GeneralSecurityException, IOException {
+    public GoogleIdTokenVerifier googleIdTokenVerifier()
+            throws GeneralSecurityException, IOException {
         NetHttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
         GsonFactory jsonFactory = GsonFactory.getDefaultInstance();
         return new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
-                .setAudience(Collections.singletonList(clientId))
-                .build();
+                .setAudience(Collections.singletonList(clientId)).build();
     }
 }

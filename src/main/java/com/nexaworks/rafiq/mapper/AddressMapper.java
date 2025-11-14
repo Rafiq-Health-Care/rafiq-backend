@@ -11,13 +11,10 @@ import com.nexaworks.rafiq.entities.Address;
 public class AddressMapper {
 
     public Address toEntity(AddAddressRequest request) {
-        if (request == null) return null;
-        return Address.builder()
-                .street(request.street())
-                .city(request.city())
-                .state(request.state())
-                .country(request.country())
-                .postalCode(request.postalCode())
+        if (request == null)
+            return null;
+        return Address.builder().street(request.street()).city(request.city())
+                .state(request.state()).country(request.country()).postalCode(request.postalCode())
                 .build();
     }
 

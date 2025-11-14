@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.nexaworks.rafiq.entities.LabResult;
 
-public interface LabResultRepository extends JpaRepository<LabResult, UUID> {}
+public interface LabResultRepository extends JpaRepository<LabResult, UUID> {
+}

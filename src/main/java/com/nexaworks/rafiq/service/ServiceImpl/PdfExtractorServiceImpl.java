@@ -37,7 +37,8 @@ public class PdfExtractorServiceImpl implements PdfExtractorService {
     public String extractPdf(MultipartFile pdfFile)
             throws IOException, DocumentException, ExecutionException, InterruptedException {
         if (pdfFile.isEmpty()) {
-            throw new EmptyFileException("The provided PDF file is empty. Please upload a valid file.");
+            throw new EmptyFileException(
+                    "The provided PDF file is empty. Please upload a valid file.");
         }
         CompletableFuture<UUID> testId = labTestService.saveTestPdf(pdfFile, userService.getUser());
         byte[] pdfBytes = pdfFile.getBytes();

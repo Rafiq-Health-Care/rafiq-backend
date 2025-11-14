@@ -6,5 +6,6 @@ import java.util.UUID;
 
 import com.nexaworks.rafiq.dto.request.TestRequest;
 
-public record TestResultsResponse(
-        String name, UUID testId, String fileUrl, String fileType, Date date, List<TestRequest> tests) {}
+public record TestResultsResponse(String name, UUID testId, String fileUrl, String fileType,
+        Date date, List<TestRequest> tests) {
+}

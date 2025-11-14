@@ -30,20 +30,14 @@ public class AuthSessionManager {
         String refreshToken = tokenService.generateRefreshToken(user);
         addTokenToCookie(response, jwt, "jwt", 60 * 60 * 24);
         addTokenToCookie(response, refreshToken, "refreshToken", 60 * 60 * 24 * 30);
-        return new LoginResponse(user.getRoles().stream()
-                .map(Role::getName)
-                .filter(role -> !role.equals("ROLE_USER"))
-                .findFirst());
+        return new LoginResponse(user.getRoles().stream().map(Role::getName)
+                .filter(role -> !role.equals("ROLE_USER")).findFirst());
     }
 
-    public void addTokenToCookie(HttpServletResponse response, String token, String cookieName, int expiry) {
-        ResponseCookie cookie = ResponseCookie.from(cookieName, token)
-                .httpOnly(true)
-                .secure(false)
-                .sameSite("Lax")
-                .path("/")
-                .maxAge(expiry)
-                .build();
+    public void addTokenToCookie(HttpServletResponse response, String token, String cookieName,
+            int expiry) {
+        ResponseCookie cookie = ResponseCookie.from(cookieName, token).httpOnly(true).secure(false)
+                .sameSite("Lax").path("/").maxAge(expiry).build();
         response.addHeader("Set-Cookie", cookie.toString());
     }
 

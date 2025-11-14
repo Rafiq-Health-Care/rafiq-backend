@@ -58,10 +58,12 @@ class DoctorServiceImplTest {
 
         DoctorProfile savedProfile = new DoctorProfile();
         savedProfile.setId(UUID.randomUUID());
-        when(doctorRepository.save(any(DoctorProfile.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(doctorRepository.save(any(DoctorProfile.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        DoctorProfile result = doctorService.createProfile(doctor, description, specializationId, nationalId, logo);
+        DoctorProfile result = doctorService.createProfile(doctor, description, specializationId,
+                nationalId, logo);
 
         // then
         assertThat(result).isNotNull();

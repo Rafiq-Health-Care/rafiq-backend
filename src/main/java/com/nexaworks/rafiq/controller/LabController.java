@@ -28,9 +28,8 @@ public class LabController {
     private final PageMapper pageMapper;
 
     @PostMapping(value = "/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> addLab(
-            @RequestPart("lab") @Valid AddLabRequest request, @RequestPart("logo") MultipartFile file)
-            throws IOException {
+    public ResponseEntity<Void> addLab(@RequestPart("lab") @Valid AddLabRequest request,
+            @RequestPart("logo") MultipartFile file) throws IOException {
         labService.addLab(request.name(), addressMapper.toEntity(request.addresses()), file);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -41,16 +40,16 @@ public class LabController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "sort", defaultValue = "name") String sort,
             @RequestParam(value = "direction", defaultValue = "asc") String direction) {
-        return ResponseEntity.ok().body(pageMapper.mapToLabPage(labService.getAll(page, size, sort, direction)));
+        return ResponseEntity.ok()
+                .body(pageMapper.mapToLabPage(labService.getAll(page, size, sort, direction)));
     }
 
     @PutMapping("/{lab-id}")
-    public ResponseEntity<Void> updateLab(
-            @RequestPart("lab") @Valid AddLabRequest request,
-            @RequestPart("logo") MultipartFile file,
-            @PathVariable("lab-id") UUID labId)
+    public ResponseEntity<Void> updateLab(@RequestPart("lab") @Valid AddLabRequest request,
+            @RequestPart("logo") MultipartFile file, @PathVariable("lab-id") UUID labId)
             throws IOException {
-        labService.updateLab(request.name(), addressMapper.toEntity(request.addresses()), file, labId);
+        labService.updateLab(request.name(), addressMapper.toEntity(request.addresses()), file,
+                labId);
         return ResponseEntity.ok().build();
     }
 

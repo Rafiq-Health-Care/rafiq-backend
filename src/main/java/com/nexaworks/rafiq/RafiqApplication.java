@@ -36,39 +36,46 @@ public class RafiqApplication implements CommandLineRunner {
         insertRoleIfNotExists("ROLE_DOCTOR");
         insertRoleIfNotExists("ROLE_PATIENT");
         insertRoleIfNotExists("ROLE_ADMIN");
-        insertSpecializationIfNotExists(
-                "CARD", "Cardiology", "Specializes in heart and cardiovascular system disorders.");
-        insertSpecializationIfNotExists("DERM", "Dermatology", "Deals with diseases of the skin, hair, and nails.");
-        insertSpecializationIfNotExists(
-                "NEUR", "Neurology", "Focuses on the brain, spinal cord, and nervous system disorders.");
-        insertSpecializationIfNotExists(
-                "ORTH", "Orthopedics", "Treats conditions of the bones, joints, muscles, ligaments, and tendons.");
-        insertSpecializationIfNotExists(
-                "PED", "Pediatrics", "Provides medical care for infants, children, and adolescents.");
-        insertSpecializationIfNotExists(
-                "PSY", "Psychiatry", "Deals with mental health, emotional, and behavioral disorders.");
-        insertSpecializationIfNotExists(
-                "GYN", "Gynecology", "Focuses on the female reproductive system and related disorders.");
-        insertSpecializationIfNotExists(
-                "ENT", "Otolaryngology (ENT)", "Treats conditions of the ear, nose, and throat.");
-        insertSpecializationIfNotExists(
-                "URO", "Urology", "Specializes in urinary tract and male reproductive system disorders.");
-        insertSpecializationIfNotExists("OPH", "Ophthalmology", "Deals with eye diseases and vision care.");
-        insertSpecializationIfNotExists(
-                "GAS", "Gastroenterology", "Focuses on the digestive system and its disorders.");
-        insertSpecializationIfNotExists("ONC", "Oncology", "Specializes in cancer diagnosis and treatment.");
-        insertSpecializationIfNotExists("NEPH", "Nephrology", "Treats kidney and urinary system disorders.");
-        insertSpecializationIfNotExists("PUL", "Pulmonology", "Specializes in lung and respiratory system disorders.");
-        insertSpecializationIfNotExists(
-                "RHE", "Rheumatology", "Deals with autoimmune and musculoskeletal diseases like arthritis.");
-        insertSpecializationIfNotExists(
-                "END", "Endocrinology", "Focuses on hormone-related disorders such as diabetes and thyroid issues.");
-        insertSpecializationIfNotExists("GEN", "General Medicine", "Provides general medical care for adults.");
-        insertSpecializationIfNotExists("SURG", "Surgery", "Performs surgical procedures for diagnosis and treatment.");
-        insertSpecializationIfNotExists(
-                "EMER", "Emergency Medicine", "Provides urgent treatment for acute illnesses and injuries.");
-        insertSpecializationIfNotExists(
-                "RAD", "Radiology", "Uses imaging techniques (X-ray, MRI, CT) for diagnosis and treatment.");
+        insertSpecializationIfNotExists("CARD", "Cardiology",
+                "Specializes in heart and cardiovascular system disorders.");
+        insertSpecializationIfNotExists("DERM", "Dermatology",
+                "Deals with diseases of the skin, hair, and nails.");
+        insertSpecializationIfNotExists("NEUR", "Neurology",
+                "Focuses on the brain, spinal cord, and nervous system disorders.");
+        insertSpecializationIfNotExists("ORTH", "Orthopedics",
+                "Treats conditions of the bones, joints, muscles, ligaments, and tendons.");
+        insertSpecializationIfNotExists("PED", "Pediatrics",
+                "Provides medical care for infants, children, and adolescents.");
+        insertSpecializationIfNotExists("PSY", "Psychiatry",
+                "Deals with mental health, emotional, and behavioral disorders.");
+        insertSpecializationIfNotExists("GYN", "Gynecology",
+                "Focuses on the female reproductive system and related disorders.");
+        insertSpecializationIfNotExists("ENT", "Otolaryngology (ENT)",
+                "Treats conditions of the ear, nose, and throat.");
+        insertSpecializationIfNotExists("URO", "Urology",
+                "Specializes in urinary tract and male reproductive system disorders.");
+        insertSpecializationIfNotExists("OPH", "Ophthalmology",
+                "Deals with eye diseases and vision care.");
+        insertSpecializationIfNotExists("GAS", "Gastroenterology",
+                "Focuses on the digestive system and its disorders.");
+        insertSpecializationIfNotExists("ONC", "Oncology",
+                "Specializes in cancer diagnosis and treatment.");
+        insertSpecializationIfNotExists("NEPH", "Nephrology",
+                "Treats kidney and urinary system disorders.");
+        insertSpecializationIfNotExists("PUL", "Pulmonology",
+                "Specializes in lung and respiratory system disorders.");
+        insertSpecializationIfNotExists("RHE", "Rheumatology",
+                "Deals with autoimmune and musculoskeletal diseases like arthritis.");
+        insertSpecializationIfNotExists("END", "Endocrinology",
+                "Focuses on hormone-related disorders such as diabetes and thyroid issues.");
+        insertSpecializationIfNotExists("GEN", "General Medicine",
+                "Provides general medical care for adults.");
+        insertSpecializationIfNotExists("SURG", "Surgery",
+                "Performs surgical procedures for diagnosis and treatment.");
+        insertSpecializationIfNotExists("EMER", "Emergency Medicine",
+                "Provides urgent treatment for acute illnesses and injuries.");
+        insertSpecializationIfNotExists("RAD", "Radiology",
+                "Uses imaging techniques (X-ray, MRI, CT) for diagnosis and treatment.");
     }
 
     private void insertRoleIfNotExists(String name) {

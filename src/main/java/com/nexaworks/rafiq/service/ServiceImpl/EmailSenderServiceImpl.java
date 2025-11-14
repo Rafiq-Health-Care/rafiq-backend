@@ -30,11 +30,10 @@ public class EmailSenderServiceImpl implements EmailSenderService {
     // todo add retry logic
     @Async
     @Override
-    @Retryable(
-            retryFor = {MailSenderException.class, MessagingException.class},
-            maxAttempts = 4,
-            backoff = @Backoff(delay = 10000))
-    public void sendEmail(Map<String, Object> model, String email, String subject, String forgetPasswordTemplate) {
+    @Retryable(retryFor = {MailSenderException.class,
+            MessagingException.class}, maxAttempts = 4, backoff = @Backoff(delay = 10000))
+    public void sendEmail(Map<String, Object> model, String email, String subject,
+            String forgetPasswordTemplate) {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
         try {

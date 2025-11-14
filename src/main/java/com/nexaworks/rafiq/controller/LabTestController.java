@@ -33,23 +33,18 @@ public class LabTestController {
     private final PageMapper pageMapper;
     private final TestMapper testMapper;
 
-    @PostMapping(
-            value = "/upload",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> upload(@RequestParam("file") MultipartFile file)
             throws IOException, DocumentException, ExecutionException, InterruptedException {
         return ResponseEntity.ok().body(pdfExtractorService.extractPdf(file));
     }
 
     @PostMapping(value = "/test-results")
-    public ResponseEntity<Void> testResults(@RequestBody @Valid TestResultRequest testResultRequest) {
+    public ResponseEntity<Void> testResults(
+            @RequestBody @Valid TestResultRequest testResultRequest) {
 
-        labTestService.addTest(
-                testResultRequest.testId(),
-                testResultRequest.name(),
-                testResultRequest.date(),
-                resultMapper.toEntity(testResultRequest.tests()));
+        labTestService.addTest(testResultRequest.testId(), testResultRequest.name(),
+                testResultRequest.date(), resultMapper.toEntity(testResultRequest.tests()));
         return ResponseEntity.ok().build();
     }
 
@@ -59,13 +54,14 @@ public class LabTestController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "sort", defaultValue = "name") String sort,
             @RequestParam(value = "direction", defaultValue = "asc") String direction) {
-        return ResponseEntity.ok()
-                .body(pageMapper.mapToTestResponse(labTestService.getAll(page, size, sort, direction)));
+        return ResponseEntity.ok().body(
+                pageMapper.mapToTestResponse(labTestService.getAll(page, size, sort, direction)));
     }
 
     @GetMapping("/{test-id}")
     public ResponseEntity<TestResultsResponse> getTest(@PathVariable("test-id") UUID testId) {
-        return ResponseEntity.ok().body(testMapper.mapToTestResponse(labTestService.getTest(testId)));
+        return ResponseEntity.ok()
+                .body(testMapper.mapToTestResponse(labTestService.getTest(testId)));
     }
 
     @DeleteMapping("/{test-id}")
@@ -80,9 +76,10 @@ public class LabTestController {
     }
 
     @PutMapping("/update/{test-id}")
-    public ResponseEntity<Void> updateTest(
-            @RequestBody @Valid TestResultRequest testResultRequest, @PathVariable("test-id") UUID testId) {
-        labTestService.update(testId, testResultRequest, resultMapper.toEntity(testResultRequest.tests()));
+    public ResponseEntity<Void> updateTest(@RequestBody @Valid TestResultRequest testResultRequest,
+            @PathVariable("test-id") UUID testId) {
+        labTestService.update(testId, testResultRequest,
+                resultMapper.toEntity(testResultRequest.tests()));
         return ResponseEntity.ok().build();
     }
 }

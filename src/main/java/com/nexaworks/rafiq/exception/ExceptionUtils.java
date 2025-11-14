@@ -18,13 +18,10 @@ import lombok.extern.slf4j.Slf4j;
 public class ExceptionUtils {
 
     @NotNull
-    public ErrorResponse getErrorResponse(Exception ex, HttpServletRequest request, HttpStatus status) {
+    public ErrorResponse getErrorResponse(Exception ex, HttpServletRequest request,
+            HttpStatus status) {
 
-        return new ErrorResponse(
-                status.value(),
-                status.getReasonPhrase(),
-                ex.getMessage(),
-                LocalDateTime.now(),
-                request.getRequestURI());
+        return new ErrorResponse(status.value(), status.getReasonPhrase(), ex.getMessage(),
+                LocalDateTime.now(), request.getRequestURI());
     }
 }

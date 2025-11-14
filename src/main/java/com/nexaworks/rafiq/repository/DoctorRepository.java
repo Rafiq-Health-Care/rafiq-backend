@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.nexaworks.rafiq.entities.DoctorProfile;
 
-public interface DoctorRepository extends JpaRepository<DoctorProfile, UUID> {}
+public interface DoctorRepository extends JpaRepository<DoctorProfile, UUID> {
+}

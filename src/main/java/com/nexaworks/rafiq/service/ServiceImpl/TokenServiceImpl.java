@@ -64,7 +64,8 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public Token getToken(String otp) {
-        return tokenRepository.findByToken(otp).orElseThrow(() -> new TokenNotFoundException("Invalid Token"));
+        return tokenRepository.findByToken(otp)
+                .orElseThrow(() -> new TokenNotFoundException("Invalid Token"));
     }
 
     @Override
@@ -74,7 +75,8 @@ public class TokenServiceImpl implements TokenService {
             throw new UserNotFoundException("User not found");
         }
         String accessToken = UUID.randomUUID().toString();
-        Token token = buildToken(user.get(), accessToken, TokenType.ACCESS_TOKEN, ACCESS_TOKEN_EXPIRATION);
+        Token token = buildToken(user.get(), accessToken, TokenType.ACCESS_TOKEN,
+                ACCESS_TOKEN_EXPIRATION);
         tokenRepository.save(token);
         log.info("Saved access token {}", accessToken);
         return accessToken;
@@ -82,8 +84,10 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public User verifyOtp(String email, String otp) {
-        Token token = tokenRepository.findByToken(otp).orElseThrow(() -> new TokenNotFoundException("Invalid Token"));
-        if (!token.getUser().getEmail().equals(email) || token.getExpiryDate().isBefore(Instant.now())) {
+        Token token = tokenRepository.findByToken(otp)
+                .orElseThrow(() -> new TokenNotFoundException("Invalid Token"));
+        if (!token.getUser().getEmail().equals(email)
+                || token.getExpiryDate().isBefore(Instant.now())) {
             throw new TokenInvalidException("Invalid OTP");
         }
         return token.getUser();
@@ -96,11 +100,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
     private Token buildToken(User user, String token, TokenType tokenType, Long EXPIRATION) {
-        return Token.builder()
-                .token(token)
-                .user(user)
-                .tokenType(tokenType)
-                .expiryDate(Instant.now().plusSeconds(EXPIRATION))
-                .build();
+        return Token.builder().token(token).user(user).tokenType(tokenType)
+                .expiryDate(Instant.now().plusSeconds(EXPIRATION)).build();
     }
 }

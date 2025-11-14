@@ -191,8 +191,7 @@ class AuthServiceImplTest {
 
             // Act & Assert
             assertThatThrownBy(() -> authService.verifyOtp(request))
-                    .isInstanceOf(TokenInvalidException.class)
-                    .hasMessage("Invalid OTP");
+                    .isInstanceOf(TokenInvalidException.class).hasMessage("Invalid OTP");
         }
 
         @Test
@@ -205,8 +204,7 @@ class AuthServiceImplTest {
 
             // Act & Assert
             assertThatThrownBy(() -> authService.verifyOtp(request))
-                    .isInstanceOf(TokenInvalidException.class)
-                    .hasMessage("Invalid OTP");
+                    .isInstanceOf(TokenInvalidException.class).hasMessage("Invalid OTP");
         }
     }
 
@@ -218,7 +216,8 @@ class AuthServiceImplTest {
         @DisplayName("Should change password successfully with valid access token")
         void shouldChangePasswordSuccessfullyWithValidAccessToken() {
             // Arrange
-            ChangePasswordRequest request = new ChangePasswordRequest("access-token", "newPassword123");
+            ChangePasswordRequest request = new ChangePasswordRequest("access-token",
+                    "newPassword123");
             when(tokenService.getToken(request.accessToken())).thenReturn(testToken);
 
             // Act
@@ -233,14 +232,14 @@ class AuthServiceImplTest {
         @DisplayName("Should throw exception when access token is expired")
         void shouldThrowExceptionWhenAccessTokenIsExpired() {
             // Arrange
-            ChangePasswordRequest request = new ChangePasswordRequest("expired-token", "newPassword123");
+            ChangePasswordRequest request = new ChangePasswordRequest("expired-token",
+                    "newPassword123");
             testToken.setExpiryDate(Instant.now().minus(1, ChronoUnit.HOURS));
             when(tokenService.getToken(request.accessToken())).thenReturn(testToken);
 
             // Act & Assert
             assertThatThrownBy(() -> authService.changePassword(request))
-                    .isInstanceOf(TokenInvalidException.class)
-                    .hasMessage("Invalid Access Token");
+                    .isInstanceOf(TokenInvalidException.class).hasMessage("Invalid Access Token");
 
             verify(userService, never()).changePassword(any(), anyString());
         }
@@ -283,14 +282,16 @@ class AuthServiceImplTest {
             when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                     .thenReturn(authentication);
             when(authentication.getPrincipal()).thenReturn(testUser);
-            when(authSessionManager.createLoginSession(response, testUser)).thenReturn(expectedResponse);
+            when(authSessionManager.createLoginSession(response, testUser))
+                    .thenReturn(expectedResponse);
 
             // Act
             LoginResponse result = authService.login(email, password, response);
 
             // Assert
             assertThat(result).isEqualTo(expectedResponse);
-            verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+            verify(authenticationManager)
+                    .authenticate(any(UsernamePasswordAuthenticationToken.class));
             verify(authSessionManager).createLoginSession(response, testUser);
         }
     }
@@ -308,7 +309,8 @@ class AuthServiceImplTest {
 
             when(authSessionManager.getCookie(request, "refreshToken")).thenReturn(refreshToken);
             when(tokenService.getToken(refreshToken)).thenReturn(testToken);
-            when(authSessionManager.createLoginSession(response, testUser)).thenReturn(expectedResponse);
+            when(authSessionManager.createLoginSession(response, testUser))
+                    .thenReturn(expectedResponse);
 
             // Act
             LoginResponse result = authService.refresh(response, request);
@@ -331,8 +333,7 @@ class AuthServiceImplTest {
 
             // Act & Assert
             assertThatThrownBy(() -> authService.refresh(response, request))
-                    .isInstanceOf(TokenInvalidException.class)
-                    .hasMessage("Invalid Refresh Token");
+                    .isInstanceOf(TokenInvalidException.class).hasMessage("Invalid Refresh Token");
         }
     }
 
@@ -359,7 +360,8 @@ class AuthServiceImplTest {
             when(payload.get("given_name")).thenReturn("John");
             when(payload.get("family_name")).thenReturn("Doe");
             when(userService.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-            when(authSessionManager.createLoginSession(response, testUser)).thenReturn(expectedResponse);
+            when(authSessionManager.createLoginSession(response, testUser))
+                    .thenReturn(expectedResponse);
 
             // Act
             LoginResponse result = authService.oAuth2(idToken, response);
@@ -384,7 +386,8 @@ class AuthServiceImplTest {
             when(payload.get("family_name")).thenReturn("Smith");
             when(userService.findByEmail("newuser@example.com")).thenReturn(Optional.empty());
             when(userService.addUser("newuser@example.com", "Jane", "Smith")).thenReturn(testUser);
-            when(authSessionManager.createLoginSession(response, testUser)).thenReturn(expectedResponse);
+            when(authSessionManager.createLoginSession(response, testUser))
+                    .thenReturn(expectedResponse);
 
             // Act
             LoginResponse result = authService.oAuth2(idToken, response);
@@ -409,7 +412,8 @@ class AuthServiceImplTest {
             when(payload.get("given_name")).thenReturn("John");
             when(payload.get("family_name")).thenReturn("Doe");
             when(userService.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-            when(authSessionManager.createLoginSession(response, testUser)).thenReturn(expectedResponse);
+            when(authSessionManager.createLoginSession(response, testUser))
+                    .thenReturn(expectedResponse);
 
             // Act
             LoginResponse result = authService.oAuth2(idToken, response);
@@ -429,8 +433,7 @@ class AuthServiceImplTest {
 
             // Act & Assert
             assertThatThrownBy(() -> authService.oAuth2(idToken, response))
-                    .isInstanceOf(GoogleAuthException.class)
-                    .hasMessage("Invalid id token");
+                    .isInstanceOf(GoogleAuthException.class).hasMessage("Invalid id token");
         }
 
         @Test
@@ -438,7 +441,8 @@ class AuthServiceImplTest {
         void shouldThrowExceptionWhenGoogleTokenVerificationFails() throws Exception {
             // Arrange
             String idToken = "invalid-token";
-            when(verifier.verify(idToken)).thenThrow(new GeneralSecurityException("Verification failed"));
+            when(verifier.verify(idToken))
+                    .thenThrow(new GeneralSecurityException("Verification failed"));
 
             // Act & Assert
             assertThatThrownBy(() -> authService.oAuth2(idToken, response))

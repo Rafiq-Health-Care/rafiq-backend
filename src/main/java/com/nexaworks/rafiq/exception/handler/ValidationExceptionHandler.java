@@ -22,7 +22,8 @@ import jakarta.validation.ValidationException;
 public class ValidationExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ValidationErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ValidationErrorResponse> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());
@@ -40,7 +41,8 @@ public class ValidationExceptionHandler {
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ValidationErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
+    public ResponseEntity<ValidationErrorResponse> handleConstraintViolation(
+            ConstraintViolationException ex) {
         Map<String, String> errors = new HashMap<>();
         for (ConstraintViolation<?> violation : ex.getConstraintViolations()) {
             String path = violation.getPropertyPath() != null
@@ -52,23 +54,18 @@ public class ValidationExceptionHandler {
     }
 
     @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<ValidationErrorResponse> handleValidationException(ValidationException ex) {
+    public ResponseEntity<ValidationErrorResponse> handleValidationException(
+            ValidationException ex) {
         // Generic validation exception without field-level details
-        return buildResponse(
-                ex.getMessage() != null ? ex.getMessage() : "Validation failed",
-                new HashMap<>(),
-                HttpStatus.BAD_REQUEST);
+        return buildResponse(ex.getMessage() != null ? ex.getMessage() : "Validation failed",
+                new HashMap<>(), HttpStatus.BAD_REQUEST);
     }
 
-    private ResponseEntity<ValidationErrorResponse> buildResponse(
-            String message, Map<String, String> errors, HttpStatus status) {
-        ValidationErrorResponse body = ValidationErrorResponse.builder()
-                .status(status.value())
-                .error(status.getReasonPhrase())
-                .message(message)
-                .timestamp(LocalDateTime.now())
-                .validationErrors(errors)
-                .build();
+    private ResponseEntity<ValidationErrorResponse> buildResponse(String message,
+            Map<String, String> errors, HttpStatus status) {
+        ValidationErrorResponse body = ValidationErrorResponse.builder().status(status.value())
+                .error(status.getReasonPhrase()).message(message).timestamp(LocalDateTime.now())
+                .validationErrors(errors).build();
         return new ResponseEntity<>(body, status);
     }
 }

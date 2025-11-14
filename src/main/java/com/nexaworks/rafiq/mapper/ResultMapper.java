@@ -15,13 +15,7 @@ public class ResultMapper {
         if (results == null || results.isEmpty()) {
             return Collections.emptyList();
         }
-        return results.stream()
-                .map(r -> LabResult.builder()
-                        .name(r.testName())
-                        .result(r.result())
-                        .unit(r.unit())
-                        .status(r.status())
-                        .build())
-                .collect(Collectors.toList());
+        return results.stream().map(r -> LabResult.builder().name(r.testName()).result(r.result())
+                .unit(r.unit()).status(r.status()).build()).collect(Collectors.toList());
     }
 }

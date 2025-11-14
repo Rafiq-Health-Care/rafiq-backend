@@ -19,15 +19,16 @@ public class TokenExceptionHandler {
     private final ExceptionUtils exceptionUtils;
 
     @ExceptionHandler(TokenInvalidException.class)
-    public ResponseEntity<ErrorResponse> handleTokenInvalid(TokenInvalidException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleTokenInvalid(TokenInvalidException ex,
+            HttpServletRequest request) {
         HttpStatus status = HttpStatus.UNAUTHORIZED;
         ErrorResponse error = exceptionUtils.getErrorResponse(ex, request, status);
         return new ResponseEntity<>(error, status);
     }
 
     @ExceptionHandler(TokenNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleTokenNotfoundException(
-            TokenNotFoundException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleTokenNotfoundException(TokenNotFoundException ex,
+            HttpServletRequest request) {
         HttpStatus status = HttpStatus.NOT_FOUND;
         ErrorResponse error = exceptionUtils.getErrorResponse(ex, request, status);
         return new ResponseEntity<>(error, status);

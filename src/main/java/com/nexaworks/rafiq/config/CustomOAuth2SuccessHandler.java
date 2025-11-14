@@ -33,9 +33,8 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
     private final AuthSessionManager authSessionManager;
 
     @Override
-    public void onAuthenticationSuccess(
-            HttpServletRequest request, HttpServletResponse response, Authentication authentication)
-            throws IOException, ServletException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+            Authentication authentication) throws IOException, ServletException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         log.info("OAuth2 user: {}", oAuth2User);
         String fullName = oAuth2User.getAttribute("name");
@@ -56,7 +55,8 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
                 throw new IllegalStateException("User is disabled");
             }
             log.info("User already exists");
-            LoginResponse loginResponse = authSessionManager.createLoginSession(response, user.get());
+            LoginResponse loginResponse = authSessionManager.createLoginSession(response,
+                    user.get());
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json");
             new ObjectMapper().writeValue(response.getOutputStream(), loginResponse);

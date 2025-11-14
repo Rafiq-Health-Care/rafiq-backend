@@ -45,12 +45,14 @@ public class OpenAPIDocumentGenerator implements CommandLineRunner {
             Object jsonObject = jsonMapper.readValue(json, Object.class);
 
             ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
-            String yaml = yamlMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject);
+            String yaml = yamlMapper.writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(jsonObject);
 
             // Write YAML
             Files.write(Paths.get(outputDir, "openapi.yaml"), yaml.getBytes());
 
-            System.out.println("OpenAPI documentation generated successfully in the 'openapi' directory");
+            System.out.println(
+                    "OpenAPI documentation generated successfully in the 'openapi' directory");
         } catch (Exception e) {
             System.err.println("Error generating OpenAPI documentation: " + e.getMessage());
             e.printStackTrace();

@@ -22,17 +22,14 @@ public class RateLimitingFilter implements Filter {
 
     private Bucket getBucket(String clientIp) {
 
-        Bandwidth limit = Bandwidth.builder()
-                .capacity(20)
-                .refillGreedy(1, Duration.ofSeconds(3))
+        Bandwidth limit = Bandwidth.builder().capacity(20).refillGreedy(1, Duration.ofSeconds(3))
                 .build();
-        return bucketMap.computeIfAbsent(
-                clientIp, k -> Bucket.builder().addLimit(limit).build());
+        return bucketMap.computeIfAbsent(clientIp, k -> Bucket.builder().addLimit(limit).build());
     }
 
     @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
-            throws IOException, ServletException {
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse,
+            FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         String clientIp = request.getRemoteAddr();
         Bucket bucket = getBucket(clientIp);

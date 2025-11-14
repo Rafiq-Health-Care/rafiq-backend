@@ -6,4 +6,6 @@ import java.util.UUID;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record TestResultRequest(@NotBlank String name, Date date, List<TestRequest> tests, UUID testId) {}
+public record TestResultRequest(@NotBlank String name, Date date, List<TestRequest> tests,
+        UUID testId) {
+}

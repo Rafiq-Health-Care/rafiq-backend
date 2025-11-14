@@ -58,15 +58,15 @@ public class AuthServiceImpl implements AuthService {
         }
         String otp = tokenService.generateOtpToken(user.get());
         log.info("Generated OTP {}", otp);
-        eventPublisher.publishEvent(
-                new ForgetPasswordEvent(email, otp, user.get().getFirstName()));
+        eventPublisher.publishEvent(new ForgetPasswordEvent(email, otp, user.get().getFirstName()));
     }
 
     @Override
     @Transactional
     public VerifyOtpResponse verifyOtp(VerifyOtpRequest verifyOtpRequest) {
         validateToken(verifyOtpRequest);
-        String accessToken = tokenService.generateAccessToken(userService.findByEmail(verifyOtpRequest.email()));
+        String accessToken = tokenService
+                .generateAccessToken(userService.findByEmail(verifyOtpRequest.email()));
         return new VerifyOtpResponse(accessToken);
     }
 
@@ -104,8 +104,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public LoginResponse login(String email, String password, HttpServletResponse response) {
-        Authentication authentication =
-                authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+        Authentication authentication = authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(email, password));
         User user = (User) authentication.getPrincipal();
         return authSessionManager.createLoginSession(response, user);
     }

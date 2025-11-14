@@ -22,15 +22,13 @@ public class SpecializationServiceImpl implements SpecializationService {
 
     @Override
     public Specialization getSpecialization(UUID specialization) {
-        return specializationRepository
-                .findById(specialization)
+        return specializationRepository.findById(specialization)
                 .orElseThrow(() -> new SpecializationNotFoundException(specialization));
     }
 
     @Override
     public Specialization getSpecializationByCode(String code) {
-        return specializationRepository
-                .findByCode(code)
+        return specializationRepository.findByCode(code)
                 .orElseThrow(() -> new SpecializationNotFoundException("code", code));
     }
 
@@ -38,8 +36,7 @@ public class SpecializationServiceImpl implements SpecializationService {
     public List<SpecializationResponse> getSpecializations() {
         List<Specialization> specializations = specializationRepository.findAll();
         return specializations.stream()
-                .map(sp -> new SpecializationResponse(sp.getId(), sp.getName()))
-                .toList();
+                .map(sp -> new SpecializationResponse(sp.getId(), sp.getName())).toList();
     }
 
     @Override

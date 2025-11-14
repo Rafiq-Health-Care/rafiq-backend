@@ -19,13 +19,15 @@ public class FileExceptionHandler {
     private final ExceptionUtils exceptionUtils;
 
     @ExceptionHandler(EmptyFileException.class)
-    public ResponseEntity<ErrorResponse> handleEmptyFile(EmptyFileException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleEmptyFile(EmptyFileException ex,
+            HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.BAD_REQUEST));
     }
 
     @ExceptionHandler(FileUploadException.class)
-    public ResponseEntity<ErrorResponse> handleFileUpload(FileUploadException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleFileUpload(FileUploadException ex,
+            HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.BAD_REQUEST));
     }

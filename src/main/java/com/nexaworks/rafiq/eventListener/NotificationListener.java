@@ -26,15 +26,18 @@ public class NotificationListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserRegistrationEvent(UserRegistrationEvent event) {
-        Map<String, Object> model = emailContentService.createOtpEmail(event.otp(), event.name(), "url");
+        Map<String, Object> model = emailContentService.createOtpEmail(event.otp(), event.name(),
+                "url");
         log.info("Sending email to {}", event.email());
-        emailSenderService.sendEmail(model, event.email(), "Verify your email address", "OTP_TEMPLATE.html");
+        emailSenderService.sendEmail(model, event.email(), "Verify your email address",
+                "OTP_TEMPLATE.html");
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleNewOtpEvent(NewOtpEvent event) {
-        Map<String, Object> model = emailContentService.createOtpEmail(event.otp(), event.name(), "url");
+        Map<String, Object> model = emailContentService.createOtpEmail(event.otp(), event.name(),
+                "url");
         log.info("Sending email to {}", event.email());
         emailSenderService.sendEmail(model, event.email(), "New OTP", "new-otp.html");
     }
@@ -42,8 +45,10 @@ public class NotificationListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleForgetPasswordEvent(ForgetPasswordEvent event) {
-        Map<String, Object> model = emailContentService.createOtpEmail(event.otp(), event.name(), "url");
+        Map<String, Object> model = emailContentService.createOtpEmail(event.otp(), event.name(),
+                "url");
         log.info("Sending email to {}", event.email());
-        emailSenderService.sendEmail(model, event.email(), "Reset your password", "forget-password.html");
+        emailSenderService.sendEmail(model, event.email(), "Reset your password",
+                "forget-password.html");
     }
 }

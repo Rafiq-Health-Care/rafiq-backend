@@ -97,7 +97,8 @@ public class UserServiceImplTest {
         ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest("123", "123");
         when(passwordEncoder.matches(any(), any())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("123");
-        assertThrows(InvalidPasswordException.class, () -> userService.updatePassword(user, resetPasswordRequest));
+        assertThrows(InvalidPasswordException.class,
+                () -> userService.updatePassword(user, resetPasswordRequest));
         verify(userRepository, never()).save(user);
     }
 
@@ -128,13 +129,8 @@ public class UserServiceImplTest {
 
     private static User getUser() {
 
-        return User.builder()
-                .id(UUID.randomUUID())
-                .email("john.doe@example.com")
-                .firstName("John")
-                .lastName("Doe")
-                .password("encodedPassword123")
-                .tokens(new java.util.ArrayList<>())
+        return User.builder().id(UUID.randomUUID()).email("john.doe@example.com").firstName("John")
+                .lastName("Doe").password("encodedPassword123").tokens(new java.util.ArrayList<>())
                 .build();
     }
 
@@ -143,8 +139,7 @@ public class UserServiceImplTest {
     void registerPatient_ShouldThrowException_WhenUserWithEmailAlreadyExists() {
         User user = getUser();
         when(userRepository.findByEmail(anyString())).thenReturn(java.util.Optional.of(user));
-        assertThrows(
-                com.nexaworks.rafiq.exception.custom.RegistrationException.class,
+        assertThrows(com.nexaworks.rafiq.exception.custom.RegistrationException.class,
                 () -> userService.registerPatient(user));
         verify(userRepository, never()).save(any(User.class));
         verify(eventPublisher, never()).publishEvent(any(UserRegistrationEvent.class));
@@ -152,32 +147,35 @@ public class UserServiceImplTest {
 
     @DisplayName("Register doctor should add user and publish event to send the activation email")
     @Test
-    void registerDoctor_ShouldAddUserAndPublishEventToSendActivationEmail_WhenDoctorIsRegistered() throws IOException {
+    void registerDoctor_ShouldAddUserAndPublishEventToSendActivationEmail_WhenDoctorIsRegistered()
+            throws IOException {
         User user = getUser();
         Role doctorRole = new Role();
         doctorRole.setName("DOCTOR");
         DoctorProfile expectedProfile = new DoctorProfile();
         String expectedToken = "123456";
 
-        when(imageService.uploadResource(any(), any())).thenReturn(new UploadResults("url", "publicId"));
+        when(imageService.uploadResource(any(), any()))
+                .thenReturn(new UploadResults("url", "publicId"));
         when(roleService.getRole(any())).thenReturn(doctorRole);
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(tokenService.generateOtpToken(any(User.class))).thenReturn(expectedToken);
         when(doctorService.createProfile(any(), anyString(), any(), anyString(), anyString()))
                 .thenReturn(expectedProfile);
 
-        userService.registerDoctor(
-                user,
-                new MockMultipartFile("nationalId", "nationalId.png", "image/png", "dummy image content".getBytes()),
-                UUID.randomUUID(),
-                "Experienced doctor");
+        userService
+                .registerDoctor(user,
+                        new MockMultipartFile("nationalId", "nationalId.png", "image/png",
+                                "dummy image content".getBytes()),
+                        UUID.randomUUID(), "Experienced doctor");
 
         verify(roleService, times(1)).getRole(Roles.ROLE_USER);
         verify(roleService, times(1)).getRole(Roles.ROLE_DOCTOR);
         verify(userRepository, times(1)).save(any(User.class));
         verify(tokenService, times(1)).generateOtpToken(any(User.class));
         verify(eventPublisher, times(1)).publishEvent(any(UserRegistrationEvent.class));
-        verify(doctorService, times(1)).createProfile(any(User.class), anyString(), any(), anyString(), anyString());
+        verify(doctorService, times(1)).createProfile(any(User.class), anyString(), any(),
+                anyString(), anyString());
         verify(imageService, times(1)).uploadResource(any(), any());
     }
 
@@ -186,7 +184,8 @@ public class UserServiceImplTest {
     void registerDoctor_ShouldThrowException_WhenUserWithEmailAlreadyExists() {
         User user = getUser();
         when(userRepository.findByEmail(anyString())).thenReturn(java.util.Optional.of(user));
-        assertThrows(RegistrationException.class, () -> userService.registerDoctor(user, null, null, null));
+        assertThrows(RegistrationException.class,
+                () -> userService.registerDoctor(user, null, null, null));
         verify(userRepository, never()).save(any(User.class));
         verify(eventPublisher, never()).publishEvent(any(UserRegistrationEvent.class));
     }
@@ -201,8 +200,8 @@ public class UserServiceImplTest {
         when(authSessionManager.createLoginSession(any(HttpServletResponse.class), eq(user)))
                 .thenReturn(new LoginResponse(Optional.of("ROLE_USER")));
 
-        LoginResponse response =
-                userService.verifyUserEmail("john.doe@example.com", "123456", new MockHttpServletResponse());
+        LoginResponse response = userService.verifyUserEmail("john.doe@example.com", "123456",
+                new MockHttpServletResponse());
 
         assertEquals(Optional.of("ROLE_USER"), response.role());
         verify(tokenService, times(1)).verifyOtp(anyString(), anyString());

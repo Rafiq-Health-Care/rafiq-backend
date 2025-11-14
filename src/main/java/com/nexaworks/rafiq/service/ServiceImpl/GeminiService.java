@@ -39,13 +39,8 @@ public class GeminiService implements AiService {
         String result = gemini.getResult(requestBody);
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(result);
-        String jsonResponse = jsonNode.get("candidates")
-                .get(0)
-                .get("content")
-                .get("parts")
-                .get(0)
-                .get("text")
-                .asText();
+        String jsonResponse = jsonNode.get("candidates").get(0).get("content").get("parts").get(0)
+                .get("text").asText();
         jsonResponse = jsonResponse.replace("```json", "").replace("```", "").trim();
         return jsonResponse;
     }

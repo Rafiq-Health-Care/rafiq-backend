@@ -24,7 +24,8 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     @Transactional
-    public DoctorProfile createProfile(User doctor, String description, UUID specialization, String id, String logo) {
+    public DoctorProfile createProfile(User doctor, String description, UUID specialization,
+            String id, String logo) {
         DoctorProfile doctorProfile = new DoctorProfile();
         doctorProfile.setUser(doctor);
         doctorProfile.setDescription(description);

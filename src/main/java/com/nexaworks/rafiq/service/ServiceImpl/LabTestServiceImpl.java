@@ -70,7 +70,9 @@ public class LabTestServiceImpl implements LabTestService {
 
     @Override
     public Page<LabTest> getAll(int page, int size, String sort, String direction) {
-        Sort sorting = Sort.by(Sort.Direction.fromString(direction.equalsIgnoreCase("desc") ? "desc" : "asc"), sort);
+        Sort sorting = Sort.by(
+                Sort.Direction.fromString(direction.equalsIgnoreCase("desc") ? "desc" : "asc"),
+                sort);
 
         Pageable pageable = PageRequest.of(page, size, sorting);
         PatientProfile patient = getPatientProfile();
@@ -92,8 +94,7 @@ public class LabTestServiceImpl implements LabTestService {
     @Transactional
     public Integer deleteAll() {
         PatientProfile patient = getPatientProfile();
-        patient = patientRepository
-                .findById(patient.getId())
+        patient = patientRepository.findById(patient.getId())
                 .orElseThrow(() -> new UserNotFoundException("Invalid Patient Id"));
         List<LabTest> tests = patient.getLabTests();
         int size = tests.size();
@@ -119,7 +120,8 @@ public class LabTestServiceImpl implements LabTestService {
 
     @NotNull
     private LabTest validateOwnership(UUID testId) {
-        LabTest test = labTestRepository.findById(testId).orElseThrow(() -> new LabTestException("Invalid Test Id"));
+        LabTest test = labTestRepository.findById(testId)
+                .orElseThrow(() -> new LabTestException("Invalid Test Id"));
         PatientProfile patient = getPatientProfile();
         if (!test.getPatient().getId().equals(patient.getId())) {
             throw new LabTestException("Invalid Test Id");

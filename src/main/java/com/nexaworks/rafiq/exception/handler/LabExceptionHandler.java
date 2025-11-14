@@ -18,7 +18,8 @@ public class LabExceptionHandler {
     private final ExceptionUtils exceptionUtils;
 
     @ExceptionHandler(LabException.class)
-    public ResponseEntity<ErrorResponse> handleLabException(LabException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleLabException(LabException ex,
+            HttpServletRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         ErrorResponse error = exceptionUtils.getErrorResponse(ex, request, status);
         return new ResponseEntity<>(error, status);
