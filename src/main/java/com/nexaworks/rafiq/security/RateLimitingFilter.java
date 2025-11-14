@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.junit.jupiter.api.Order;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 @Order(1)
+@Profile("prod")
 public class RateLimitingFilter implements Filter {
     private final ConcurrentMap<String, Bucket> bucketMap = new ConcurrentHashMap<>();
 

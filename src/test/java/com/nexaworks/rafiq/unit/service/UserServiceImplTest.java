@@ -243,14 +243,11 @@ public class UserServiceImplTest {
 
         verify(eventPublisher, times(1)).publishEvent(any(NewOtpEvent.class));
     }
-
-    @DisplayName("Get new otp should throw user not found exception if the user is not found")
+    @DisplayName("Get new otp should not throw event if the user is not existed")
     @Test
-    void getNewOtp_ShouldThrowUserNotFoundException_WhenUserIsNotFound() {
+    void getNewOtp_ShouldNotThrowNewOtpEvent_WhenUserIsNotExisted() {
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
-        assertThrows(
-                com.nexaworks.rafiq.exception.custom.UserNotFoundException.class,
-                () -> userService.getNewOtp("test@email.com"));
+        userService.getNewOtp("test@gmail.com");
         verify(eventPublisher, never()).publishEvent(any(NewOtpEvent.class));
     }
 }
