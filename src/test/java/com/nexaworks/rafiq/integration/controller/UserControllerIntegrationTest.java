@@ -127,6 +127,61 @@ public class UserControllerIntegrationTest {
                 assertTrue(userRepository.findByEmail(email).isEmpty(),
                         "User should not be created for invalid password");
             }
+
+            @Test
+            @DisplayName("Should return 400 Bad Request when phone number format is invalid")
+            void shouldReturnBadRequestForInvalidPhone() throws Exception {
+                String email = "test.phone@example.com";
+                UserRegistrationRequest invalidRequest = new UserRegistrationRequest(email,
+                        "Valid@1234", "John", "Doe", "01234567890", // Invalid phone - starts with 0
+                        30, "male");
+
+                String payload = objectMapper.writeValueAsString(invalidRequest);
+
+                // Act & Assert HTTP response 400
+                mockMvc.perform(MockMvcRequestBuilders.post(REGISTER_PATIENT_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                        .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+                // Ensure no user persisted with the invalid phone
+                assertTrue(userRepository.findByEmail(email).isEmpty(),
+                        "User should not be created for invalid phone");
+            }
+
+            @Test
+            @DisplayName("Should return 409 Conflict when user with same email already exists")
+            void shouldReturnConflictWhenEmailAlreadyExists() throws Exception {
+                // Arrange - First register a patient
+                String email = "duplicate@example.com";
+                UserRegistrationRequest firstRequest = new UserRegistrationRequest(email,
+                        "Valid@1234", "John", "Doe", "+12345678901", 30, "male");
+
+                String firstPayload = objectMapper.writeValueAsString(firstRequest);
+
+                // Register first patient
+                mockMvc.perform(MockMvcRequestBuilders.post(REGISTER_PATIENT_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(firstPayload))
+                        .andExpect(MockMvcResultMatchers.status().isCreated());
+
+                // Verify first user was created
+                assertTrue(userRepository.findByEmail(email).isPresent(),
+                        "First user should be created");
+
+                // Arrange - Try to register again with same email
+                UserRegistrationRequest duplicateRequest = new UserRegistrationRequest(email,
+                        "AnotherValid@1234", "Jane", "Smith", "+19876543210", 25, "female");
+
+                String duplicatePayload = objectMapper.writeValueAsString(duplicateRequest);
+
+                // Act & Assert - Second registration should fail with 409
+                mockMvc.perform(MockMvcRequestBuilders.post(REGISTER_PATIENT_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(duplicatePayload))
+                        .andExpect(MockMvcResultMatchers.status().isConflict());
+
+                // Ensure only one user exists
+                assertTrue(userRepository.count() == 1,
+                        "Should have only one user after duplicate attempt");
+            }
         }
     }
 }
