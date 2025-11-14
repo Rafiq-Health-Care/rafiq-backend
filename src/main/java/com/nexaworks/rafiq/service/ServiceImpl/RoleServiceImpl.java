@@ -12,9 +12,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class RoleServiceImpl implements RoleService {
-    private final RoleRepository roleRepository;
-    @Override
-    public Role getRole(Roles roles) {
-        return roleRepository.findByName(roles.toString());
-    }
+  private final RoleRepository roleRepository;
+
+  @Override
+  public Role getRole(Roles roles) {
+    return roleRepository.findByName(roles.toString());
+  }
 }

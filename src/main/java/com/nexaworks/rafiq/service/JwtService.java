@@ -6,9 +6,9 @@ import org.springframework.security.core.Authentication;
 
 public interface JwtService {
 
-    String generateToken(User user);
+  String generateToken(User user);
 
-    void invalidateJwtToken(@NotBlank String s);
+  void invalidateJwtToken(@NotBlank String s);
 
-    Authentication validate(String jwt);
+  Authentication validate(String jwt);
 }

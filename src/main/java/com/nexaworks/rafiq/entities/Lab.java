@@ -1,14 +1,12 @@
 package com.nexaworks.rafiq.entities;
 
 import jakarta.persistence.*;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-
-import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -16,15 +14,19 @@ import java.util.UUID;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-public class Lab extends BaseEntity{
-    private String name;
-    @OneToMany(mappedBy = "lab",cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<Address> addresses;
-    @OneToMany(mappedBy = "lab")
-    private List<LabTest>  tests;
-    private String logo;
-    private String publicId;
-    @OneToOne(cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "social_links_id" , referencedColumnName = "id")
-    private SocialLinks socialLinks;
+public class Lab extends BaseEntity {
+  private String name;
+
+  @OneToMany(mappedBy = "lab", cascade = CascadeType.REMOVE, orphanRemoval = true)
+  private List<Address> addresses;
+
+  @OneToMany(mappedBy = "lab")
+  private List<LabTest> tests;
+
+  private String logo;
+  private String publicId;
+
+  @OneToOne(cascade = CascadeType.REMOVE)
+  @JoinColumn(name = "social_links_id", referencedColumnName = "id")
+  private SocialLinks socialLinks;
 }

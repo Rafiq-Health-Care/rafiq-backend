@@ -1,18 +1,17 @@
 package com.nexaworks.rafiq.exception.model;
 
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ErrorResponse {
-    private int status;
-    private String error;
-    private String message;
-    private LocalDateTime timestamp;
-    private String path;
+  private int status;
+  private String error;
+  private String message;
+  private LocalDateTime timestamp;
+  private String path;
 }

@@ -1,32 +1,29 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
 import com.nexaworks.rafiq.entities.LabResult;
-import com.nexaworks.rafiq.entities.LabTest;
 import com.nexaworks.rafiq.repository.LabResultRepository;
 import com.nexaworks.rafiq.service.LabResultService;
 import jakarta.transaction.Transactional;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class LabResultServiceImpl implements LabResultService {
-    private final LabResultRepository labResultRepository;
-    @Override
-    @Transactional
-    public List<LabResult> saveAll(List<LabResult> entity ) {
-        return labResultRepository.saveAll(entity);
-    }
+  private final LabResultRepository labResultRepository;
 
-    @Override
-    @Transactional
-    public void deleteAll(List<LabResult> labResults) {
-        labResultRepository.deleteAll(labResults);
-    }
+  @Override
+  @Transactional
+  public List<LabResult> saveAll(List<LabResult> entity) {
+    return labResultRepository.saveAll(entity);
+  }
 
-
+  @Override
+  @Transactional
+  public void deleteAll(List<LabResult> labResults) {
+    labResultRepository.deleteAll(labResults);
+  }
 }
