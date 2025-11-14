@@ -2,6 +2,9 @@ package com.nexaworks.rafiq.integration.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -15,7 +18,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexaworks.rafiq.dto.request.ForgetPasswordRequest;
+import com.nexaworks.rafiq.dto.request.VerifyOtpRequest;
 import com.nexaworks.rafiq.entities.Role;
+import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.Gender;
 import com.nexaworks.rafiq.enums.TokenType;
@@ -64,6 +69,12 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
                 .firstName(firstName).lastName(lastName).phone("+12345678901").age(30)
                 .gender(Gender.MALE).roles(java.util.List.of(patientRole)).enabled(true).build();
         return userRepository.save(user);
+    }
+
+    private Token createOtpToken(User user, String otpValue, Instant expiryDate) {
+        Token token = Token.builder().token(otpValue).user(user).tokenType(TokenType.OTP)
+                .expiryDate(expiryDate).build();
+        return tokenRepository.save(token);
     }
 
     @Nested
@@ -209,6 +220,120 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
                 // Verify no OTP was generated using AssertJ
                 assertThat(tokenRepository.count()).isZero()
                         .as("No token should be created for whitespace email");
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Verify OTP")
+    class VerifyOtp {
+        private final String VERIFY_OTP_ENDPOINT = "/auth/verify";
+
+        @Nested
+        @DisplayName("Should Verify OTP Successfully")
+        class ShouldVerifyOtpSuccessfully {
+
+            @Test
+            @DisplayName("Should verify OTP and return access token when OTP is valid")
+            void shouldVerifyOtpAndReturnAccessTokenWhenOtpIsValid() throws Exception {
+                // Arrange - Create user and OTP token directly
+                String email = "verify.user@example.com";
+                User user = createTestUser(email, "Valid@1234", "Jane", "Smith");
+
+                String otpValue = "123456";
+                Instant expiryDate = Instant.now().plus(15, ChronoUnit.MINUTES);
+                createOtpToken(user, otpValue, expiryDate);
+
+                // Prepare verify OTP request
+                VerifyOtpRequest verifyRequest = new VerifyOtpRequest(email, otpValue);
+                String payload = objectMapper.writeValueAsString(verifyRequest);
+
+                // Act & Assert - Verify OTP
+                mockMvc.perform(MockMvcRequestBuilders.post(VERIFY_OTP_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                        .andExpect(MockMvcResultMatchers.status().isOk())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.accessToken").exists());
+            }
+        }
+
+        @Nested
+        @DisplayName("Should Fail Verifying OTP")
+        class ShouldFailVerifyingOtp {
+
+            @Test
+            @DisplayName("Should return 404 Not Found when OTP does not exist")
+            void shouldReturnNotFoundWhenOtpDoesNotExist() throws Exception {
+                // Arrange - Create user but no OTP token
+                String email = "no.otp@example.com";
+                createTestUser(email, "Valid@1234", "John", "Doe");
+
+                String fakeOtp = "999999";
+                VerifyOtpRequest verifyRequest = new VerifyOtpRequest(email, fakeOtp);
+                String payload = objectMapper.writeValueAsString(verifyRequest);
+
+                // Act & Assert - Should return 404
+                mockMvc.perform(MockMvcRequestBuilders.post(VERIFY_OTP_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                        .andExpect(MockMvcResultMatchers.status().isNotFound());
+            }
+
+            @Test
+            @DisplayName("Should return 401 unauthorized when OTP is expired")
+            void shouldReturnBadRequestWhenOtpIsExpired() throws Exception {
+                // Arrange - Create user and expired OTP token
+                String email = "expired.otp@example.com";
+                User user = createTestUser(email, "Valid@1234", "Bob", "Wilson");
+
+                String otpValue = "654321";
+                Instant expiredDate = Instant.now().minus(1, ChronoUnit.HOURS); // Expired 1 hour
+                                                                                // ago
+                createOtpToken(user, otpValue, expiredDate);
+
+                VerifyOtpRequest verifyRequest = new VerifyOtpRequest(email, otpValue);
+                String payload = objectMapper.writeValueAsString(verifyRequest);
+
+                // Act & Assert - Should return 400
+                mockMvc.perform(MockMvcRequestBuilders.post(VERIFY_OTP_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                        .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+            }
+
+            @Test
+            @DisplayName("Should return 401 unauthorized when email does not match OTP")
+            void shouldReturnBadRequestWhenEmailDoesNotMatchOtp() throws Exception {
+                // Arrange - Create user and OTP, but use different email
+                String correctEmail = "correct@example.com";
+                User user = createTestUser(correctEmail, "Valid@1234", "Alice", "Johnson");
+
+                String otpValue = "111222";
+                Instant expiryDate = Instant.now().plus(15, ChronoUnit.MINUTES);
+                createOtpToken(user, otpValue, expiryDate);
+
+                // Try to verify with wrong email
+                String wrongEmail = "wrong@example.com";
+                VerifyOtpRequest verifyRequest = new VerifyOtpRequest(wrongEmail, otpValue);
+                String payload = objectMapper.writeValueAsString(verifyRequest);
+
+                // Act & Assert - Should return 400
+                mockMvc.perform(MockMvcRequestBuilders.post(VERIFY_OTP_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                        .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+            }
+
+            @Test
+            @DisplayName("Should return 400 Bad Request when OTP format is invalid (validation)")
+            void shouldReturnBadRequestForInvalidOtpFormat() throws Exception {
+                // Arrange
+                String email = "test@example.com";
+                String invalidOtp = "12345"; // Only 5 digits, should be 6
+
+                VerifyOtpRequest verifyRequest = new VerifyOtpRequest(email, invalidOtp);
+                String payload = objectMapper.writeValueAsString(verifyRequest);
+
+                // Act & Assert - Should return 400 for validation error
+                mockMvc.perform(MockMvcRequestBuilders.post(VERIFY_OTP_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                        .andExpect(MockMvcResultMatchers.status().isBadRequest());
             }
         }
     }
