@@ -6,9 +6,9 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SpecializationRepository extends JpaRepository<Specialization, UUID> {
-  boolean existsByCode(String code);
+    boolean existsByCode(String code);
 
-  Optional<Specialization> findByCode(String code);
+    Optional<Specialization> findByCode(String code);
 
-  Optional<Specialization> findByName(String name);
+    Optional<Specialization> findByName(String name);
 }

@@ -16,20 +16,19 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class DoctorServiceImpl implements DoctorService {
-  private final DoctorRepository doctorRepository;
-  private final SpecializationService specializationService;
+    private final DoctorRepository doctorRepository;
+    private final SpecializationService specializationService;
 
-  @Override
-  @Transactional
-  public DoctorProfile createProfile(
-      User doctor, String description, UUID specialization, String id, String logo) {
-    DoctorProfile doctorProfile = new DoctorProfile();
-    doctorProfile.setUser(doctor);
-    doctorProfile.setDescription(description);
-    doctorProfile.setSpecialization(specializationService.getSpecialization(specialization));
-    doctorProfile.setNationalId(id);
-    doctorProfile.setPublicId(logo);
-    doctorProfile.setStatus(Status.IN_REVIEW);
-    return doctorRepository.save(doctorProfile);
-  }
+    @Override
+    @Transactional
+    public DoctorProfile createProfile(User doctor, String description, UUID specialization, String id, String logo) {
+        DoctorProfile doctorProfile = new DoctorProfile();
+        doctorProfile.setUser(doctor);
+        doctorProfile.setDescription(description);
+        doctorProfile.setSpecialization(specializationService.getSpecialization(specialization));
+        doctorProfile.setNationalId(id);
+        doctorProfile.setPublicId(logo);
+        doctorProfile.setStatus(Status.IN_REVIEW);
+        return doctorRepository.save(doctorProfile);
+    }
 }

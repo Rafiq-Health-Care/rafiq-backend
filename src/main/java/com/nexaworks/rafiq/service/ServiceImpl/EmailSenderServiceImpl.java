@@ -21,33 +21,32 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 @RequiredArgsConstructor
 @Slf4j
 public class EmailSenderServiceImpl implements EmailSenderService {
-  private final JavaMailSender javaMailSender;
-  private final SpringTemplateEngine templateEngine;
+    private final JavaMailSender javaMailSender;
+    private final SpringTemplateEngine templateEngine;
 
-  // todo add retry logic
-  @Async
-  @Override
-  @Retryable(
-      retryFor = {MailSenderException.class, MessagingException.class},
-      maxAttempts = 4,
-      backoff = @Backoff(delay = 10000))
-  public void sendEmail(
-      Map<String, Object> model, String email, String subject, String forgetPasswordTemplate) {
-    MimeMessage mimeMessage = javaMailSender.createMimeMessage();
-    MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
-    try {
-      mimeMessageHelper.setSubject(subject);
-      mimeMessageHelper.setFrom("rafiq@rafig.com");
-      mimeMessageHelper.setTo(email);
-      Context context = new Context();
-      context.setVariables(model);
-      String text = templateEngine.process(forgetPasswordTemplate, context);
-      mimeMessageHelper.setText(text, true);
-      javaMailSender.send(mimeMessage);
-      log.info("Email sent successfully");
+    // todo add retry logic
+    @Async
+    @Override
+    @Retryable(
+            retryFor = {MailSenderException.class, MessagingException.class},
+            maxAttempts = 4,
+            backoff = @Backoff(delay = 10000))
+    public void sendEmail(Map<String, Object> model, String email, String subject, String forgetPasswordTemplate) {
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
+        try {
+            mimeMessageHelper.setSubject(subject);
+            mimeMessageHelper.setFrom("rafiq@rafig.com");
+            mimeMessageHelper.setTo(email);
+            Context context = new Context();
+            context.setVariables(model);
+            String text = templateEngine.process(forgetPasswordTemplate, context);
+            mimeMessageHelper.setText(text, true);
+            javaMailSender.send(mimeMessage);
+            log.info("Email sent successfully");
 
-    } catch (MailException | MessagingException e) {
-      throw new MailSenderException("Failed to send email");
+        } catch (MailException | MessagingException e) {
+            throw new MailSenderException("Failed to send email");
+        }
     }
-  }
 }

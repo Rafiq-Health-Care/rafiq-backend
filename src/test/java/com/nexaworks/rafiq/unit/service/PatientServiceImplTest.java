@@ -17,27 +17,28 @@ import org.mockito.MockitoAnnotations;
 
 @DisplayName("PatientService Test Cases")
 public class PatientServiceImplTest {
-  @Mock PatientRepository patientRepository;
+    @Mock
+    PatientRepository patientRepository;
 
-  @InjectMocks PatientServiceImpl patientService;
+    @InjectMocks
+    PatientServiceImpl patientService;
 
-  User patient;
+    User patient;
 
-  @BeforeEach
-  void setUp() {
-    MockitoAnnotations.openMocks(this);
-    patient = new User();
-    patient.setId(UUID.randomUUID());
-  }
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        patient = new User();
+        patient.setId(UUID.randomUUID());
+    }
 
-  @Test
-  void shouldCreatePatientProfileSuccessfully() {
+    @Test
+    void shouldCreatePatientProfileSuccessfully() {
 
-    when(patientRepository.save(any(PatientProfile.class)))
-        .thenAnswer(invocation -> invocation.getArgument(0));
-    PatientProfile patientProfile = patientService.createPatientProfile(patient);
-    assertThat(patientProfile).isNotNull();
-    assertThat(patientProfile.getUser()).isEqualTo(patient);
-    verify(patientRepository, times(1)).save(any(PatientProfile.class));
-  }
+        when(patientRepository.save(any(PatientProfile.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        PatientProfile patientProfile = patientService.createPatientProfile(patient);
+        assertThat(patientProfile).isNotNull();
+        assertThat(patientProfile.getUser()).isEqualTo(patient);
+        verify(patientRepository, times(1)).save(any(PatientProfile.class));
+    }
 }

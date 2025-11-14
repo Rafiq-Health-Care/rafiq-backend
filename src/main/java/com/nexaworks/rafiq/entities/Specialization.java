@@ -13,10 +13,10 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class Specialization extends BaseEntity {
 
-  private String name;
-  private String description;
-  private String code;
+    private String name;
+    private String description;
+    private String code;
 
-  @OneToMany(mappedBy = "specialization")
-  private List<DoctorProfile> doctorProfiles;
+    @OneToMany(mappedBy = "specialization")
+    private List<DoctorProfile> doctorProfiles;
 }

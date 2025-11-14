@@ -16,31 +16,31 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Entity
 public class DoctorProfile extends BaseEntity {
-  private String description;
-  private String hospitalName;
-  private String personalPhoto;
-  private String nationalId;
-  private String hospitalId;
+    private String description;
+    private String hospitalName;
+    private String personalPhoto;
+    private String nationalId;
+    private String hospitalId;
 
-  @OneToOne(mappedBy = "doctorProfile")
-  private User user;
+    @OneToOne(mappedBy = "doctorProfile")
+    private User user;
 
-  @ManyToOne
-  @JoinColumn(name = "specialization_id", nullable = false)
-  private Specialization specialization;
+    @ManyToOne
+    @JoinColumn(name = "specialization_id", nullable = false)
+    private Specialization specialization;
 
-  @OneToMany(mappedBy = "doctor", cascade = CascadeType.REMOVE)
-  private List<MedicalCertifications> medicalCertifications;
+    @OneToMany(mappedBy = "doctor", cascade = CascadeType.REMOVE)
+    private List<MedicalCertifications> medicalCertifications;
 
-  @OneToMany(mappedBy = "doctor")
-  private List<LabTest> labTests;
+    @OneToMany(mappedBy = "doctor")
+    private List<LabTest> labTests;
 
-  @OneToOne
-  @JoinColumn(name = "social_links_id", referencedColumnName = "id")
-  private SocialLinks socialLinks;
+    @OneToOne
+    @JoinColumn(name = "social_links_id", referencedColumnName = "id")
+    private SocialLinks socialLinks;
 
-  private String publicId;
+    private String publicId;
 
-  @Enumerated(EnumType.STRING)
-  private Status status;
+    @Enumerated(EnumType.STRING)
+    private Status status;
 }

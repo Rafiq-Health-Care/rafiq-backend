@@ -287,6 +287,20 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.43.0</version>
+                <configuration>
+                    <java>
+                        <!-- Use newer Palantir version that supports Java 21+ -->
+                        <palantirJavaFormat>
+                            <version>2.50.0</version>
+                        </palantirJavaFormat>
+                        <!-- Palantir already uses 4 spaces by default -->
+                    </java>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

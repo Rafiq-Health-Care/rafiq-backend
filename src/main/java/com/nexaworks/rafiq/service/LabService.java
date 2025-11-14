@@ -11,16 +11,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface LabService {
-  void addLab(@NotBlank String name, List<Address> entity, MultipartFile file) throws IOException;
+    void addLab(@NotBlank String name, List<Address> entity, MultipartFile file) throws IOException;
 
-  Page<Lab> getAll(int page, int size, String sort, String direction);
+    Page<Lab> getAll(int page, int size, String sort, String direction);
 
-  void deleteLab(UUID labId);
+    void deleteLab(UUID labId);
 
-  void updateLab(@NotBlank String name, List<Address> entity, MultipartFile file, UUID labId)
-      throws IOException;
+    void updateLab(@NotBlank String name, List<Address> entity, MultipartFile file, UUID labId) throws IOException;
 
-  Optional<Lab> getLabById(UUID s);
+    Optional<Lab> getLabById(UUID s);
 
-  Lab save(Lab lab);
+    Lab save(Lab lab);
 }

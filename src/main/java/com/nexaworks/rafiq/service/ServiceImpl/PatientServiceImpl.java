@@ -13,13 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class PatientServiceImpl implements PatientService {
-  private final PatientRepository patientRepository;
+    private final PatientRepository patientRepository;
 
-  @Override
-  @Transactional
-  public PatientProfile createPatientProfile(User patient) {
-    PatientProfile patientProfile = new PatientProfile();
-    patientProfile.setUser(patient);
-    return patientRepository.save(patientProfile);
-  }
+    @Override
+    @Transactional
+    public PatientProfile createPatientProfile(User patient) {
+        PatientProfile patientProfile = new PatientProfile();
+        patientProfile.setUser(patient);
+        return patientRepository.save(patientProfile);
+    }
 }

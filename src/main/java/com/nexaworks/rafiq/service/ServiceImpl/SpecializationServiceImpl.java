@@ -15,32 +15,32 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class SpecializationServiceImpl implements SpecializationService {
-  private final SpecializationRepository specializationRepository;
+    private final SpecializationRepository specializationRepository;
 
-  @Override
-  public Specialization getSpecialization(UUID specialization) {
-    return specializationRepository
-        .findById(specialization)
-        .orElseThrow(() -> new SpecializationNotFoundException(specialization));
-  }
+    @Override
+    public Specialization getSpecialization(UUID specialization) {
+        return specializationRepository
+                .findById(specialization)
+                .orElseThrow(() -> new SpecializationNotFoundException(specialization));
+    }
 
-  @Override
-  public Specialization getSpecializationByCode(String code) {
-    return specializationRepository
-        .findByCode(code)
-        .orElseThrow(() -> new SpecializationNotFoundException("code", code));
-  }
+    @Override
+    public Specialization getSpecializationByCode(String code) {
+        return specializationRepository
+                .findByCode(code)
+                .orElseThrow(() -> new SpecializationNotFoundException("code", code));
+    }
 
-  @Override
-  public List<SpecializationResponse> getSpecializations() {
-    List<Specialization> specializations = specializationRepository.findAll();
-    return specializations.stream()
-        .map(sp -> new SpecializationResponse(sp.getId(), sp.getName()))
-        .toList();
-  }
+    @Override
+    public List<SpecializationResponse> getSpecializations() {
+        List<Specialization> specializations = specializationRepository.findAll();
+        return specializations.stream()
+                .map(sp -> new SpecializationResponse(sp.getId(), sp.getName()))
+                .toList();
+    }
 
-  @Override
-  public List<Specialization> getAllSpecializations() {
-    return specializationRepository.findAll();
-  }
+    @Override
+    public List<Specialization> getAllSpecializations() {
+        return specializationRepository.findAll();
+    }
 }

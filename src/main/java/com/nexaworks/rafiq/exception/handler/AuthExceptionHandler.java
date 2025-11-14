@@ -13,13 +13,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class AuthExceptionHandler {
-  private final ExceptionUtils exceptionUtils;
+    private final ExceptionUtils exceptionUtils;
 
-  @ExceptionHandler(BadCredentialsException.class)
-  public ResponseEntity<ErrorResponse> handleBadCredentials(
-      BadCredentialsException ex, HttpServletRequest request) {
-    HttpStatus status = HttpStatus.UNAUTHORIZED;
-    ErrorResponse error = exceptionUtils.getErrorResponse(ex, request, status);
-    return new ResponseEntity<>(error, status);
-  }
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        ErrorResponse error = exceptionUtils.getErrorResponse(ex, request, status);
+        return new ResponseEntity<>(error, status);
+    }
 }

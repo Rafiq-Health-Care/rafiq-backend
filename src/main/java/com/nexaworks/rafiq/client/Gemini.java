@@ -7,12 +7,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @Component
-@FeignClient(
-    name = "gemini-client",
-    url = "https://generativelanguage.googleapis.com/v1beta/models")
+@FeignClient(name = "gemini-client", url = "https://generativelanguage.googleapis.com/v1beta/models")
 public interface Gemini {
-  @PostMapping(
-      value = "/gemini-2.5-flash:generateContent?key=${spring.ai.google.genai.api-key}",
-      consumes = "application/json")
-  String getResult(@RequestBody RequestBodyDTO body);
+    @PostMapping(
+            value = "/gemini-2.5-flash:generateContent?key=${spring.ai.google.genai.api-key}",
+            consumes = "application/json")
+    String getResult(@RequestBody RequestBodyDTO body);
 }

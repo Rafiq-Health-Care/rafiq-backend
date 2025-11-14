@@ -13,26 +13,26 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class AddressServiceImpl implements AddressService {
-  private final AddressRepository addressRepository;
+    private final AddressRepository addressRepository;
 
-  @Override
-  public List<Address> saveAll(List<Address> entity) {
-    return addressRepository.saveAll(entity);
-  }
+    @Override
+    public List<Address> saveAll(List<Address> entity) {
+        return addressRepository.saveAll(entity);
+    }
 
-  @Override
-  public List<Address> updateAddresses(List<Address> entity) {
-    return entity.stream().map(this::updateAddress).toList();
-  }
+    @Override
+    public List<Address> updateAddresses(List<Address> entity) {
+        return entity.stream().map(this::updateAddress).toList();
+    }
 
-  @Override
-  public Address updateAddress(Address entity) {
-    return null;
-  }
+    @Override
+    public Address updateAddress(Address entity) {
+        return null;
+    }
 
-  @Override
-  @Transactional
-  public void deleteAll(List<Address> addresses) {
-    addressRepository.deleteAll(addresses);
-  }
+    @Override
+    @Transactional
+    public void deleteAll(List<Address> addresses) {
+        addressRepository.deleteAll(addresses);
+    }
 }

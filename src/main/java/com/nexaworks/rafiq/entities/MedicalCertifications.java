@@ -15,12 +15,12 @@ import lombok.experimental.SuperBuilder;
 @Entity
 public class MedicalCertifications extends BaseEntity {
 
-  private String name;
-  private String description;
-  private String code;
-  private String photo;
+    private String name;
+    private String description;
+    private String code;
+    private String photo;
 
-  @ManyToOne
-  @JoinColumn(name = "doctor_id", nullable = false)
-  private DoctorProfile doctor;
+    @ManyToOne
+    @JoinColumn(name = "doctor_id", nullable = false)
+    private DoctorProfile doctor;
 }

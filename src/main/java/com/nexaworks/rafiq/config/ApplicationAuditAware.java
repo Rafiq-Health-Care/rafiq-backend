@@ -13,18 +13,18 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ApplicationAuditAware implements AuditorAware<UUID> {
 
-  @Override
-  public Optional<UUID> getCurrentAuditor() {
+    @Override
+    public Optional<UUID> getCurrentAuditor() {
 
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication == null) {
-      return Optional.of(UUID.fromString("00000000-0000-0000-0000-000000000000"));
-    }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return Optional.of(UUID.fromString("00000000-0000-0000-0000-000000000000"));
+        }
 
-    if (authentication.isAuthenticated() && !authentication.getName().equals("anonymousUser")) {
-      User user = (User) authentication.getPrincipal();
-      return Optional.of(user.getId());
+        if (authentication.isAuthenticated() && !authentication.getName().equals("anonymousUser")) {
+            User user = (User) authentication.getPrincipal();
+            return Optional.of(user.getId());
+        }
+        return Optional.of(UUID.fromString("00000000-0000-0000-0000-000000000000"));
     }
-    return Optional.of(UUID.fromString("00000000-0000-0000-0000-000000000000"));
-  }
 }

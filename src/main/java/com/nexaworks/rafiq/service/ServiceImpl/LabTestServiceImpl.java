@@ -32,122 +32,115 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 @Slf4j
 public class LabTestServiceImpl implements LabTestService {
-  private final LabResultService labResultService;
-  private final LabTestRepository labTestRepository;
-  private final UserService userService;
-  private final ImageService imageService;
-  private final PatientRepository patientRepository;
+    private final LabResultService labResultService;
+    private final LabTestRepository labTestRepository;
+    private final UserService userService;
+    private final ImageService imageService;
+    private final PatientRepository patientRepository;
 
-  @Override
-  @Transactional
-  public void addTest(UUID testId, String testName, Date testDate, List<LabResult> entity) {
-    LabTest labTest = getLabTest(Optional.of(testId));
-    setTestFields(labTest, testName, testDate);
-    PatientProfile patient = getPatientProfile();
-    labTest.setPatient(patient);
-    labTestRepository.save(labTest);
-    entity.forEach(e -> e.setLabTest(labTest));
-    labResultService.saveAll(entity);
-  }
-
-  protected PatientProfile getPatientProfile() {
-    return userService.getUser().getPatientProfile();
-  }
-
-  private static void setTestFields(LabTest labTest, String testName, Date testDate) {
-    labTest.setName(testName);
-    labTest.setDate(testDate == null ? Instant.now() : testDate.toInstant());
-  }
-
-  @NotNull
-  private LabTest getLabTest(Optional<UUID> testId) {
-    return testId
-        .map(id -> labTestRepository.findById(id).orElse(new LabTest()))
-        .orElse(new LabTest());
-  }
-
-  @Override
-  public Page<LabTest> getAll(int page, int size, String sort, String direction) {
-    Sort sorting =
-        Sort.by(
-            Sort.Direction.fromString(direction.equalsIgnoreCase("desc") ? "desc" : "asc"), sort);
-
-    Pageable pageable = PageRequest.of(page, size, sorting);
-    PatientProfile patient = getPatientProfile();
-    return labTestRepository.findAllByPatientId(patient.getId(), pageable);
-  }
-
-  @Override
-  public LabTest getTest(UUID testId) {
-    return validateOwnership(testId);
-  }
-
-  @Override
-  public void deleteTest(UUID testId) {
-    LabTest test = validateOwnership(testId);
-    labTestRepository.delete(test);
-  }
-
-  @Override
-  @Transactional
-  public Integer deleteAll() {
-    PatientProfile patient = getPatientProfile();
-    patient =
-        patientRepository
-            .findById(patient.getId())
-            .orElseThrow(() -> new UserNotFoundException("Invalid Patient Id"));
-    List<LabTest> tests = patient.getLabTests();
-    int size = tests.size();
-    labTestRepository.deleteAll(tests);
-    return size;
-  }
-
-  @Override
-  @Transactional
-  public void update(UUID testId, TestResultRequest testResultRequest, List<LabResult> entity) {
-    LabTest test = validateOwnership(testId);
-    setTestFields(test, testResultRequest.name(), testResultRequest.date());
-    updateLabResults(entity, test);
-    labTestRepository.save(test);
-  }
-
-  @Transactional
-  protected void updateLabResults(List<LabResult> entity, LabTest test) {
-    labResultService.deleteAll(test.getLabResults());
-    entity.forEach(e -> e.setLabTest(test));
-    labResultService.saveAll(entity);
-  }
-
-  @NotNull
-  private LabTest validateOwnership(UUID testId) {
-    LabTest test =
-        labTestRepository
-            .findById(testId)
-            .orElseThrow(() -> new LabTestException("Invalid Test Id"));
-    PatientProfile patient = getPatientProfile();
-    if (!test.getPatient().getId().equals(patient.getId())) {
-      throw new LabTestException("Invalid Test Id");
+    @Override
+    @Transactional
+    public void addTest(UUID testId, String testName, Date testDate, List<LabResult> entity) {
+        LabTest labTest = getLabTest(Optional.of(testId));
+        setTestFields(labTest, testName, testDate);
+        PatientProfile patient = getPatientProfile();
+        labTest.setPatient(patient);
+        labTestRepository.save(labTest);
+        entity.forEach(e -> e.setLabTest(labTest));
+        labResultService.saveAll(entity);
     }
-    return test;
-  }
 
-  @Override
-  @Async
-  public CompletableFuture<UUID> saveTestPdf(MultipartFile file, User user) throws IOException {
-    String fileType = file.getContentType();
-    UploadResults result;
-    if (fileType != null && fileType.startsWith("image/")) {
-      result = imageService.uploadResource(file, UploadType.IMAGE);
-    } else {
-      result = imageService.uploadResource(file, UploadType.PDF);
+    protected PatientProfile getPatientProfile() {
+        return userService.getUser().getPatientProfile();
     }
-    LabTest labTest = new LabTest();
-    labTest.setPdf(result.url());
-    labTest.setPublicId(result.publicId());
-    labTest.setFileType(fileType);
-    PatientProfile patient = user.getPatientProfile();
-    labTest.setPatient(patient);
-    labTest = labTestRepository.save(labTest);
-    return CompletableFuture.completedFuture(labTest.getId());
-  }
+
+    private static void setTestFields(LabTest labTest, String testName, Date testDate) {
+        labTest.setName(testName);
+        labTest.setDate(testDate == null ? Instant.now() : testDate.toInstant());
+    }
+
+    @NotNull
+    private LabTest getLabTest(Optional<UUID> testId) {
+        return testId.map(id -> labTestRepository.findById(id).orElse(new LabTest()))
+                .orElse(new LabTest());
+    }
+
+    @Override
+    public Page<LabTest> getAll(int page, int size, String sort, String direction) {
+        Sort sorting = Sort.by(Sort.Direction.fromString(direction.equalsIgnoreCase("desc") ? "desc" : "asc"), sort);
+
+        Pageable pageable = PageRequest.of(page, size, sorting);
+        PatientProfile patient = getPatientProfile();
+        return labTestRepository.findAllByPatientId(patient.getId(), pageable);
+    }
+
+    @Override
+    public LabTest getTest(UUID testId) {
+        return validateOwnership(testId);
+    }
+
+    @Override
+    public void deleteTest(UUID testId) {
+        LabTest test = validateOwnership(testId);
+        labTestRepository.delete(test);
+    }
+
+    @Override
+    @Transactional
+    public Integer deleteAll() {
+        PatientProfile patient = getPatientProfile();
+        patient = patientRepository
+                .findById(patient.getId())
+                .orElseThrow(() -> new UserNotFoundException("Invalid Patient Id"));
+        List<LabTest> tests = patient.getLabTests();
+        int size = tests.size();
+        labTestRepository.deleteAll(tests);
+        return size;
+    }
+
+    @Override
+    @Transactional
+    public void update(UUID testId, TestResultRequest testResultRequest, List<LabResult> entity) {
+        LabTest test = validateOwnership(testId);
+        setTestFields(test, testResultRequest.name(), testResultRequest.date());
+        updateLabResults(entity, test);
+        labTestRepository.save(test);
+    }
+
+    @Transactional
+    protected void updateLabResults(List<LabResult> entity, LabTest test) {
+        labResultService.deleteAll(test.getLabResults());
+        entity.forEach(e -> e.setLabTest(test));
+        labResultService.saveAll(entity);
+    }
+
+    @NotNull
+    private LabTest validateOwnership(UUID testId) {
+        LabTest test = labTestRepository.findById(testId).orElseThrow(() -> new LabTestException("Invalid Test Id"));
+        PatientProfile patient = getPatientProfile();
+        if (!test.getPatient().getId().equals(patient.getId())) {
+            throw new LabTestException("Invalid Test Id");
+        }
+        return test;
+    }
+
+    @Override
+    @Async
+    public CompletableFuture<UUID> saveTestPdf(MultipartFile file, User user) throws IOException {
+        String fileType = file.getContentType();
+        UploadResults result;
+        if (fileType != null && fileType.startsWith("image/")) {
+            result = imageService.uploadResource(file, UploadType.IMAGE);
+        } else {
+            result = imageService.uploadResource(file, UploadType.PDF);
+        }
+        LabTest labTest = new LabTest();
+        labTest.setPdf(result.url());
+        labTest.setPublicId(result.publicId());
+        labTest.setFileType(fileType);
+        PatientProfile patient = user.getPatientProfile();
+        labTest.setPatient(patient);
+        labTest = labTestRepository.save(labTest);
+        return CompletableFuture.completedFuture(labTest.getId());
+    }
 }

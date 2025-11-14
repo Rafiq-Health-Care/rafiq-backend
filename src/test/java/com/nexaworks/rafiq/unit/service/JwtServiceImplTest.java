@@ -21,65 +21,68 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 @DisplayName("JwtServiceImpl Test")
 public class JwtServiceImplTest {
-  private JwtServiceImpl jwtService;
-  @Mock UserRepository userRepository;
+    private JwtServiceImpl jwtService;
 
-  @BeforeEach
-  void setUp() {
-    jwtService = new JwtServiceImpl(userRepository);
-    ReflectionTestUtils.setField(
-        jwtService,
-        "JWT_SECRET",
-        "5cf7d14433f66174f7ce66b01acef9415f55b04daf4815ad60b62f9c50e8809b");
-    ReflectionTestUtils.setField(jwtService, "JWT_EXPIRATION", 10000L);
-  }
+    @Mock
+    UserRepository userRepository;
 
-  @DisplayName("Generated token should not be null")
-  @Test
-  void generateTokenMustBeNotNull() {
-    User user = mock(User.class);
-    when(user.getEmail()).thenReturn("bialy@gmail.com");
-    Collection<? extends GrantedAuthority> authorities =
-        List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
-    doReturn(authorities).when(user).getAuthorities();
+    @BeforeEach
+    void setUp() {
+        jwtService = new JwtServiceImpl(userRepository);
+        ReflectionTestUtils.setField(
+                jwtService, "JWT_SECRET", "5cf7d14433f66174f7ce66b01acef9415f55b04daf4815ad60b62f9c50e8809b");
+        ReflectionTestUtils.setField(jwtService, "JWT_EXPIRATION", 10000L);
+    }
 
-    String token = jwtService.generateToken(user);
-    assertNotNull(token);
-  }
+    @DisplayName("Generated token should not be null")
+    @Test
+    void generateTokenMustBeNotNull() {
+        User user = mock(User.class);
+        when(user.getEmail()).thenReturn("bialy@gmail.com");
+        Collection<? extends GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        doReturn(authorities).when(user).getAuthorities();
 
-  @DisplayName("Generated token must have the email")
-  @Test
-  void jwtMustHaveTheEmail() {
-    User user = mock(User.class);
-    when(user.getEmail()).thenReturn("bialy@gmail.com");
-    Collection<? extends GrantedAuthority> authorities =
-        List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
-    doReturn(authorities).when(user).getAuthorities();
-    String token = jwtService.generateToken(user);
-    Claims claims =
-        Jwts.parser().verifyWith(jwtService.getKey()).build().parseSignedClaims(token).getPayload();
-    assertEquals(claims.getSubject(), user.getEmail());
-  }
+        String token = jwtService.generateToken(user);
+        assertNotNull(token);
+    }
 
-  @DisplayName("Generated token must have the claims")
-  @Test
-  void jwtMustHaveTheClaims() {
-    User user = mock(User.class);
-    when(user.getEmail()).thenReturn("bialy@gmail.com");
-    Collection<? extends GrantedAuthority> authorities =
-        List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
-    doReturn(authorities).when(user).getAuthorities();
-    String token = jwtService.generateToken(user);
-    Claims claims =
-        Jwts.parser().verifyWith(jwtService.getKey()).build().parseSignedClaims(token).getPayload();
-    assertEquals(
-        claims.get("authorities"),
-        authorities.stream().map(GrantedAuthority::getAuthority).toList());
-  }
+    @DisplayName("Generated token must have the email")
+    @Test
+    void jwtMustHaveTheEmail() {
+        User user = mock(User.class);
+        when(user.getEmail()).thenReturn("bialy@gmail.com");
+        Collection<? extends GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        doReturn(authorities).when(user).getAuthorities();
+        String token = jwtService.generateToken(user);
+        Claims claims = Jwts.parser()
+                .verifyWith(jwtService.getKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        assertEquals(claims.getSubject(), user.getEmail());
+    }
 
-  @DisplayName("Generate token with null user should throw exception")
-  @Test
-  void generateTokenWithNullUserShouldThrowException() {
-    assertThrows(UserException.class, () -> jwtService.generateToken(null));
-  }
+    @DisplayName("Generated token must have the claims")
+    @Test
+    void jwtMustHaveTheClaims() {
+        User user = mock(User.class);
+        when(user.getEmail()).thenReturn("bialy@gmail.com");
+        Collection<? extends GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        doReturn(authorities).when(user).getAuthorities();
+        String token = jwtService.generateToken(user);
+        Claims claims = Jwts.parser()
+                .verifyWith(jwtService.getKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        assertEquals(
+                claims.get("authorities"),
+                authorities.stream().map(GrantedAuthority::getAuthority).toList());
+    }
+
+    @DisplayName("Generate token with null user should throw exception")
+    @Test
+    void generateTokenWithNullUserShouldThrowException() {
+        assertThrows(UserException.class, () -> jwtService.generateToken(null));
+    }
 }

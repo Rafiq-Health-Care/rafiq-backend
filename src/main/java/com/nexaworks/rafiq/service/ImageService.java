@@ -6,7 +6,7 @@ import java.io.IOException;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface ImageService {
-  UploadResults uploadResource(MultipartFile file, UploadType type) throws IOException;
+    UploadResults uploadResource(MultipartFile file, UploadType type) throws IOException;
 
-  void delete(String publicId);
+    void delete(String publicId);
 }

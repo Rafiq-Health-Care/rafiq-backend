@@ -6,6 +6,4 @@ import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
 public record DoctorRegistrationRequest(
-    @Valid UserRegistrationRequest user,
-    @NotNull UUID specialization,
-    @NotBlank String description) {}
+        @Valid UserRegistrationRequest user, @NotNull UUID specialization, @NotBlank String description) {}

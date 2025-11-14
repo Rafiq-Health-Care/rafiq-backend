@@ -13,23 +13,22 @@ import java.util.UUID;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
-  Optional<User> findByEmail(String email);
+    Optional<User> findByEmail(String email);
 
-  void changePassword(User user, @NotBlank @Size(min = 8, max = 20) String s);
+    void changePassword(User user, @NotBlank @Size(min = 8, max = 20) String s);
 
-  void updatePassword(User user, ResetPasswordRequest resetPasswordRequest);
+    void updatePassword(User user, ResetPasswordRequest resetPasswordRequest);
 
-  void registerPatient(User user);
+    void registerPatient(User user);
 
-  void registerDoctor(User user, MultipartFile nationalId, UUID specialization, String description)
-      throws IOException;
+    void registerDoctor(User user, MultipartFile nationalId, UUID specialization, String description)
+            throws IOException;
 
-  LoginResponse verifyUserEmail(
-      @NotBlank @Email String email, @NotBlank String otp, HttpServletResponse response);
+    LoginResponse verifyUserEmail(@NotBlank @Email String email, @NotBlank String otp, HttpServletResponse response);
 
-  void getNewOtp(String email);
+    void getNewOtp(String email);
 
-  User getUser();
+    User getUser();
 
-  User addUser(String email, String firstName, String lastName);
+    User addUser(String email, String firstName, String lastName);
 }

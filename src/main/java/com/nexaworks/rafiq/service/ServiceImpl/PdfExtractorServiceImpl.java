@@ -26,40 +26,40 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 public class PdfExtractorServiceImpl implements PdfExtractorService {
 
-  private final LabTestService labTestService;
-  private final AiService aiService;
-  private final UserService userService;
+    private final LabTestService labTestService;
+    private final AiService aiService;
+    private final UserService userService;
 
-  @Override
-  public String extractPdf(MultipartFile pdfFile)
-      throws IOException, DocumentException, ExecutionException, InterruptedException {
-    if (pdfFile.isEmpty()) {
-      throw new EmptyFileException("The provided PDF file is empty. Please upload a valid file.");
+    @Override
+    public String extractPdf(MultipartFile pdfFile)
+            throws IOException, DocumentException, ExecutionException, InterruptedException {
+        if (pdfFile.isEmpty()) {
+            throw new EmptyFileException("The provided PDF file is empty. Please upload a valid file.");
+        }
+        CompletableFuture<UUID> testId = labTestService.saveTestPdf(pdfFile, userService.getUser());
+        byte[] pdfBytes = pdfFile.getBytes();
+        if (pdfFile.getContentType() != null && pdfFile.getContentType().startsWith("image/")) {
+            pdfBytes = convertImage(pdfBytes);
+        }
+        String result = aiService.extractLabResultsFromPdf(pdfBytes);
+        UUID id = testId.get();
+        ObjectNode jsonNode = (ObjectNode) new ObjectMapper().readTree(result);
+        jsonNode.put("testId", id.toString());
+        return jsonNode.toString();
     }
-    CompletableFuture<UUID> testId = labTestService.saveTestPdf(pdfFile, userService.getUser());
-    byte[] pdfBytes = pdfFile.getBytes();
-    if (pdfFile.getContentType() != null && pdfFile.getContentType().startsWith("image/")) {
-      pdfBytes = convertImage(pdfBytes);
+
+    private static byte[] convertImage(byte[] pdfBytes) throws DocumentException, IOException {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        Document document = new Document();
+        PdfWriter.getInstance(document, outputStream);
+        document.open();
+
+        Image img = Image.getInstance(pdfBytes);
+        img.scaleToFit(document.getPageSize().getWidth(), document.getPageSize().getHeight());
+        img.setAlignment(Image.ALIGN_CENTER);
+        document.add(img);
+        document.close();
+        pdfBytes = outputStream.toByteArray();
+        return pdfBytes;
     }
-    String result = aiService.extractLabResultsFromPdf(pdfBytes);
-    UUID id = testId.get();
-    ObjectNode jsonNode = (ObjectNode) new ObjectMapper().readTree(result);
-    jsonNode.put("testId", id.toString());
-    return jsonNode.toString();
-  }
-
-  private static byte[] convertImage(byte[] pdfBytes) throws DocumentException, IOException {
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    Document document = new Document();
-    PdfWriter.getInstance(document, outputStream);
-    document.open();
-
-    Image img = Image.getInstance(pdfBytes);
-    img.scaleToFit(document.getPageSize().getWidth(), document.getPageSize().getHeight());
-    img.setAlignment(Image.ALIGN_CENTER);
-    document.add(img);
-    document.close();
-    pdfBytes = outputStream.toByteArray();
-    return pdfBytes;
-  }
 }

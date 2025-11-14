@@ -16,66 +16,58 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-  private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
-  private final JwtFilter jwtFilter;
-  private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
-  private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
+    private final JwtFilter jwtFilter;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
-  @Bean
-  public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-    http.authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers(
-                        "/auth/login",
-                        "/user/new-otp",
-                        "/auth/refresh",
-                        "/auth/forget-password",
-                        "/auth/verify",
-                        "/auth/change-password",
-                        "/user/register/doctor",
-                        "/user/register/patient",
-                        "/user/verification",
-                        "/error",
-                        "/specialization/**",
-                        "/v2/api-docs",
-                        "/v3/api-docs",
-                        "/v3/api-docs/**",
-                        "/swagger-resources",
-                        "/swagger-resources/**",
-                        "/configuration/ui",
-                        "/configuration/security",
-                        "/swagger-ui/**",
-                        "/webjars/**",
-                        "/swagger-ui.html",
-                        "/favicon.ico",
-                        "/labs",
-                        "/auth/google")
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated())
-        .sessionManagement(sc -> sc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .csrf(AbstractHttpConfigurer::disable)
-        .cors(
-            cors ->
-                cors.configurationSource(
-                    request -> {
-                      var corsConfiguration = new org.springframework.web.cors.CorsConfiguration();
-                      corsConfiguration.setAllowedOrigins(java.util.List.of("*"));
-                      corsConfiguration.setAllowedMethods(
-                          java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                      corsConfiguration.setAllowedHeaders(java.util.List.of("*"));
-                      corsConfiguration.setAllowCredentials(false);
-                      corsConfiguration.setMaxAge(3600L);
-                      return corsConfiguration;
-                    }))
-        .exceptionHandling(
-            ex ->
-                ex.authenticationEntryPoint(customAuthenticationEntryPoint)
-                    .accessDeniedHandler(customAccessDeniedHandler))
-        .oauth2Login(auth -> auth.successHandler(customOAuth2SuccessHandler))
-        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-    http.formLogin(AbstractHttpConfigurer::disable);
+    @Bean
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests(auth -> auth.requestMatchers(
+                                "/auth/login",
+                                "/user/new-otp",
+                                "/auth/refresh",
+                                "/auth/forget-password",
+                                "/auth/verify",
+                                "/auth/change-password",
+                                "/user/register/doctor",
+                                "/user/register/patient",
+                                "/user/verification",
+                                "/error",
+                                "/specialization/**",
+                                "/v2/api-docs",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/swagger-resources",
+                                "/swagger-resources/**",
+                                "/configuration/ui",
+                                "/configuration/security",
+                                "/swagger-ui/**",
+                                "/webjars/**",
+                                "/swagger-ui.html",
+                                "/favicon.ico",
+                                "/labs",
+                                "/auth/google")
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated())
+                .sessionManagement(sc -> sc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(request -> {
+                    var corsConfiguration = new org.springframework.web.cors.CorsConfiguration();
+                    corsConfiguration.setAllowedOrigins(java.util.List.of("*"));
+                    corsConfiguration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    corsConfiguration.setAllowedHeaders(java.util.List.of("*"));
+                    corsConfiguration.setAllowCredentials(false);
+                    corsConfiguration.setMaxAge(3600L);
+                    return corsConfiguration;
+                }))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler))
+                .oauth2Login(auth -> auth.successHandler(customOAuth2SuccessHandler))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        http.formLogin(AbstractHttpConfigurer::disable);
 
-    return http.build();
-  }
+        return http.build();
+    }
 }

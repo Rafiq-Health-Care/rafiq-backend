@@ -13,17 +13,17 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class LabResultServiceImpl implements LabResultService {
-  private final LabResultRepository labResultRepository;
+    private final LabResultRepository labResultRepository;
 
-  @Override
-  @Transactional
-  public List<LabResult> saveAll(List<LabResult> entity) {
-    return labResultRepository.saveAll(entity);
-  }
+    @Override
+    @Transactional
+    public List<LabResult> saveAll(List<LabResult> entity) {
+        return labResultRepository.saveAll(entity);
+    }
 
-  @Override
-  @Transactional
-  public void deleteAll(List<LabResult> labResults) {
-    labResultRepository.deleteAll(labResults);
-  }
+    @Override
+    @Transactional
+    public void deleteAll(List<LabResult> labResults) {
+        labResultRepository.deleteAll(labResults);
+    }
 }

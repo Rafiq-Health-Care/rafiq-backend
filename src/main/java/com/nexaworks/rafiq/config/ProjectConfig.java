@@ -22,44 +22,39 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 public class ProjectConfig {
-  @Value("${spring.security.oauth2.client.registration.google.client-id}")
-  private String clientId;
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String clientId;
 
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder(10);
-  }
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(10);
+    }
 
-  @Bean
-  public AuthenticationProvider authenticationProvider(
-      PasswordEncoder passwordEncoder, UserDetailsService userDetailsService) {
-    DaoAuthenticationProvider daoAuthenticationProvider =
-        new DaoAuthenticationProvider(userDetailsService);
-    daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
-    return daoAuthenticationProvider;
-  }
+    @Bean
+    public AuthenticationProvider authenticationProvider(
+            PasswordEncoder passwordEncoder, UserDetailsService userDetailsService) {
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider(userDetailsService);
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
+        return daoAuthenticationProvider;
+    }
 
-  @Bean
-  public AuthenticationManager authenticationManager(
-      AuthenticationProvider authenticationProvider) {
-    return new ProviderManager(authenticationProvider);
-  }
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationProvider authenticationProvider) {
+        return new ProviderManager(authenticationProvider);
+    }
 
-  @Bean
-  public UserDetailsService userDetailsService(UserRepository userRepository) {
-    return username ->
-        userRepository
-            .findByEmail(username)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-  }
+    @Bean
+    public UserDetailsService userDetailsService(UserRepository userRepository) {
+        return username ->
+                userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
 
-  @Bean
-  public GoogleIdTokenVerifier googleIdTokenVerifier()
-      throws GeneralSecurityException, IOException {
-    NetHttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
-    GsonFactory jsonFactory = GsonFactory.getDefaultInstance();
-    return new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
-        .setAudience(Collections.singletonList(clientId))
-        .build();
-  }
+    @Bean
+    public GoogleIdTokenVerifier googleIdTokenVerifier() throws GeneralSecurityException, IOException {
+        NetHttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
+        GsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+        return new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
+                .setAudience(Collections.singletonList(clientId))
+                .build();
+    }
 }

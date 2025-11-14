@@ -7,5 +7,5 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface LabTestRepository extends JpaRepository<LabTest, UUID> {
-  Page<LabTest> findAllByPatientId(UUID id, Pageable pageable);
+    Page<LabTest> findAllByPatientId(UUID id, Pageable pageable);
 }

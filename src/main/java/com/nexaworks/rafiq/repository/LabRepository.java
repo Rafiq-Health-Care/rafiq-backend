@@ -6,5 +6,5 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface LabRepository extends JpaRepository<Lab, UUID> {
-  Optional<Lab> findLabByNameContainsIgnoreCase(String s);
+    Optional<Lab> findLabByNameContainsIgnoreCase(String s);
 }

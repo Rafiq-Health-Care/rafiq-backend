@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class EmailContentServiceImpl implements EmailContentService {
 
-  @Override
-  public Map<String, Object> createOtpEmail(String otp, String name, String url) {
-    return Map.of("otp", otp, "name", name, "url", url);
-  }
+    @Override
+    public Map<String, Object> createOtpEmail(String otp, String name, String url) {
+        return Map.of("otp", otp, "name", name, "url", url);
+    }
 }

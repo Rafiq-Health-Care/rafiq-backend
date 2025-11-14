@@ -1,8 +1,8 @@
 package com.nexaworks.rafiq.utils;
 
 public abstract class Prompt {
-  public static final String EXTRACT_PDF =
-      """
+    public static final String EXTRACT_PDF =
+            """
             You are an expert medical data extractor. Process the following medical lab report **exactly as specified**:
 
              [PASTE THE CONTENT OF THE LAB REPORT FILE HERE]

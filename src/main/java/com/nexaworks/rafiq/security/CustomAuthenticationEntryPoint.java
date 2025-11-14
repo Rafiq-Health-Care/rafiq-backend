@@ -20,27 +20,24 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-  private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
-  @Override
-  public void commence(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      AuthenticationException authException)
-      throws IOException, ServletException {
+    @Override
+    public void commence(
+            HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
+            throws IOException, ServletException {
 
-    log.error("Authentication failed: {}", authException.getMessage());
+        log.error("Authentication failed: {}", authException.getMessage());
 
-    ErrorResponse errorResponse =
-        new ErrorResponse(
-            HttpStatus.UNAUTHORIZED.value(),
-            "Authentication Failed",
-            "You need to authenticate to access this resource",
-            LocalDateTime.now(),
-            request.getRequestURI());
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.UNAUTHORIZED.value(),
+                "Authentication Failed",
+                "You need to authenticate to access this resource",
+                LocalDateTime.now(),
+                request.getRequestURI());
 
-    response.setStatus(HttpStatus.UNAUTHORIZED.value());
-    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-    response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
-  }
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+    }
 }

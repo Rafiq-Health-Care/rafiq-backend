@@ -13,8 +13,8 @@ import lombok.experimental.SuperBuilder;
 @Entity
 public class Role extends BaseEntity {
 
-  private String name;
+    private String name;
 
-  @ManyToMany(mappedBy = "roles")
-  private List<User> users;
+    @ManyToMany(mappedBy = "roles")
+    private List<User> users;
 }

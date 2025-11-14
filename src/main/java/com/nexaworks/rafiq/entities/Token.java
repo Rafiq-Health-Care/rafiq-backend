@@ -17,14 +17,14 @@ import lombok.experimental.SuperBuilder;
 @Entity
 public class Token extends BaseEntity {
 
-  private String token;
+    private String token;
 
-  @Enumerated(EnumType.STRING)
-  private TokenType tokenType;
+    @Enumerated(EnumType.STRING)
+    private TokenType tokenType;
 
-  private Instant expiryDate;
+    private Instant expiryDate;
 
-  @ManyToOne
-  @JoinColumn(name = "user_id", nullable = false)
-  private User user;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }

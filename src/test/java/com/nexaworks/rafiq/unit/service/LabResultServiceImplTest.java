@@ -17,22 +17,25 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("LabResultService Test Cases")
 @ExtendWith(MockitoExtension.class)
 public class LabResultServiceImplTest {
-  @Mock LabResultRepository labResultRepository;
-  @InjectMocks LabResultServiceImpl labResultService;
+    @Mock
+    LabResultRepository labResultRepository;
 
-  @DisplayName("Save all lab results")
-  @Test
-  void shouldSaveAllLabResults() {
-    when(labResultRepository.saveAll(anyList())).thenReturn(List.of(new LabResult()));
-    labResultService.saveAll(List.of(new LabResult()));
-    verify(labResultRepository, times(1)).saveAll(anyList());
-  }
+    @InjectMocks
+    LabResultServiceImpl labResultService;
 
-  @DisplayName("Delete all lab results")
-  @Test
-  void shouldDeleteAllLabResults() {
-    doNothing().when(labResultRepository).deleteAll(anyList());
-    labResultService.deleteAll(List.of(new LabResult()));
-    verify(labResultRepository, times(1)).deleteAll(anyList());
-  }
+    @DisplayName("Save all lab results")
+    @Test
+    void shouldSaveAllLabResults() {
+        when(labResultRepository.saveAll(anyList())).thenReturn(List.of(new LabResult()));
+        labResultService.saveAll(List.of(new LabResult()));
+        verify(labResultRepository, times(1)).saveAll(anyList());
+    }
+
+    @DisplayName("Delete all lab results")
+    @Test
+    void shouldDeleteAllLabResults() {
+        doNothing().when(labResultRepository).deleteAll(anyList());
+        labResultService.deleteAll(List.of(new LabResult()));
+        verify(labResultRepository, times(1)).deleteAll(anyList());
+    }
 }

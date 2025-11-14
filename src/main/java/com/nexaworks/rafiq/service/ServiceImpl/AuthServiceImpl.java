@@ -36,146 +36,145 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class AuthServiceImpl implements AuthService {
 
-  private final UserRepository userRepository;
-  private final TokenService tokenService;
-  private final UserService userService;
-  private final AuthenticationManager authenticationManager;
-  private final JwtService jwtService;
-  private final ApplicationEventPublisher eventPublisher;
-  private final AuthSessionManager authSessionManager;
-  private final GoogleIdTokenVerifier verifier;
+    private final UserRepository userRepository;
+    private final TokenService tokenService;
+    private final UserService userService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+    private final ApplicationEventPublisher eventPublisher;
+    private final AuthSessionManager authSessionManager;
+    private final GoogleIdTokenVerifier verifier;
 
-  @Override
-  @Transactional
-  public void forgetPassword(ForgetPasswordRequest forgetPasswordRequest) {
-    String email = forgetPasswordRequest.email();
-    Optional<User> user = userService.findByEmail(email);
-    if (user.isEmpty()) {
-      return;
+    @Override
+    @Transactional
+    public void forgetPassword(ForgetPasswordRequest forgetPasswordRequest) {
+        String email = forgetPasswordRequest.email();
+        Optional<User> user = userService.findByEmail(email);
+        if (user.isEmpty()) {
+            return;
+        }
+        String otp = tokenService.generateOtpToken(user.get());
+        log.info("Generated OTP {}", otp);
+        eventPublisher.publishEvent(
+                new ForgetPasswordEvent(email, otp, user.get().getFirstName()));
     }
-    String otp = tokenService.generateOtpToken(user.get());
-    log.info("Generated OTP {}", otp);
-    eventPublisher.publishEvent(new ForgetPasswordEvent(email, otp, user.get().getFirstName()));
-  }
 
-  @Override
-  @Transactional
-  public VerifyOtpResponse verifyOtp(VerifyOtpRequest verifyOtpRequest) {
-    validateToken(verifyOtpRequest);
-    String accessToken =
-        tokenService.generateAccessToken(userService.findByEmail(verifyOtpRequest.email()));
-    return new VerifyOtpResponse(accessToken);
-  }
-
-  private void validateToken(VerifyOtpRequest verifyOtpRequest) {
-    Token otp = tokenService.getToken(verifyOtpRequest.otp());
-    if (!otp.getUser().getEmail().equals(verifyOtpRequest.email())
-        || otp.getExpiryDate().isBefore(Instant.now())) {
-      log.error(otp.getUser().getEmail() + " " + verifyOtpRequest.email());
-      throw new TokenInvalidException("Invalid OTP");
+    @Override
+    @Transactional
+    public VerifyOtpResponse verifyOtp(VerifyOtpRequest verifyOtpRequest) {
+        validateToken(verifyOtpRequest);
+        String accessToken = tokenService.generateAccessToken(userService.findByEmail(verifyOtpRequest.email()));
+        return new VerifyOtpResponse(accessToken);
     }
-  }
 
-  @Override
-  @Transactional
-  public void changePassword(ChangePasswordRequest changePasswordRequest) {
-    Token token = tokenService.getToken(changePasswordRequest.accessToken());
-    if (token.getExpiryDate().isBefore(Instant.now())) {
-      throw new TokenInvalidException("Invalid Access Token");
+    private void validateToken(VerifyOtpRequest verifyOtpRequest) {
+        Token otp = tokenService.getToken(verifyOtpRequest.otp());
+        if (!otp.getUser().getEmail().equals(verifyOtpRequest.email())
+                || otp.getExpiryDate().isBefore(Instant.now())) {
+            log.error(otp.getUser().getEmail() + " " + verifyOtpRequest.email());
+            throw new TokenInvalidException("Invalid OTP");
+        }
     }
-    User user = token.getUser();
-    userService.changePassword(user, changePasswordRequest.newPassword());
-    log.info("Password changed for user {}", user.getEmail());
-  }
 
-  @Override
-  public void resetPassword(ResetPasswordRequest resetPasswordRequest) {
-    User user = getAuthenticateUser();
-    userService.updatePassword(user, resetPasswordRequest);
-  }
-
-  public User getAuthenticateUser() {
-    return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-  }
-
-  @Override
-  @Transactional
-  public LoginResponse login(String email, String password, HttpServletResponse response) {
-    Authentication authentication =
-        authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(email, password));
-    User user = (User) authentication.getPrincipal();
-    return authSessionManager.createLoginSession(response, user);
-  }
-
-  @Override
-  @Transactional
-  public LoginResponse refresh(HttpServletResponse response, HttpServletRequest request) {
-    Token token = tokenService.getToken(authSessionManager.getCookie(request, "refreshToken"));
-
-    if (token.getExpiryDate().isBefore(Instant.now())) {
-      throw new TokenInvalidException("Invalid Refresh Token");
+    @Override
+    @Transactional
+    public void changePassword(ChangePasswordRequest changePasswordRequest) {
+        Token token = tokenService.getToken(changePasswordRequest.accessToken());
+        if (token.getExpiryDate().isBefore(Instant.now())) {
+            throw new TokenInvalidException("Invalid Access Token");
+        }
+        User user = token.getUser();
+        userService.changePassword(user, changePasswordRequest.newPassword());
+        log.info("Password changed for user {}", user.getEmail());
     }
-    User user = token.getUser();
-    return authSessionManager.createLoginSession(response, user);
-  }
 
-  @Override
-  @Transactional
-  public void logout(LogoutRequest request, HttpServletResponse response) {
-    tokenService.invalidateRefreshToken(tokenService.getToken(request.refreshToken()));
-    jwtService.invalidateJwtToken(request.jwtToken());
-    removeJwtFromCookies(response);
-  }
-
-  @Override
-  @Transactional
-  public LoginResponse oAuth2(String idToken, HttpServletResponse response) {
-    GoogleIdToken googleIdToken = getGoogleIdToken(idToken);
-    String email = googleIdToken.getPayload().getEmail();
-    String firstName = googleIdToken.getPayload().get("given_name").toString();
-    String lastName = googleIdToken.getPayload().get("family_name").toString();
-    Optional<User> user = getUser(email, firstName, lastName);
-    if (user.isPresent()) {
-      return authSessionManager.createLoginSession(response, user.get());
-    } else {
-      throw new GoogleAuthException("Failed to authenticate user with Google");
+    @Override
+    public void resetPassword(ResetPasswordRequest resetPasswordRequest) {
+        User user = getAuthenticateUser();
+        userService.updatePassword(user, resetPasswordRequest);
     }
-  }
 
-  @NotNull
-  private Optional<User> getUser(String email, String firstName, String lastName) {
-    Optional<User> user = userService.findByEmail(email);
-    if (user.isPresent()) {
-      User existingUser = user.get();
-      if (!existingUser.isEnabled()) {
-        existingUser.setEnabled(true);
-        userRepository.save(existingUser);
-      }
-    } else {
-      user = Optional.ofNullable(userService.addUser(email, firstName, lastName));
+    public User getAuthenticateUser() {
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
-    return user;
-  }
 
-  private GoogleIdToken getGoogleIdToken(String idToken) {
-    try {
-      GoogleIdToken token = verifier.verify(idToken);
-      if (token == null) {
-        throw new GoogleAuthException("Invalid id token");
-      }
-      return token;
-    } catch (GeneralSecurityException | IOException e) {
-      log.error("Error verifying Google ID token", e);
-      throw new GoogleAuthException("Failed to verify Google ID token");
+    @Override
+    @Transactional
+    public LoginResponse login(String email, String password, HttpServletResponse response) {
+        Authentication authentication =
+                authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+        User user = (User) authentication.getPrincipal();
+        return authSessionManager.createLoginSession(response, user);
     }
-  }
 
-  private void removeJwtFromCookies(HttpServletResponse response) {
-    Cookie cookie = new Cookie("jwt", null);
-    cookie.setHttpOnly(true);
-    cookie.setPath("/");
-    cookie.setMaxAge(0);
-    response.addCookie(cookie);
-  }
+    @Override
+    @Transactional
+    public LoginResponse refresh(HttpServletResponse response, HttpServletRequest request) {
+        Token token = tokenService.getToken(authSessionManager.getCookie(request, "refreshToken"));
+
+        if (token.getExpiryDate().isBefore(Instant.now())) {
+            throw new TokenInvalidException("Invalid Refresh Token");
+        }
+        User user = token.getUser();
+        return authSessionManager.createLoginSession(response, user);
+    }
+
+    @Override
+    @Transactional
+    public void logout(LogoutRequest request, HttpServletResponse response) {
+        tokenService.invalidateRefreshToken(tokenService.getToken(request.refreshToken()));
+        jwtService.invalidateJwtToken(request.jwtToken());
+        removeJwtFromCookies(response);
+    }
+
+    @Override
+    @Transactional
+    public LoginResponse oAuth2(String idToken, HttpServletResponse response) {
+        GoogleIdToken googleIdToken = getGoogleIdToken(idToken);
+        String email = googleIdToken.getPayload().getEmail();
+        String firstName = googleIdToken.getPayload().get("given_name").toString();
+        String lastName = googleIdToken.getPayload().get("family_name").toString();
+        Optional<User> user = getUser(email, firstName, lastName);
+        if (user.isPresent()) {
+            return authSessionManager.createLoginSession(response, user.get());
+        } else {
+            throw new GoogleAuthException("Failed to authenticate user with Google");
+        }
+    }
+
+    @NotNull
+    private Optional<User> getUser(String email, String firstName, String lastName) {
+        Optional<User> user = userService.findByEmail(email);
+        if (user.isPresent()) {
+            User existingUser = user.get();
+            if (!existingUser.isEnabled()) {
+                existingUser.setEnabled(true);
+                userRepository.save(existingUser);
+            }
+        } else {
+            user = Optional.ofNullable(userService.addUser(email, firstName, lastName));
+        }
+        return user;
+    }
+
+    private GoogleIdToken getGoogleIdToken(String idToken) {
+        try {
+            GoogleIdToken token = verifier.verify(idToken);
+            if (token == null) {
+                throw new GoogleAuthException("Invalid id token");
+            }
+            return token;
+        } catch (GeneralSecurityException | IOException e) {
+            log.error("Error verifying Google ID token", e);
+            throw new GoogleAuthException("Failed to verify Google ID token");
+        }
+    }
+
+    private void removeJwtFromCookies(HttpServletResponse response) {
+        Cookie cookie = new Cookie("jwt", null);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+    }
 }

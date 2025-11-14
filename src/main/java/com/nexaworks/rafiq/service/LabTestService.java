@@ -14,17 +14,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface LabTestService {
-  void addTest(UUID testId, String testName, Date testDate, List<LabResult> entity);
+    void addTest(UUID testId, String testName, Date testDate, List<LabResult> entity);
 
-  Page<LabTest> getAll(int page, int size, String sort, String direction);
+    Page<LabTest> getAll(int page, int size, String sort, String direction);
 
-  LabTest getTest(UUID testId);
+    LabTest getTest(UUID testId);
 
-  void deleteTest(UUID testId);
+    void deleteTest(UUID testId);
 
-  Integer deleteAll();
+    Integer deleteAll();
 
-  void update(UUID testId, @Valid TestResultRequest testResultRequest, List<LabResult> entity);
+    void update(UUID testId, @Valid TestResultRequest testResultRequest, List<LabResult> entity);
 
-  public CompletableFuture<UUID> saveTestPdf(MultipartFile file, User user) throws IOException;
+    public CompletableFuture<UUID> saveTestPdf(MultipartFile file, User user) throws IOException;
 }

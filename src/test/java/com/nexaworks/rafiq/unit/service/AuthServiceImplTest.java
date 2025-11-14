@@ -50,435 +50,451 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @DisplayName("AuthServiceImpl Unit Tests")
 class AuthServiceImplTest {
 
-  @Mock private UserRepository userRepository;
+    @Mock
+    private UserRepository userRepository;
 
-  @Mock private TokenService tokenService;
+    @Mock
+    private TokenService tokenService;
 
-  @Mock private UserService userService;
+    @Mock
+    private UserService userService;
 
-  @Mock private AuthenticationManager authenticationManager;
+    @Mock
+    private AuthenticationManager authenticationManager;
 
-  @Mock private JwtService jwtService;
+    @Mock
+    private JwtService jwtService;
 
-  @Mock private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
-  @Mock private AuthSessionManager authSessionManager;
+    @Mock
+    private AuthSessionManager authSessionManager;
 
-  @Mock private GoogleIdTokenVerifier verifier;
+    @Mock
+    private GoogleIdTokenVerifier verifier;
 
-  @Mock private HttpServletRequest request;
+    @Mock
+    private HttpServletRequest request;
 
-  @Mock private HttpServletResponse response;
+    @Mock
+    private HttpServletResponse response;
 
-  @Mock private Authentication authentication;
+    @Mock
+    private Authentication authentication;
 
-  @Mock private SecurityContext securityContext;
+    @Mock
+    private SecurityContext securityContext;
 
-  @InjectMocks private AuthServiceImpl authService;
+    @InjectMocks
+    private AuthServiceImpl authService;
 
-  @Captor private ArgumentCaptor<ForgetPasswordEvent> eventCaptor;
+    @Captor
+    private ArgumentCaptor<ForgetPasswordEvent> eventCaptor;
 
-  private User testUser;
-  private Token testToken;
+    private User testUser;
+    private Token testToken;
 
-  @BeforeEach
-  void setUp() {
-    testUser = new User();
-    testUser.setEmail("test@example.com");
-    testUser.setFirstName("John");
-    testUser.setLastName("Doe");
-    testUser.setEnabled(true);
+    @BeforeEach
+    void setUp() {
+        testUser = new User();
+        testUser.setEmail("test@example.com");
+        testUser.setFirstName("John");
+        testUser.setLastName("Doe");
+        testUser.setEnabled(true);
 
-    testToken = new Token();
-    testToken.setToken("test-token");
-    testToken.setUser(testUser);
-    testToken.setExpiryDate(Instant.now().plus(1, ChronoUnit.HOURS));
-  }
-
-  @Nested
-  @DisplayName("Forget Password Tests")
-  class ForgetPasswordTests {
-
-    @Test
-    @DisplayName("Should generate OTP and publish event when user exists")
-    void shouldGenerateOtpAndPublishEventWhenUserExists() {
-      // Arrange
-      ForgetPasswordRequest request = new ForgetPasswordRequest("test@example.com");
-      String generatedOtp = "123456";
-
-      when(userService.findByEmail(request.email())).thenReturn(Optional.of(testUser));
-      when(tokenService.generateOtpToken(testUser)).thenReturn(generatedOtp);
-
-      // Act
-      authService.forgetPassword(request);
-
-      // Assert
-      verify(userService).findByEmail(request.email());
-      verify(tokenService).generateOtpToken(testUser);
-      verify(eventPublisher).publishEvent(eventCaptor.capture());
-
-      ForgetPasswordEvent capturedEvent = eventCaptor.getValue();
-      assertThat(capturedEvent.email()).isEqualTo(testUser.getEmail());
-      assertThat(capturedEvent.otp()).isEqualTo(generatedOtp);
-      assertThat(capturedEvent.name()).isEqualTo(testUser.getFirstName());
+        testToken = new Token();
+        testToken.setToken("test-token");
+        testToken.setUser(testUser);
+        testToken.setExpiryDate(Instant.now().plus(1, ChronoUnit.HOURS));
     }
 
-    @Test
-    @DisplayName("Should return silently when user does not exist")
-    void shouldReturnSilentlyWhenUserDoesNotExist() {
-      // Arrange
-      ForgetPasswordRequest request = new ForgetPasswordRequest("nonexistent@example.com");
-      when(userService.findByEmail(request.email())).thenReturn(Optional.empty());
+    @Nested
+    @DisplayName("Forget Password Tests")
+    class ForgetPasswordTests {
 
-      // Act
-      authService.forgetPassword(request);
+        @Test
+        @DisplayName("Should generate OTP and publish event when user exists")
+        void shouldGenerateOtpAndPublishEventWhenUserExists() {
+            // Arrange
+            ForgetPasswordRequest request = new ForgetPasswordRequest("test@example.com");
+            String generatedOtp = "123456";
 
-      // Assert
-      verify(userService).findByEmail(request.email());
-      verify(tokenService, never()).generateOtpToken(any());
-      verify(eventPublisher, never()).publishEvent(any());
-    }
-  }
+            when(userService.findByEmail(request.email())).thenReturn(Optional.of(testUser));
+            when(tokenService.generateOtpToken(testUser)).thenReturn(generatedOtp);
 
-  @Nested
-  @DisplayName("Verify OTP Tests")
-  class VerifyOtpTests {
+            // Act
+            authService.forgetPassword(request);
 
-    @Test
-    @DisplayName("Should verify OTP successfully and return access token")
-    void shouldVerifyOtpSuccessfullyAndReturnAccessToken() {
-      // Arrange
-      VerifyOtpRequest request = new VerifyOtpRequest("test@example.com", "123456");
-      String accessToken = "access-token-123";
+            // Assert
+            verify(userService).findByEmail(request.email());
+            verify(tokenService).generateOtpToken(testUser);
+            verify(eventPublisher).publishEvent(eventCaptor.capture());
 
-      when(tokenService.getToken(request.otp())).thenReturn(testToken);
-      when(userService.findByEmail(request.email())).thenReturn(Optional.of(testUser));
-      when(tokenService.generateAccessToken(Optional.of(testUser))).thenReturn(accessToken);
+            ForgetPasswordEvent capturedEvent = eventCaptor.getValue();
+            assertThat(capturedEvent.email()).isEqualTo(testUser.getEmail());
+            assertThat(capturedEvent.otp()).isEqualTo(generatedOtp);
+            assertThat(capturedEvent.name()).isEqualTo(testUser.getFirstName());
+        }
 
-      // Act
-      VerifyOtpResponse result = authService.verifyOtp(request);
+        @Test
+        @DisplayName("Should return silently when user does not exist")
+        void shouldReturnSilentlyWhenUserDoesNotExist() {
+            // Arrange
+            ForgetPasswordRequest request = new ForgetPasswordRequest("nonexistent@example.com");
+            when(userService.findByEmail(request.email())).thenReturn(Optional.empty());
 
-      // Assert
-      assertThat(result).isNotNull();
-      assertThat(result.accessToken()).isEqualTo(accessToken);
-      verify(tokenService).getToken(request.otp());
-      verify(tokenService).generateAccessToken(Optional.of(testUser));
-    }
+            // Act
+            authService.forgetPassword(request);
 
-    @Test
-    @DisplayName("Should throw exception when OTP email does not match")
-    void shouldThrowExceptionWhenOtpEmailDoesNotMatch() {
-      // Arrange
-      VerifyOtpRequest request = new VerifyOtpRequest("wrong@example.com", "123456");
-      when(tokenService.getToken(request.otp())).thenReturn(testToken);
-
-      // Act & Assert
-      assertThatThrownBy(() -> authService.verifyOtp(request))
-          .isInstanceOf(TokenInvalidException.class)
-          .hasMessage("Invalid OTP");
+            // Assert
+            verify(userService).findByEmail(request.email());
+            verify(tokenService, never()).generateOtpToken(any());
+            verify(eventPublisher, never()).publishEvent(any());
+        }
     }
 
-    @Test
-    @DisplayName("Should throw exception when OTP is expired")
-    void shouldThrowExceptionWhenOtpIsExpired() {
-      // Arrange
-      VerifyOtpRequest request = new VerifyOtpRequest("test@example.com", "123456");
-      testToken.setExpiryDate(Instant.now().minus(1, ChronoUnit.HOURS));
-      when(tokenService.getToken(request.otp())).thenReturn(testToken);
+    @Nested
+    @DisplayName("Verify OTP Tests")
+    class VerifyOtpTests {
 
-      // Act & Assert
-      assertThatThrownBy(() -> authService.verifyOtp(request))
-          .isInstanceOf(TokenInvalidException.class)
-          .hasMessage("Invalid OTP");
-    }
-  }
+        @Test
+        @DisplayName("Should verify OTP successfully and return access token")
+        void shouldVerifyOtpSuccessfullyAndReturnAccessToken() {
+            // Arrange
+            VerifyOtpRequest request = new VerifyOtpRequest("test@example.com", "123456");
+            String accessToken = "access-token-123";
 
-  @Nested
-  @DisplayName("Change Password Tests")
-  class ChangePasswordTests {
+            when(tokenService.getToken(request.otp())).thenReturn(testToken);
+            when(userService.findByEmail(request.email())).thenReturn(Optional.of(testUser));
+            when(tokenService.generateAccessToken(Optional.of(testUser))).thenReturn(accessToken);
 
-    @Test
-    @DisplayName("Should change password successfully with valid access token")
-    void shouldChangePasswordSuccessfullyWithValidAccessToken() {
-      // Arrange
-      ChangePasswordRequest request = new ChangePasswordRequest("access-token", "newPassword123");
-      when(tokenService.getToken(request.accessToken())).thenReturn(testToken);
+            // Act
+            VerifyOtpResponse result = authService.verifyOtp(request);
 
-      // Act
-      authService.changePassword(request);
+            // Assert
+            assertThat(result).isNotNull();
+            assertThat(result.accessToken()).isEqualTo(accessToken);
+            verify(tokenService).getToken(request.otp());
+            verify(tokenService).generateAccessToken(Optional.of(testUser));
+        }
 
-      // Assert
-      verify(tokenService).getToken(request.accessToken());
-      verify(userService).changePassword(testUser, request.newPassword());
-    }
+        @Test
+        @DisplayName("Should throw exception when OTP email does not match")
+        void shouldThrowExceptionWhenOtpEmailDoesNotMatch() {
+            // Arrange
+            VerifyOtpRequest request = new VerifyOtpRequest("wrong@example.com", "123456");
+            when(tokenService.getToken(request.otp())).thenReturn(testToken);
 
-    @Test
-    @DisplayName("Should throw exception when access token is expired")
-    void shouldThrowExceptionWhenAccessTokenIsExpired() {
-      // Arrange
-      ChangePasswordRequest request = new ChangePasswordRequest("expired-token", "newPassword123");
-      testToken.setExpiryDate(Instant.now().minus(1, ChronoUnit.HOURS));
-      when(tokenService.getToken(request.accessToken())).thenReturn(testToken);
+            // Act & Assert
+            assertThatThrownBy(() -> authService.verifyOtp(request))
+                    .isInstanceOf(TokenInvalidException.class)
+                    .hasMessage("Invalid OTP");
+        }
 
-      // Act & Assert
-      assertThatThrownBy(() -> authService.changePassword(request))
-          .isInstanceOf(TokenInvalidException.class)
-          .hasMessage("Invalid Access Token");
+        @Test
+        @DisplayName("Should throw exception when OTP is expired")
+        void shouldThrowExceptionWhenOtpIsExpired() {
+            // Arrange
+            VerifyOtpRequest request = new VerifyOtpRequest("test@example.com", "123456");
+            testToken.setExpiryDate(Instant.now().minus(1, ChronoUnit.HOURS));
+            when(tokenService.getToken(request.otp())).thenReturn(testToken);
 
-      verify(userService, never()).changePassword(any(), anyString());
-    }
-  }
-
-  @Nested
-  @DisplayName("Reset Password Tests")
-  class ResetPasswordTests {
-
-    @Test
-    @DisplayName("Should reset password for authenticated user")
-    void shouldResetPasswordForAuthenticatedUser() {
-      // Arrange
-      ResetPasswordRequest request = new ResetPasswordRequest("oldPass", "newPass123");
-
-      when(securityContext.getAuthentication()).thenReturn(authentication);
-      when(authentication.getPrincipal()).thenReturn(testUser);
-      SecurityContextHolder.setContext(securityContext);
-
-      // Act
-      authService.resetPassword(request);
-
-      // Assert
-      verify(userService).updatePassword(testUser, request);
-    }
-  }
-
-  @Nested
-  @DisplayName("Login Tests")
-  class LoginTests {
-
-    @Test
-    @DisplayName("Should login successfully with valid credentials")
-    void shouldLoginSuccessfullyWithValidCredentials() {
-      // Arrange
-      String email = "test@example.com";
-      String password = "password123";
-      LoginResponse expectedResponse = new LoginResponse(Optional.of("ROLE_USER"));
-
-      when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-          .thenReturn(authentication);
-      when(authentication.getPrincipal()).thenReturn(testUser);
-      when(authSessionManager.createLoginSession(response, testUser)).thenReturn(expectedResponse);
-
-      // Act
-      LoginResponse result = authService.login(email, password, response);
-
-      // Assert
-      assertThat(result).isEqualTo(expectedResponse);
-      verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-      verify(authSessionManager).createLoginSession(response, testUser);
-    }
-  }
-
-  @Nested
-  @DisplayName("Refresh Token Tests")
-  class RefreshTokenTests {
-
-    @Test
-    @DisplayName("Should refresh token successfully with valid refresh token")
-    void shouldRefreshTokenSuccessfullyWithValidRefreshToken() {
-      // Arrange
-      String refreshToken = "valid-refresh-token";
-      LoginResponse expectedResponse = new LoginResponse(Optional.of("ROLE_USER"));
-
-      when(authSessionManager.getCookie(request, "refreshToken")).thenReturn(refreshToken);
-      when(tokenService.getToken(refreshToken)).thenReturn(testToken);
-      when(authSessionManager.createLoginSession(response, testUser)).thenReturn(expectedResponse);
-
-      // Act
-      LoginResponse result = authService.refresh(response, request);
-
-      // Assert
-      assertThat(result).isEqualTo(expectedResponse);
-      verify(tokenService).getToken(refreshToken);
-      verify(authSessionManager).createLoginSession(response, testUser);
+            // Act & Assert
+            assertThatThrownBy(() -> authService.verifyOtp(request))
+                    .isInstanceOf(TokenInvalidException.class)
+                    .hasMessage("Invalid OTP");
+        }
     }
 
-    @Test
-    @DisplayName("Should throw exception when refresh token is expired")
-    void shouldThrowExceptionWhenRefreshTokenIsExpired() {
-      // Arrange
-      String refreshToken = "expired-refresh-token";
-      testToken.setExpiryDate(Instant.now().minus(1, ChronoUnit.HOURS));
+    @Nested
+    @DisplayName("Change Password Tests")
+    class ChangePasswordTests {
 
-      when(authSessionManager.getCookie(request, "refreshToken")).thenReturn(refreshToken);
-      when(tokenService.getToken(refreshToken)).thenReturn(testToken);
+        @Test
+        @DisplayName("Should change password successfully with valid access token")
+        void shouldChangePasswordSuccessfullyWithValidAccessToken() {
+            // Arrange
+            ChangePasswordRequest request = new ChangePasswordRequest("access-token", "newPassword123");
+            when(tokenService.getToken(request.accessToken())).thenReturn(testToken);
 
-      // Act & Assert
-      assertThatThrownBy(() -> authService.refresh(response, request))
-          .isInstanceOf(TokenInvalidException.class)
-          .hasMessage("Invalid Refresh Token");
-    }
-  }
+            // Act
+            authService.changePassword(request);
 
-  @Nested
-  @DisplayName("OAuth2 Tests")
-  class OAuth2Tests {
+            // Assert
+            verify(tokenService).getToken(request.accessToken());
+            verify(userService).changePassword(testUser, request.newPassword());
+        }
 
-    @Mock private GoogleIdToken googleIdToken;
+        @Test
+        @DisplayName("Should throw exception when access token is expired")
+        void shouldThrowExceptionWhenAccessTokenIsExpired() {
+            // Arrange
+            ChangePasswordRequest request = new ChangePasswordRequest("expired-token", "newPassword123");
+            testToken.setExpiryDate(Instant.now().minus(1, ChronoUnit.HOURS));
+            when(tokenService.getToken(request.accessToken())).thenReturn(testToken);
 
-    @Mock private GoogleIdToken.Payload payload;
+            // Act & Assert
+            assertThatThrownBy(() -> authService.changePassword(request))
+                    .isInstanceOf(TokenInvalidException.class)
+                    .hasMessage("Invalid Access Token");
 
-    @Test
-    @DisplayName("Should authenticate existing user via Google OAuth2")
-    void shouldAuthenticateExistingUserViaGoogleOAuth2() throws Exception {
-      // Arrange
-      String idToken = "valid-google-id-token";
-      LoginResponse expectedResponse = new LoginResponse(Optional.of("ROLE_USER"));
-
-      when(verifier.verify(idToken)).thenReturn(googleIdToken);
-      when(googleIdToken.getPayload()).thenReturn(payload);
-      when(payload.getEmail()).thenReturn("test@example.com");
-      when(payload.get("given_name")).thenReturn("John");
-      when(payload.get("family_name")).thenReturn("Doe");
-      when(userService.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-      when(authSessionManager.createLoginSession(response, testUser)).thenReturn(expectedResponse);
-
-      // Act
-      LoginResponse result = authService.oAuth2(idToken, response);
-
-      // Assert
-      assertThat(result).isEqualTo(expectedResponse);
-      verify(verifier).verify(idToken);
-      verify(authSessionManager).createLoginSession(response, testUser);
+            verify(userService, never()).changePassword(any(), anyString());
+        }
     }
 
-    @Test
-    @DisplayName("Should create and authenticate new user via Google OAuth2")
-    void shouldCreateAndAuthenticateNewUserViaGoogleOAuth2() throws Exception {
-      // Arrange
-      String idToken = "valid-google-id-token";
-      LoginResponse expectedResponse = new LoginResponse(Optional.of("ROLE_USER"));
+    @Nested
+    @DisplayName("Reset Password Tests")
+    class ResetPasswordTests {
 
-      when(verifier.verify(idToken)).thenReturn(googleIdToken);
-      when(googleIdToken.getPayload()).thenReturn(payload);
-      when(payload.getEmail()).thenReturn("newuser@example.com");
-      when(payload.get("given_name")).thenReturn("Jane");
-      when(payload.get("family_name")).thenReturn("Smith");
-      when(userService.findByEmail("newuser@example.com")).thenReturn(Optional.empty());
-      when(userService.addUser("newuser@example.com", "Jane", "Smith")).thenReturn(testUser);
-      when(authSessionManager.createLoginSession(response, testUser)).thenReturn(expectedResponse);
+        @Test
+        @DisplayName("Should reset password for authenticated user")
+        void shouldResetPasswordForAuthenticatedUser() {
+            // Arrange
+            ResetPasswordRequest request = new ResetPasswordRequest("oldPass", "newPass123");
 
-      // Act
-      LoginResponse result = authService.oAuth2(idToken, response);
+            when(securityContext.getAuthentication()).thenReturn(authentication);
+            when(authentication.getPrincipal()).thenReturn(testUser);
+            SecurityContextHolder.setContext(securityContext);
 
-      // Assert
-      assertThat(result).isEqualTo(expectedResponse);
-      verify(userService).addUser("newuser@example.com", "Jane", "Smith");
-      verify(authSessionManager).createLoginSession(response, testUser);
+            // Act
+            authService.resetPassword(request);
+
+            // Assert
+            verify(userService).updatePassword(testUser, request);
+        }
     }
 
-    @Test
-    @DisplayName("Should enable disabled user during Google OAuth2 login")
-    void shouldEnableDisabledUserDuringGoogleOAuth2Login() throws Exception {
-      // Arrange
-      String idToken = "valid-google-id-token";
-      testUser.setEnabled(false);
-      LoginResponse expectedResponse = new LoginResponse(Optional.of("ROLE_USER"));
+    @Nested
+    @DisplayName("Login Tests")
+    class LoginTests {
 
-      when(verifier.verify(idToken)).thenReturn(googleIdToken);
-      when(googleIdToken.getPayload()).thenReturn(payload);
-      when(payload.getEmail()).thenReturn("test@example.com");
-      when(payload.get("given_name")).thenReturn("John");
-      when(payload.get("family_name")).thenReturn("Doe");
-      when(userService.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-      when(authSessionManager.createLoginSession(response, testUser)).thenReturn(expectedResponse);
+        @Test
+        @DisplayName("Should login successfully with valid credentials")
+        void shouldLoginSuccessfullyWithValidCredentials() {
+            // Arrange
+            String email = "test@example.com";
+            String password = "password123";
+            LoginResponse expectedResponse = new LoginResponse(Optional.of("ROLE_USER"));
 
-      // Act
-      LoginResponse result = authService.oAuth2(idToken, response);
+            when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                    .thenReturn(authentication);
+            when(authentication.getPrincipal()).thenReturn(testUser);
+            when(authSessionManager.createLoginSession(response, testUser)).thenReturn(expectedResponse);
 
-      // Assert
-      assertThat(testUser.isEnabled()).isTrue();
-      verify(userRepository).save(testUser);
-      verify(authSessionManager).createLoginSession(response, testUser);
+            // Act
+            LoginResponse result = authService.login(email, password, response);
+
+            // Assert
+            assertThat(result).isEqualTo(expectedResponse);
+            verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+            verify(authSessionManager).createLoginSession(response, testUser);
+        }
     }
 
-    @Test
-    @DisplayName("Should throw exception when Google ID token is null")
-    void shouldThrowExceptionWhenGoogleIdTokenIsNull() throws Exception {
-      // Arrange
-      String idToken = "invalid-token";
-      when(verifier.verify(idToken)).thenReturn(null);
+    @Nested
+    @DisplayName("Refresh Token Tests")
+    class RefreshTokenTests {
 
-      // Act & Assert
-      assertThatThrownBy(() -> authService.oAuth2(idToken, response))
-          .isInstanceOf(GoogleAuthException.class)
-          .hasMessage("Invalid id token");
+        @Test
+        @DisplayName("Should refresh token successfully with valid refresh token")
+        void shouldRefreshTokenSuccessfullyWithValidRefreshToken() {
+            // Arrange
+            String refreshToken = "valid-refresh-token";
+            LoginResponse expectedResponse = new LoginResponse(Optional.of("ROLE_USER"));
+
+            when(authSessionManager.getCookie(request, "refreshToken")).thenReturn(refreshToken);
+            when(tokenService.getToken(refreshToken)).thenReturn(testToken);
+            when(authSessionManager.createLoginSession(response, testUser)).thenReturn(expectedResponse);
+
+            // Act
+            LoginResponse result = authService.refresh(response, request);
+
+            // Assert
+            assertThat(result).isEqualTo(expectedResponse);
+            verify(tokenService).getToken(refreshToken);
+            verify(authSessionManager).createLoginSession(response, testUser);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when refresh token is expired")
+        void shouldThrowExceptionWhenRefreshTokenIsExpired() {
+            // Arrange
+            String refreshToken = "expired-refresh-token";
+            testToken.setExpiryDate(Instant.now().minus(1, ChronoUnit.HOURS));
+
+            when(authSessionManager.getCookie(request, "refreshToken")).thenReturn(refreshToken);
+            when(tokenService.getToken(refreshToken)).thenReturn(testToken);
+
+            // Act & Assert
+            assertThatThrownBy(() -> authService.refresh(response, request))
+                    .isInstanceOf(TokenInvalidException.class)
+                    .hasMessage("Invalid Refresh Token");
+        }
     }
 
-    @Test
-    @DisplayName("Should throw exception when Google token verification fails")
-    void shouldThrowExceptionWhenGoogleTokenVerificationFails() throws Exception {
-      // Arrange
-      String idToken = "invalid-token";
-      when(verifier.verify(idToken)).thenThrow(new GeneralSecurityException("Verification failed"));
+    @Nested
+    @DisplayName("OAuth2 Tests")
+    class OAuth2Tests {
 
-      // Act & Assert
-      assertThatThrownBy(() -> authService.oAuth2(idToken, response))
-          .isInstanceOf(GoogleAuthException.class)
-          .hasMessage("Failed to verify Google ID token");
+        @Mock
+        private GoogleIdToken googleIdToken;
+
+        @Mock
+        private GoogleIdToken.Payload payload;
+
+        @Test
+        @DisplayName("Should authenticate existing user via Google OAuth2")
+        void shouldAuthenticateExistingUserViaGoogleOAuth2() throws Exception {
+            // Arrange
+            String idToken = "valid-google-id-token";
+            LoginResponse expectedResponse = new LoginResponse(Optional.of("ROLE_USER"));
+
+            when(verifier.verify(idToken)).thenReturn(googleIdToken);
+            when(googleIdToken.getPayload()).thenReturn(payload);
+            when(payload.getEmail()).thenReturn("test@example.com");
+            when(payload.get("given_name")).thenReturn("John");
+            when(payload.get("family_name")).thenReturn("Doe");
+            when(userService.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
+            when(authSessionManager.createLoginSession(response, testUser)).thenReturn(expectedResponse);
+
+            // Act
+            LoginResponse result = authService.oAuth2(idToken, response);
+
+            // Assert
+            assertThat(result).isEqualTo(expectedResponse);
+            verify(verifier).verify(idToken);
+            verify(authSessionManager).createLoginSession(response, testUser);
+        }
+
+        @Test
+        @DisplayName("Should create and authenticate new user via Google OAuth2")
+        void shouldCreateAndAuthenticateNewUserViaGoogleOAuth2() throws Exception {
+            // Arrange
+            String idToken = "valid-google-id-token";
+            LoginResponse expectedResponse = new LoginResponse(Optional.of("ROLE_USER"));
+
+            when(verifier.verify(idToken)).thenReturn(googleIdToken);
+            when(googleIdToken.getPayload()).thenReturn(payload);
+            when(payload.getEmail()).thenReturn("newuser@example.com");
+            when(payload.get("given_name")).thenReturn("Jane");
+            when(payload.get("family_name")).thenReturn("Smith");
+            when(userService.findByEmail("newuser@example.com")).thenReturn(Optional.empty());
+            when(userService.addUser("newuser@example.com", "Jane", "Smith")).thenReturn(testUser);
+            when(authSessionManager.createLoginSession(response, testUser)).thenReturn(expectedResponse);
+
+            // Act
+            LoginResponse result = authService.oAuth2(idToken, response);
+
+            // Assert
+            assertThat(result).isEqualTo(expectedResponse);
+            verify(userService).addUser("newuser@example.com", "Jane", "Smith");
+            verify(authSessionManager).createLoginSession(response, testUser);
+        }
+
+        @Test
+        @DisplayName("Should enable disabled user during Google OAuth2 login")
+        void shouldEnableDisabledUserDuringGoogleOAuth2Login() throws Exception {
+            // Arrange
+            String idToken = "valid-google-id-token";
+            testUser.setEnabled(false);
+            LoginResponse expectedResponse = new LoginResponse(Optional.of("ROLE_USER"));
+
+            when(verifier.verify(idToken)).thenReturn(googleIdToken);
+            when(googleIdToken.getPayload()).thenReturn(payload);
+            when(payload.getEmail()).thenReturn("test@example.com");
+            when(payload.get("given_name")).thenReturn("John");
+            when(payload.get("family_name")).thenReturn("Doe");
+            when(userService.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
+            when(authSessionManager.createLoginSession(response, testUser)).thenReturn(expectedResponse);
+
+            // Act
+            LoginResponse result = authService.oAuth2(idToken, response);
+
+            // Assert
+            assertThat(testUser.isEnabled()).isTrue();
+            verify(userRepository).save(testUser);
+            verify(authSessionManager).createLoginSession(response, testUser);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when Google ID token is null")
+        void shouldThrowExceptionWhenGoogleIdTokenIsNull() throws Exception {
+            // Arrange
+            String idToken = "invalid-token";
+            when(verifier.verify(idToken)).thenReturn(null);
+
+            // Act & Assert
+            assertThatThrownBy(() -> authService.oAuth2(idToken, response))
+                    .isInstanceOf(GoogleAuthException.class)
+                    .hasMessage("Invalid id token");
+        }
+
+        @Test
+        @DisplayName("Should throw exception when Google token verification fails")
+        void shouldThrowExceptionWhenGoogleTokenVerificationFails() throws Exception {
+            // Arrange
+            String idToken = "invalid-token";
+            when(verifier.verify(idToken)).thenThrow(new GeneralSecurityException("Verification failed"));
+
+            // Act & Assert
+            assertThatThrownBy(() -> authService.oAuth2(idToken, response))
+                    .isInstanceOf(GoogleAuthException.class)
+                    .hasMessage("Failed to verify Google ID token");
+        }
+
+        @Test
+        @DisplayName("Should throw exception when IOException occurs during verification")
+        void shouldThrowExceptionWhenIOExceptionOccursDuringVerification() throws Exception {
+            // Arrange
+            String idToken = "invalid-token";
+            when(verifier.verify(idToken)).thenThrow(new IOException("Network error"));
+
+            // Act & Assert
+            assertThatThrownBy(() -> authService.oAuth2(idToken, response))
+                    .isInstanceOf(GoogleAuthException.class)
+                    .hasMessage("Failed to verify Google ID token");
+        }
+
+        @Test
+        @DisplayName("Should throw exception when user creation fails")
+        void shouldThrowExceptionWhenUserCreationFails() throws Exception {
+            // Arrange
+            String idToken = "valid-google-id-token";
+
+            when(verifier.verify(idToken)).thenReturn(googleIdToken);
+            when(googleIdToken.getPayload()).thenReturn(payload);
+            when(payload.getEmail()).thenReturn("newuser@example.com");
+            when(payload.get("given_name")).thenReturn("Jane");
+            when(payload.get("family_name")).thenReturn("Smith");
+            when(userService.findByEmail("newuser@example.com")).thenReturn(Optional.empty());
+            when(userService.addUser(anyString(), anyString(), anyString())).thenReturn(null);
+
+            // Act & Assert
+            assertThatThrownBy(() -> authService.oAuth2(idToken, response))
+                    .isInstanceOf(GoogleAuthException.class)
+                    .hasMessage("Failed to authenticate user with Google");
+        }
     }
 
-    @Test
-    @DisplayName("Should throw exception when IOException occurs during verification")
-    void shouldThrowExceptionWhenIOExceptionOccursDuringVerification() throws Exception {
-      // Arrange
-      String idToken = "invalid-token";
-      when(verifier.verify(idToken)).thenThrow(new IOException("Network error"));
+    @Nested
+    @DisplayName("Get Authenticated User Tests")
+    class GetAuthenticatedUserTests {
 
-      // Act & Assert
-      assertThatThrownBy(() -> authService.oAuth2(idToken, response))
-          .isInstanceOf(GoogleAuthException.class)
-          .hasMessage("Failed to verify Google ID token");
+        @Test
+        @DisplayName("Should return authenticated user from security context")
+        void shouldReturnAuthenticatedUserFromSecurityContext() {
+            // Arrange
+            when(securityContext.getAuthentication()).thenReturn(authentication);
+            when(authentication.getPrincipal()).thenReturn(testUser);
+            SecurityContextHolder.setContext(securityContext);
+
+            // Act
+            User result = authService.getAuthenticateUser();
+
+            // Assert
+            assertThat(result).isEqualTo(testUser);
+            assertThat(result.getEmail()).isEqualTo("test@example.com");
+        }
     }
-
-    @Test
-    @DisplayName("Should throw exception when user creation fails")
-    void shouldThrowExceptionWhenUserCreationFails() throws Exception {
-      // Arrange
-      String idToken = "valid-google-id-token";
-
-      when(verifier.verify(idToken)).thenReturn(googleIdToken);
-      when(googleIdToken.getPayload()).thenReturn(payload);
-      when(payload.getEmail()).thenReturn("newuser@example.com");
-      when(payload.get("given_name")).thenReturn("Jane");
-      when(payload.get("family_name")).thenReturn("Smith");
-      when(userService.findByEmail("newuser@example.com")).thenReturn(Optional.empty());
-      when(userService.addUser(anyString(), anyString(), anyString())).thenReturn(null);
-
-      // Act & Assert
-      assertThatThrownBy(() -> authService.oAuth2(idToken, response))
-          .isInstanceOf(GoogleAuthException.class)
-          .hasMessage("Failed to authenticate user with Google");
-    }
-  }
-
-  @Nested
-  @DisplayName("Get Authenticated User Tests")
-  class GetAuthenticatedUserTests {
-
-    @Test
-    @DisplayName("Should return authenticated user from security context")
-    void shouldReturnAuthenticatedUserFromSecurityContext() {
-      // Arrange
-      when(securityContext.getAuthentication()).thenReturn(authentication);
-      when(authentication.getPrincipal()).thenReturn(testUser);
-      SecurityContextHolder.setContext(securityContext);
-
-      // Act
-      User result = authService.getAuthenticateUser();
-
-      // Assert
-      assertThat(result).isEqualTo(testUser);
-      assertThat(result.getEmail()).isEqualTo("test@example.com");
-    }
-  }
 }

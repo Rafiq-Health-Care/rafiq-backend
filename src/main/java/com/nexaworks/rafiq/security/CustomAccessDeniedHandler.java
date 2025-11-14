@@ -20,30 +20,24 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
-  private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
-  @Override
-  public void handle(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      AccessDeniedException accessDeniedException)
-      throws IOException, ServletException {
+    @Override
+    public void handle(
+            HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException)
+            throws IOException, ServletException {
 
-    log.error(
-        "Access denied for request: {} - {}",
-        request.getRequestURI(),
-        accessDeniedException.getMessage());
+        log.error("Access denied for request: {} - {}", request.getRequestURI(), accessDeniedException.getMessage());
 
-    ErrorResponse errorResponse =
-        new ErrorResponse(
-            HttpStatus.FORBIDDEN.value(),
-            "Access Denied",
-            "You do not have sufficient privileges to access this resource",
-            LocalDateTime.now(),
-            request.getRequestURI());
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.FORBIDDEN.value(),
+                "Access Denied",
+                "You do not have sufficient privileges to access this resource",
+                LocalDateTime.now(),
+                request.getRequestURI());
 
-    response.setStatus(HttpStatus.FORBIDDEN.value());
-    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-    response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
-  }
+        response.setStatus(HttpStatus.FORBIDDEN.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+    }
 }

@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/specialization")
 @RequiredArgsConstructor
 public class SpecializationController {
-  private final SpecializationService specializationService;
+    private final SpecializationService specializationService;
 
-  @GetMapping
-  public ResponseEntity<List<SpecializationResponse>> getSpecializations() {
-    return ResponseEntity.ok().body(specializationService.getSpecializations());
-  }
+    @GetMapping
+    public ResponseEntity<List<SpecializationResponse>> getSpecializations() {
+        return ResponseEntity.ok().body(specializationService.getSpecializations());
+    }
 }

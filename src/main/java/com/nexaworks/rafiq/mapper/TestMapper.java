@@ -8,15 +8,15 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class TestMapper {
-  public TestResultsResponse mapToTestResponse(LabTest test) {
-    return new TestResultsResponse(
-        test.getName(),
-        test.getId(),
-        test.getPdf(),
-        test.getFileType(),
-        Date.from(test.getDate()),
-        test.getLabResults().stream()
-            .map(t -> new TestRequest(t.getName(), t.getResult(), t.getUnit(), t.getStatus()))
-            .toList());
-  }
+    public TestResultsResponse mapToTestResponse(LabTest test) {
+        return new TestResultsResponse(
+                test.getName(),
+                test.getId(),
+                test.getPdf(),
+                test.getFileType(),
+                Date.from(test.getDate()),
+                test.getLabResults().stream()
+                        .map(t -> new TestRequest(t.getName(), t.getResult(), t.getUnit(), t.getStatus()))
+                        .toList());
+    }
 }

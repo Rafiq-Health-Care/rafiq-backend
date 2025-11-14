@@ -5,15 +5,15 @@ import com.nexaworks.rafiq.entities.User;
 import java.util.Optional;
 
 public interface TokenService {
-  public String generateRefreshToken(User user);
+    public String generateRefreshToken(User user);
 
-  String generateOtpToken(User user);
+    String generateOtpToken(User user);
 
-  Token getToken(String otp);
+    Token getToken(String otp);
 
-  String generateAccessToken(Optional<User> byEmail);
+    String generateAccessToken(Optional<User> byEmail);
 
-  User verifyOtp(String email, String otp);
+    User verifyOtp(String email, String otp);
 
-  void invalidateRefreshToken(Token token);
+    void invalidateRefreshToken(Token token);
 }

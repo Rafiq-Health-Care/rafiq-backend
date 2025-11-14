@@ -24,47 +24,47 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler {
-  private final UserService userService;
-  private final JwtService jwtService;
-  private final TokenService tokenService;
-  private final AuthSessionManager authSessionManager;
+    private final UserService userService;
+    private final JwtService jwtService;
+    private final TokenService tokenService;
+    private final AuthSessionManager authSessionManager;
 
-  @Override
-  public void onAuthenticationSuccess(
-      HttpServletRequest request, HttpServletResponse response, Authentication authentication)
-      throws IOException, ServletException {
-    OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-    log.info("OAuth2 user: {}", oAuth2User);
-    String fullName = oAuth2User.getAttribute("name");
-    String email = oAuth2User.getAttribute("email");
+    @Override
+    public void onAuthenticationSuccess(
+            HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+            throws IOException, ServletException {
+        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+        log.info("OAuth2 user: {}", oAuth2User);
+        String fullName = oAuth2User.getAttribute("name");
+        String email = oAuth2User.getAttribute("email");
 
-    if (email == null) {
-      log.error("Email is null");
-      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-      response.setContentType("application/json");
-      new ObjectMapper().writeValue(response.getOutputStream(), "Cannot find email");
-      return;
-    }
+        if (email == null) {
+            log.error("Email is null");
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.setContentType("application/json");
+            new ObjectMapper().writeValue(response.getOutputStream(), "Cannot find email");
+            return;
+        }
 
-    Optional<User> user = userService.findByEmail(email);
-    if (user.isPresent()) {
-      if (!user.get().isEnabled()) {
-        // todo handle exception
-        throw new IllegalStateException("User is disabled");
-      }
-      log.info("User already exists");
-      LoginResponse loginResponse = authSessionManager.createLoginSession(response, user.get());
-      response.setStatus(HttpServletResponse.SC_OK);
-      response.setContentType("application/json");
-      new ObjectMapper().writeValue(response.getOutputStream(), loginResponse);
-      return;
+        Optional<User> user = userService.findByEmail(email);
+        if (user.isPresent()) {
+            if (!user.get().isEnabled()) {
+                // todo handle exception
+                throw new IllegalStateException("User is disabled");
+            }
+            log.info("User already exists");
+            LoginResponse loginResponse = authSessionManager.createLoginSession(response, user.get());
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.setContentType("application/json");
+            new ObjectMapper().writeValue(response.getOutputStream(), loginResponse);
+            return;
+        }
+        if (fullName == null) {
+            fullName = "Unknown";
+        }
+        Map<String, Object> attributes = Map.of("fullName", fullName, "email", email);
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType("application/json");
+        new ObjectMapper().writeValue(response.getOutputStream(), attributes);
     }
-    if (fullName == null) {
-      fullName = "Unknown";
-    }
-    Map<String, Object> attributes = Map.of("fullName", fullName, "email", email);
-    response.setStatus(HttpServletResponse.SC_OK);
-    response.setContentType("application/json");
-    new ObjectMapper().writeValue(response.getOutputStream(), attributes);
-  }
 }

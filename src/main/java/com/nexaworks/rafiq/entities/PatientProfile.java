@@ -16,11 +16,11 @@ import lombok.experimental.SuperBuilder;
 @Entity
 public class PatientProfile extends BaseEntity {
 
-  private String description;
+    private String description;
 
-  @OneToOne(mappedBy = "patientProfile")
-  private User user;
+    @OneToOne(mappedBy = "patientProfile")
+    private User user;
 
-  @OneToMany(mappedBy = "patient")
-  private List<LabTest> labTests;
+    @OneToMany(mappedBy = "patient")
+    private List<LabTest> labTests;
 }

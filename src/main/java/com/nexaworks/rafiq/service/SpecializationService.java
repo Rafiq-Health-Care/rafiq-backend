@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.UUID;
 
 public interface SpecializationService {
-  Specialization getSpecialization(UUID specialization);
+    Specialization getSpecialization(UUID specialization);
 
-  Specialization getSpecializationByCode(String code);
+    Specialization getSpecializationByCode(String code);
 
-  List<SpecializationResponse> getSpecializations();
+    List<SpecializationResponse> getSpecializations();
 
-  List<Specialization> getAllSpecializations();
+    List<Specialization> getAllSpecializations();
 }

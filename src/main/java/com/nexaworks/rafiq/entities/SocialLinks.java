@@ -15,17 +15,17 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Entity
 public class SocialLinks extends BaseEntity {
-  private String facebook;
-  private String twitter;
-  private String instagram;
-  private String linkedin;
-  private String youtube;
-  private String whatsapp;
-  private String website;
+    private String facebook;
+    private String twitter;
+    private String instagram;
+    private String linkedin;
+    private String youtube;
+    private String whatsapp;
+    private String website;
 
-  @OneToOne(mappedBy = "socialLinks")
-  private DoctorProfile doctorProfile;
+    @OneToOne(mappedBy = "socialLinks")
+    private DoctorProfile doctorProfile;
 
-  @OneToOne(mappedBy = "socialLinks")
-  private Lab lab;
+    @OneToOne(mappedBy = "socialLinks")
+    private Lab lab;
 }
