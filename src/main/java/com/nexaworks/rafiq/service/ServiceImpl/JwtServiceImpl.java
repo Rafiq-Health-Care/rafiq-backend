@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import javax.crypto.SecretKey;
@@ -12,12 +13,15 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
+import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.enums.TokenType;
 import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
 import com.nexaworks.rafiq.exception.custom.UserException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.JwtService;
+import com.nexaworks.rafiq.service.TokenService;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -37,6 +41,7 @@ public class JwtServiceImpl implements JwtService {
     private Long JWT_EXPIRATION;
 
     private final UserRepository userRepository;
+    private final TokenService tokenService;
 
     @Override
     public String generateToken(User user) {
@@ -51,6 +56,17 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public void invalidateJwtToken(String s) {
+        Token token = Token.builder().token(s).tokenType(TokenType.JWT_BLACKLIST)
+                .expiryDate(getExpirationDate(s)).build();
+        tokenService.saveToken(token);
+
+    }
+
+    private Instant getExpirationDate(String s) {
+        Claims claims = Jwts.parser().verifyWith(getKey()).build().parseSignedClaims(s)
+                .getPayload();
+        Date expiration = claims.getExpiration();
+        return expiration.toInstant();
     }
 
     @Override
