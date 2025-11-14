@@ -57,9 +57,17 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public void invalidateJwtToken(String s) {
         Token token = Token.builder().token(s).tokenType(TokenType.JWT_BLACKLIST)
-                .expiryDate(getExpirationDate(s)).build();
+                .expiryDate(getExpirationDate(s)).user(getUser(s)).build();
         tokenService.saveToken(token);
 
+    }
+
+    private User getUser(String s) {
+        Claims claims = Jwts.parser().verifyWith(getKey()).build().parseSignedClaims(s)
+                .getPayload();
+        String email = claims.getSubject();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
     private Instant getExpirationDate(String s) {

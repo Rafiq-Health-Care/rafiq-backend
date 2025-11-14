@@ -32,6 +32,9 @@ import com.nexaworks.rafiq.integration.BaseIntegrationTest;
 import com.nexaworks.rafiq.repository.RoleRepository;
 import com.nexaworks.rafiq.repository.TokenRepository;
 import com.nexaworks.rafiq.repository.UserRepository;
+import com.nexaworks.rafiq.service.JwtService;
+
+import jakarta.servlet.http.Cookie;
 
 @DisplayName("Auth Controller Integration Test Cases")
 public class AuthControllerIntegrationTest extends BaseIntegrationTest {
@@ -53,6 +56,9 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtService jwtService;
 
     @BeforeEach
     void setUp() {
@@ -83,6 +89,12 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
 
     private Token createAccessToken(User user, String tokenValue, Instant expiryDate) {
         Token token = Token.builder().token(tokenValue).user(user).tokenType(TokenType.ACCESS_TOKEN)
+                .expiryDate(expiryDate).build();
+        return tokenRepository.save(token);
+    }
+
+    private Token createRefreshToken(User user, String tokenValue, Instant expiryDate) {
+        Token token = Token.builder().token(tokenValue).user(user).tokenType(TokenType.REFRESH)
                 .expiryDate(expiryDate).build();
         return tokenRepository.save(token);
     }
@@ -683,6 +695,97 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
                 mockMvc.perform(MockMvcRequestBuilders.post(LOGIN_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Logout")
+    class Logout {
+        private final String LOGOUT_ENDPOINT = "/auth/logout";
+
+        @Nested
+        @DisplayName("Should Logout Successfully")
+        class ShouldLogoutSuccessfully {
+
+            @Test
+            @DisplayName("Should logout and return 204 when tokens are valid in cookies")
+            void shouldLogoutAndReturnNoContentWhenTokensAreValid() throws Exception {
+                // Arrange - Create user and mock tokens
+                String email = "logout.user@example.com";
+                User user = createTestUser(email, "LogoutPass@123", "Mary", "Logout");
+
+                // Generate valid JWT (doesn't save to DB, just generates string)
+                String jwtTokenValue = jwtService.generateToken(user);
+
+                // Mock refresh token in database
+                String refreshTokenValue = "mock-refresh-token-12345";
+                Instant refreshExpiryDate = Instant.now().plus(30, ChronoUnit.DAYS);
+                createRefreshToken(user, refreshTokenValue, refreshExpiryDate);
+
+                // Create cookies with tokens
+                Cookie jwtCookie = new Cookie("jwt", jwtTokenValue);
+                Cookie refreshTokenCookie = new Cookie("refreshToken", refreshTokenValue);
+
+                // Act & Assert - Logout with valid cookies
+                mockMvc.perform(MockMvcRequestBuilders.post(LOGOUT_ENDPOINT).cookie(jwtCookie,
+                        refreshTokenCookie)).andExpect(MockMvcResultMatchers.status().isNoContent())
+                        .andExpect(MockMvcResultMatchers.cookie().maxAge("jwt", 0))
+                        .andExpect(MockMvcResultMatchers.cookie().maxAge("refreshToken", 0));
+
+                // Verify refresh token was invalidated in database
+                Token refreshToken = tokenRepository.findAll().stream()
+                        .filter(t -> t.getToken().equals(refreshTokenValue)).findFirst()
+                        .orElseGet(() -> null);
+                assertThat(refreshToken).isNull();
+
+                // Verify JWT token was blacklisted in database
+                Token blacklistedJwt = tokenRepository.findAll().stream()
+                        .filter(t -> t.getToken().equals(jwtTokenValue))
+                        .filter(t -> t.getTokenType().equals(TokenType.JWT_BLACKLIST)).findFirst()
+                        .orElseThrow(() -> new AssertionError(
+                                "JWT token should be saved in token table with type JWT_BLACKLIST"));
+                assertThat(blacklistedJwt.getTokenType()).isEqualTo(TokenType.JWT_BLACKLIST)
+                        .as("JWT token should be blacklisted");
+                assertThat(blacklistedJwt.getToken()).isEqualTo(jwtTokenValue)
+                        .as("Blacklisted JWT should match the provided JWT");
+                assertThat(blacklistedJwt.getExpiryDate()).isNotNull()
+                        .as("Blacklisted JWT should have expiration date from JWT claims");
+                assertThat(blacklistedJwt.getUser()).isNotNull()
+                        .as("Blacklisted JWT should be associated with the user");
+                assertThat(blacklistedJwt.getUser().getEmail()).isEqualTo(email)
+                        .as("Blacklisted JWT should be associated with the correct user");
+            }
+
+        }
+
+        @Nested
+        @DisplayName("Should Fail Logout")
+        class ShouldFailLogout {
+
+            @Test
+            @DisplayName("Should return 401 Unauthorized when refresh token cookie is missing")
+            void shouldReturnUnauthorizedWhenRefreshTokenCookieMissing() throws Exception {
+                // Arrange - No cookies provided
+
+                // Act & Assert - Should return 401 for missing cookies (authentication
+                // required)
+                mockMvc.perform(MockMvcRequestBuilders.post(LOGOUT_ENDPOINT))
+                        .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+            }
+
+            @Test
+            @DisplayName("Should return 401 Unauthorized when refresh token does not exist in database")
+            void shouldReturnUnauthorizedWhenRefreshTokenDoesNotExist() throws Exception {
+                // Arrange - Create fake refresh token that doesn't exist in DB
+                String fakeRefreshToken = "fake-refresh-token-99999";
+                Cookie refreshTokenCookie = new Cookie("refreshToken", fakeRefreshToken);
+
+                // Act & Assert - Should return 401 (authentication fails before reaching
+                // service logic)
+                mockMvc.perform(
+                        MockMvcRequestBuilders.post(LOGOUT_ENDPOINT).cookie(refreshTokenCookie))
+                        .andExpect(MockMvcResultMatchers.status().isUnauthorized());
             }
         }
     }
