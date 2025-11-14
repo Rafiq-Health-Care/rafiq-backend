@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexaworks.rafiq.dto.request.ChangePasswordRequest;
 import com.nexaworks.rafiq.dto.request.ForgetPasswordRequest;
+import com.nexaworks.rafiq.dto.request.LoginRequest;
 import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
 import com.nexaworks.rafiq.dto.request.VerifyOtpRequest;
 import com.nexaworks.rafiq.entities.Role;
@@ -575,6 +576,113 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
                 User unchangedUser = userRepository.findByEmail(email).orElseThrow();
                 assertThat(passwordEncoder.matches(oldPassword, unchangedUser.getPassword()))
                         .isTrue().as("Password should remain unchanged");
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Login")
+    class Login {
+        private final String LOGIN_ENDPOINT = "/auth/login";
+
+        @Nested
+        @DisplayName("Should Login Successfully")
+        class ShouldLoginSuccessfully {
+
+            @Test
+            @DisplayName("Should login and return role with cookies when credentials are valid")
+            void shouldLoginAndReturnRoleWithCookiesWhenCredentialsAreValid() throws Exception {
+                // Arrange - Create user with known password
+                String email = "login.user@example.com";
+                String password = "LoginPass@123";
+                createTestUser(email, password, "John", "Login");
+
+                LoginRequest loginRequest = new LoginRequest(email, password);
+                String payload = objectMapper.writeValueAsString(loginRequest);
+
+                // Act & Assert - Login with valid credentials
+                mockMvc.perform(MockMvcRequestBuilders.post(LOGIN_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                        .andExpect(MockMvcResultMatchers.status().isOk())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.role").exists())
+                        .andExpect(MockMvcResultMatchers.cookie().exists("jwt"))
+                        .andExpect(MockMvcResultMatchers.cookie().exists("refreshToken"));
+            }
+        }
+
+        @Nested
+        @DisplayName("Should Fail Login")
+        class ShouldFailLogin {
+
+            @Test
+            @DisplayName("Should return 401 Unauthorized when password is incorrect")
+            void shouldReturnUnauthorizedWhenPasswordIsIncorrect() throws Exception {
+                // Arrange - Create user with known password
+                String email = "wrong.password@example.com";
+                String correctPassword = "CorrectPass@123";
+                createTestUser(email, correctPassword, "Jane", "Wrong");
+
+                String wrongPassword = "WrongPass@999";
+                LoginRequest loginRequest = new LoginRequest(email, wrongPassword);
+                String payload = objectMapper.writeValueAsString(loginRequest);
+
+                // Act & Assert - Should return 401 for incorrect password
+                mockMvc.perform(MockMvcRequestBuilders.post(LOGIN_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                        .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+            }
+
+            @Test
+            @DisplayName("Should return 401 Unauthorized when user does not exist")
+            void shouldReturnUnauthorizedWhenUserDoesNotExist() throws Exception {
+                // Arrange - Use non-existent email
+                String nonExistentEmail = "nonexistent@example.com";
+                String password = "SomePass@123";
+
+                LoginRequest loginRequest = new LoginRequest(nonExistentEmail, password);
+                String payload = objectMapper.writeValueAsString(loginRequest);
+
+                // Act & Assert - Should return 401 for non-existent user
+                mockMvc.perform(MockMvcRequestBuilders.post(LOGIN_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                        .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+            }
+
+            @Test
+            @DisplayName("Should return 401 Unauthorized when user is disabled")
+            void shouldReturnUnauthorizedWhenUserIsDisabled() throws Exception {
+                // Arrange - Create disabled user
+                String email = "disabled.user@example.com";
+                String password = "DisabledPass@123";
+                User user = createTestUser(email, password, "Disabled", "User");
+
+                // Disable the user
+                user.setEnabled(false);
+                userRepository.save(user);
+
+                LoginRequest loginRequest = new LoginRequest(email, password);
+                String payload = objectMapper.writeValueAsString(loginRequest);
+
+                // Act & Assert - Should return 401 for disabled user
+                mockMvc.perform(MockMvcRequestBuilders.post(LOGIN_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                        .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+            }
+
+            @Test
+            @DisplayName("Should return 400 Bad Request when email is blank (validation)")
+            void shouldReturnBadRequestForBlankEmail() throws Exception {
+                // Arrange
+                String blankEmail = "";
+                String password = "SomePass@123";
+
+                LoginRequest loginRequest = new LoginRequest(blankEmail, password);
+                String payload = objectMapper.writeValueAsString(loginRequest);
+
+                // Act & Assert - Should return 400 for validation error
+                mockMvc.perform(MockMvcRequestBuilders.post(LOGIN_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                        .andExpect(MockMvcResultMatchers.status().isBadRequest());
             }
         }
     }
