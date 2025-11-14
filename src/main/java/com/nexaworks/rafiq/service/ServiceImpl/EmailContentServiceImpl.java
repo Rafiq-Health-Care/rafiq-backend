@@ -1,10 +1,13 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
-import com.nexaworks.rafiq.service.EmailContentService;
 import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.nexaworks.rafiq.service.EmailContentService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor

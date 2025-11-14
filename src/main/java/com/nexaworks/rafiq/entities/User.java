@@ -1,15 +1,18 @@
 package com.nexaworks.rafiq.entities;
 
-import com.nexaworks.rafiq.enums.Gender;
-import jakarta.persistence.*;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.List;
-import lombok.*;
-import lombok.experimental.SuperBuilder;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.nexaworks.rafiq.enums.Gender;
+
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter

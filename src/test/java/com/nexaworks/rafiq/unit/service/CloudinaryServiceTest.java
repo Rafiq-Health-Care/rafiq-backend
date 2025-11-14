@@ -4,6 +4,17 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.io.IOException;
+import java.util.Map;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.cloudinary.Cloudinary;
 import com.cloudinary.Uploader;
 import com.nexaworks.rafiq.dto.UploadResults;
@@ -12,15 +23,6 @@ import com.nexaworks.rafiq.exception.custom.EmptyFileException;
 import com.nexaworks.rafiq.exception.custom.FileException;
 import com.nexaworks.rafiq.exception.custom.FileUploadException;
 import com.nexaworks.rafiq.service.ServiceImpl.CloudinaryService;
-import java.io.IOException;
-import java.util.Map;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.web.multipart.MultipartFile;
 
 @DisplayName("CloudinaryService Test Cases")
 class CloudinaryServiceTest {

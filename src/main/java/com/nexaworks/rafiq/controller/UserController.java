@@ -1,5 +1,13 @@
 package com.nexaworks.rafiq.controller;
 
+import java.io.IOException;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.nexaworks.rafiq.dto.request.DoctorRegistrationRequest;
 import com.nexaworks.rafiq.dto.request.ForgetPasswordRequest;
 import com.nexaworks.rafiq.dto.request.UserRegistrationRequest;
@@ -7,15 +15,10 @@ import com.nexaworks.rafiq.dto.request.VerificationRequest;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.service.UserService;
+
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import java.io.IOException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/user")

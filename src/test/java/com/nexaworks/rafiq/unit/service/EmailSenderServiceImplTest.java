@@ -4,13 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.nexaworks.rafiq.exception.custom.MailSenderException;
-import com.nexaworks.rafiq.service.EmailSenderService;
-import com.nexaworks.rafiq.service.ServiceImpl.EmailSenderServiceImpl;
-import jakarta.mail.MessagingException;
-import jakarta.mail.Session;
-import jakarta.mail.internet.MimeMessage;
 import java.util.Map;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +17,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
+
+import com.nexaworks.rafiq.exception.custom.MailSenderException;
+import com.nexaworks.rafiq.service.EmailSenderService;
+import com.nexaworks.rafiq.service.ServiceImpl.EmailSenderServiceImpl;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
 
 @DisplayName("EmailSenderServiceImpl Test Cases")
 @SpringBootTest

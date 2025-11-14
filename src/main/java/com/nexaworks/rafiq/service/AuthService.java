@@ -1,14 +1,16 @@
 package com.nexaworks.rafiq.service;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+
 import com.nexaworks.rafiq.dto.request.*;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.dto.response.VerifyOtpResponse;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 
 public interface AuthService {
     void forgetPassword(@Valid ForgetPasswordRequest forgetPasswordRequest);

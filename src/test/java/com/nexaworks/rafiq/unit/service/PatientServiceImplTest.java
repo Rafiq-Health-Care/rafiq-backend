@@ -3,17 +3,19 @@ package com.nexaworks.rafiq.unit.service;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.*;
 
-import com.nexaworks.rafiq.entities.PatientProfile;
-import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.repository.PatientRepository;
-import com.nexaworks.rafiq.service.ServiceImpl.PatientServiceImpl;
 import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import com.nexaworks.rafiq.entities.PatientProfile;
+import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.repository.PatientRepository;
+import com.nexaworks.rafiq.service.ServiceImpl.PatientServiceImpl;
 
 @DisplayName("PatientService Test Cases")
 public class PatientServiceImplTest {

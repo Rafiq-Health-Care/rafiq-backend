@@ -1,20 +1,23 @@
 package com.nexaworks.rafiq.controller;
 
+import java.io.IOException;
+import java.util.UUID;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.nexaworks.rafiq.dto.request.AddLabRequest;
 import com.nexaworks.rafiq.dto.response.LabResponse;
 import com.nexaworks.rafiq.dto.response.PageResponse;
 import com.nexaworks.rafiq.mapper.AddressMapper;
 import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.service.LabService;
+
 import jakarta.validation.Valid;
-import java.io.IOException;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/labs")

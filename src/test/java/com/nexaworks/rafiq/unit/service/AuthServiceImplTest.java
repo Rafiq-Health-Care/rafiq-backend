@@ -6,29 +6,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.nexaworks.rafiq.dto.event.ForgetPasswordEvent;
-import com.nexaworks.rafiq.dto.request.*;
-import com.nexaworks.rafiq.dto.response.LoginResponse;
-import com.nexaworks.rafiq.dto.response.VerifyOtpResponse;
-import com.nexaworks.rafiq.entities.Token;
-import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.exception.custom.GoogleAuthException;
-import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
-import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.JwtService;
-import com.nexaworks.rafiq.service.ServiceImpl.AuthServiceImpl;
-import com.nexaworks.rafiq.service.TokenService;
-import com.nexaworks.rafiq.service.UserService;
-import com.nexaworks.rafiq.utils.AuthSessionManager;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -45,6 +28,26 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.nexaworks.rafiq.dto.event.ForgetPasswordEvent;
+import com.nexaworks.rafiq.dto.request.*;
+import com.nexaworks.rafiq.dto.response.LoginResponse;
+import com.nexaworks.rafiq.dto.response.VerifyOtpResponse;
+import com.nexaworks.rafiq.entities.Token;
+import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.exception.custom.GoogleAuthException;
+import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
+import com.nexaworks.rafiq.repository.UserRepository;
+import com.nexaworks.rafiq.service.JwtService;
+import com.nexaworks.rafiq.service.ServiceImpl.AuthServiceImpl;
+import com.nexaworks.rafiq.service.TokenService;
+import com.nexaworks.rafiq.service.UserService;
+import com.nexaworks.rafiq.utils.AuthSessionManager;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AuthServiceImpl Unit Tests")

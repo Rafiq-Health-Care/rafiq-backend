@@ -1,13 +1,16 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.nexaworks.rafiq.entities.Address;
 import com.nexaworks.rafiq.repository.AddressRepository;
 import com.nexaworks.rafiq.service.AddressService;
+
 import jakarta.transaction.Transactional;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor

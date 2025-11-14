@@ -7,17 +7,11 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.itextpdf.text.DocumentException;
-import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.exception.custom.EmptyFileException;
-import com.nexaworks.rafiq.service.ServiceImpl.GeminiService;
-import com.nexaworks.rafiq.service.ServiceImpl.LabTestServiceImpl;
-import com.nexaworks.rafiq.service.ServiceImpl.PdfExtractorServiceImpl;
-import com.nexaworks.rafiq.service.ServiceImpl.UserServiceImpl;
 import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,6 +19,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.mock.web.MockMultipartFile;
+
+import com.itextpdf.text.DocumentException;
+import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.exception.custom.EmptyFileException;
+import com.nexaworks.rafiq.service.ServiceImpl.GeminiService;
+import com.nexaworks.rafiq.service.ServiceImpl.LabTestServiceImpl;
+import com.nexaworks.rafiq.service.ServiceImpl.PdfExtractorServiceImpl;
+import com.nexaworks.rafiq.service.ServiceImpl.UserServiceImpl;
 
 public class PdfExtractorServiceImplTest {
     @Mock

@@ -3,6 +3,13 @@ package com.nexaworks.rafiq.unit.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+import java.util.UUID;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+
 import com.nexaworks.rafiq.entities.DoctorProfile;
 import com.nexaworks.rafiq.entities.Specialization;
 import com.nexaworks.rafiq.entities.User;
@@ -10,11 +17,6 @@ import com.nexaworks.rafiq.enums.Status;
 import com.nexaworks.rafiq.repository.DoctorRepository;
 import com.nexaworks.rafiq.service.ServiceImpl.DoctorServiceImpl;
 import com.nexaworks.rafiq.service.SpecializationService;
-import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.*;
 
 @DisplayName("DoctorService Test Cases")
 class DoctorServiceImplTest {

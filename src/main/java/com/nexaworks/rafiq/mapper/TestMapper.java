@@ -1,10 +1,12 @@
 package com.nexaworks.rafiq.mapper;
 
+import java.util.Date;
+
+import org.springframework.stereotype.Component;
+
 import com.nexaworks.rafiq.dto.request.TestRequest;
 import com.nexaworks.rafiq.dto.response.TestResultsResponse;
 import com.nexaworks.rafiq.entities.LabTest;
-import java.util.Date;
-import org.springframework.stereotype.Component;
 
 @Component
 public class TestMapper {

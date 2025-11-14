@@ -1,5 +1,14 @@
 package com.nexaworks.rafiq.config;
 
+import java.io.IOException;
+import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.entities.User;
@@ -7,18 +16,12 @@ import com.nexaworks.rafiq.service.JwtService;
 import com.nexaworks.rafiq.service.TokenService;
 import com.nexaworks.rafiq.service.UserService;
 import com.nexaworks.rafiq.utils.AuthSessionManager;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor

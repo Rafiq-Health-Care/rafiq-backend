@@ -1,8 +1,9 @@
 package com.nexaworks.rafiq.service;
 
+import java.util.Optional;
+
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
-import java.util.Optional;
 
 public interface TokenService {
     public String generateRefreshToken(User user);

@@ -1,16 +1,19 @@
 package com.nexaworks.rafiq.exception.handler;
 
-import com.nexaworks.rafiq.exception.ExceptionUtils;
-import com.nexaworks.rafiq.exception.model.ErrorResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+
+import com.nexaworks.rafiq.exception.ExceptionUtils;
+import com.nexaworks.rafiq.exception.model.ErrorResponse;
+
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 
 @RestControllerAdvice
 @RequiredArgsConstructor

@@ -293,11 +293,14 @@
                 <version>2.43.0</version>
                 <configuration>
                     <java>
-                        <!-- Use newer Palantir version that supports Java 21+ -->
                         <palantirJavaFormat>
                             <version>2.50.0</version>
                         </palantirJavaFormat>
-                        <!-- Palantir already uses 4 spaces by default -->
+                        <removeUnusedImports/>
+                        <importOrder>
+                            <order>java|javax,org,com,</order>
+                        </importOrder>
+                        <trimTrailingWhitespace/>
                     </java>
                 </configuration>
             </plugin>

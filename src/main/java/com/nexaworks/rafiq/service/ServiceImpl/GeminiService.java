@@ -1,5 +1,12 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import java.io.IOException;
+import java.util.Base64;
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Service;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,13 +15,9 @@ import com.nexaworks.rafiq.client.Gemini;
 import com.nexaworks.rafiq.dto.client.*;
 import com.nexaworks.rafiq.service.AiService;
 import com.nexaworks.rafiq.utils.Prompt;
-import java.io.IOException;
-import java.util.Base64;
-import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor

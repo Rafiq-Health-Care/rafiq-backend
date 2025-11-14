@@ -1,16 +1,18 @@
 package com.nexaworks.rafiq.exception.handler;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
 import com.nexaworks.rafiq.exception.ExceptionUtils;
 import com.nexaworks.rafiq.exception.custom.SpecializationAlreadyExistsException;
 import com.nexaworks.rafiq.exception.custom.SpecializationNotFoundException;
 import com.nexaworks.rafiq.exception.custom.SpecializationValidationException;
 import com.nexaworks.rafiq.exception.model.ErrorResponse;
+
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 @RequiredArgsConstructor

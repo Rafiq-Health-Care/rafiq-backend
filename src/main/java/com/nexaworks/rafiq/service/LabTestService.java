@@ -1,17 +1,20 @@
 package com.nexaworks.rafiq.service;
 
-import com.nexaworks.rafiq.dto.request.TestResultRequest;
-import com.nexaworks.rafiq.entities.LabResult;
-import com.nexaworks.rafiq.entities.LabTest;
-import com.nexaworks.rafiq.entities.User;
-import jakarta.validation.Valid;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.nexaworks.rafiq.dto.request.TestResultRequest;
+import com.nexaworks.rafiq.entities.LabResult;
+import com.nexaworks.rafiq.entities.LabTest;
+import com.nexaworks.rafiq.entities.User;
+
+import jakarta.validation.Valid;
 
 public interface LabTestService {
     void addTest(UUID testId, String testName, Date testDate, List<LabResult> entity);

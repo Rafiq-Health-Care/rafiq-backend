@@ -1,8 +1,9 @@
 package com.nexaworks.rafiq.entities;
 
-import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.List;
+
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

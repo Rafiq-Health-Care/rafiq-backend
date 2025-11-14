@@ -1,11 +1,13 @@
 package com.nexaworks.rafiq.mapper;
 
-import com.nexaworks.rafiq.dto.request.TestRequest;
-import com.nexaworks.rafiq.entities.LabResult;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Component;
+
+import com.nexaworks.rafiq.dto.request.TestRequest;
+import com.nexaworks.rafiq.entities.LabResult;
 
 @Component
 public class ResultMapper {

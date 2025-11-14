@@ -1,7 +1,8 @@
 package com.nexaworks.rafiq.service;
 
-import com.nexaworks.rafiq.entities.Address;
 import java.util.List;
+
+import com.nexaworks.rafiq.entities.Address;
 
 public interface AddressService {
     List<Address> saveAll(List<Address> entity);

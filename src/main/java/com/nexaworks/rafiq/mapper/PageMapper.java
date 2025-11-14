@@ -1,14 +1,16 @@
 package com.nexaworks.rafiq.mapper;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Component;
+
 import com.nexaworks.rafiq.dto.response.LabResponse;
 import com.nexaworks.rafiq.dto.response.PageResponse;
 import com.nexaworks.rafiq.dto.response.TestResponse;
 import com.nexaworks.rafiq.entities.Lab;
 import com.nexaworks.rafiq.entities.LabTest;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Component;
 
 @Component
 public class PageMapper {

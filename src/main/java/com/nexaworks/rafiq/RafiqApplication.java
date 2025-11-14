@@ -1,9 +1,5 @@
 package com.nexaworks.rafiq;
 
-import com.nexaworks.rafiq.entities.Role;
-import com.nexaworks.rafiq.entities.Specialization;
-import com.nexaworks.rafiq.repository.RoleRepository;
-import com.nexaworks.rafiq.repository.SpecializationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -12,6 +8,11 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
+
+import com.nexaworks.rafiq.entities.Role;
+import com.nexaworks.rafiq.entities.Specialization;
+import com.nexaworks.rafiq.repository.RoleRepository;
+import com.nexaworks.rafiq.repository.SpecializationRepository;
 
 @SpringBootApplication
 @EnableJpaAuditing(auditorAwareRef = "applicationAuditAware")

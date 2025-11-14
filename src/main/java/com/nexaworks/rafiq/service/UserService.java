@@ -1,16 +1,19 @@
 package com.nexaworks.rafiq.service;
 
+import java.io.IOException;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.web.multipart.MultipartFile;
+
 import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.entities.User;
+
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import java.io.IOException;
-import java.util.Optional;
-import java.util.UUID;
-import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
     Optional<User> findByEmail(String email);

@@ -1,13 +1,16 @@
 package com.nexaworks.rafiq.config;
 
-import com.nexaworks.rafiq.entities.User;
 import java.util.Optional;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+
+import com.nexaworks.rafiq.entities.User;
+
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
