@@ -3,7 +3,10 @@ package com.nexaworks.rafiq.integration.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,6 +23,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nexaworks.rafiq.dto.request.TestRequest;
+import com.nexaworks.rafiq.dto.request.TestResultRequest;
 import com.nexaworks.rafiq.entities.LabTest;
 import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.entities.Role;
@@ -73,6 +79,9 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private PatientRepository patientRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private User testUser;
 
@@ -240,6 +249,229 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Verify no lab test was saved
                 assertThat(labTestRepository.count()).isZero();
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Test Results")
+    class TestResults {
+        private final String TEST_RESULTS_ENDPOINT = "/lab-test/test-results";
+
+        @Nested
+        @DisplayName("Should Save Test Results Successfully")
+        class ShouldSaveTestResultsSuccessfully {
+
+            @Test
+            @DisplayName("Should save test results and return 200 when data is valid")
+            void shouldSaveTestResultsAndReturnOkWhenDataIsValid() throws Exception {
+                // Arrange - Create a lab test first
+                LabTest labTest = createLabTest("Blood Test", testUser);
+                UUID testId = labTest.getId();
+
+                // Prepare test results request
+                List<TestRequest> tests = new ArrayList<>();
+                tests.add(new TestRequest("Hemoglobin", 14.5, "g/dL", "Normal"));
+                tests.add(new TestRequest("WBC Count", 7500.0, "cells/μL", "Normal"));
+
+                TestResultRequest request = new TestResultRequest("Complete Blood Count",
+                        new Date(), tests, testId);
+                String payload = objectMapper.writeValueAsString(request);
+
+                // Act & Assert - Save test results with authentication
+                mockMvc.perform(MockMvcRequestBuilders.post(TEST_RESULTS_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload)
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+                                .user(testUser)))
+                        .andExpect(MockMvcResultMatchers.status().isOk());
+
+                // Verify lab results were saved
+                long labResultCount = labResultRepository.count();
+                assertThat(labResultCount).isEqualTo(2)
+                        .as("Two lab results should be saved in database");
+
+                // Verify lab test was updated
+                LabTest updatedTest = labTestRepository.findById(testId).orElseThrow();
+                assertThat(updatedTest.getName()).isEqualTo("Complete Blood Count");
+            }
+
+            @Test
+            @DisplayName("Should save test results with single test")
+            void shouldSaveTestResultsWithSingleTest() throws Exception {
+                // Arrange - Create a lab test
+                LabTest labTest = createLabTest("Initial Test", testUser);
+                UUID testId = labTest.getId();
+
+                // Single test result
+                List<TestRequest> tests = List
+                        .of(new TestRequest("Glucose", 95.0, "mg/dL", "Normal"));
+
+                TestResultRequest request = new TestResultRequest("Glucose Test", new Date(), tests,
+                        testId);
+                String payload = objectMapper.writeValueAsString(request);
+
+                // Act & Assert
+                mockMvc.perform(MockMvcRequestBuilders.post(TEST_RESULTS_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload)
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+                                .user(testUser)))
+                        .andExpect(MockMvcResultMatchers.status().isOk());
+
+                // Verify
+                assertThat(labResultRepository.count()).isEqualTo(1);
+            }
+
+            @Test
+            @DisplayName("Should save test results with empty tests list")
+            void shouldSaveTestResultsWithEmptyTestsList() throws Exception {
+                // Arrange
+                LabTest labTest = createLabTest("Empty Results Test", testUser);
+                UUID testId = labTest.getId();
+
+                List<TestRequest> emptyTests = new ArrayList<>();
+
+                TestResultRequest request = new TestResultRequest("Empty Test", new Date(),
+                        emptyTests, testId);
+                String payload = objectMapper.writeValueAsString(request);
+
+                // Act & Assert - Should still save successfully
+                mockMvc.perform(MockMvcRequestBuilders.post(TEST_RESULTS_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload)
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+                                .user(testUser)))
+                        .andExpect(MockMvcResultMatchers.status().isOk());
+
+                // Verify no lab results created but test was updated
+                assertThat(labResultRepository.count()).isZero();
+            }
+        }
+
+        @Nested
+        @DisplayName("Should Fail Saving Test Results")
+        class ShouldFailSavingTestResults {
+
+            @Test
+            @DisplayName("Should return 401 Unauthorized when user is not authenticated")
+            void shouldReturnUnauthorizedWhenUserNotAuthenticated() throws Exception {
+                // Arrange
+                LabTest labTest = createLabTest("Test", testUser);
+                List<TestRequest> tests = List
+                        .of(new TestRequest("Hemoglobin", 14.5, "g/dL", "Normal"));
+
+                TestResultRequest request = new TestResultRequest("Blood Test", new Date(), tests,
+                        labTest.getId());
+                String payload = objectMapper.writeValueAsString(request);
+
+                // Act & Assert - Without authentication
+                mockMvc.perform(MockMvcRequestBuilders.post(TEST_RESULTS_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                        .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+
+                // Verify no results were saved
+                assertThat(labResultRepository.count()).isZero();
+            }
+
+            @Test
+            @DisplayName("Should return 400 Bad Request when name is blank")
+            void shouldReturnBadRequestWhenNameIsBlank() throws Exception {
+                // Arrange
+                LabTest labTest = createLabTest("Test", testUser);
+                List<TestRequest> tests = List
+                        .of(new TestRequest("Hemoglobin", 14.5, "g/dL", "Normal"));
+
+                TestResultRequest request = new TestResultRequest("", new Date(), tests,
+                        labTest.getId());
+                String payload = objectMapper.writeValueAsString(request);
+
+                // Act & Assert - Should return 400 for validation error
+                mockMvc.perform(MockMvcRequestBuilders.post(TEST_RESULTS_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload)
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+                                .user(testUser)))
+                        .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+                // Verify no results were saved
+                assertThat(labResultRepository.count()).isZero();
+            }
+
+            @Test
+            @DisplayName("Should return 400 Bad Request when name is null")
+            void shouldReturnBadRequestWhenNameIsNull() throws Exception {
+                // Arrange
+                LabTest labTest = createLabTest("Test", testUser);
+
+                // Create JSON manually with null name
+                String payload = String.format(
+                        "{\"name\":null,\"date\":\"%s\",\"tests\":[{\"testName\":\"Hemoglobin\",\"result\":14.5,\"unit\":\"g/dL\",\"status\":\"Normal\"}],\"testId\":\"%s\"}",
+                        new Date().getTime(), labTest.getId().toString());
+
+                // Act & Assert
+                mockMvc.perform(MockMvcRequestBuilders.post(TEST_RESULTS_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload)
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+                                .user(testUser)))
+                        .andExpect(MockMvcResultMatchers.status().isBadRequest());
+            }
+            @Test
+            @DisplayName("Should return 400 Bad Request when test name is blank in TestRequest")
+            void shouldReturnBadRequestWhenTestNameIsBlank() throws Exception {
+                // Arrange
+                LabTest labTest = createLabTest("Test", testUser);
+                List<TestRequest> tests = List.of(new TestRequest("", 14.5, "g/dL", "Normal")); // Blank
+                                                                                                // test
+                                                                                                // name
+
+                TestResultRequest request = new TestResultRequest("Blood Test", new Date(), tests,
+                        labTest.getId());
+                String payload = objectMapper.writeValueAsString(request);
+
+                // Act & Assert
+                mockMvc.perform(MockMvcRequestBuilders.post(TEST_RESULTS_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload)
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+                                .user(testUser)))
+                        .andExpect(MockMvcResultMatchers.status().isBadRequest());
+            }
+
+            @Test
+            @DisplayName("Should return 400 Bad Request when unit is blank in TestRequest")
+            void shouldReturnBadRequestWhenUnitIsBlank() throws Exception {
+                // Arrange
+                LabTest labTest = createLabTest("Test", testUser);
+                List<TestRequest> tests = List
+                        .of(new TestRequest("Hemoglobin", 14.5, "", "Normal")); // Blank
+                                                                                // unit
+
+                TestResultRequest request = new TestResultRequest("Blood Test", new Date(), tests,
+                        labTest.getId());
+                String payload = objectMapper.writeValueAsString(request);
+
+                // Act & Assert
+                mockMvc.perform(MockMvcRequestBuilders.post(TEST_RESULTS_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload)
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+                                .user(testUser)))
+                        .andExpect(MockMvcResultMatchers.status().isBadRequest());
+            }
+
+            @Test
+            @DisplayName("Should return 400 Bad Request when status is blank in TestRequest")
+            void shouldReturnBadRequestWhenStatusIsBlank() throws Exception {
+                // Arrange
+                LabTest labTest = createLabTest("Test", testUser);
+                List<TestRequest> tests = List.of(new TestRequest("Hemoglobin", 14.5, "g/dL", "")); // Blank
+                                                                                                    // status
+
+                TestResultRequest request = new TestResultRequest("Blood Test", new Date(), tests,
+                        labTest.getId());
+                String payload = objectMapper.writeValueAsString(request);
+
+                // Act & Assert
+                mockMvc.perform(MockMvcRequestBuilders.post(TEST_RESULTS_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON).content(payload)
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+                                .user(testUser)))
+                        .andExpect(MockMvcResultMatchers.status().isBadRequest());
             }
         }
     }
