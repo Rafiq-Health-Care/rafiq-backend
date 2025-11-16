@@ -9,7 +9,9 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -18,20 +20,24 @@ import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.custom.UserException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.ServiceImpl.JwtServiceImpl;
+import com.nexaworks.rafiq.service.ServiceImpl.TokenServiceImpl;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 
 @DisplayName("JwtServiceImpl Test")
 public class JwtServiceImplTest {
-    private JwtServiceImpl jwtService;
 
     @Mock
     UserRepository userRepository;
+    @Mock
+    TokenServiceImpl tokenServiceImpl;
+    @InjectMocks
+    JwtServiceImpl jwtService;
 
     @BeforeEach
     void setUp() {
-        jwtService = new JwtServiceImpl(userRepository);
+        MockitoAnnotations.openMocks(this);
         ReflectionTestUtils.setField(jwtService, "JWT_SECRET",
                 "5cf7d14433f66174f7ce66b01acef9415f55b04daf4815ad60b62f9c50e8809b");
         ReflectionTestUtils.setField(jwtService, "JWT_EXPIRATION", 10000L);

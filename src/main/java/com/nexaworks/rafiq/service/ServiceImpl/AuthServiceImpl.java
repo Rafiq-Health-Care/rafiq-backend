@@ -28,7 +28,6 @@ import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
 import com.nexaworks.rafiq.utils.AuthSessionManager;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -124,10 +123,15 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public void logout(LogoutRequest request, HttpServletResponse response) {
-        tokenService.invalidateRefreshToken(tokenService.getToken(request.refreshToken()));
-        jwtService.invalidateJwtToken(request.jwtToken());
-        removeJwtFromCookies(response);
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = authSessionManager.getCookie(request, "refreshToken");
+        Token token = tokenService.getToken(refreshToken);
+        tokenService.invalidateRefreshToken(token);
+        String jwt = authSessionManager.getCookie(request, "jwt");
+        if (jwt != null) {
+            jwtService.invalidateJwtToken(jwt);
+        }
+        authSessionManager.invalidateSession(response);
     }
 
     @Override
@@ -173,11 +177,4 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    private void removeJwtFromCookies(HttpServletResponse response) {
-        Cookie cookie = new Cookie("jwt", null);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
-    }
 }
