@@ -15,6 +15,7 @@ spring:
     hibernate:
       ddl-auto: validate
     defer-datasource-initialization: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
   # Flyway config - must run before JPA validation
   flyway:
     baseline-on-migrate: true
@@ -24,6 +25,7 @@ spring:
     password: ${DATASOURCE_PASSWORD}
     baseline-description: Initial DB
     baseline-version: 0
+
     # Allow out-of-order migrations if some were missed
     out-of-order: true
     # Validate migrations on startup

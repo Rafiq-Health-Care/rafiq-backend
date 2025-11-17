@@ -22,7 +22,7 @@ public class V7__Import_drugs_from_csv extends BaseJavaMigration {
     private static final UUID SYSTEM_USER_ID = UUID
             .fromString("00000000-0000-0000-0000-000000000001");
     private static final int BATCH_SIZE = 1000;
-    private static final String CSV_PATH = "static/egyption-drugs.csv";
+    private static final String CSV_PATH = "static/drugs-egy.csv";
 
     @Override
     public void migrate(Context context) throws Exception {
@@ -68,14 +68,14 @@ public class V7__Import_drugs_from_csv extends BaseJavaMigration {
                 log.info("Successfully imported {} drugs from CSV ({} failed)", imported, failed);
             }
         } catch (Exception e) {
-            // Flyway will rollback automatically on exception
+            // Flyway will roll back automatically on exception
             log.error("Error during CSV import", e);
             throw e;
         }
     }
 
     private InputStream loadCsvResource() {
-        // Try Thread context classloader first (most reliable in app servers)
+        // Try Thread context classloader first (most reliable in-app servers)
         InputStream inputStream = Thread.currentThread().getContextClassLoader()
                 .getResourceAsStream(CSV_PATH);
 
@@ -242,6 +242,11 @@ public class V7__Import_drugs_from_csv extends BaseJavaMigration {
 
         UUID companyId = UUID.randomUUID();
         String insertSql = "INSERT INTO company (id, name, created_at, created_by) VALUES (?, ?, ?, ?)";
+        return getUuid(connection, name, now, companyId, insertSql);
+    }
+
+    private UUID getUuid(Connection connection, String name, Timestamp now, UUID companyId,
+            String insertSql) throws SQLException {
         try (PreparedStatement stmt = connection.prepareStatement(insertSql)) {
             stmt.setObject(1, companyId);
             stmt.setString(2, truncate(name, 255));
@@ -266,15 +271,7 @@ public class V7__Import_drugs_from_csv extends BaseJavaMigration {
 
         UUID ingredientId = UUID.randomUUID();
         String insertSql = "INSERT INTO active_ingredient (id, name, created_at, created_by) VALUES (?, ?, ?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(insertSql)) {
-            stmt.setObject(1, ingredientId);
-            stmt.setString(2, truncate(name, 255));
-            stmt.setTimestamp(3, now);
-            stmt.setObject(4, SYSTEM_USER_ID);
-            stmt.executeUpdate();
-        }
-
-        return ingredientId;
+        return getUuid(connection, name, now, ingredientId, insertSql);
     }
 
     private void linkDrugToCompany(Connection connection, UUID drugId, UUID companyId)
