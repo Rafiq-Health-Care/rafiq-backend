@@ -51,4 +51,9 @@ public class AuthSessionManager {
         }
         throw new TokenInvalidException("Invalid or missing token");
     }
+
+    public void invalidateSession(HttpServletResponse response) {
+        addTokenToCookie(response, null, "jwt", 0);
+        addTokenToCookie(response, null, "refreshToken", 0);
+    }
 }

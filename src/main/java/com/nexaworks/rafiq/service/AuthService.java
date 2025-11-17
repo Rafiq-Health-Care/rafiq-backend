@@ -26,7 +26,7 @@ public interface AuthService {
 
     LoginResponse refresh(HttpServletResponse response, HttpServletRequest request);
 
-    void logout(@Valid LogoutRequest request, HttpServletResponse response);
+    void logout(HttpServletRequest request, HttpServletResponse response);
 
     LoginResponse oAuth2(@NotBlank String idToken, HttpServletResponse response)
             throws GeneralSecurityException, IOException;

@@ -17,4 +17,6 @@ public interface TokenService {
     User verifyOtp(String email, String otp);
 
     void invalidateRefreshToken(Token token);
+
+    void saveToken(Token token);
 }
