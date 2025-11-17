@@ -29,7 +29,24 @@ CREATE TABLE doctor_profile (
 );
 
 -- Now add foreign keys to users table that reference profiles
-ALTER TABLE users
-    ADD CONSTRAINT fk_user_doctor_profile FOREIGN KEY (doctor_profile_id) REFERENCES doctor_profile(id) ON DELETE CASCADE,
-    ADD CONSTRAINT fk_user_patient_profile FOREIGN KEY (patient_profile_id) REFERENCES patient_profile(id) ON DELETE CASCADE;
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conname = 'fk_user_doctor_profile'
+    ) THEN
+        ALTER TABLE users
+            ADD CONSTRAINT fk_user_doctor_profile 
+            FOREIGN KEY (doctor_profile_id) REFERENCES doctor_profile(id) ON DELETE CASCADE;
+    END IF;
+    
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conname = 'fk_user_patient_profile'
+    ) THEN
+        ALTER TABLE users
+            ADD CONSTRAINT fk_user_patient_profile 
+            FOREIGN KEY (patient_profile_id) REFERENCES patient_profile(id) ON DELETE CASCADE;
+    END IF;
+END $$;
 

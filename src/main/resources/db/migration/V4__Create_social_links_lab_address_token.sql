@@ -16,8 +16,17 @@ CREATE TABLE social_links (
 
 -- Add foreign key constraint to doctor_profile for social_links_id
 -- This was created in V3 but the FK constraint needs to be added now that social_links exists
-ALTER TABLE doctor_profile
-    ADD CONSTRAINT fk_doctor_profile_social_links FOREIGN KEY (social_links_id) REFERENCES social_links(id) ON DELETE CASCADE;
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conname = 'fk_doctor_profile_social_links'
+    ) THEN
+        ALTER TABLE doctor_profile
+            ADD CONSTRAINT fk_doctor_profile_social_links 
+            FOREIGN KEY (social_links_id) REFERENCES social_links(id) ON DELETE CASCADE;
+    END IF;
+END $$;
 
 -- Create lab table
 CREATE TABLE lab (

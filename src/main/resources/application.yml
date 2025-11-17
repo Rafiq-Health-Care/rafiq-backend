@@ -14,10 +14,12 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-  # Flyway config
+    defer-datasource-initialization: false
+  # Flyway config - must run before JPA validation
   flyway:
     baseline-on-migrate: true
-    enabled: false
+    enabled: true
+    locations: classpath:db/migration
     user: ${DATASOURCE_USERNAME}
     password: ${DATASOURCE_PASSWORD}
     baseline-description: Initial DB
