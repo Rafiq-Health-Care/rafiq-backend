@@ -2,10 +2,7 @@ package com.nexaworks.rafiq.entities;
 
 import java.util.List;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +20,7 @@ public class Drug extends BaseEntity {
     String drugGroup;
     String dosageForm;
     String route;
+    @Column(columnDefinition = "TEXT")
     String pharmacology;
     double price;
     @ManyToMany

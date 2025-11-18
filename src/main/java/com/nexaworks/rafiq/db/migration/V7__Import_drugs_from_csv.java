@@ -199,7 +199,10 @@ public class V7__Import_drugs_from_csv extends BaseJavaMigration {
             String form, String route, String p, String pharmacology, Timestamp now)
             throws SQLException {
         String selectSql = "SELECT id FROM drug WHERE trade_name = ?";
-        Double price = Double.parseDouble(p);
+        if (p == null || p.isEmpty()) {
+            p = "0";
+        }
+        double price = Double.parseDouble(p);
         try (PreparedStatement stmt = connection.prepareStatement(selectSql)) {
             stmt.setString(1, truncate(tradeName, 255));
             ResultSet rs = stmt.executeQuery();
@@ -220,6 +223,7 @@ public class V7__Import_drugs_from_csv extends BaseJavaMigration {
             stmt.setString(3, truncate(drugGroup, 255));
             stmt.setString(4, truncate(form, 255));
             stmt.setString(5, truncate(route, 255));
+            stmt.setDouble(6, price);
             stmt.setString(7, pharmacology);
             stmt.setTimestamp(8, now);
             stmt.setObject(9, SYSTEM_USER_ID);
