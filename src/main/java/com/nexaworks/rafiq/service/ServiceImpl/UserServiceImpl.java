@@ -13,6 +13,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.nexaworks.rafiq.dto.UploadResults;
@@ -28,7 +30,6 @@ import com.nexaworks.rafiq.enums.TokenType;
 import com.nexaworks.rafiq.enums.UploadType;
 import com.nexaworks.rafiq.exception.custom.InvalidPasswordException;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
-import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
 import com.nexaworks.rafiq.utils.AuthSessionManager;
@@ -89,8 +90,15 @@ public class UserServiceImpl implements UserService {
         log.info("User registered {}", user.getEmail());
         String otp = tokenService.generateOtpToken(patient);
         log.info("OTP generated {}", otp);
-        eventPublisher
-                .publishEvent(new UserRegistrationEvent(user.getEmail(), otp, user.getFirstName()));
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                log.info("OTP sent to {}", user.getEmail());
+                eventPublisher.publishEvent(
+                        new UserRegistrationEvent(user.getEmail(), otp, user.getFirstName()));
+            }
+        });
+
     }
 
     private User extracted(User user) {
@@ -118,8 +126,13 @@ public class UserServiceImpl implements UserService {
                 nationalIdImage.url(), nationalIdImage.publicId()));
         String otp = tokenService.generateOtpToken(doctor);
         log.info("OTP generated {}", otp);
-        eventPublisher
-                .publishEvent(new UserRegistrationEvent(user.getEmail(), otp, user.getFirstName()));
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                eventPublisher.publishEvent(
+                        new UserRegistrationEvent(user.getEmail(), otp, user.getFirstName()));
+            }
+        });
     }
 
     @Override
@@ -146,7 +159,15 @@ public class UserServiceImpl implements UserService {
         otpToken.ifPresent(token -> token.setExpiryDate(Instant.now()));
         String otp = tokenService.generateOtpToken(user.get());
         log.info("New OTP generated {}", otp);
-        eventPublisher.publishEvent(new NewOtpEvent(user.get().getEmail(), otp, user.get().getFirstName()));
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                log.info("New OTP sent to {}", user.get().getEmail());
+                eventPublisher.publishEvent(
+                        new NewOtpEvent(user.get().getEmail(), otp, user.get().getFirstName()));
+
+            }
+        });
     }
 
     @Override
