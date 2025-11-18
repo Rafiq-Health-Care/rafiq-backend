@@ -5,7 +5,7 @@ CREATE TABLE drug (
     drug_group VARCHAR(255),
     dosage_form VARCHAR(255),
     route VARCHAR(255),
-    price VARCHAR(64),
+    price NUMERIC(10, 2),
     pharmacology TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
