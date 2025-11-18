@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.nexaworks.rafiq.dto.UploadResults;
 import com.nexaworks.rafiq.dto.event.NewOtpEvent;
@@ -76,6 +78,27 @@ public class UserServiceImplTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        TransactionSynchronizationManager.initSynchronization();
+
+    }
+    @AfterEach
+    void tearDown() {
+        TransactionSynchronizationManager.clearSynchronization();
+    }
+
+    /**
+     * Helper method to manually trigger transaction synchronization callbacks. In
+     * unit tests, there's no real transaction commit, so we need to manually invoke
+     * the afterCommit callbacks that were registered.
+     */
+    private void triggerTransactionSynchronization() {
+        TransactionSynchronizationManager.getSynchronizations().forEach(sync -> {
+            try {
+                sync.afterCommit();
+            } catch (Exception e) {
+                // Ignore exceptions in test
+            }
+        });
     }
 
     @DisplayName("Update password should encode and save the new password")
@@ -118,6 +141,7 @@ public class UserServiceImplTest {
         when(tokenService.generateOtpToken(any(User.class))).thenReturn(expectedToken);
 
         userService.registerPatient(user);
+        triggerTransactionSynchronization();
 
         verify(roleService, times(1)).getRole(Roles.ROLE_USER);
         verify(roleService, times(1)).getRole(Roles.ROLE_PATIENT);
@@ -160,23 +184,22 @@ public class UserServiceImplTest {
         when(roleService.getRole(any())).thenReturn(doctorRole);
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(tokenService.generateOtpToken(any(User.class))).thenReturn(expectedToken);
-        when(doctorService.createProfile(any(), anyString(), any(), anyString(), anyString()))
-                .thenReturn(expectedProfile);
+        when(doctorService.createProfile(any(), anyString(), any())).thenReturn(expectedProfile);
 
         userService
                 .registerDoctor(user,
                         new MockMultipartFile("nationalId", "nationalId.png", "image/png",
                                 "dummy image content".getBytes()),
                         UUID.randomUUID(), "Experienced doctor");
+        triggerTransactionSynchronization();
 
         verify(roleService, times(1)).getRole(Roles.ROLE_USER);
         verify(roleService, times(1)).getRole(Roles.ROLE_DOCTOR);
         verify(userRepository, times(1)).save(any(User.class));
         verify(tokenService, times(1)).generateOtpToken(any(User.class));
-        verify(eventPublisher, times(1)).publishEvent(any(UserRegistrationEvent.class));
-        verify(doctorService, times(1)).createProfile(any(User.class), anyString(), any(),
-                anyString(), anyString());
-        verify(imageService, times(1)).uploadResource(any(), any());
+        verify(eventPublisher, times(1))
+                .publishEvent(any(com.nexaworks.rafiq.dto.event.DoctorRegisterEvent.class));
+        verify(doctorService, times(1)).createProfile(any(User.class), anyString(), any());
     }
 
     @DisplayName("Register doctor should throw exception when user with email already exists")
@@ -240,6 +263,7 @@ public class UserServiceImplTest {
         when(tokenService.generateOtpToken(any(User.class))).thenReturn("123456");
 
         userService.getNewOtp("test@email.com");
+        triggerTransactionSynchronization();
 
         verify(eventPublisher, times(1)).publishEvent(any(NewOtpEvent.class));
     }

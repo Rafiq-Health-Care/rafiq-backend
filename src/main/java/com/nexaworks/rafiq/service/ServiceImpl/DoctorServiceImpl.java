@@ -5,9 +5,11 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nexaworks.rafiq.dto.UploadResults;
 import com.nexaworks.rafiq.entities.DoctorProfile;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.Status;
+import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.DoctorRepository;
 import com.nexaworks.rafiq.service.DoctorService;
 import com.nexaworks.rafiq.service.SpecializationService;
@@ -24,15 +26,21 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     @Transactional
-    public DoctorProfile createProfile(User doctor, String description, UUID specialization,
-            String id, String logo) {
+    public DoctorProfile createProfile(User doctor, String description, UUID specialization) {
         DoctorProfile doctorProfile = new DoctorProfile();
         doctorProfile.setUser(doctor);
         doctorProfile.setDescription(description);
         doctorProfile.setSpecialization(specializationService.getSpecialization(specialization));
-        doctorProfile.setNationalId(id);
-        doctorProfile.setPublicId(logo);
         doctorProfile.setStatus(Status.IN_REVIEW);
         return doctorRepository.save(doctorProfile);
+    }
+
+    @Override
+    @Transactional
+    public void updateNationalId(UploadResults uploadResults, UUID doctorId) {
+        DoctorProfile doctor = doctorRepository.findById(doctorId).orElseThrow(
+                () -> new UserNotFoundException("Doctor not found with id: " + doctorId));
+        doctor.setNationalId(uploadResults.url());
+        doctor.setPublicId(uploadResults.publicId());
     }
 }

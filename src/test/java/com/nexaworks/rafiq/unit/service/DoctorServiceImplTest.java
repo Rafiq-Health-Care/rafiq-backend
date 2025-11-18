@@ -62,16 +62,13 @@ class DoctorServiceImplTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        DoctorProfile result = doctorService.createProfile(doctor, description, specializationId,
-                nationalId, logo);
+        DoctorProfile result = doctorService.createProfile(doctor, description, specializationId);
 
         // then
         assertThat(result).isNotNull();
         assertThat(result.getUser()).isEqualTo(doctor);
         assertThat(result.getDescription()).isEqualTo(description);
         assertThat(result.getSpecialization()).isEqualTo(specialization);
-        assertThat(result.getNationalId()).isEqualTo(nationalId);
-        assertThat(result.getPublicId()).isEqualTo(logo);
         assertThat(result.getStatus()).isEqualTo(Status.IN_REVIEW);
 
         verify(specializationService, times(1)).getSpecialization(specializationId);

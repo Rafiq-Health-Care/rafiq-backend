@@ -17,7 +17,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.nexaworks.rafiq.dto.UploadResults;
+import com.nexaworks.rafiq.dto.event.DoctorRegisterEvent;
 import com.nexaworks.rafiq.dto.event.NewOtpEvent;
 import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
@@ -27,7 +27,6 @@ import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.TokenType;
-import com.nexaworks.rafiq.enums.UploadType;
 import com.nexaworks.rafiq.exception.custom.InvalidPasswordException;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.repository.UserRepository;
@@ -120,17 +119,16 @@ public class UserServiceImpl implements UserService {
         }
         User doctor = extracted(user);
         userRepository.save(doctor);
-        UploadResults nationalIdImage = imageService.uploadResource(nationalId, UploadType.IMAGE);
         doctor.getRoles().add(roleService.getRole(ROLE_DOCTOR));
-        doctor.setDoctorProfile(doctorService.createProfile(doctor, description, specialization,
-                nationalIdImage.url(), nationalIdImage.publicId()));
+        doctor.setDoctorProfile(doctorService.createProfile(doctor, description, specialization));
         String otp = tokenService.generateOtpToken(doctor);
         log.info("OTP generated {}", otp);
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                eventPublisher.publishEvent(
-                        new UserRegistrationEvent(user.getEmail(), otp, user.getFirstName()));
+                eventPublisher.publishEvent(new DoctorRegisterEvent(
+                        new UserRegistrationEvent(user.getEmail(), otp, user.getFirstName()),
+                        doctor.getDoctorProfile().getId(), nationalId));
             }
         });
     }
