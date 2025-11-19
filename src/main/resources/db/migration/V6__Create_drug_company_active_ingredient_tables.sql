@@ -5,7 +5,7 @@ CREATE TABLE drug (
     drug_group VARCHAR(255),
     dosage_form VARCHAR(255),
     route VARCHAR(255),
-    price NUMERIC(10, 2),
+    price float,
     pharmacology TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
@@ -62,3 +62,6 @@ CREATE INDEX idx_active_ingredient_name ON active_ingredient(name);
 
 ALTER TABLE drug ADD COLUMN search_vector TSVECTOR GENERATED ALWAYS AS (to_tsvector('english', trade_name)) STORED;
 CREATE INDEX idx_drug_search ON drug USING GIN(search_vector);
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX idx_drug_trade_name_trgm ON drug USING GIN (trade_name gin_trgm_ops);
+

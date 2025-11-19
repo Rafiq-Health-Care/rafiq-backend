@@ -25,15 +25,14 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/login", "/user/new-otp", "/auth/refresh",
-                        "/auth/forget-password", "/auth/verify", "/auth/change-password",
-                        "/user/register/doctor", "/user/register/patient", "/user/verification",
-                        "/error", "/specialization/**", "/v2/api-docs", "/v3/api-docs",
-                        "/v3/api-docs/**", "/swagger-resources", "/swagger-resources/**",
-                        "/configuration/ui", "/configuration/security", "/swagger-ui/**",
-                        "/webjars/**", "/swagger-ui.html", "/favicon.ico", "/labs", "/auth/google")
-                .permitAll().anyRequest().authenticated())
+        http.authorizeHttpRequests(auth -> auth.requestMatchers("/auth/login", "/user/new-otp",
+                "/auth/refresh", "/auth/forget-password", "/auth/verify", "/auth/change-password",
+                "/user/register/doctor", "/user/register/patient", "/user/verification", "/error",
+                "/specialization/**", "/v2/api-docs", "/v3/api-docs", "/v3/api-docs/**",
+                "/swagger-resources", "/swagger-resources/**", "/configuration/ui",
+                "/configuration/security", "/swagger-ui/**", "/webjars/**", "/swagger-ui.html",
+                "/favicon.ico", "/labs", "/auth/google", "/drugs").permitAll().anyRequest()
+                .authenticated())
                 .sessionManagement(sc -> sc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(request -> {
