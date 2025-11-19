@@ -24,4 +24,6 @@ public class PatientProfile extends BaseEntity {
 
     @OneToMany(mappedBy = "patient")
     private List<LabTest> labTests;
+    @OneToMany(mappedBy = "patient")
+    private List<Medicine> medicines;
 }

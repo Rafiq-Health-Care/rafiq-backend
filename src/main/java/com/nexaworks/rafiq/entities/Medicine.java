@@ -34,11 +34,11 @@ public class Medicine extends BaseEntity {
     private String notes;
     private String photoUrl;
     private String photoPublicId;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "drug_id", referencedColumnName = "id", nullable = false)
     private Drug drug;
     @ManyToOne
-    @JoinColumn(name = "doctor_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "doctor_id", referencedColumnName = "id")
     private DoctorProfile doctor;
     @ManyToOne
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
@@ -52,7 +52,6 @@ public class Medicine extends BaseEntity {
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        Medicine other = (Medicine) obj;
         return drug.getId().equals(((Medicine) obj).drug.getId());
     }
 }
