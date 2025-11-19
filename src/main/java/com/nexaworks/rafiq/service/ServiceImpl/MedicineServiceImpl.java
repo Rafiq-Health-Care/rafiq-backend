@@ -1,6 +1,5 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -30,29 +29,21 @@ public class MedicineServiceImpl implements MedicineService {
     @Override
     @Transactional
     public Medicine addMedicine(Medicine entity, UUID drugId) {
-        if (validateDuplication(drugId)) {
-            throw new MedicineAlreadyExist("You already have this medicine");
-        }
+
         User user = userService.getUser();
         entity.setPatient(user.getPatientProfile());
-        List<Medicine> medicines = user.getPatientProfile().getMedicines();
-        if (medicines != null && medicines.size() == 200) {
-            throw new MedicineLimit("You have reached the maximum limit of medicines allowed.");
+        if (medicineRepository.existsByPatientIdAndDrugId(user.getPatientProfile().getId(),
+                drugId)) {
+            throw new MedicineAlreadyExist("Medicine already exist");
+        }
+        if (medicineRepository.countByPatientId(user.getPatientProfile().getId()) >= 200) {
+            throw new MedicineLimit("You have reached the limit of medicine");
         }
         Drug drug = drugService.getDrugById(drugId);
         entity.setDrug(drug);
         entity.setStatus(MedicineStatus.ACTIVE);
         medicineRepository.save(entity);
         return entity;
-    }
-
-    private boolean validateDuplication(UUID drugId) {
-        User user = userService.getUser();
-        List<Medicine> medicines = user.getPatientProfile().getMedicines();
-        if (medicines == null) {
-            return false;
-        }
-        return medicines.stream().anyMatch(medicine -> medicine.getDrug().getId().equals(drugId));
     }
 
 }

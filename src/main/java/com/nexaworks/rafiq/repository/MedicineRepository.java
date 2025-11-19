@@ -7,4 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.nexaworks.rafiq.entities.Medicine;
 
 public interface MedicineRepository extends JpaRepository<Medicine, UUID> {
+    boolean existsByPatientIdAndDrugId(UUID id, UUID drugId);
+
+    int countByPatientId(UUID id);
 }
