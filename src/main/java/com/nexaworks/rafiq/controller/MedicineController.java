@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.nexaworks.rafiq.dto.request.medicine.AddMedicineRequest;
 import com.nexaworks.rafiq.dto.request.medicine.MedicineFilter;
+import com.nexaworks.rafiq.dto.request.medicine.UpdateMedicinePatchRequest;
 import com.nexaworks.rafiq.dto.request.medicine.UpdateMedicineRequest;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.medicine.AddResponse;
@@ -40,8 +41,8 @@ public class MedicineController {
         Medicine medicine = medicineService.addMedicine(medicineMapper.toEntity(request),
                 request.medicineId());
         MedicineResponse medicineResponse = medicineMapper.toDto(medicine);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new AddResponse<MedicineResponse>(
-                true, "Medicine added successfully", medicineResponse));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new AddResponse<>(true, "Medicine added successfully", medicineResponse));
     }
     @GetMapping
     public ResponseEntity<PageResponse<MedicineResponse>> getAllMedicines(
@@ -68,8 +69,15 @@ public class MedicineController {
             @Valid @RequestBody UpdateMedicineRequest request) {
         Medicine medicine = medicineService.updateMedicine(medicineMapper.toEntity(request),
                 medicineId);
-        return ResponseEntity.ok().body(new AddResponse<MedicineResponse>(true,
-                "Medicine updated successfully", medicineMapper.toDto(medicine)));
+        return ResponseEntity.ok().body(new AddResponse<>(true, "Medicine updated successfully",
+                medicineMapper.toDto(medicine)));
+    }
+    @PatchMapping("/{id}")
+    public ResponseEntity<AddResponse<MedicineResponse>> updateSpecific(
+            @PathVariable("id") UUID medicineId, @RequestBody UpdateMedicinePatchRequest request) {
+        Medicine medicine = medicineService.updateSpecific(medicineId, request);
+        return ResponseEntity.ok().body(new AddResponse<>(true, "Medicine updated successfully",
+                medicineMapper.toDto(medicine)));
     }
 
 }

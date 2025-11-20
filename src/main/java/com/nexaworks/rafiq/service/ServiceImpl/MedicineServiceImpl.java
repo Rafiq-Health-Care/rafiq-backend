@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.dto.request.medicine.MedicineFilter;
+import com.nexaworks.rafiq.dto.request.medicine.UpdateMedicinePatchRequest;
 import com.nexaworks.rafiq.entities.Drug;
 import com.nexaworks.rafiq.entities.Medicine;
 import com.nexaworks.rafiq.entities.PatientProfile;
@@ -91,6 +92,25 @@ public class MedicineServiceImpl implements MedicineService {
         medicine.setStatus(entity.getStatus());
         medicine.setName(entity.getName());
         return medicineRepository.save(medicine);
+    }
+
+    @Override
+    @Transactional
+    public Medicine updateSpecific(UUID medicineId, UpdateMedicinePatchRequest request) {
+        Medicine medicine = medicineRepository.findById(medicineId).orElseThrow(
+                () -> new MedicineNotFound("Medicine not found with id: " + medicineId));
+        if (!medicine.getPatient().getId().equals(patientService.getPatientProfile().getId())) {
+            throw new MedicineNotFound("Medicine not found with id: " + medicineId);
+        }
+        request.dosage().ifPresent(medicine::setDosage);
+        request.frequency().ifPresent(medicine::setFrequency);
+        request.startDate().ifPresent(medicine::setStartDate);
+        request.endDate().ifPresent(medicine::setEndDate);
+        request.notes().ifPresent(medicine::setNotes);
+        request.type().ifPresent(medicine::setType);
+        request.status().ifPresent(medicine::setStatus);
+        request.name().ifPresent(medicine::setName);
+        return medicine;
     }
 
 }
