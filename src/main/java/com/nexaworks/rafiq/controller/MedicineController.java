@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.controller;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.UUID;
 
@@ -9,12 +10,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.nexaworks.rafiq.dto.request.medicine.AddMedicineRequest;
-import com.nexaworks.rafiq.dto.request.medicine.MedicineFilter;
-import com.nexaworks.rafiq.dto.request.medicine.UpdateMedicinePatchRequest;
-import com.nexaworks.rafiq.dto.request.medicine.UpdateMedicineRequest;
+import com.nexaworks.rafiq.dto.request.medicine.*;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.medicine.AddResponse;
+import com.nexaworks.rafiq.dto.response.medicine.BulkOperationResponse;
 import com.nexaworks.rafiq.dto.response.medicine.GetMedicineResponse;
 import com.nexaworks.rafiq.dto.response.medicine.MedicineResponse;
 import com.nexaworks.rafiq.dto.response.reminder.ReminderResponse;
@@ -78,6 +77,16 @@ public class MedicineController {
         Medicine medicine = medicineService.updateSpecific(medicineId, request);
         return ResponseEntity.ok().body(new AddResponse<>(true, "Medicine updated successfully",
                 medicineMapper.toDto(medicine)));
+    }
+    @PostMapping("/bulk")
+    public ResponseEntity<AddResponse<BulkOperationResponse>> bulkAddMedicine(
+            @Valid @RequestBody BulkMedicineOperationRequest request)
+            throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        List<UUID> failedIds = medicineService.bulkMedicineOperation(request);
+        BulkOperationResponse response = new BulkOperationResponse(
+                request.medicineIds().size() - failedIds.size(), failedIds);
+        return ResponseEntity.ok()
+                .body(new AddResponse<>(true, "Bulk operation completed successfully", response));
     }
 
 }

@@ -1,15 +1,23 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nexaworks.rafiq.dto.request.medicine.BulkMedicineOperationRequest;
 import com.nexaworks.rafiq.dto.request.medicine.MedicineFilter;
 import com.nexaworks.rafiq.dto.request.medicine.UpdateMedicinePatchRequest;
 import com.nexaworks.rafiq.entities.Drug;
+import com.nexaworks.rafiq.entities.Group;
 import com.nexaworks.rafiq.entities.Medicine;
 import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.enums.MedicineStatus;
@@ -31,6 +39,7 @@ public class MedicineServiceImpl implements MedicineService {
     private final MedicineRepository medicineRepository;
     private final DrugService drugService;
     private final PatientServiceImpl patientService;
+    private final GroupServiceImpl groupService;
     @Override
     @Transactional
     public Medicine addMedicine(Medicine entity, UUID drugId) {
@@ -62,27 +71,21 @@ public class MedicineServiceImpl implements MedicineService {
     @Transactional(readOnly = true)
     public Medicine getMedicineById(UUID medicineId) {
         PatientProfile patient = patientService.getPatientProfile();
-        Medicine medicine = medicineRepository.findById(medicineId).orElseThrow(
-                () -> new MedicineNotFound("Medicine not found with id: " + medicineId));
-        if (!medicine.getPatient().getId().equals(patient.getId())) {
-            throw new MedicineNotFound("Medicine not found with id: " + medicineId);
-        }
-        return medicine;
+
+        return getMedicine(medicineId, patient);
     }
 
     @Override
+    @Transactional
     public void deleteMedicine(UUID medicineId) {
-        medicineRepository.findById(medicineId).ifPresent(medicineRepository::delete);
+        Medicine medicine = getMedicine(medicineId, patientService.getPatientProfile());
+        medicineRepository.delete(medicine);
     }
 
     @Override
     @Transactional
     public Medicine updateMedicine(Medicine entity, UUID medicineId) {
-        Medicine medicine = medicineRepository.findById(medicineId).orElseThrow(
-                () -> new MedicineNotFound("Medicine not found with id: " + medicineId));
-        if (!medicine.getPatient().getId().equals(patientService.getPatientProfile().getId())) {
-            throw new MedicineNotFound("Medicine not found with id: " + medicineId);
-        }
+        Medicine medicine = getMedicine(medicineId, patientService.getPatientProfile());
         medicine.setDosage(entity.getDosage());
         medicine.setFrequency(entity.getFrequency());
         medicine.setStartDate(entity.getStartDate());
@@ -97,11 +100,7 @@ public class MedicineServiceImpl implements MedicineService {
     @Override
     @Transactional
     public Medicine updateSpecific(UUID medicineId, UpdateMedicinePatchRequest request) {
-        Medicine medicine = medicineRepository.findById(medicineId).orElseThrow(
-                () -> new MedicineNotFound("Medicine not found with id: " + medicineId));
-        if (!medicine.getPatient().getId().equals(patientService.getPatientProfile().getId())) {
-            throw new MedicineNotFound("Medicine not found with id: " + medicineId);
-        }
+        Medicine medicine = getMedicine(medicineId, patientService.getPatientProfile());
         request.dosage().ifPresent(medicine::setDosage);
         request.frequency().ifPresent(medicine::setFrequency);
         request.startDate().ifPresent(medicine::setStartDate);
@@ -111,6 +110,85 @@ public class MedicineServiceImpl implements MedicineService {
         request.status().ifPresent(medicine::setStatus);
         request.name().ifPresent(medicine::setName);
         return medicine;
+    }
+
+    @NotNull
+    private Medicine getMedicine(UUID medicineId, PatientProfile patientService) {
+        Medicine medicine = medicineRepository.findById(medicineId).orElseThrow(
+                () -> new MedicineNotFound("Medicine not found with id: " + medicineId));
+        if (!medicine.getPatient().getId().equals(patientService.getId())) {
+            throw new MedicineNotFound("Medicine not found with id: " + medicineId);
+        }
+        return medicine;
+    }
+
+    @Override
+    @Transactional
+    public List<UUID> bulkMedicineOperation(BulkMedicineOperationRequest request)
+            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        List<UUID> failedIds = new ArrayList<>();
+        Method action = this.getClass().getMethod(request.action().getAction(), List.class,
+                Optional.class, List.class);
+        action.invoke(this, request.medicineIds(), request.groupId(), failedIds);
+
+        return failedIds;
+    }
+    @Transactional
+    public void delete(List<UUID> ids, Optional<UUID> groupId, List<UUID> failedIds) {
+        ids.forEach(medicineId -> {
+            try {
+                deleteMedicine(medicineId);
+            } catch (Exception e) {
+                failedIds.add(medicineId);
+            }
+        });
+
+    }
+    @Transactional
+    public void moveToGroup(List<UUID> ids, Optional<UUID> groupId, List<UUID> failedIds) {
+        groupId.orElseThrow(() -> new MedicineNotFound("Group id is required"));
+        Group group = groupService.getGroupById(groupId.get());
+        PatientProfile patient = patientService.getPatientProfile();
+        if (group.getPatientProfile().getId().equals(patient.getId())) {
+            throw new MedicineNotFound("Medicine not found with id: " + ids);
+        }
+        ids.forEach(medicineId -> {
+            try {
+                Medicine medicine = getMedicine(medicineId, patient);
+                medicine.setGroup(group);
+                medicineRepository.save(medicine);
+            } catch (Exception e) {
+                failedIds.add(medicineId);
+            }
+        });
+    }
+    @Transactional
+    public void markActive(List<UUID> ids, Optional<UUID> groupId, List<UUID> failedIds) {
+        PatientProfile patient = patientService.getPatientProfile();
+        ids.forEach(medicineId -> {
+            try {
+                Medicine medicine = getMedicine(medicineId, patient);
+                medicine.setStatus(MedicineStatus.ACTIVE);
+                medicineRepository.save(medicine);
+            } catch (Exception e) {
+                failedIds.add(medicineId);
+            }
+        });
+
+    }
+    @Transactional
+    public void markInactive(List<UUID> ids, Optional<UUID> groupId, List<UUID> failedIds) {
+        PatientProfile patient = patientService.getPatientProfile();
+        ids.forEach(medicineId -> {
+            try {
+                Medicine medicine = getMedicine(medicineId, patient);
+                medicine.setStatus(MedicineStatus.INACTIVE);
+                medicineRepository.save(medicine);
+            } catch (Exception e) {
+                failedIds.add(medicineId);
+            }
+        });
+
     }
 
 }
