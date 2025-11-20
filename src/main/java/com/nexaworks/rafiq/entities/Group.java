@@ -17,6 +17,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@Table(name = "groups")
 public class Group extends BaseEntity {
     private String name;
     private String description;
@@ -24,7 +25,7 @@ public class Group extends BaseEntity {
     private String iconUrl;
     @Enumerated(EnumType.STRING)
     private Color color;
-    @ManyToMany(mappedBy = "groups")
+    @OneToMany(mappedBy = "group")
     private List<Medicine> medicines;
     @ManyToOne
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)

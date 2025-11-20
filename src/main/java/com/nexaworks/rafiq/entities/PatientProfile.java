@@ -22,8 +22,10 @@ public class PatientProfile extends BaseEntity {
     @OneToOne(mappedBy = "patientProfile")
     private User user;
 
-    @OneToMany(mappedBy = "patient")
+    @OneToMany(mappedBy = "patient", cascade = {CascadeType.REMOVE, CascadeType.PERSIST,
+            CascadeType.MERGE})
     private List<LabTest> labTests;
-    @OneToMany(mappedBy = "patient")
+    @OneToMany(mappedBy = "patient", cascade = {CascadeType.REMOVE, CascadeType.PERSIST,
+            CascadeType.MERGE}, fetch = FetchType.LAZY)
     private List<Medicine> medicines;
 }

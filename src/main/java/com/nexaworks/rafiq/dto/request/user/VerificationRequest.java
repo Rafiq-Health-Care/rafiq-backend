@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.dto.request;
+package com.nexaworks.rafiq.dto.request.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

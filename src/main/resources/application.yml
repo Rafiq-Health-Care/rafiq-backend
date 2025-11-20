@@ -14,6 +14,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+      show-sql: true
     defer-datasource-initialization: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   # Flyway config - must run before JPA validation

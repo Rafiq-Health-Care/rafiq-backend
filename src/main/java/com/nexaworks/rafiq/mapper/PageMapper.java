@@ -6,13 +6,11 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
-import com.nexaworks.rafiq.dto.response.DrugSearchResponse;
-import com.nexaworks.rafiq.dto.response.LabResponse;
-import com.nexaworks.rafiq.dto.response.PageResponse;
-import com.nexaworks.rafiq.dto.response.TestResponse;
+import com.nexaworks.rafiq.dto.response.*;
 import com.nexaworks.rafiq.entities.Drug;
 import com.nexaworks.rafiq.entities.Lab;
 import com.nexaworks.rafiq.entities.LabTest;
+import com.nexaworks.rafiq.entities.Medicine;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PageMapper {
     private final DrugMapper drugMapper;
+    private final MedicineMapper medicineMapper;
     public PageResponse<LabResponse> mapToLabPage(Page<Lab> all) {
         List<LabResponse> content = all.getContent().stream()
                 .map(lab -> new LabResponse(lab.getId(), lab.getName(), lab.getLogo()))
@@ -41,6 +40,12 @@ public class PageMapper {
     public PageResponse<DrugSearchResponse> mapToDrugSearchResponsePage(Page<Drug> all) {
 
         return new PageResponse<>(all.getContent().stream().map(drugMapper::toDto).toList(),
+                (int) all.getTotalElements(), all.getSize(), all.getTotalPages(), all.isLast(),
+                all.isFirst());
+    }
+
+    public PageResponse<MedicineResponse> mapToMedicinePage(Page<Medicine> all) {
+        return new PageResponse<>(all.getContent().stream().map(medicineMapper::toDto).toList(),
                 (int) all.getTotalElements(), all.getSize(), all.getTotalPages(), all.isLast(),
                 all.isFirst());
     }

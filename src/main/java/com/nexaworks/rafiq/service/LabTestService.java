@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.nexaworks.rafiq.dto.request.TestResultRequest;
+import com.nexaworks.rafiq.dto.request.labTest.TestResultRequest;
 import com.nexaworks.rafiq.entities.LabResult;
 import com.nexaworks.rafiq.entities.LabTest;
 import com.nexaworks.rafiq.entities.User;

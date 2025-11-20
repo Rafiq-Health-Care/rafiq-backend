@@ -31,7 +31,7 @@ END $$;
 -- Create lab table
 CREATE TABLE lab (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(255),
     logo VARCHAR(255),
     public_id VARCHAR(255),
     social_links_id UUID,
@@ -63,9 +63,9 @@ CREATE TABLE address (
 -- Create token table
 CREATE TABLE token (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    token VARCHAR(255) NOT NULL,
-    token_type VARCHAR(50) NOT NULL,
-    expiry_date TIMESTAMP NOT NULL,
+    token VARCHAR(255) UNIQUE NOT NULL,
+    token_type VARCHAR(50),
+    expiry_date TIMESTAMP,
     user_id UUID NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,

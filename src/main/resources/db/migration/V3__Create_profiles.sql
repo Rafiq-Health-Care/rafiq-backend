@@ -18,7 +18,7 @@ CREATE TABLE doctor_profile (
     national_id VARCHAR(255),
     hospital_id VARCHAR(255),
     public_id VARCHAR(255),
-    status VARCHAR(20) NOT NULL DEFAULT 'IN_REVIEW',
+    status VARCHAR(20),
     specialization_id UUID NOT NULL,
     social_links_id UUID,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.mapstruct.Mapper;
 
-import com.nexaworks.rafiq.dto.request.AddAddressRequest;
+import com.nexaworks.rafiq.dto.request.address.AddAddressRequest;
 import com.nexaworks.rafiq.entities.Address;
 
 @Mapper(componentModel = "spring")

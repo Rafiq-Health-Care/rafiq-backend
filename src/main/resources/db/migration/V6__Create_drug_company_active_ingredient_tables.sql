@@ -1,7 +1,7 @@
 -- Create a drug table to store Egyptian medicine data
 CREATE TABLE drug (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    trade_name VARCHAR(255) NOT NULL,
+    trade_name VARCHAR(255),
     drug_group VARCHAR(255),
     dosage_form VARCHAR(255),
     route VARCHAR(255),
@@ -16,7 +16,7 @@ CREATE TABLE drug (
 -- Create a company table
 CREATE TABLE company (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL UNIQUE,
+    name VARCHAR(255) UNIQUE,
     country VARCHAR(255),
     description TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -28,7 +28,7 @@ CREATE TABLE company (
 -- Create an active ingredient table
 CREATE TABLE active_ingredient (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL UNIQUE,
+    name VARCHAR(255) UNIQUE,
     description TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,

@@ -6,7 +6,12 @@ import java.security.GeneralSecurityException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.nexaworks.rafiq.dto.request.*;
+import com.nexaworks.rafiq.dto.request.auth.LoginRequest;
+import com.nexaworks.rafiq.dto.request.auth.OAuthRequest;
+import com.nexaworks.rafiq.dto.request.user.ChangePasswordRequest;
+import com.nexaworks.rafiq.dto.request.user.ForgetPasswordRequest;
+import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
+import com.nexaworks.rafiq.dto.request.user.VerifyOtpRequest;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.dto.response.VerifyOtpResponse;
 import com.nexaworks.rafiq.service.AuthService;

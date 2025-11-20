@@ -2,18 +2,23 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nexaworks.rafiq.dto.request.medicine.MedicineFilter;
 import com.nexaworks.rafiq.entities.Drug;
 import com.nexaworks.rafiq.entities.Medicine;
 import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.enums.MedicineStatus;
 import com.nexaworks.rafiq.exception.custom.MedicineAlreadyExist;
 import com.nexaworks.rafiq.exception.custom.MedicineLimit;
+import com.nexaworks.rafiq.exception.custom.MedicineNotFound;
 import com.nexaworks.rafiq.repository.MedicineRepository;
 import com.nexaworks.rafiq.service.DrugService;
 import com.nexaworks.rafiq.service.MedicineService;
+import com.nexaworks.rafiq.specification.MedicineSpecification;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,9 +44,53 @@ public class MedicineServiceImpl implements MedicineService {
         }
         Drug drug = drugService.getDrugById(drugId);
         entity.setDrug(drug);
+        entity.setName(drug.getTradeName());
         entity.setStatus(MedicineStatus.ACTIVE);
         medicineRepository.save(entity);
         return entity;
+    }
+
+    @Override
+    public Page<Medicine> getAllMedicines(Pageable pageable, MedicineFilter filter) {
+        PatientProfile patient = patientService.getPatientProfile();
+        return medicineRepository.findAll(MedicineSpecification.filter(filter, patient.getId()),
+                pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Medicine getMedicineById(UUID medicineId) {
+        PatientProfile patient = patientService.getPatientProfile();
+        Medicine medicine = medicineRepository.findById(medicineId).orElseThrow(
+                () -> new MedicineNotFound("Medicine not found with id: " + medicineId));
+        if (!medicine.getPatient().getId().equals(patient.getId())) {
+            throw new MedicineNotFound("Medicine not found with id: " + medicineId);
+        }
+        return medicine;
+    }
+
+    @Override
+    public void deleteMedicine(UUID medicineId) {
+        medicineRepository.findById(medicineId).ifPresent(medicineRepository::delete);
+    }
+
+    @Override
+    @Transactional
+    public Medicine updateMedicine(Medicine entity, UUID medicineId) {
+        Medicine medicine = medicineRepository.findById(medicineId).orElseThrow(
+                () -> new MedicineNotFound("Medicine not found with id: " + medicineId));
+        if (!medicine.getPatient().getId().equals(patientService.getPatientProfile().getId())) {
+            throw new MedicineNotFound("Medicine not found with id: " + medicineId);
+        }
+        medicine.setDosage(entity.getDosage());
+        medicine.setFrequency(entity.getFrequency());
+        medicine.setStartDate(entity.getStartDate());
+        medicine.setEndDate(entity.getEndDate());
+        medicine.setNotes(entity.getNotes());
+        medicine.setType(entity.getType());
+        medicine.setStatus(entity.getStatus());
+        medicine.setName(entity.getName());
+        return medicineRepository.save(medicine);
     }
 
 }

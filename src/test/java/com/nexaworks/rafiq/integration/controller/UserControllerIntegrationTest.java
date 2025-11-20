@@ -17,10 +17,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nexaworks.rafiq.dto.request.DoctorRegistrationRequest;
-import com.nexaworks.rafiq.dto.request.ForgetPasswordRequest;
-import com.nexaworks.rafiq.dto.request.UserRegistrationRequest;
-import com.nexaworks.rafiq.dto.request.VerificationRequest;
+import com.nexaworks.rafiq.dto.request.user.DoctorRegistrationRequest;
+import com.nexaworks.rafiq.dto.request.user.ForgetPasswordRequest;
+import com.nexaworks.rafiq.dto.request.user.UserRegistrationRequest;
+import com.nexaworks.rafiq.dto.request.user.VerificationRequest;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.TokenType;

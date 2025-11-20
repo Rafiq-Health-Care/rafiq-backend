@@ -19,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.nexaworks.rafiq.dto.event.DoctorRegisterEvent;
 import com.nexaworks.rafiq.dto.event.NewOtpEvent;
 import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
-import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
+import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
 import com.nexaworks.rafiq.dto.response.LoginResponse;
 import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.entities.Role;
@@ -102,8 +102,6 @@ public class UserServiceImpl implements UserService {
     private User extracted(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         Role role = roleService.getRole(ROLE_USER);
-        // Role role1 = roleService.getRole(ROLE_PATIENT);
-
         user.getRoles().add(role);
         return user;
     }

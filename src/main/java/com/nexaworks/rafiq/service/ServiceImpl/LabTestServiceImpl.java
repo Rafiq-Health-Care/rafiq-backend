@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.nexaworks.rafiq.dto.UploadResults;
-import com.nexaworks.rafiq.dto.request.TestResultRequest;
+import com.nexaworks.rafiq.dto.request.labTest.TestResultRequest;
 import com.nexaworks.rafiq.entities.*;
 import com.nexaworks.rafiq.enums.UploadType;
 import com.nexaworks.rafiq.exception.custom.LabTestException;
@@ -40,21 +40,18 @@ public class LabTestServiceImpl implements LabTestService {
     private final UserService userService;
     private final ImageService imageService;
     private final PatientRepository patientRepository;
+    private final PatientService patientService;
 
     @Override
     @Transactional
     public void addTest(UUID testId, String testName, Date testDate, List<LabResult> entity) {
         LabTest labTest = getLabTest(Optional.of(testId));
         setTestFields(labTest, testName, testDate);
-        PatientProfile patient = getPatientProfile();
+        PatientProfile patient = patientService.getPatientProfile();
         labTest.setPatient(patient);
         labTestRepository.save(labTest);
         entity.forEach(e -> e.setLabTest(labTest));
         labResultService.saveAll(entity);
-    }
-
-    protected PatientProfile getPatientProfile() {
-        return userService.getUser().getPatientProfile();
     }
 
     private static void setTestFields(LabTest labTest, String testName, Date testDate) {
@@ -75,7 +72,7 @@ public class LabTestServiceImpl implements LabTestService {
                 sort);
 
         Pageable pageable = PageRequest.of(page, size, sorting);
-        PatientProfile patient = getPatientProfile();
+        PatientProfile patient = patientService.getPatientProfile();
         return labTestRepository.findAllByPatientId(patient.getId(), pageable);
     }
 
@@ -93,7 +90,7 @@ public class LabTestServiceImpl implements LabTestService {
     @Override
     @Transactional
     public Integer deleteAll() {
-        PatientProfile patient = getPatientProfile();
+        PatientProfile patient = patientService.getPatientProfile();
         patient = patientRepository.findById(patient.getId())
                 .orElseThrow(() -> new UserNotFoundException("Invalid Patient Id"));
         List<LabTest> tests = patient.getLabTests();
@@ -122,7 +119,7 @@ public class LabTestServiceImpl implements LabTestService {
     private LabTest validateOwnership(UUID testId) {
         LabTest test = labTestRepository.findById(testId)
                 .orElseThrow(() -> new LabTestException("Invalid Test Id"));
-        PatientProfile patient = getPatientProfile();
+        PatientProfile patient = patientService.getPatientProfile();
         if (!test.getPatient().getId().equals(patient.getId())) {
             throw new LabTestException("Invalid Test Id");
         }

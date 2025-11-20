@@ -5,7 +5,7 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.nexaworks.rafiq.dto.request.TestRequest;
+import com.nexaworks.rafiq.dto.request.labTest.TestRequest;
 import com.nexaworks.rafiq.entities.LabResult;
 
 @Mapper(componentModel = "spring")

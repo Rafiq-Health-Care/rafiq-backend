@@ -84,7 +84,7 @@ public class LabTestServiceImplTest {
         User user = User.builder().id(UUID.randomUUID())
                 .patientProfile(PatientProfile.builder().id(UUID.randomUUID()).build()).build();
         LabTest labTest = LabTest.builder().id(UUID.randomUUID()).build();
-        when(userService.getUser()).thenReturn(user);
+        when(patientService.getPatientProfile()).thenReturn(user.getPatientProfile());
         when(labTestRepository.findById(labTest.getId())).thenReturn(java.util.Optional.empty());
         when(labTestRepository.save(any())).thenReturn(any());
         when(labResultService.saveAll(labTest.getLabResults())).thenReturn(labTest.getLabResults());
@@ -106,7 +106,7 @@ public class LabTestServiceImplTest {
                 .patientProfile(PatientProfile.builder().id(UUID.randomUUID()).build()).build();
         LabTest labTest = LabTest.builder().id(testId).patient(user.getPatientProfile()).build();
         user.getPatientProfile().setLabTests(List.of(labTest));
-        when(userService.getUser()).thenReturn(user);
+        when(patientService.getPatientProfile()).thenReturn(user.getPatientProfile());
         when(labTestRepository.findById(testId)).thenReturn(java.util.Optional.of(labTest));
 
         labTestService.deleteTest(testId);
@@ -123,7 +123,7 @@ public class LabTestServiceImplTest {
                 .patientProfile(PatientProfile.builder().id(UUID.randomUUID()).build()).build();
         LabTest labTest = LabTest.builder().id(testId)
                 .patient(PatientProfile.builder().id(UUID.randomUUID()).build()).build();
-        when(userService.getUser()).thenReturn(user);
+        when(patientService.getPatientProfile()).thenReturn(user.getPatientProfile());
         when(labTestRepository.findById(testId)).thenReturn(java.util.Optional.of(labTest));
 
         assertThrows(LabTestException.class, () -> labTestService.deleteTest(testId));
@@ -138,7 +138,7 @@ public class LabTestServiceImplTest {
         LabTest labTest = LabTest.builder().id(UUID.randomUUID()).patient(user.getPatientProfile())
                 .build();
         user.getPatientProfile().setLabTests(List.of(labTest));
-        when(userService.getUser()).thenReturn(user);
+        when(patientService.getPatientProfile()).thenReturn(user.getPatientProfile());
         when(patientRepository.findById(user.getPatientProfile().getId()))
                 .thenReturn(java.util.Optional.of(user.getPatientProfile()));
 
@@ -151,7 +151,7 @@ public class LabTestServiceImplTest {
     void deleteAllTest_ShouldThrowException_WhenPatientNotFound() {
         User user = User.builder().id(UUID.randomUUID())
                 .patientProfile(PatientProfile.builder().id(UUID.randomUUID()).build()).build();
-        when(userService.getUser()).thenReturn(user);
+        when(patientService.getPatientProfile()).thenReturn(user.getPatientProfile());
         when(patientRepository.findById(user.getPatientProfile().getId()))
                 .thenReturn(java.util.Optional.empty());
         assertThrows(UserNotFoundException.class, () -> labTestService.deleteAll());

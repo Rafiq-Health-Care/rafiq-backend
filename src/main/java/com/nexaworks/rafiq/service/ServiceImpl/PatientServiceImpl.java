@@ -26,6 +26,7 @@ public class PatientServiceImpl implements PatientService {
         return patientRepository.save(patientProfile);
     }
 
+    @Override
     public PatientProfile getPatientProfile() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return user.getPatientProfile();

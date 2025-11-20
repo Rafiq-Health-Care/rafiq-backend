@@ -1,13 +1,13 @@
 -- Create lab_test table
 CREATE TABLE lab_test (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(255),
     description TEXT,
     code VARCHAR(255),
     pdf VARCHAR(255),
     public_id VARCHAR(255),
     file_type VARCHAR(255),
-    date TIMESTAMP NOT NULL,
+    date TIMESTAMP,
     lab_id UUID,
     doctor_id UUID,
     patient_id UUID,
@@ -23,13 +23,13 @@ CREATE TABLE lab_test (
 -- Create lab_result table
 CREATE TABLE lab_result (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL,
-    result DOUBLE PRECISION NOT NULL,
+    name VARCHAR(255),
+    result DOUBLE PRECISION,
     unit VARCHAR(255),
     status VARCHAR(255),
     description TEXT,
     normal_result VARCHAR(255),
-    lab_test_id UUID NOT NULL,
+    lab_test_id UUID,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
     created_by UUID NOT NULL,
@@ -40,7 +40,7 @@ CREATE TABLE lab_result (
 -- Create medical_certifications table
 CREATE TABLE medical_certifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(255),
     description TEXT,
     code VARCHAR(255),
     photo VARCHAR(255),

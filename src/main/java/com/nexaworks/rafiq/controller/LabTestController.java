@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.itextpdf.text.DocumentException;
-import com.nexaworks.rafiq.dto.request.TestResultRequest;
+import com.nexaworks.rafiq.dto.request.labTest.TestResultRequest;
 import com.nexaworks.rafiq.dto.response.PageResponse;
 import com.nexaworks.rafiq.dto.response.TestResponse;
 import com.nexaworks.rafiq.dto.response.TestResultsResponse;

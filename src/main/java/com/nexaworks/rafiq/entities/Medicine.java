@@ -39,6 +39,10 @@ public class Medicine extends BaseEntity {
     private String notes;
     private String photoUrl;
     private String photoPublicId;
+    private String name;
+
+    @Column(name = "search_vector", columnDefinition = "tsvector", insertable = false, updatable = false)
+    private String searchVector;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "drug_id", referencedColumnName = "id", nullable = false)
@@ -52,9 +56,12 @@ public class Medicine extends BaseEntity {
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
     private PatientProfile patient;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "medicine_groups", joinColumns = @JoinColumn(name = "medicine_id"), inverseJoinColumns = @JoinColumn(name = "group_id"))
-    private Set<Group> groups;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id", referencedColumnName = "id")
+    private Group group;
+    @OneToMany(mappedBy = "medicine", cascade = {CascadeType.REMOVE, CascadeType.PERSIST,
+            CascadeType.MERGE}, fetch = FetchType.LAZY)
+    private Set<Reminder> reminders;
 
     @Override
     public boolean equals(Object obj) {

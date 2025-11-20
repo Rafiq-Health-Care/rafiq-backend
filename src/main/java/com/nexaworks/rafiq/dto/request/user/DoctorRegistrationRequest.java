@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.dto.request;
+package com.nexaworks.rafiq.dto.request.user;
 
 import java.util.UUID;
 

@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.dto.request;
+package com.nexaworks.rafiq.dto.request.medicine;
 
 import java.time.Instant;
 import java.util.UUID;
