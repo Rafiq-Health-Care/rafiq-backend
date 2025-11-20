@@ -10,7 +10,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nexaworks.rafiq.dto.response.LoginResponse;
+import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.service.JwtService;
 import com.nexaworks.rafiq.service.TokenService;

@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.dto.response;
+package com.nexaworks.rafiq.dto.response.lab;
 
 import java.util.UUID;
 

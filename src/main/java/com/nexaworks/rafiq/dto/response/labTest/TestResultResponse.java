@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.dto.response;
+package com.nexaworks.rafiq.dto.response.labTest;
 
 import com.nexaworks.rafiq.dto.request.labTest.TestResultRequest;
 

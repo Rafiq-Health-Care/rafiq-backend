@@ -1,4 +1,6 @@
-package com.nexaworks.rafiq.dto.response;
+package com.nexaworks.rafiq.dto.response.medicine;
+
+import com.nexaworks.rafiq.dto.response.reminder.ReminderResponse;
 
 import java.util.List;
 

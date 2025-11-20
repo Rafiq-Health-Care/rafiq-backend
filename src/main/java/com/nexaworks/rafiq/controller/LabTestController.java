@@ -11,9 +11,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.itextpdf.text.DocumentException;
 import com.nexaworks.rafiq.dto.request.labTest.TestResultRequest;
-import com.nexaworks.rafiq.dto.response.PageResponse;
-import com.nexaworks.rafiq.dto.response.TestResponse;
-import com.nexaworks.rafiq.dto.response.TestResultsResponse;
+import com.nexaworks.rafiq.dto.response.common.PageResponse;
+import com.nexaworks.rafiq.dto.response.labTest.TestResponse;
+import com.nexaworks.rafiq.dto.response.labTest.TestResultsResponse;
 import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.mapper.ResultMapper;
 import com.nexaworks.rafiq.mapper.TestMapper;

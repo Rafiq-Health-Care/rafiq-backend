@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.dto.request.medicine.AddMedicineRequest;
 import com.nexaworks.rafiq.dto.request.medicine.UpdateMedicineRequest;
-import com.nexaworks.rafiq.dto.response.MedicineResponse;
+import com.nexaworks.rafiq.dto.response.medicine.MedicineResponse;
 import com.nexaworks.rafiq.entities.Medicine;
 
 @Mapper(componentModel = "spring")

@@ -26,7 +26,7 @@ import com.nexaworks.rafiq.dto.UploadResults;
 import com.nexaworks.rafiq.dto.event.NewOtpEvent;
 import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
-import com.nexaworks.rafiq.dto.response.LoginResponse;
+import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.DoctorProfile;
 import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.entities.Role;

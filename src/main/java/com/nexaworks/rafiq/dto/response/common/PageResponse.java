@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.dto.response;
+package com.nexaworks.rafiq.dto.response.common;
 
 import java.util.List;
 

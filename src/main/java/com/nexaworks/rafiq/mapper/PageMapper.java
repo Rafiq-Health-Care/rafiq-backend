@@ -6,7 +6,11 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
-import com.nexaworks.rafiq.dto.response.*;
+import com.nexaworks.rafiq.dto.response.common.PageResponse;
+import com.nexaworks.rafiq.dto.response.lab.LabResponse;
+import com.nexaworks.rafiq.dto.response.labTest.TestResponse;
+import com.nexaworks.rafiq.dto.response.medicine.DrugSearchResponse;
+import com.nexaworks.rafiq.dto.response.medicine.MedicineResponse;
 import com.nexaworks.rafiq.entities.Drug;
 import com.nexaworks.rafiq.entities.Lab;
 import com.nexaworks.rafiq.entities.LabTest;

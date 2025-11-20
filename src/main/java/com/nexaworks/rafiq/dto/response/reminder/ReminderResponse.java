@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.dto.response;
+package com.nexaworks.rafiq.dto.response.reminder;
 
 import java.util.UUID;
 

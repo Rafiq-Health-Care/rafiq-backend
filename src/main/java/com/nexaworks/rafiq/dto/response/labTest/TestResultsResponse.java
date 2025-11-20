@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.dto.response;
+package com.nexaworks.rafiq.dto.response.labTest;
 
 import java.util.Date;
 import java.util.List;

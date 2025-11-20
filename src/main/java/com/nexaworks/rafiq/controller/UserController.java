@@ -12,7 +12,7 @@ import com.nexaworks.rafiq.dto.request.user.DoctorRegistrationRequest;
 import com.nexaworks.rafiq.dto.request.user.ForgetPasswordRequest;
 import com.nexaworks.rafiq.dto.request.user.UserRegistrationRequest;
 import com.nexaworks.rafiq.dto.request.user.VerificationRequest;
-import com.nexaworks.rafiq.dto.response.LoginResponse;
+import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.service.UserService;
 

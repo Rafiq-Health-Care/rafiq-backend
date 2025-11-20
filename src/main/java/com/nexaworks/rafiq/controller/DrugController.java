@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.nexaworks.rafiq.dto.response.DrugSearchResponse;
-import com.nexaworks.rafiq.dto.response.PageResponse;
+import com.nexaworks.rafiq.dto.response.common.PageResponse;
+import com.nexaworks.rafiq.dto.response.medicine.DrugSearchResponse;
 import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.service.DrugService;
 

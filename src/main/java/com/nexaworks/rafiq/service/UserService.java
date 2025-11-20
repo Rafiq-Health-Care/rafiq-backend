@@ -7,7 +7,7 @@ import java.util.UUID;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
-import com.nexaworks.rafiq.dto.response.LoginResponse;
+import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.User;
 
 import jakarta.servlet.http.HttpServletResponse;
