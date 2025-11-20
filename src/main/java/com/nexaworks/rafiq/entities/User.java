@@ -32,8 +32,6 @@ public class User extends BaseEntity implements UserDetails, Principal {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
     @JsonIgnore
     private String password;
     @NotBlank

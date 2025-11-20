@@ -4,7 +4,6 @@ import static com.nexaworks.rafiq.enums.Roles.*;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -104,7 +103,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         Role role = roleService.getRole(ROLE_USER);
         // Role role1 = roleService.getRole(ROLE_PATIENT);
-        user.setRoles(new ArrayList<>());
+
         user.getRoles().add(role);
         return user;
     }
@@ -182,7 +181,6 @@ public class UserServiceImpl implements UserService {
         user.setFirstName(firstName);
         user.setLastName(lastName);
         user.setEnabled(false);
-        user.setRoles(new ArrayList<>());
         user.getRoles().add(roleService.getRole(ROLE_USER));
         User oAuthUser = userRepository.save(user);
         log.info("User created {}", user.getEmail());

@@ -22,14 +22,8 @@ public interface MedicineMapper {
                 entity.getDrug() != null ? entity.getDrug().getTradeName() : null,
                 entity.getDosage(), entity.getFrequency(), entity.getStartDate(),
                 entity.getEndDate(), entity.getNotes(), entity.getPhotoUrl(), entity.getType(),
-                entity.getStatus(),
-                entity.getGroups() != null && !entity.getGroups().isEmpty()
-                        ? entity.getGroups().get(0).getId()
-                        : null,
-                entity.getGroups() != null && !entity.getGroups().isEmpty()
-                        ? entity.getGroups().get(0).getName()
-                        : null,
-                0, // reminderCount - can be updated later if ReminderRepository is available
+                entity.getStatus(), null, null, 0, // reminderCount - can be updated later if
+                                                   // ReminderRepository is available
                 entity.getCreatedAt(), entity.getUpdatedAt());
     }
 }
