@@ -199,10 +199,13 @@ public class V7__Import_drugs_from_csv extends BaseJavaMigration {
             String form, String route, String p, String pharmacology, Timestamp now)
             throws SQLException {
         String selectSql = "SELECT id FROM drug WHERE trade_name = ?";
-        if (p == null || p.isEmpty()) {
-            p = "0";
+        double price;
+        try {
+            price = Double.parseDouble(p);
+        } catch (Exception e) {
+            log.warn("Invalid price: {}", p);
+            price = 0.0;
         }
-        double price = Double.parseDouble(p);
         try (PreparedStatement stmt = connection.prepareStatement(selectSql)) {
             stmt.setString(1, truncate(tradeName, 255));
             ResultSet rs = stmt.executeQuery();

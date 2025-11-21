@@ -156,7 +156,7 @@ public class MedicineServiceImplTest {
             }
             @Test
             @DisplayName("Should handle empty selection - no medicines selected")
-            void bulkDelete_ShouldHandleEmptySelection_WhenNoMedicinesSelected() throws Exception {
+            void bulkDelete_ShouldHandleEmptySelection_WhenNoMedicinesSelected() {
                 List<UUID> medicineIds = List.of();
                 BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
                         Action.DELETE, Optional.empty());
