@@ -13,15 +13,26 @@ spring:
    # JPA config
   jpa:
     hibernate:
-      ddl-auto: create-drop
-  # Flyway config
+      ddl-auto: validate
+      show-sql: true
+    defer-datasource-initialization: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  # Flyway config - must run before JPA validation
   flyway:
     baseline-on-migrate: true
-    enabled: false
+    enabled: true
+    locations: classpath:db/migration,classpath:com/nexaworks/rafiq/db/migration
     user: ${DATASOURCE_USERNAME}
     password: ${DATASOURCE_PASSWORD}
     baseline-description: Initial DB
     baseline-version: 0
+
+    # Allow out-of-order migrations if some were missed
+    out-of-order: true
+    # Validate migrations on startup
+    validate-on-migrate: true
+    # Clean disabled for safety (set to false in production)
+    clean-disabled: true
   # File upload config
   servlet:
     multipart:

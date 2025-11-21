@@ -5,6 +5,7 @@ import java.time.Instant;
 import com.nexaworks.rafiq.enums.TokenType;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,8 +18,12 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@Table(name = "token", indexes = {@Index(name = "token_idx", columnList = "token"),
+        @Index(name = "user_idx", columnList = "user_id")})
 public class Token extends BaseEntity {
 
+    @NotBlank
+    @Column(unique = true, nullable = false, length = 1000)
     private String token;
 
     @Enumerated(EnumType.STRING)
@@ -26,7 +31,11 @@ public class Token extends BaseEntity {
 
     private Instant expiryDate;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    public boolean isExpired() {
+        return Instant.now().isAfter(expiryDate);
+    }
 }

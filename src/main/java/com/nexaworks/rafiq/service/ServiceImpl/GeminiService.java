@@ -12,7 +12,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.DocumentException;
 import com.nexaworks.rafiq.client.Gemini;
-import com.nexaworks.rafiq.dto.client.*;
+import com.nexaworks.rafiq.dto.client.extractDataFromPdf.ContentPart;
+import com.nexaworks.rafiq.dto.client.extractDataFromPdf.InlineDataPart;
+import com.nexaworks.rafiq.dto.client.extractDataFromPdf.Part;
+import com.nexaworks.rafiq.dto.client.extractDataFromPdf.RequestBodyDTO;
 import com.nexaworks.rafiq.service.AiService;
 import com.nexaworks.rafiq.utils.Prompt;
 

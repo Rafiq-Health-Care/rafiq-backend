@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.nexaworks.rafiq.dto.response.SpecializationResponse;
+import com.nexaworks.rafiq.dto.response.specialization.SpecializationResponse;
 import com.nexaworks.rafiq.entities.Specialization;
 import com.nexaworks.rafiq.exception.custom.SpecializationNotFoundException;
 import com.nexaworks.rafiq.repository.SpecializationRepository;

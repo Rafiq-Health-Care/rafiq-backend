@@ -5,6 +5,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,13 +17,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nexaworks.rafiq.dto.request.ChangePasswordRequest;
-import com.nexaworks.rafiq.dto.request.ForgetPasswordRequest;
-import com.nexaworks.rafiq.dto.request.LoginRequest;
-import com.nexaworks.rafiq.dto.request.ResetPasswordRequest;
-import com.nexaworks.rafiq.dto.request.VerifyOtpRequest;
+import com.nexaworks.rafiq.dto.request.auth.LoginRequest;
+import com.nexaworks.rafiq.dto.request.user.ChangePasswordRequest;
+import com.nexaworks.rafiq.dto.request.user.ForgetPasswordRequest;
+import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
+import com.nexaworks.rafiq.dto.request.user.VerifyOtpRequest;
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
@@ -77,7 +79,7 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
 
         User user = User.builder().email(email).password(passwordEncoder.encode(password))
                 .firstName(firstName).lastName(lastName).phone("+12345678901").age(30)
-                .gender(Gender.MALE).roles(java.util.List.of(patientRole)).enabled(true).build();
+                .gender(Gender.MALE).roles(Set.of(patientRole)).enabled(true).build();
         return userRepository.save(user);
     }
 
@@ -710,6 +712,7 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
 
             @Test
             @DisplayName("Should logout and return 204 when tokens are valid in cookies")
+            @Transactional
             void shouldLogoutAndReturnNoContentWhenTokensAreValid() throws Exception {
                 // Arrange - Create user and mock tokens
                 String email = "logout.user@example.com";

@@ -5,4 +5,6 @@ import com.nexaworks.rafiq.entities.User;
 
 public interface PatientService {
     PatientProfile createPatientProfile(User patient);
+
+    PatientProfile getPatientProfile();
 }

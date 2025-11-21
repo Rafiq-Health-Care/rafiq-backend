@@ -9,9 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.nexaworks.rafiq.dto.request.AddLabRequest;
-import com.nexaworks.rafiq.dto.response.LabResponse;
-import com.nexaworks.rafiq.dto.response.PageResponse;
+import com.nexaworks.rafiq.dto.request.lab.AddLabRequest;
+import com.nexaworks.rafiq.dto.response.common.PageResponse;
+import com.nexaworks.rafiq.dto.response.lab.LabResponse;
 import com.nexaworks.rafiq.mapper.AddressMapper;
 import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.service.LabService;

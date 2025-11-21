@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,5 +24,11 @@ public class PatientServiceImpl implements PatientService {
         PatientProfile patientProfile = new PatientProfile();
         patientProfile.setUser(patient);
         return patientRepository.save(patientProfile);
+    }
+
+    @Override
+    public PatientProfile getPatientProfile() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return user.getPatientProfile();
     }
 }

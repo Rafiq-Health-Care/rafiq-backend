@@ -3,9 +3,12 @@ package com.nexaworks.rafiq.service;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
-import com.nexaworks.rafiq.dto.request.*;
-import com.nexaworks.rafiq.dto.response.LoginResponse;
-import com.nexaworks.rafiq.dto.response.VerifyOtpResponse;
+import com.nexaworks.rafiq.dto.request.user.ChangePasswordRequest;
+import com.nexaworks.rafiq.dto.request.user.ForgetPasswordRequest;
+import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
+import com.nexaworks.rafiq.dto.request.user.VerifyOtpRequest;
+import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
+import com.nexaworks.rafiq.dto.response.auth.VerifyOtpResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
