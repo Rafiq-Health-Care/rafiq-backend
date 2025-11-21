@@ -24,8 +24,6 @@ import com.nexaworks.rafiq.enums.MedicineFrequency;
 import com.nexaworks.rafiq.integration.BaseIntegrationTest;
 import com.nexaworks.rafiq.repository.*;
 
-import jakarta.persistence.EntityManager;
-
 @DisplayName("Medicine Controller Integration Test Cases")
 public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
@@ -38,8 +36,6 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
     ObjectMapper objectMapper;
     @Autowired
     DrugRepository drugRepository;
-    @Autowired
-    EntityManager entityManager;
     @Autowired
     UserRepository userRepository;
     @Autowired
@@ -146,6 +142,157 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         private Drug createDrug() {
             Drug drug = Drug.builder().tradeName("panadol").dosageForm("tablet").build();
             return drugRepository.save(drug);
+        }
+    }
+
+    @Nested
+    @DisplayName("Get All Medicines")
+    class GetAllMedicines {
+        private final String GET_ALL_MEDICINES_ENDPOINT = "/medicines";
+
+        @Test
+        @DisplayName("Should return 200 OK with paginated medicines when user has medicines")
+        void shouldReturnPaginatedMedicines_WhenUserHasMedicines() throws Exception {
+            User user = createTestUser();
+            Drug drug1 = createDrugWithName("Panadol");
+            Drug drug2 = createDrugWithName("Aspirin");
+            Drug drug3 = createDrugWithName("Ibuprofen");
+
+            // Add medicines for the user
+            medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.AS_NEEDED)
+                    .dosage("100 mg").drug(drug1).patient(user.getPatientProfile()).build());
+            medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.TWICE_DAILY)
+                    .dosage("200 mg").drug(drug2).patient(user.getPatientProfile()).build());
+            medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.ONCE_DAILY)
+                    .dosage("150 mg").drug(drug3).patient(user.getPatientProfile()).build());
+
+            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(3))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(3))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.totalPages").value(1))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.firstPage").value(true))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.lastPage").value(true));
+        }
+
+        @Test
+        @DisplayName("Should return 200 OK with empty list when user has no medicines")
+        void shouldReturnEmptyList_WhenUserHasNoMedicines() throws Exception {
+            User user = createTestUser();
+
+            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(0))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(0))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.firstPage").value(true))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.lastPage").value(true));
+        }
+
+        @Test
+        @DisplayName("Should return paginated results with correct page size")
+        void shouldReturnPaginatedResults_WithCorrectPageSize() throws Exception {
+            User user = createTestUser();
+
+            // Add 15 medicines for the user
+            for (int i = 0; i < 15; i++) {
+                Drug drug = createDrugWithName("Medicine" + i);
+                medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.AS_NEEDED)
+                        .dosage((100 + i) + " mg").drug(drug).patient(user.getPatientProfile())
+                        .build());
+            }
+
+            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
+                    .param("page", "0").param("size", "10")
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(10))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(15))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.totalPages").value(2))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.size").value(10))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.firstPage").value(true))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.lastPage").value(false));
+        }
+
+        @Test
+        @DisplayName("Should return second page of results correctly")
+        void shouldReturnSecondPage_WhenRequested() throws Exception {
+            User user = createTestUser();
+
+            for (int i = 0; i < 15; i++) {
+                Drug drug = createDrugWithName("Medicine" + i);
+                medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.AS_NEEDED)
+                        .dosage((100 + i) + " mg").drug(drug).patient(user.getPatientProfile())
+                        .build());
+            }
+
+            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
+                    .param("page", "1").param("size", "10")
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(5))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(15))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.totalPages").value(2))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.size").value(10))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.firstPage").value(false))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.lastPage").value(true));
+        }
+        @Test
+        @DisplayName("Should only return medicines for authenticated user")
+        void shouldOnlyReturnMedicinesForAuthenticatedUser() throws Exception {
+            User user1 = createTestUser();
+            User user2 = createAnotherUser();
+            Drug drug1 = createDrugWithName("Medicine1");
+            Drug drug2 = createDrugWithName("Medicine2");
+
+            // Add medicine for user1
+            medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.AS_NEEDED)
+                    .dosage("100 mg").drug(drug1).patient(user1.getPatientProfile()).build());
+
+            // Add medicine for user2
+            medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.TWICE_DAILY)
+                    .dosage("200 mg").drug(drug2).patient(user2.getPatientProfile()).build());
+
+            // User1 should only see their own medicine
+            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
+                    .with(SecurityMockMvcRequestPostProcessors.user(user1)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(1))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(1));
+        }
+
+        @Test
+        @DisplayName("Should return 401 Unauthorized when user is not authenticated")
+        void shouldReturnUnauthorized_WhenUserNotAuthenticated() throws Exception {
+            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT))
+                    .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+        }
+
+        private Drug createDrugWithName(String tradeName) {
+            Drug drug = Drug.builder().tradeName(tradeName).dosageForm("tablet").build();
+            return drugRepository.save(drug);
+        }
+
+        private User createAnotherUser() {
+            Role patientRole = roleRepository.findByName("ROLE_PATIENT");
+            if (patientRole == null) {
+                patientRole = new Role();
+                patientRole.setName("ROLE_PATIENT");
+                patientRole = roleRepository.save(patientRole);
+            }
+
+            User user = User.builder().email("another@test.com")
+                    .password(passwordEncoder.encode("Valid@1234")).firstName("Jane")
+                    .lastName("Smith").phone("+12345678902").age(25).gender(Gender.FEMALE)
+                    .roles(Set.of(patientRole)).enabled(true)
+                    .patientProfile(PatientProfile.builder().build()).build();
+            return userRepository.save(user);
         }
     }
 
