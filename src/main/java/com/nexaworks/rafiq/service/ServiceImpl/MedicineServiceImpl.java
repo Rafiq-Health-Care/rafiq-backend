@@ -32,6 +32,7 @@ import com.nexaworks.rafiq.service.MedicineService;
 import com.nexaworks.rafiq.service.PatientService;
 import com.nexaworks.rafiq.specification.MedicineSpecification;
 
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -129,6 +130,9 @@ public class MedicineServiceImpl implements MedicineService {
     @Transactional
     public List<UUID> bulkMedicineOperation(BulkMedicineOperationRequest request)
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        if (request.medicineIds().isEmpty()) {
+            throw new ValidationException("Medicine ids cannot be empty");
+        }
         List<UUID> failedIds = new ArrayList<>();
         Method action = this.getClass().getMethod(request.action().getAction(), List.class,
                 Optional.class, List.class);

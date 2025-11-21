@@ -23,10 +23,10 @@ public interface MedicineMapper {
                 entity.getPatient() != null && entity.getPatient().getUser() != null
                         ? entity.getPatient().getUser().getId()
                         : null,
-                entity.getDrug() != null ? entity.getDrug().getTradeName() : null,
-                entity.getDosage(), entity.getFrequency(), entity.getStartDate(),
-                entity.getEndDate(), entity.getNotes(), entity.getPhotoUrl(), entity.getType(),
-                entity.getStatus(), entity.getGroup() == null ? null : entity.getGroup().getId(),
+                entity.getDrug() != null ? entity.getName() : null, entity.getDosage(),
+                entity.getFrequency(), entity.getStartDate(), entity.getEndDate(),
+                entity.getNotes(), entity.getPhotoUrl(), entity.getType(), entity.getStatus(),
+                entity.getGroup() == null ? null : entity.getGroup().getId(),
                 entity.getGroup() == null ? null : entity.getGroup().getName(),
                 entity.getReminders().size(), entity.getCreatedAt(), entity.getUpdatedAt());
     }
