@@ -26,7 +26,9 @@ import com.nexaworks.rafiq.exception.custom.MedicineLimit;
 import com.nexaworks.rafiq.exception.custom.MedicineNotFound;
 import com.nexaworks.rafiq.repository.MedicineRepository;
 import com.nexaworks.rafiq.service.DrugService;
+import com.nexaworks.rafiq.service.GroupService;
 import com.nexaworks.rafiq.service.MedicineService;
+import com.nexaworks.rafiq.service.PatientService;
 import com.nexaworks.rafiq.specification.MedicineSpecification;
 
 import lombok.RequiredArgsConstructor;
@@ -38,8 +40,8 @@ import lombok.extern.slf4j.Slf4j;
 public class MedicineServiceImpl implements MedicineService {
     private final MedicineRepository medicineRepository;
     private final DrugService drugService;
-    private final PatientServiceImpl patientService;
-    private final GroupServiceImpl groupService;
+    private final PatientService patientService;
+    private final GroupService groupService;
     @Override
     @Transactional
     public Medicine addMedicine(Medicine entity, UUID drugId) {
