@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.nexaworks.rafiq.exception.ExceptionUtils;
 import com.nexaworks.rafiq.exception.custom.MedicineAlreadyExist;
 import com.nexaworks.rafiq.exception.custom.MedicineLimit;
+import com.nexaworks.rafiq.exception.custom.MedicineNotFound;
 import com.nexaworks.rafiq.exception.model.ErrorResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,5 +29,11 @@ public class MedicineExceptionHandler {
             HttpServletRequest request) {
         return ResponseEntity.status(422).body(
                 exceptionUtils.getErrorResponse(ex, request, HttpStatus.UNPROCESSABLE_ENTITY));
+    }
+    @ExceptionHandler(MedicineNotFound.class)
+    public ResponseEntity<ErrorResponse> handleMedicineNotFound(MedicineNotFound ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.NOT_FOUND));
     }
 }

@@ -250,15 +250,12 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Drug drug1 = createDrugWithName("Medicine1");
             Drug drug2 = createDrugWithName("Medicine2");
 
-            // Add medicine for user1
             medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.AS_NEEDED)
                     .dosage("100 mg").drug(drug1).patient(user1.getPatientProfile()).build());
 
-            // Add medicine for user2
             medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.TWICE_DAILY)
                     .dosage("200 mg").drug(drug2).patient(user2.getPatientProfile()).build());
 
-            // User1 should only see their own medicine
             mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
                     .with(SecurityMockMvcRequestPostProcessors.user(user1)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
@@ -290,6 +287,153 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             User user = User.builder().email("another@test.com")
                     .password(passwordEncoder.encode("Valid@1234")).firstName("Jane")
                     .lastName("Smith").phone("+12345678902").age(25).gender(Gender.FEMALE)
+                    .roles(Set.of(patientRole)).enabled(true)
+                    .patientProfile(PatientProfile.builder().build()).build();
+            return userRepository.save(user);
+        }
+    }
+
+    @Nested
+    @DisplayName("Get Medicine By ID")
+    class GetMedicineById {
+        private final String GET_MEDICINE_BY_ID_ENDPOINT = "/medicines/{id}";
+
+        @Test
+        @DisplayName("Should return 200 OK with medicine details when medicine exists and belongs to user")
+        void shouldReturnMedicineDetails_WhenMedicineExistsAndBelongsToUser() throws Exception {
+            User user = createTestUser();
+            Drug drug = createDrugWithName("Aspirin");
+            Medicine medicine = medicineRepository.save(
+                    Medicine.builder().frequency(MedicineFrequency.TWICE_DAILY).dosage("100 mg")
+                            .drug(drug).name("Aspirin").patient(user.getPatientProfile()).build());
+
+            mockMvc.perform(
+                    MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId())
+                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine").exists())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.id")
+                            .value(medicine.getId().toString()))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.name").value("Aspirin"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.dosage").value("100 mg"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.frequency")
+                            .value("TWICE_DAILY"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.reminders").isArray());
+        }
+
+        @Test
+        @DisplayName("Should return medicine with reminders when medicine has reminders")
+        void shouldReturnMedicineWithReminders_WhenMedicineHasReminders() throws Exception {
+            User user = createTestUser();
+            Drug drug = createDrugWithName("Paracetamol");
+            Medicine medicine = medicineRepository.save(Medicine.builder()
+                    .frequency(MedicineFrequency.ONCE_DAILY).dosage("500 mg").drug(drug)
+                    .name("Paracetamol").patient(user.getPatientProfile()).build());
+
+            mockMvc.perform(
+                    MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId())
+                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine").exists())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.id")
+                            .value(medicine.getId().toString()))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.reminders").isArray());
+        }
+
+        @Test
+        @DisplayName("Should return 404 Not Found when medicine does not exist")
+        void shouldReturnNotFound_WhenMedicineDoesNotExist() throws Exception {
+            User user = createTestUser();
+            UUID nonExistentId = UUID.randomUUID();
+
+            mockMvc.perform(MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, nonExistentId)
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("Should return 404 Not Found when medicine belongs to another user")
+        void shouldReturnNotFound_WhenMedicineBelongsToAnotherUser() throws Exception {
+            User user1 = createTestUser();
+            User user2 = createAnotherUser();
+            Drug drug = createDrugWithName("Ibuprofen");
+
+            // Create medicine for user2
+            Medicine medicine = medicineRepository.save(Medicine.builder()
+                    .frequency(MedicineFrequency.AS_NEEDED).dosage("200 mg").drug(drug)
+                    .name("Ibuprofen").patient(user2.getPatientProfile()).build());
+
+            // User1 tries to access user2's medicine
+            mockMvc.perform(
+                    MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId())
+                            .with(SecurityMockMvcRequestPostProcessors.user(user1)))
+                    .andExpect(MockMvcResultMatchers.status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("Should return 401 Unauthorized when user is not authenticated")
+        void shouldReturnUnauthorized_WhenUserNotAuthenticated() throws Exception {
+            UUID medicineId = UUID.randomUUID();
+
+            mockMvc.perform(MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, medicineId))
+                    .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+        }
+
+        @Test
+        @DisplayName("Should return 400 Bad Request when medicine ID is invalid")
+        void shouldReturnBadRequest_WhenMedicineIdIsInvalid() throws Exception {
+            User user = createTestUser();
+
+            mockMvc.perform(MockMvcRequestBuilders.get("/medicines/{id}", "invalid-uuid")
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Should return medicine with all fields populated correctly")
+        void shouldReturnMedicineWithAllFieldsPopulated() throws Exception {
+            User user = createTestUser();
+            Drug drug = createDrugWithName("Metformin");
+            Instant startDate = Instant.now();
+            Instant endDate = startDate.plus(30, java.time.temporal.ChronoUnit.DAYS);
+
+            Medicine medicine = medicineRepository.save(
+                    Medicine.builder().frequency(MedicineFrequency.THRICE_DAILY).dosage("850 mg")
+                            .drug(drug).name("Metformin").startDate(startDate).endDate(endDate)
+                            .notes("Take with food").patient(user.getPatientProfile()).build());
+
+            mockMvc.perform(
+                    MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId())
+                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.id")
+                            .value(medicine.getId().toString()))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.name").value("Metformin"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.dosage").value("850 mg"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.frequency")
+                            .value("THRICE_DAILY"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.notes")
+                            .value("Take with food"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.startDate").exists())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.endDate").exists());
+        }
+
+        private Drug createDrugWithName(String tradeName) {
+            Drug drug = Drug.builder().tradeName(tradeName).dosageForm("tablet").build();
+            return drugRepository.save(drug);
+        }
+
+        private User createAnotherUser() {
+            Role patientRole = roleRepository.findByName("ROLE_PATIENT");
+            if (patientRole == null) {
+                patientRole = new Role();
+                patientRole.setName("ROLE_PATIENT");
+                patientRole = roleRepository.save(patientRole);
+            }
+
+            User user = User.builder().email("user2@test.com")
+                    .password(passwordEncoder.encode("Valid@1234")).firstName("John")
+                    .lastName("Smith").phone("+12345678903").age(28).gender(Gender.MALE)
                     .roles(Set.of(patientRole)).enabled(true)
                     .patientProfile(PatientProfile.builder().build()).build();
             return userRepository.save(user);
