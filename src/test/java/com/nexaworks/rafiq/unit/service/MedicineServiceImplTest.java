@@ -32,6 +32,8 @@ import com.nexaworks.rafiq.service.ServiceImpl.DrugServiceImpl;
 import com.nexaworks.rafiq.service.ServiceImpl.GroupServiceImpl;
 import com.nexaworks.rafiq.service.ServiceImpl.MedicineServiceImpl;
 
+import jakarta.validation.ValidationException;
+
 @DisplayName("MedicineService Test Cases")
 public class MedicineServiceImplTest {
     @Mock
@@ -161,10 +163,10 @@ public class MedicineServiceImplTest {
 
                 when(patientService.getPatientProfile()).thenReturn(patient);
 
-                List<UUID> failedIds = medicineService.bulkMedicineOperation(request);
+                assertThatExceptionOfType(ValidationException.class)
+                        .isThrownBy(() -> medicineService.bulkMedicineOperation(request))
+                        .withMessage("Medicine ids cannot be empty");
 
-                assertThat(failedIds.size()).isEqualTo(0);
-                verify(medicineRepository, never()).delete(any(Medicine.class));
             }
 
             @Test
