@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.entities;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Set;
 
 import com.nexaworks.rafiq.enums.MedicineFrequency;
@@ -61,7 +62,8 @@ public class Medicine extends BaseEntity {
     private Group group;
     @OneToMany(mappedBy = "medicine", cascade = {CascadeType.REMOVE, CascadeType.PERSIST,
             CascadeType.MERGE}, fetch = FetchType.LAZY)
-    private Set<Reminder> reminders;
+    @Builder.Default
+    private Set<Reminder> reminders = new HashSet<>();
 
     @Override
     public boolean equals(Object obj) {
