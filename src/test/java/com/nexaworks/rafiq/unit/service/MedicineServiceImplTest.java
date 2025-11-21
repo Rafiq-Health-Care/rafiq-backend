@@ -3,8 +3,12 @@ package com.nexaworks.rafiq.unit.service;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.*;
@@ -12,9 +16,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.nexaworks.rafiq.dto.request.medicine.BulkMedicineOperationRequest;
 import com.nexaworks.rafiq.entities.Drug;
+import com.nexaworks.rafiq.entities.Group;
 import com.nexaworks.rafiq.entities.Medicine;
 import com.nexaworks.rafiq.entities.PatientProfile;
+import com.nexaworks.rafiq.enums.Action;
+import com.nexaworks.rafiq.enums.MedicineStatus;
+import com.nexaworks.rafiq.exception.custom.GroupNotFoundException;
 import com.nexaworks.rafiq.exception.custom.MedicineAlreadyExist;
 import com.nexaworks.rafiq.exception.custom.MedicineLimit;
 import com.nexaworks.rafiq.repository.MedicineRepository;
@@ -85,5 +94,326 @@ public class MedicineServiceImplTest {
                     .withMessage("You have reached the limit of medicine");
         }
 
+    }
+
+    @Nested
+    @DisplayName("Bulk Operations Test")
+    class BulkOperationsTest {
+
+        @Nested
+        @DisplayName("Delete Operation")
+        class DeleteOperationTest {
+            @Test
+            @DisplayName("Should delete all medicines successfully when all IDs are valid")
+            void bulkDelete_ShouldDeleteAllMedicinesSuccessfully_WhenAllIdsAreValid()
+                    throws Exception {
+                UUID medicineId1 = UUID.randomUUID();
+                UUID medicineId2 = UUID.randomUUID();
+                List<UUID> medicineIds = Arrays.asList(medicineId1, medicineId2);
+                BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
+                        Action.DELETE, Optional.empty());
+
+                Medicine medicine1 = Medicine.builder().id(medicineId1).patient(patient).build();
+                Medicine medicine2 = Medicine.builder().id(medicineId2).patient(patient).build();
+
+                when(patientService.getPatientProfile()).thenReturn(patient);
+                when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
+                when(medicineRepository.findById(medicineId2)).thenReturn(Optional.of(medicine2));
+                doNothing().when(medicineRepository).delete(any(Medicine.class));
+
+                List<UUID> failedIds = medicineService.bulkMedicineOperation(request);
+
+                assertThat(failedIds.size()).isEqualTo(0);
+                verify(medicineRepository, times(2)).delete(any(Medicine.class));
+            }
+
+            @Test
+            @DisplayName("Should return failed IDs when some medicines are not found")
+            void bulkDelete_ShouldReturnFailedIds_WhenSomeMedicinesAreNotFound() throws Exception {
+                UUID medicineId1 = UUID.randomUUID();
+                UUID medicineId2 = UUID.randomUUID();
+                UUID medicineId3 = UUID.randomUUID();
+                List<UUID> medicineIds = Arrays.asList(medicineId1, medicineId2, medicineId3);
+                BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
+                        Action.DELETE, Optional.empty());
+
+                Medicine medicine1 = Medicine.builder().id(medicineId1).patient(patient).build();
+
+                when(patientService.getPatientProfile()).thenReturn(patient);
+                when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
+                when(medicineRepository.findById(medicineId2)).thenReturn(Optional.empty());
+                when(medicineRepository.findById(medicineId3)).thenReturn(Optional.empty());
+                doNothing().when(medicineRepository).delete(any(Medicine.class));
+
+                List<UUID> failedIds = medicineService.bulkMedicineOperation(request);
+
+                assertThat(failedIds.size()).isEqualTo(2);
+                assertThat(failedIds.contains(medicineId2)).isTrue();
+                assertThat(failedIds.contains(medicineId3)).isTrue();
+                verify(medicineRepository, times(1)).delete(any(Medicine.class));
+            }
+            @Test
+            @DisplayName("Should handle empty selection - no medicines selected")
+            void bulkDelete_ShouldHandleEmptySelection_WhenNoMedicinesSelected() throws Exception {
+                List<UUID> medicineIds = List.of();
+                BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
+                        Action.DELETE, Optional.empty());
+
+                when(patientService.getPatientProfile()).thenReturn(patient);
+
+                List<UUID> failedIds = medicineService.bulkMedicineOperation(request);
+
+                assertThat(failedIds.size()).isEqualTo(0);
+                verify(medicineRepository, never()).delete(any(Medicine.class));
+            }
+
+            @Test
+            @DisplayName("Should only delete medicines belonging to current patient")
+            void bulkDelete_ShouldOnlyDeleteOwnMedicines_WhenMedicinesBelongToDifferentPatients()
+                    throws Exception {
+                UUID medicineId1 = UUID.randomUUID();
+                UUID medicineId2 = UUID.randomUUID();
+                UUID medicineId3 = UUID.randomUUID();
+                List<UUID> medicineIds = Arrays.asList(medicineId1, medicineId2, medicineId3);
+                BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
+                        Action.DELETE, Optional.empty());
+
+                PatientProfile otherPatient = PatientProfile.builder().id(UUID.randomUUID())
+                        .build();
+
+                Medicine medicine1 = Medicine.builder().id(medicineId1).patient(patient).build();
+                Medicine medicine2 = Medicine.builder().id(medicineId2).patient(otherPatient)
+                        .build();
+                Medicine medicine3 = Medicine.builder().id(medicineId3).patient(patient).build();
+
+                when(patientService.getPatientProfile()).thenReturn(patient);
+                when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
+                when(medicineRepository.findById(medicineId2)).thenReturn(Optional.of(medicine2));
+                when(medicineRepository.findById(medicineId3)).thenReturn(Optional.of(medicine3));
+                doNothing().when(medicineRepository).delete(any(Medicine.class));
+
+                List<UUID> failedIds = medicineService.bulkMedicineOperation(request);
+
+                assertThat(failedIds.size()).isEqualTo(1);
+                assertThat(failedIds.contains(medicineId2)).isTrue();
+                verify(medicineRepository, times(2)).delete(any(Medicine.class));
+            }
+            @Test
+            @DisplayName("Should delete  medicines when belong to current patient")
+            void bulkDelete_ShouldDeleteMedicines_WhenBelongToCurrentPatient() throws Exception {
+                UUID medicineId1 = UUID.randomUUID();
+                UUID medicineId2 = UUID.randomUUID();
+                List<UUID> medicineIds = Arrays.asList(medicineId1, medicineId2);
+                BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
+                        Action.DELETE, Optional.empty());
+                Medicine medicine1 = Medicine.builder().id(medicineId1)
+                        .patient(PatientProfile.builder().id(UUID.randomUUID()).build()).build();
+                Medicine medicine2 = Medicine.builder().id(medicineId2).patient(patient).build();
+
+                when(patientService.getPatientProfile()).thenReturn(patient);
+                when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
+                when(medicineRepository.findById(medicineId2)).thenReturn(Optional.of(medicine2));
+                doNothing().when(medicineRepository).delete(any(Medicine.class));
+
+                List<UUID> failedIds = medicineService.bulkMedicineOperation(request);
+
+                assertThat(failedIds.size()).isEqualTo(1);
+                verify(medicineRepository, times(1)).delete(any(Medicine.class));
+
+            }
+
+        }
+
+        @Nested
+        @DisplayName("Move to Group Operation")
+        class MoveToGroupOperationTest {
+            @Test
+            @DisplayName("Should move all medicines to group successfully when group ID is provided and all IDs are valid")
+            void bulkMoveToGroup_ShouldMoveAllMedicinesToGroup_WhenGroupIdProvidedAndAllIdsValid()
+                    throws Exception {
+                UUID groupId = UUID.randomUUID();
+                UUID medicineId1 = UUID.randomUUID();
+                UUID medicineId2 = UUID.randomUUID();
+                List<UUID> medicineIds = Arrays.asList(medicineId1, medicineId2);
+                BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
+                        Action.MOVE_TO_GROUP, Optional.of(groupId));
+
+                Group group = Group.builder().id(groupId).patientProfile(patient).build();
+                Medicine medicine1 = Medicine.builder().id(medicineId1).patient(patient).build();
+                Medicine medicine2 = Medicine.builder().id(medicineId2).patient(patient).build();
+
+                when(groupService.getGroupById(groupId)).thenReturn(group);
+                when(patientService.getPatientProfile()).thenReturn(patient);
+                when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
+                when(medicineRepository.findById(medicineId2)).thenReturn(Optional.of(medicine2));
+                when(medicineRepository.save(any(Medicine.class)))
+                        .thenAnswer(i -> i.getArguments()[0]);
+
+                List<UUID> failedIds = medicineService.bulkMedicineOperation(request);
+
+                assertThat(failedIds.size()).isEqualTo(0);
+                verify(medicineRepository, times(2)).save(any(Medicine.class));
+                assertThat(medicine1.getGroup()).isEqualTo(group);
+                assertThat(medicine2.getGroup()).isEqualTo(group);
+            }
+
+            @Test
+            @DisplayName("Should throw exception when group ID is not provided")
+            void bulkMoveToGroup_ShouldThrowException_WhenGroupIdNotProvided() {
+                UUID medicineId1 = UUID.randomUUID();
+                List<UUID> medicineIds = List.of(medicineId1);
+                BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
+                        Action.MOVE_TO_GROUP, Optional.empty());
+
+                assertThatExceptionOfType(InvocationTargetException.class)
+                        .isThrownBy(() -> medicineService.bulkMedicineOperation(request))
+                        .withCauseInstanceOf(GroupNotFoundException.class);
+            }
+
+            @Test
+            @DisplayName("Should return failed IDs when some medicines are not found")
+            void bulkMoveToGroup_ShouldReturnFailedIds_WhenSomeMedicinesNotFound()
+                    throws Exception {
+                UUID groupId = UUID.randomUUID();
+                UUID medicineId1 = UUID.randomUUID();
+                UUID medicineId2 = UUID.randomUUID();
+                List<UUID> medicineIds = Arrays.asList(medicineId1, medicineId2);
+                BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
+                        Action.MOVE_TO_GROUP, Optional.of(groupId));
+
+                Group group = Group.builder().id(groupId).patientProfile(patient).build();
+                Medicine medicine1 = Medicine.builder().id(medicineId1).patient(patient).build();
+
+                when(groupService.getGroupById(groupId)).thenReturn(group);
+                when(patientService.getPatientProfile()).thenReturn(patient);
+                when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
+                when(medicineRepository.findById(medicineId2)).thenReturn(Optional.empty());
+                when(medicineRepository.save(any(Medicine.class)))
+                        .thenAnswer(i -> i.getArguments()[0]);
+
+                List<UUID> failedIds = medicineService.bulkMedicineOperation(request);
+
+                assertThat(failedIds.size()).isEqualTo(1);
+                assertThat(failedIds.contains(medicineId2)).isTrue();
+                verify(medicineRepository, times(1)).save(any(Medicine.class));
+            }
+        }
+
+        @Nested
+        @DisplayName("Mark Active Operation")
+        class MarkActiveOperationTest {
+            @Test
+            @DisplayName("Should mark all medicines as active successfully when all IDs are valid")
+            void bulkMarkActive_ShouldMarkAllMedicinesAsActive_WhenAllIdsAreValid()
+                    throws Exception {
+                UUID medicineId1 = UUID.randomUUID();
+                UUID medicineId2 = UUID.randomUUID();
+                List<UUID> medicineIds = Arrays.asList(medicineId1, medicineId2);
+                BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
+                        Action.MARK_ACTIVE, Optional.empty());
+
+                Medicine medicine1 = Medicine.builder().id(medicineId1).patient(patient)
+                        .status(MedicineStatus.INACTIVE).build();
+                Medicine medicine2 = Medicine.builder().id(medicineId2).patient(patient)
+                        .status(MedicineStatus.INACTIVE).build();
+
+                when(patientService.getPatientProfile()).thenReturn(patient);
+                when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
+                when(medicineRepository.findById(medicineId2)).thenReturn(Optional.of(medicine2));
+                when(medicineRepository.save(any(Medicine.class)))
+                        .thenAnswer(i -> i.getArguments()[0]);
+
+                List<UUID> failedIds = medicineService.bulkMedicineOperation(request);
+
+                assertThat(failedIds.size()).isEqualTo(0);
+                verify(medicineRepository, times(2)).save(any(Medicine.class));
+                assertThat(medicine1.getStatus()).isEqualTo(MedicineStatus.ACTIVE);
+                assertThat(medicine2.getStatus()).isEqualTo(MedicineStatus.ACTIVE);
+            }
+
+            @Test
+            @DisplayName("Should return failed IDs when some medicines are not found")
+            void bulkMarkActive_ShouldReturnFailedIds_WhenSomeMedicinesNotFound() throws Exception {
+                UUID medicineId1 = UUID.randomUUID();
+                UUID medicineId2 = UUID.randomUUID();
+                List<UUID> medicineIds = Arrays.asList(medicineId1, medicineId2);
+                BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
+                        Action.MARK_ACTIVE, Optional.empty());
+
+                Medicine medicine1 = Medicine.builder().id(medicineId1).patient(patient)
+                        .status(MedicineStatus.INACTIVE).build();
+
+                when(patientService.getPatientProfile()).thenReturn(patient);
+                when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
+                when(medicineRepository.findById(medicineId2)).thenReturn(Optional.empty());
+                when(medicineRepository.save(any(Medicine.class)))
+                        .thenAnswer(i -> i.getArguments()[0]);
+
+                List<UUID> failedIds = medicineService.bulkMedicineOperation(request);
+
+                assertThat(failedIds.size()).isEqualTo(1);
+                assertThat(failedIds.contains(medicineId2)).isTrue();
+                verify(medicineRepository, times(1)).save(any(Medicine.class));
+            }
+        }
+
+        @Nested
+        @DisplayName("Mark Inactive Operation")
+        class MarkInactiveOperationTest {
+            @Test
+            @DisplayName("Should mark all medicines as inactive successfully when all IDs are valid")
+            void bulkMarkInactive_ShouldMarkAllMedicinesAsInactive_WhenAllIdsAreValid()
+                    throws Exception {
+                UUID medicineId1 = UUID.randomUUID();
+                UUID medicineId2 = UUID.randomUUID();
+                List<UUID> medicineIds = Arrays.asList(medicineId1, medicineId2);
+                BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
+                        Action.MARK_INACTIVE, Optional.empty());
+
+                Medicine medicine1 = Medicine.builder().id(medicineId1).patient(patient)
+                        .status(MedicineStatus.ACTIVE).build();
+                Medicine medicine2 = Medicine.builder().id(medicineId2).patient(patient)
+                        .status(MedicineStatus.ACTIVE).build();
+
+                when(patientService.getPatientProfile()).thenReturn(patient);
+                when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
+                when(medicineRepository.findById(medicineId2)).thenReturn(Optional.of(medicine2));
+                when(medicineRepository.save(any(Medicine.class)))
+                        .thenAnswer(i -> i.getArguments()[0]);
+
+                List<UUID> failedIds = medicineService.bulkMedicineOperation(request);
+
+                assertThat(failedIds.size()).isEqualTo(0);
+                verify(medicineRepository, times(2)).save(any(Medicine.class));
+                assertThat(medicine1.getStatus()).isEqualTo(MedicineStatus.INACTIVE);
+                assertThat(medicine2.getStatus()).isEqualTo(MedicineStatus.INACTIVE);
+            }
+
+            @Test
+            @DisplayName("Should return failed IDs when some medicines are not found")
+            void bulkMarkInactive_ShouldReturnFailedIds_WhenSomeMedicinesNotFound()
+                    throws Exception {
+                UUID medicineId1 = UUID.randomUUID();
+                UUID medicineId2 = UUID.randomUUID();
+                List<UUID> medicineIds = Arrays.asList(medicineId1, medicineId2);
+                BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
+                        Action.MARK_INACTIVE, Optional.empty());
+
+                Medicine medicine1 = Medicine.builder().id(medicineId1).patient(patient)
+                        .status(MedicineStatus.ACTIVE).build();
+
+                when(patientService.getPatientProfile()).thenReturn(patient);
+                when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
+                when(medicineRepository.findById(medicineId2)).thenReturn(Optional.empty());
+                when(medicineRepository.save(any(Medicine.class)))
+                        .thenAnswer(i -> i.getArguments()[0]);
+
+                List<UUID> failedIds = medicineService.bulkMedicineOperation(request);
+
+                assertThat(failedIds.size()).isEqualTo(1);
+                assertThat(failedIds.contains(medicineId2)).isTrue();
+                verify(medicineRepository, times(1)).save(any(Medicine.class));
+            }
+        }
     }
 }

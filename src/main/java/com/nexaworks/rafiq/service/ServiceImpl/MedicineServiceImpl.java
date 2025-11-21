@@ -21,6 +21,7 @@ import com.nexaworks.rafiq.entities.Group;
 import com.nexaworks.rafiq.entities.Medicine;
 import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.enums.MedicineStatus;
+import com.nexaworks.rafiq.exception.custom.GroupNotFoundException;
 import com.nexaworks.rafiq.exception.custom.MedicineAlreadyExist;
 import com.nexaworks.rafiq.exception.custom.MedicineLimit;
 import com.nexaworks.rafiq.exception.custom.MedicineNotFound;
@@ -148,11 +149,11 @@ public class MedicineServiceImpl implements MedicineService {
     }
     @Transactional
     public void moveToGroup(List<UUID> ids, Optional<UUID> groupId, List<UUID> failedIds) {
-        groupId.orElseThrow(() -> new MedicineNotFound("Group id is required"));
+        groupId.orElseThrow(() -> new GroupNotFoundException("Group id is required"));
         Group group = groupService.getGroupById(groupId.get());
         PatientProfile patient = patientService.getPatientProfile();
-        if (group.getPatientProfile().getId().equals(patient.getId())) {
-            throw new MedicineNotFound("Medicine not found with id: " + ids);
+        if (!group.getPatientProfile().getId().equals(patient.getId())) {
+            throw new GroupNotFoundException("Medicine not found with id: " + ids);
         }
         ids.forEach(medicineId -> {
             try {
@@ -179,7 +180,7 @@ public class MedicineServiceImpl implements MedicineService {
 
     }
     @Transactional
-    public void markInactive(List<UUID> ids, Optional<UUID> groupId, List<UUID> failedIds) {
+    public void markInActive(List<UUID> ids, Optional<UUID> groupId, List<UUID> failedIds) {
         PatientProfile patient = patientService.getPatientProfile();
         ids.forEach(medicineId -> {
             try {
