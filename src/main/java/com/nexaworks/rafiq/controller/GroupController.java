@@ -82,7 +82,8 @@ public class GroupController {
         medicineService.moveToGroup(request.medicineIds(), Optional.of(groupId), movedMedicineIds);
         return ResponseEntity.status(200)
                 .body(new AddResponse<>(true, "Medicines added to group successfully",
-                        new AddMedicineToGroupResponse(groupId, movedMedicineIds.size())));
+                        new AddMedicineToGroupResponse(groupId,
+                                request.medicineIds().size() - movedMedicineIds.size())));
     }
     @PostMapping("/removeMedicines/{groupId}/{medicineId}")
     public ResponseEntity<String> removeMedicineFromGroup(
