@@ -24,7 +24,7 @@ public interface GroupMapper {
                 savedGroup.getIconUrl(),
                 savedGroup.getMedicines() != null ? savedGroup.getMedicines().size() : 0);
     }
-    @Transactional(readOnly = true)
+
     default GroupResponse toGroupDto(Group group, MedicineMapper medicineMapper) {
         return new GroupResponse(group.getId(), group.getName(), group.getDescription(),
                 group.getColor(), group.getIconUrl(),
@@ -36,7 +36,6 @@ public interface GroupMapper {
         );
     }
 
-    @Transactional(readOnly = true)
     default Response<GroupDetailsResponse> toResponse(Group group, MedicineMapper medicineMapper) {
         return new Response<>(true, new GroupDetailsResponse(group.getId(),
                 group.getPatientProfile().getId(), group.getName(), group.getDescription(),

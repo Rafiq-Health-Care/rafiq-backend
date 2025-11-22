@@ -1,7 +1,6 @@
 package com.nexaworks.rafiq.mapper;
 
 import org.mapstruct.Mapper;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.dto.request.medicine.AddMedicineRequest;
 import com.nexaworks.rafiq.dto.request.medicine.UpdateMedicineRequest;
@@ -15,7 +14,6 @@ public interface MedicineMapper {
     Medicine toEntity(AddMedicineRequest request);
     Medicine toEntity(UpdateMedicineRequest request);
 
-    @Transactional
     default MedicineResponse toDto(Medicine entity) {
         if (entity == null) {
             return null;
