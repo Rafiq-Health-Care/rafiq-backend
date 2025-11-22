@@ -5,11 +5,11 @@ import java.util.Collections;
 import org.mapstruct.Mapper;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.nexaworks.rafiq.dto.Response;
 import com.nexaworks.rafiq.dto.request.group.AddGroupRequest;
 import com.nexaworks.rafiq.dto.response.Group.AddGroupResponse;
 import com.nexaworks.rafiq.dto.response.Group.GroupDetailsResponse;
 import com.nexaworks.rafiq.dto.response.Group.GroupResponse;
+import com.nexaworks.rafiq.dto.response.common.Response;
 import com.nexaworks.rafiq.entities.Group;
 
 @Mapper(componentModel = "spring")

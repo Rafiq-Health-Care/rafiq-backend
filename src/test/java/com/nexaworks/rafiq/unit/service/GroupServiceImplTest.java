@@ -310,7 +310,8 @@ public class GroupServiceImplTest {
 
             when(groupRepository.findById(groupId)).thenReturn(Optional.of(existingGroup));
             when(patientService.getPatientProfile()).thenReturn(patientProfile);
-            when(groupRepository.existsGroupByName("Existing Name")).thenReturn(true);
+            when(groupRepository.existsGroupByPatientProfile_IdAndName(any(), any()))
+                    .thenReturn(true);
 
             // Act & Assert
             assertThatExceptionOfType(GroupIsAlreadyExistsException.class)

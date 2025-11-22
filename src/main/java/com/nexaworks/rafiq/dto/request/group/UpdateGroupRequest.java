@@ -2,7 +2,8 @@ package com.nexaworks.rafiq.dto.request.group;
 
 import com.nexaworks.rafiq.enums.Color;
 
-import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Size;
 
-public record UpdateGroupRequest(@Max(50) String name, @Max(200) String description, Color color) {
+public record UpdateGroupRequest(@Size(max = 50) String name, @Size(max = 100) String description,
+        Color color) {
 }

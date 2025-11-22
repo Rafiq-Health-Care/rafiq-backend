@@ -9,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.nexaworks.rafiq.dto.Response;
 import com.nexaworks.rafiq.dto.request.group.AddGroupRequest;
 import com.nexaworks.rafiq.dto.request.group.AddMedicinesToGroup;
 import com.nexaworks.rafiq.dto.request.group.UpdateGroupRequest;
@@ -17,6 +16,7 @@ import com.nexaworks.rafiq.dto.response.Group.AddGroupResponse;
 import com.nexaworks.rafiq.dto.response.Group.AddMedicineToGroupResponse;
 import com.nexaworks.rafiq.dto.response.Group.GroupDetailsResponse;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
+import com.nexaworks.rafiq.dto.response.common.Response;
 import com.nexaworks.rafiq.dto.response.medicine.AddResponse;
 import com.nexaworks.rafiq.entities.Group;
 import com.nexaworks.rafiq.mapper.GroupMapper;
