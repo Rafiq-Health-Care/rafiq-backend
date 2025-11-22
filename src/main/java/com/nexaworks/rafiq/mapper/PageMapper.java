@@ -6,15 +6,13 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
+import com.nexaworks.rafiq.dto.response.Group.AddGroupResponse;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.lab.LabResponse;
 import com.nexaworks.rafiq.dto.response.labTest.TestResponse;
 import com.nexaworks.rafiq.dto.response.medicine.DrugSearchResponse;
 import com.nexaworks.rafiq.dto.response.medicine.MedicineResponse;
-import com.nexaworks.rafiq.entities.Drug;
-import com.nexaworks.rafiq.entities.Lab;
-import com.nexaworks.rafiq.entities.LabTest;
-import com.nexaworks.rafiq.entities.Medicine;
+import com.nexaworks.rafiq.entities.*;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PageMapper {
     private final DrugMapper drugMapper;
     private final MedicineMapper medicineMapper;
+    private final GroupMapper groupMapper;
     public PageResponse<LabResponse> mapToLabPage(Page<Lab> all) {
         List<LabResponse> content = all.getContent().stream()
                 .map(lab -> new LabResponse(lab.getId(), lab.getName(), lab.getLogo()))
@@ -53,4 +52,12 @@ public class PageMapper {
                 (int) all.getTotalElements(), all.getSize(), all.getTotalPages(), all.isLast(),
                 all.isFirst());
     }
+
+    public PageResponse<AddGroupResponse> mapToGroupPage(Page<Group> groups) {
+        List<AddGroupResponse> content = groups.getContent().stream().map(groupMapper::toDto)
+                .collect(Collectors.toList());
+        return new PageResponse<>(content, (int) groups.getTotalElements(), groups.getSize(),
+                groups.getTotalPages(), groups.isLast(), groups.isFirst());
+    }
+
 }
