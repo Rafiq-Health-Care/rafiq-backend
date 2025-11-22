@@ -9,6 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nexaworks.rafiq.dto.request.group.UpdateGroupRequest;
 import com.nexaworks.rafiq.entities.Group;
 import com.nexaworks.rafiq.exception.custom.GroupNotFoundException;
 import com.nexaworks.rafiq.repository.GroupRepository;
@@ -51,6 +52,16 @@ public class GroupServiceImpl implements GroupService {
         Pageable pageable = PageRequest.of(page, size, sortOrder);
         UUID patientId = patientService.getPatientProfile().getId();
         return groupRepository.findByPatientProfileId(patientId, pageable);
+    }
+
+    @Override
+    @Transactional
+    public Group updateGroupById(UpdateGroupRequest request, UUID id) {
+        Group existingGroup = getGroupById(id);
+        request.name().ifPresent(existingGroup::setName);
+        request.description().ifPresent(existingGroup::setDescription);
+        request.color().ifPresent(existingGroup::setColor);
+        return groupRepository.save(existingGroup);
     }
 
 }

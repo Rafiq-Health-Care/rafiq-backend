@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.nexaworks.rafiq.dto.Response;
 import com.nexaworks.rafiq.dto.request.group.AddGroupRequest;
+import com.nexaworks.rafiq.dto.request.group.UpdateGroupRequest;
 import com.nexaworks.rafiq.dto.response.Group.AddGroupResponse;
 import com.nexaworks.rafiq.dto.response.Group.GroupDetailsResponse;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
@@ -52,6 +53,14 @@ public class GroupController {
         Group group = groupService.getGroupById(id);
         Response<GroupDetailsResponse> response = groupMapper.toResponse(group, medicineMapper);
         return ResponseEntity.ok().body(response);
+    }
+    @PatchMapping("/{id}")
+    public ResponseEntity<AddResponse<AddGroupResponse>> updateGroup(
+            @Valid @RequestBody UpdateGroupRequest request, @PathVariable UUID id) {
+        Group updatedGroup = groupService.updateGroupById(request, id);
+        AddGroupResponse response = groupMapper.toDto(updatedGroup);
+        return ResponseEntity.ok()
+                .body(new AddResponse<>(true, "Group updated successfully", response));
     }
 
 }

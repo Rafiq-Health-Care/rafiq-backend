@@ -16,6 +16,7 @@ import com.nexaworks.rafiq.entities.Group;
 public interface GroupMapper {
     Group toEntity(AddGroupRequest addGroupRequest);
 
+    @Transactional(readOnly = true)
     default AddGroupResponse toDto(Group savedGroup) {
         return new AddGroupResponse(savedGroup.getId(), savedGroup.getPatientProfile().getId(),
                 savedGroup.getDescription(), savedGroup.getColor(), savedGroup.getName(),
@@ -23,7 +24,7 @@ public interface GroupMapper {
                 savedGroup.getIconUrl(),
                 savedGroup.getMedicines() != null ? savedGroup.getMedicines().size() : 0);
     }
-    @Transactional
+    @Transactional(readOnly = true)
     default GroupResponse toGroupDto(Group group, MedicineMapper medicineMapper) {
         return new GroupResponse(group.getId(), group.getName(), group.getDescription(),
                 group.getColor(), group.getIconUrl(),
@@ -35,7 +36,7 @@ public interface GroupMapper {
         );
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     default Response<GroupDetailsResponse> toResponse(Group group, MedicineMapper medicineMapper) {
         return new Response<>(true, new GroupDetailsResponse(group.getId(),
                 group.getPatientProfile().getId(), group.getName(), group.getDescription(),
