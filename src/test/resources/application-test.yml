@@ -8,61 +8,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
-    show-sql: false
   flyway:
     enabled: false
   lifecycle:
-    timeout-per-shutdown-phase: 20s
-  # Mail config - using dummy values for testing
-  mail:
-    host: localhost
-    port: 1025
-    username: test
-    password: test
-    protocol: smtp
-    properties:
-      mail:
-        smtp:
-          auth: false
-          starttls:
-            enable: false
-  # OAuth2 config - using test values
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: test-google-client-id
-            client-secret: test-google-client-secret
-          facebook:
-            client-id: test-facebook-client-id
-            client-secret: test-facebook-client-secret
-  # AI config - using test values
-  ai:
-    google:
-      genai:
-        api-key: test-genai-key
-
-# Cloudinary config - using test values
-cloudinary:
-  cloud-name: {$CLOUDINARY_CLOUD_NAME}
-  api-key: {$CLOUDINARY_API_KEY}
-  api-secret: {$CLOUDINARY_API_SECRET}
-
-# JWT config - using test values
-jwt:
-  secret: 6f8e8219c9147e4fd69b1ca054a33f981f3464c79cc3d8688ed93e9c87fd2e56
-  expiration: 3600000
-
-# Refresh token config
-refresh:
-  expiration: 3600000000
-
-# OTP config
-otp:
-  expiration: 300000
-
-# Access token config
-access:
-  token:
-    expiration: 360000
+   timeout-per-shutdown-phase: 20s
