@@ -1,5 +1,8 @@
 package com.nexaworks.rafiq.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -8,8 +11,10 @@ import org.springframework.web.bind.annotation.*;
 
 import com.nexaworks.rafiq.dto.Response;
 import com.nexaworks.rafiq.dto.request.group.AddGroupRequest;
+import com.nexaworks.rafiq.dto.request.group.AddMedicinesToGroup;
 import com.nexaworks.rafiq.dto.request.group.UpdateGroupRequest;
 import com.nexaworks.rafiq.dto.response.Group.AddGroupResponse;
+import com.nexaworks.rafiq.dto.response.Group.AddMedicineToGroupResponse;
 import com.nexaworks.rafiq.dto.response.Group.GroupDetailsResponse;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.medicine.AddResponse;
@@ -18,6 +23,7 @@ import com.nexaworks.rafiq.mapper.GroupMapper;
 import com.nexaworks.rafiq.mapper.MedicineMapper;
 import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.service.GroupService;
+import com.nexaworks.rafiq.service.MedicineService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +36,7 @@ public class GroupController {
     private final GroupMapper groupMapper;
     private final PageMapper pageMapper;
     private final MedicineMapper medicineMapper;
+    private final MedicineService medicineService;
     @PostMapping("/add")
     public ResponseEntity<AddResponse<AddGroupResponse>> addGroup(
             @Valid @RequestBody AddGroupRequest request) {
@@ -66,6 +73,16 @@ public class GroupController {
     public ResponseEntity<Void> deleteGroup(@PathVariable UUID id) {
         groupService.deleteGroupById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/addMedicines/{groupId}")
+    public ResponseEntity<AddResponse<AddMedicineToGroupResponse>> addMedicinesToGroup(
+            @PathVariable UUID groupId, @RequestBody AddMedicinesToGroup request) {
+        List<UUID> movedMedicineIds = new ArrayList<>();
+        medicineService.moveToGroup(request.medicineIds(), Optional.of(groupId), movedMedicineIds);
+        return ResponseEntity.status(200)
+                .body(new AddResponse<>(true, "Medicines added to group successfully",
+                        new AddMedicineToGroupResponse(groupId, movedMedicineIds.size())));
     }
 
 }

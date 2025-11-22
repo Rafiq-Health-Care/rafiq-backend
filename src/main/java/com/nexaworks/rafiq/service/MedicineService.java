@@ -2,6 +2,7 @@ package com.nexaworks.rafiq.service;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -29,4 +30,6 @@ public interface MedicineService {
 
     List<UUID> bulkMedicineOperation(@Valid BulkMedicineOperationRequest request)
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException;
+    void moveToGroup(List<UUID> ids, Optional<UUID> groupId, List<UUID> failedIds);
+
 }

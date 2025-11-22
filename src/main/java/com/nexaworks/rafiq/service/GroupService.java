@@ -19,4 +19,5 @@ public interface GroupService {
     Group updateGroupById(@Valid UpdateGroupRequest request, UUID id);
 
     void deleteGroupById(UUID id);
+
 }
