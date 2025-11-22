@@ -62,5 +62,10 @@ public class GroupController {
         return ResponseEntity.ok()
                 .body(new AddResponse<>(true, "Group updated successfully", response));
     }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteGroup(@PathVariable UUID id) {
+        groupService.deleteGroupById(id);
+        return ResponseEntity.noContent().build();
+    }
 
 }

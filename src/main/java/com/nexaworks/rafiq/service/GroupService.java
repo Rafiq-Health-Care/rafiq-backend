@@ -17,4 +17,6 @@ public interface GroupService {
     Page<Group> getGroups(int page, int size, String direction, String sort);
 
     Group updateGroupById(@Valid UpdateGroupRequest request, UUID id);
+
+    void deleteGroupById(UUID id);
 }
