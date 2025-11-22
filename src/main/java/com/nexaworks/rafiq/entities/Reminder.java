@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.entities;
 
+import java.time.Instant;
 import java.util.List;
 
 import com.nexaworks.rafiq.enums.Day;
@@ -26,6 +27,8 @@ public class Reminder extends BaseEntity {
     private ReminderFrequency frequency;
     private List<Day> customDays;
     private boolean vibrate;
+    private Instant startDate;
+    private Instant endDate;
     @ManyToOne
     @JoinColumn(name = "medicine_id", referencedColumnName = "id", nullable = false)
     private Medicine medicine;

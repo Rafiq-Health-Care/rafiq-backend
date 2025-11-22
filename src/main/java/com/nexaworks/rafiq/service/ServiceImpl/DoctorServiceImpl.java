@@ -5,7 +5,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.nexaworks.rafiq.dto.UploadResults;
+import com.nexaworks.rafiq.dto.client.cloundinary.UploadResults;
 import com.nexaworks.rafiq.entities.DoctorProfile;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.enums.Status;

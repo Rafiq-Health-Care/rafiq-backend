@@ -7,7 +7,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import com.nexaworks.rafiq.dto.UploadResults;
+import com.nexaworks.rafiq.dto.client.cloundinary.UploadResults;
 import com.nexaworks.rafiq.dto.event.DoctorRegisterEvent;
 import com.nexaworks.rafiq.dto.event.ForgetPasswordEvent;
 import com.nexaworks.rafiq.dto.event.NewOtpEvent;
