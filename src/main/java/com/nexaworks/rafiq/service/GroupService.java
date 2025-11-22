@@ -20,4 +20,5 @@ public interface GroupService {
 
     void deleteGroupById(UUID id);
 
+    void removeFromGroup(UUID groupId, UUID medicineId);
 }

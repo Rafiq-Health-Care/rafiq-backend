@@ -84,5 +84,16 @@ public class GroupController {
                 .body(new AddResponse<>(true, "Medicines added to group successfully",
                         new AddMedicineToGroupResponse(groupId, movedMedicineIds.size())));
     }
+    @PostMapping("/removeMedicines/{groupId}/{medicineId}")
+    public ResponseEntity<String> removeMedicineFromGroup(
+            @PathVariable(name = "groupId") UUID groupId,
+            @PathVariable(name = "medicineId") UUID medicineId) {
+        groupService.removeFromGroup(groupId, medicineId);
+        return ResponseEntity.status(200).body("""
+                {
+                  "success": true,
+                  "message": "Medicine removed from group"
+                }""");
+    }
 
 }

@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -11,8 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.dto.request.group.UpdateGroupRequest;
 import com.nexaworks.rafiq.entities.Group;
+import com.nexaworks.rafiq.entities.Medicine;
 import com.nexaworks.rafiq.exception.custom.GroupIsAlreadyExistsException;
 import com.nexaworks.rafiq.exception.custom.GroupNotFoundException;
+import com.nexaworks.rafiq.exception.custom.MedicineNotFound;
 import com.nexaworks.rafiq.repository.GroupRepository;
 import com.nexaworks.rafiq.service.GroupService;
 import com.nexaworks.rafiq.service.PatientService;
@@ -63,15 +66,15 @@ public class GroupServiceImpl implements GroupService {
     @Transactional
     public Group updateGroupById(UpdateGroupRequest request, UUID id) {
         Group existingGroup = getGroupById(id);
-        request.name().ifPresent(name -> {
+        Optional.ofNullable(request.name()).ifPresent(name -> {
             if (groupRepository.existsGroupByName(name)) {
                 throw new GroupIsAlreadyExistsException(
                         "Group with name " + name + " already exists");
             }
             existingGroup.setName(name);
         });
-        request.description().ifPresent(existingGroup::setDescription);
-        request.color().ifPresent(existingGroup::setColor);
+        Optional.ofNullable(request.description()).ifPresent(existingGroup::setDescription);
+        Optional.ofNullable(request.color()).ifPresent(existingGroup::setColor);
         return groupRepository.save(existingGroup);
     }
 
@@ -79,6 +82,19 @@ public class GroupServiceImpl implements GroupService {
     public void deleteGroupById(UUID id) {
         Group group = getGroupById(id);
         groupRepository.delete(group);
+    }
+
+    @Override
+    public void removeFromGroup(UUID groupId, UUID medicineId) {
+        Group group = getGroupById(groupId);
+        log.info("Removing medicine with id {} from group {}", medicineId, group.getName());
+        Medicine medicine = group.getMedicines().stream()
+                .filter(med -> med.getId().equals(medicineId)).findFirst()
+                .orElseThrow(() -> new MedicineNotFound("Medicine with id " + medicineId
+                        + " not found in group " + group.getName()));
+        group.getMedicines().remove(medicine);
+        medicine.setGroup(null);
+        groupRepository.save(group);
     }
 
 }
