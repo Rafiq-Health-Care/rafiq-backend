@@ -10,4 +10,6 @@ import com.nexaworks.rafiq.entities.Group;
 
 public interface GroupRepository extends JpaRepository<Group, UUID> {
     Page<Group> findByPatientProfileId(UUID patientId, Pageable pageable);
+
+    boolean existsGroupByName(String name);
 }

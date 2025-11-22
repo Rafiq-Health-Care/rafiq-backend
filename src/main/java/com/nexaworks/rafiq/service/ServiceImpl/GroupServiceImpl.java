@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.dto.request.group.UpdateGroupRequest;
 import com.nexaworks.rafiq.entities.Group;
+import com.nexaworks.rafiq.exception.custom.GroupIsAlreadyExistsException;
 import com.nexaworks.rafiq.exception.custom.GroupNotFoundException;
 import com.nexaworks.rafiq.repository.GroupRepository;
 import com.nexaworks.rafiq.service.GroupService;
@@ -40,6 +41,10 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     public Group addGroup(Group group) {
+        if (groupRepository.existsGroupByName(group.getName())) {
+            throw new GroupIsAlreadyExistsException(
+                    "Group with name " + group.getName() + " already exists");
+        }
         group.setPatientProfile(patientService.getPatientProfile());
         return groupRepository.save(group);
     }
@@ -58,7 +63,13 @@ public class GroupServiceImpl implements GroupService {
     @Transactional
     public Group updateGroupById(UpdateGroupRequest request, UUID id) {
         Group existingGroup = getGroupById(id);
-        request.name().ifPresent(existingGroup::setName);
+        request.name().ifPresent(name -> {
+            if (groupRepository.existsGroupByName(name)) {
+                throw new GroupIsAlreadyExistsException(
+                        "Group with name " + name + " already exists");
+            }
+            existingGroup.setName(name);
+        });
         request.description().ifPresent(existingGroup::setDescription);
         request.color().ifPresent(existingGroup::setColor);
         return groupRepository.save(existingGroup);
