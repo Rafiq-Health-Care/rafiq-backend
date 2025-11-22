@@ -77,7 +77,7 @@ public class GroupController {
 
     @PostMapping("/addMedicines/{groupId}")
     public ResponseEntity<AddResponse<AddMedicineToGroupResponse>> addMedicinesToGroup(
-            @PathVariable UUID groupId, @RequestBody AddMedicinesToGroup request) {
+            @PathVariable UUID groupId, @Valid @RequestBody AddMedicinesToGroup request) {
         List<UUID> movedMedicineIds = new ArrayList<>();
         medicineService.moveToGroup(request.medicineIds(), Optional.of(groupId), movedMedicineIds);
         return ResponseEntity.status(200)

@@ -67,7 +67,8 @@ public class GroupServiceImpl implements GroupService {
     public Group updateGroupById(UpdateGroupRequest request, UUID id) {
         Group existingGroup = getGroupById(id);
         Optional.ofNullable(request.name()).ifPresent(name -> {
-            if (groupRepository.existsGroupByName(name)) {
+            if (groupRepository.existsGroupByPatientProfile_IdAndName(
+                    patientService.getPatientProfile().getId(), name)) {
                 throw new GroupIsAlreadyExistsException(
                         "Group with name " + name + " already exists");
             }

@@ -12,4 +12,6 @@ public interface GroupRepository extends JpaRepository<Group, UUID> {
     Page<Group> findByPatientProfileId(UUID patientId, Pageable pageable);
 
     boolean existsGroupByName(String name);
+
+    boolean existsGroupByPatientProfile_IdAndName(UUID patientProfileId, String name);
 }
