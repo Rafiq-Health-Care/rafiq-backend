@@ -27,8 +27,13 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public Group getGroupById(UUID groupId) {
-        return groupRepository.findById(groupId).orElseThrow(
+        Group group = groupRepository.findById(groupId).orElseThrow(
                 () -> new GroupNotFoundException("Group not found with id: " + groupId));
+        UUID patientId = patientService.getPatientProfile().getId();
+        if (!group.getPatientProfile().getId().equals(patientId)) {
+            throw new GroupNotFoundException("Group not found with id: " + groupId);
+        }
+        return group;
     }
 
     @Override

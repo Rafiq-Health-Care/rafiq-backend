@@ -1,15 +1,20 @@
 package com.nexaworks.rafiq.controller;
 
+import java.util.UUID;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.nexaworks.rafiq.dto.Response;
 import com.nexaworks.rafiq.dto.request.group.AddGroupRequest;
 import com.nexaworks.rafiq.dto.response.Group.AddGroupResponse;
+import com.nexaworks.rafiq.dto.response.Group.GroupDetailsResponse;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.medicine.AddResponse;
 import com.nexaworks.rafiq.entities.Group;
 import com.nexaworks.rafiq.mapper.GroupMapper;
+import com.nexaworks.rafiq.mapper.MedicineMapper;
 import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.service.GroupService;
 
@@ -23,6 +28,7 @@ public class GroupController {
     private final GroupService groupService;
     private final GroupMapper groupMapper;
     private final PageMapper pageMapper;
+    private final MedicineMapper medicineMapper;
     @PostMapping("/add")
     public ResponseEntity<AddResponse<AddGroupResponse>> addGroup(
             @Valid @RequestBody AddGroupRequest request) {
@@ -40,6 +46,12 @@ public class GroupController {
             @RequestParam(value = "direction", defaultValue = "asc") String direction) {
         Page<Group> groups = groupService.getGroups(page, size, direction, sort);
         return ResponseEntity.ok().body(pageMapper.mapToGroupPage(groups));
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity<Response<GroupDetailsResponse>> getGroup(@PathVariable UUID id) {
+        Group group = groupService.getGroupById(id);
+        Response<GroupDetailsResponse> response = groupMapper.toResponse(group, medicineMapper);
+        return ResponseEntity.ok().body(response);
     }
 
 }

@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.dto.request.medicine.AddMedicineRequest;
 import com.nexaworks.rafiq.dto.request.medicine.UpdateMedicineRequest;
+import com.nexaworks.rafiq.dto.response.medicine.MedicineGroupResponse;
 import com.nexaworks.rafiq.dto.response.medicine.MedicinePreview;
 import com.nexaworks.rafiq.dto.response.medicine.MedicineResponse;
 import com.nexaworks.rafiq.entities.Medicine;
@@ -32,5 +33,6 @@ public interface MedicineMapper {
                 entity.getReminders().size(), entity.getCreatedAt(), entity.getUpdatedAt());
     }
     MedicinePreview toPreviewDto(Medicine entity);
+    MedicineGroupResponse toGroupDto(Medicine entity);
 
 }
