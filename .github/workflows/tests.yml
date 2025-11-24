@@ -1,0 +1,71 @@
+name: Run Tests
+
+on:
+  push:
+    branches:
+      - dev
+      - 'feat/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  test:
+    name: Unit and Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Make mvnw executable
+        run: chmod +x ./mvnw
+
+      - name: Run Unit Tests
+        run: ./mvnw test -Dtest='!**/*IntegrationTest'
+
+      - name: Run Integration Tests
+        run: ./mvnw test -Dtest='**/*IntegrationTest'
+
+      - name: Generate Test Report
+        if: always()
+        run: |
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          if [ -d "target/surefire-reports" ]; then
+            echo "### Unit Tests" >> $GITHUB_STEP_SUMMARY
+            find target/surefire-reports -name "*.xml" -type f | wc -l | xargs echo "Test files found:" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            target/surefire-reports/
+            target/failsafe-reports/
+          retention-days: 30
+
+      - name: Publish Test Report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Maven Tests
+          path: 'target/surefire-reports/*.xml'
+          reporter: java-junit
+          fail-on-error: true
