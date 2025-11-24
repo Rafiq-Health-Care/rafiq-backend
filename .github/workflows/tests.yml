@@ -36,7 +36,7 @@ jobs:
         run: chmod +x ./mvnw
 
       - name: Run All Tests
-        run: ./mvnw clean test
+        run: ./mvnw clean test -B
         env:
           SPRING_PROFILES_ACTIVE: test
           GOOGLE_CLIENT_ID: 674352979461-s3eeqrfte3254663qm4i1oq5alhbmb80.apps.googleusercontent.com
@@ -57,6 +57,18 @@ jobs:
           REFRESH_EXPIRATION: 3600000000
           OTP_EXPIRATION: 300000
           ACCESS_TOKEN_EXPIRATION: 360000
+          DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
+          DATASOURCE_USERNAME: test
+          DATASOURCE_PASSWORD: test
+
+      - name: Publish Test Report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Test Results
+          path: 'target/surefire-reports/TEST-*.xml'
+          reporter: java-junit
+          fail-on-error: false
 
       - name: Upload Test Results
         if: always()
