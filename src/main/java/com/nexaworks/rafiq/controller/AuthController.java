@@ -11,9 +11,7 @@ import com.nexaworks.rafiq.dto.request.auth.OAuthRequest;
 import com.nexaworks.rafiq.dto.request.user.ChangePasswordRequest;
 import com.nexaworks.rafiq.dto.request.user.ForgetPasswordRequest;
 import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
-import com.nexaworks.rafiq.dto.request.user.VerifyOtpRequest;
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
-import com.nexaworks.rafiq.dto.response.auth.VerifyOtpResponse;
 import com.nexaworks.rafiq.service.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,12 +32,6 @@ public class AuthController {
             @RequestBody @Valid ForgetPasswordRequest forgetPasswordRequest) {
         authService.forgetPassword(forgetPasswordRequest);
         return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/verify")
-    public ResponseEntity<VerifyOtpResponse> verify(
-            @RequestBody @Valid VerifyOtpRequest verifyOtpRequest) {
-        return ResponseEntity.ok().body(authService.verifyOtp(verifyOtpRequest));
     }
 
     @PostMapping("/change-password")
