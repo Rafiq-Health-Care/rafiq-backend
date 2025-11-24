@@ -1,5 +1,7 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import static com.nexaworks.rafiq.entities.enums.Roles.*;
+
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Optional;
