@@ -18,4 +18,10 @@ public class EmailContentServiceImpl implements EmailContentService {
     public Map<String, Object> createOtpEmail(String otp, String name, String url) {
         return Map.of("otp", otp, "name", name, "url", url);
     }
+
+    @Override
+    public Map<String, Object> createResetPasswordEmail(String accessToken, String name,
+            String url) {
+        return Map.of("name", name, "url", url + "?token=" + accessToken);
+    }
 }

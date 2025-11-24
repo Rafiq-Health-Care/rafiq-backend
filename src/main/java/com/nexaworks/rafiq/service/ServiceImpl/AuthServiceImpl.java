@@ -58,9 +58,10 @@ public class AuthServiceImpl implements AuthService {
         if (user.isEmpty()) {
             return;
         }
-        String otp = tokenService.generateOtpToken(user.get());
-        log.info("Generated OTP {}", otp);
-        eventPublisher.publishEvent(new ForgetPasswordEvent(email, otp, user.get().getFirstName()));
+        String token = tokenService.generateAccessToken(user);
+        log.info("Generated OTP {}", token);
+        eventPublisher
+                .publishEvent(new ForgetPasswordEvent(email, token, user.get().getFirstName()));
     }
 
     @Override
