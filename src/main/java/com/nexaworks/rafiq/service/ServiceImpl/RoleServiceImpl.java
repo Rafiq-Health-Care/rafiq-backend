@@ -3,7 +3,7 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 import com.nexaworks.rafiq.entities.Role;
-import com.nexaworks.rafiq.enums.Roles;
+import com.nexaworks.rafiq.entities.enums.Roles;
 import com.nexaworks.rafiq.repository.RoleRepository;
 import com.nexaworks.rafiq.service.RoleService;
 

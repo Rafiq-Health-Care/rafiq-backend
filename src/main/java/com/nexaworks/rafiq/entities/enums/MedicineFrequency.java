@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.enums;
+package com.nexaworks.rafiq.entities.enums;
 
 public enum MedicineFrequency {
     ONCE_DAILY, TWICE_DAILY, THRICE_DAILY, FOUR_TIMES_DAILY, FIVE_TIMES_DAILY, SIX_TIMES_DAILY, SEVEN_TIMES_DAILY, EIGHT_TIMES_DAILY, NINE_TIMES_DAILY, TEN_TIMES_DAILY, ELEVEN_TIMES_DAILY, TWELVE_TIMES_DAILY, AS_NEEDED, CUSTOM

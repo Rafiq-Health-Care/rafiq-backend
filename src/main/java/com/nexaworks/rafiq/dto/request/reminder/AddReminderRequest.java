@@ -4,8 +4,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import com.nexaworks.rafiq.enums.Day;
-import com.nexaworks.rafiq.enums.ReminderFrequency;
+import com.nexaworks.rafiq.entities.enums.Day;
+import com.nexaworks.rafiq.entities.enums.ReminderFrequency;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

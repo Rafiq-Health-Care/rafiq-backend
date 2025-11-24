@@ -28,7 +28,7 @@ import com.nexaworks.rafiq.entities.LabTest;
 import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.enums.Gender;
+import com.nexaworks.rafiq.entities.enums.Gender;
 import com.nexaworks.rafiq.integration.BaseIntegrationTest;
 import com.nexaworks.rafiq.repository.LabResultRepository;
 import com.nexaworks.rafiq.repository.LabTestRepository;

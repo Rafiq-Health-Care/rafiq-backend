@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.nexaworks.rafiq.enums.Action;
+import com.nexaworks.rafiq.entities.enums.Action;
 
 import jakarta.validation.constraints.NotNull;
 

@@ -9,7 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.nexaworks.rafiq.dto.client.cloundinary.UploadResults;
-import com.nexaworks.rafiq.enums.UploadType;
+import com.nexaworks.rafiq.entities.enums.UploadType;
 import com.nexaworks.rafiq.exception.custom.EmptyFileException;
 import com.nexaworks.rafiq.exception.custom.FileException;
 import com.nexaworks.rafiq.exception.custom.FileUploadException;

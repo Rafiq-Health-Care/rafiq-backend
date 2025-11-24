@@ -1,6 +1,6 @@
 package com.nexaworks.rafiq.entities;
 
-import com.nexaworks.rafiq.enums.ReminderStatus;
+import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

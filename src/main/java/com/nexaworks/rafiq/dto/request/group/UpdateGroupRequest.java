@@ -1,6 +1,6 @@
 package com.nexaworks.rafiq.dto.request.group;
 
-import com.nexaworks.rafiq.enums.Color;
+import com.nexaworks.rafiq.entities.enums.Color;
 
 import jakarta.validation.constraints.Size;
 

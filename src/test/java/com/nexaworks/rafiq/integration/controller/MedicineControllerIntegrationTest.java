@@ -25,11 +25,11 @@ import com.nexaworks.rafiq.dto.request.medicine.AddMedicineRequest;
 import com.nexaworks.rafiq.dto.request.medicine.BulkMedicineOperationRequest;
 import com.nexaworks.rafiq.dto.request.medicine.UpdateMedicineRequest;
 import com.nexaworks.rafiq.entities.*;
-import com.nexaworks.rafiq.enums.Action;
-import com.nexaworks.rafiq.enums.Gender;
-import com.nexaworks.rafiq.enums.MedicineFrequency;
-import com.nexaworks.rafiq.enums.MedicineStatus;
-import com.nexaworks.rafiq.enums.MedicineType;
+import com.nexaworks.rafiq.entities.enums.Action;
+import com.nexaworks.rafiq.entities.enums.Gender;
+import com.nexaworks.rafiq.entities.enums.MedicineFrequency;
+import com.nexaworks.rafiq.entities.enums.MedicineStatus;
+import com.nexaworks.rafiq.entities.enums.MedicineType;
 import com.nexaworks.rafiq.integration.BaseIntegrationTest;
 import com.nexaworks.rafiq.repository.*;
 

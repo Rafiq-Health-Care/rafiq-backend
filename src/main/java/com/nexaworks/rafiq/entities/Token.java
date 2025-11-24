@@ -2,7 +2,7 @@ package com.nexaworks.rafiq.entities;
 
 import java.time.Instant;
 
-import com.nexaworks.rafiq.enums.TokenType;
+import com.nexaworks.rafiq.entities.enums.TokenType;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

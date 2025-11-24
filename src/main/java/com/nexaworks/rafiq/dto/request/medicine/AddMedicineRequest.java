@@ -3,8 +3,8 @@ package com.nexaworks.rafiq.dto.request.medicine;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.nexaworks.rafiq.enums.MedicineFrequency;
-import com.nexaworks.rafiq.enums.MedicineType;
+import com.nexaworks.rafiq.entities.enums.MedicineFrequency;
+import com.nexaworks.rafiq.entities.enums.MedicineType;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

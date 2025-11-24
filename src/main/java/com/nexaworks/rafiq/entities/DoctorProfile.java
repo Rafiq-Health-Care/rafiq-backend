@@ -2,7 +2,7 @@ package com.nexaworks.rafiq.entities;
 
 import java.util.List;
 
-import com.nexaworks.rafiq.enums.Status;
+import com.nexaworks.rafiq.entities.enums.Status;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

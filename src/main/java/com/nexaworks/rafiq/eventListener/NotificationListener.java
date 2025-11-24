@@ -12,7 +12,7 @@ import com.nexaworks.rafiq.dto.event.DoctorRegisterEvent;
 import com.nexaworks.rafiq.dto.event.ForgetPasswordEvent;
 import com.nexaworks.rafiq.dto.event.NewOtpEvent;
 import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
-import com.nexaworks.rafiq.enums.UploadType;
+import com.nexaworks.rafiq.entities.enums.UploadType;
 import com.nexaworks.rafiq.service.DoctorService;
 import com.nexaworks.rafiq.service.EmailContentService;
 import com.nexaworks.rafiq.service.EmailSenderService;

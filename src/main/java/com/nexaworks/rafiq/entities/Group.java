@@ -2,7 +2,7 @@ package com.nexaworks.rafiq.entities;
 
 import java.util.List;
 
-import com.nexaworks.rafiq.enums.Color;
+import com.nexaworks.rafiq.entities.enums.Color;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

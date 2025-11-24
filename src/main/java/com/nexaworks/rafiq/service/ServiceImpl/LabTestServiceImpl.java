@@ -20,7 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.nexaworks.rafiq.dto.client.cloundinary.UploadResults;
 import com.nexaworks.rafiq.dto.request.labTest.TestResultRequest;
 import com.nexaworks.rafiq.entities.*;
-import com.nexaworks.rafiq.enums.UploadType;
+import com.nexaworks.rafiq.entities.enums.UploadType;
 import com.nexaworks.rafiq.exception.custom.LabTestException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.LabTestRepository;

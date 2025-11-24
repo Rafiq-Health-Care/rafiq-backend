@@ -3,9 +3,9 @@ package com.nexaworks.rafiq.entities;
 import java.time.Instant;
 import java.util.List;
 
-import com.nexaworks.rafiq.enums.Day;
-import com.nexaworks.rafiq.enums.ReminderFrequency;
-import com.nexaworks.rafiq.enums.ReminderStatus;
+import com.nexaworks.rafiq.entities.enums.Day;
+import com.nexaworks.rafiq.entities.enums.ReminderFrequency;
+import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

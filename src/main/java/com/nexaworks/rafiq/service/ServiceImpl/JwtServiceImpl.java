@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.enums.TokenType;
+import com.nexaworks.rafiq.entities.enums.TokenType;
 import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
 import com.nexaworks.rafiq.exception.custom.UserException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;

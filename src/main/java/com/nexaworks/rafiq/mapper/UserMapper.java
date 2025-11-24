@@ -2,7 +2,7 @@ package com.nexaworks.rafiq.mapper;
 
 import com.nexaworks.rafiq.dto.request.user.UserRegistrationRequest;
 import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.enums.Gender;
+import com.nexaworks.rafiq.entities.enums.Gender;
 
 import jakarta.validation.Valid;
 
