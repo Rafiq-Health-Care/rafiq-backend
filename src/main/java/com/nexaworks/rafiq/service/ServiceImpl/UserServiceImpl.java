@@ -46,7 +46,6 @@ public class UserServiceImpl implements UserService {
     private final PatientService patientService;
     private final DoctorService doctorService;
     private final TokenService tokenService;
-    private final ImageService imageService;
     private final ApplicationEventPublisher eventPublisher;
     private final AuthSessionManager authSessionManager;
 
