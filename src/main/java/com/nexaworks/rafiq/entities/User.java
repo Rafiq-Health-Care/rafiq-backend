@@ -47,6 +47,7 @@ public class User extends BaseEntity implements UserDetails, Principal {
     private boolean locked = false;
     @Builder.Default
     private boolean enabled = false;
+    private String notificationToken;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;

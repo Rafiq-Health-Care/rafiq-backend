@@ -1,5 +1,7 @@
 package com.nexaworks.rafiq.entities;
 
+import java.time.LocalDateTime;
+
 import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 
 import jakarta.persistence.*;
@@ -18,7 +20,7 @@ import lombok.experimental.SuperBuilder;
 public class ReminderLog extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ReminderStatus status;
-    private String message;
+    private LocalDateTime timestamp;
     @ManyToOne
     @JoinColumn(name = "reminder_id", referencedColumnName = "id", nullable = false)
     private Reminder reminder;

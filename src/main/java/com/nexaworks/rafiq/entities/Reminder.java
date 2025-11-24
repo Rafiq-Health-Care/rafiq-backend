@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.entities;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.nexaworks.rafiq.entities.enums.Day;
@@ -37,6 +38,7 @@ public class Reminder extends BaseEntity {
     private Instant endDate;
     @Enumerated(EnumType.STRING)
     private ReminderStatus status;
+    private LocalDateTime nextReminder;
     @ManyToOne
     @JoinColumn(name = "medicine_id", referencedColumnName = "id", nullable = false)
     private Medicine medicine;

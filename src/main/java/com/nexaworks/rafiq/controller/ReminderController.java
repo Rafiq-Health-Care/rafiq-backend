@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.controller;
 
+import org.quartz.SchedulerException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +28,7 @@ public class ReminderController {
 
     @PostMapping("/create")
     public ResponseEntity<AddResponse<AddReminderResponse>> createReminder(
-            @RequestBody AddReminderRequest request) {
+            @RequestBody AddReminderRequest request) throws SchedulerException {
         Reminder reminder = reminderMapper.toEntity(request, medicineService);
         Reminder savedReminder = reminderService.createReminder(reminder);
         AddReminderResponse response = reminderMapper.toAddReminderResponse(savedReminder);

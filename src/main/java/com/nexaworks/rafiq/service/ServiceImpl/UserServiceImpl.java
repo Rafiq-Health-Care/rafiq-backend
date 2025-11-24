@@ -183,4 +183,10 @@ public class UserServiceImpl implements UserService {
         log.info("User created {}", user.getEmail());
         return oAuthUser;
     }
+
+    @Override
+    public String getNotificationToken() {
+        User user = getUser();
+        return user.getNotificationToken();
+    }
 }
