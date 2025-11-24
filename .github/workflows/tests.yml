@@ -52,7 +52,7 @@ jobs:
           CLOUDINARY_CLOUD_NAME: dbdkrenhl
           CLOUDINARY_API_KEY: 974593956567557
           CLOUDINARY_API_SECRET: 3PAziKNw52iCHEaFMia0iOVMz-4
-          JWT_SECRET: test-jwt-secret-key-minimum-256-bits-for-hs256-algorithm
+          JWT_SECRET: 6f8e8219c9147e4fd69b1ca054a33f981f3464c79cc3d8688ed93e9c87fd2e56
           JWT_EXPIRATION: 3600000
           REFRESH_EXPIRATION: 86400000
           OTP_EXPIRATION: 300000
