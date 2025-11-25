@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.entities.Reminder;
-import com.nexaworks.rafiq.repository.ReminderLogRepository;
 import com.nexaworks.rafiq.secheduler.job.MedicineReminderJob;
 import com.nexaworks.rafiq.secheduler.service.QuartzSchedulerService;
 import com.nexaworks.rafiq.service.UserService;
@@ -20,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class QuartzSchedulerServiceImpl implements QuartzSchedulerService {
     private final Scheduler scheduler;
-    private final ReminderLogRepository reminderLogRepository;
     private final UserService userService;
 
     @Override
