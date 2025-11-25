@@ -43,7 +43,7 @@ public class ReminderHistoryJob implements Job {
             Medicine medicine = reminder.getMedicine();
             MedicineNotification notification = new MedicineNotification(notificationToken,
                     medicine.getName(), medicine.getId(), reminder.isVibrate(),
-                    medicine.getDosage(), medicine.getNotes());
+                    medicine.getDosage(), medicine.getNotes(), reminderLog.getId());
             publisher.publishEvent(notification);
         }
     }

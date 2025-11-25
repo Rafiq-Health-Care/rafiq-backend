@@ -1,5 +1,7 @@
 package com.nexaworks.rafiq.secheduler.service.serviceImpl;
 
+import java.util.List;
+
 import org.quartz.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,5 +44,24 @@ public class QuartzSchedulerServiceImpl implements QuartzSchedulerService {
 
         log.info("Job scheduled: {} in group: {} with cron: {}", jobName, groupName,
                 cronExpression);
+    }
+
+    @Override
+    public void deleteJob(JobKey jobKey) throws SchedulerException {
+        if (!scheduler.checkExists(jobKey)) {
+            List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobKey);
+            triggers.forEach(trigger -> {
+                try {
+                    scheduler.unscheduleJob(trigger.getKey());
+                } catch (SchedulerException e) {
+                    log.error("Error unscheduling trigger: {}", trigger.getKey(), e);
+                }
+            });
+            scheduler.deleteJob(jobKey);
+            log.info("Job deleted: {} from scheduler", jobKey);
+
+        } else {
+            log.info("Job not found: {}", jobKey);
+        }
     }
 }
