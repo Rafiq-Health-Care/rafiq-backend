@@ -55,8 +55,12 @@ public class MedicineReminderJob implements Job {
                     medicine.getDosage(), medicine.getNotes(), reminderLog.getId());
             publisher.publishEvent(notification);
         } else {
-            schedulerService.deleteJob(
-                    new JobKey(jobDetail.getKey().getName(), jobDetail.getKey().getGroup()));
+            try {
+                schedulerService.deleteJob(
+                        new JobKey(jobDetail.getKey().getName(), jobDetail.getKey().getGroup()));
+            } catch (SchedulerException e) {
+                throw new RuntimeException(e);
+            }
             log.info("Medicine is not active. Deleted scheduled job for medicine: {}",
                     medicine.getName());
         }
