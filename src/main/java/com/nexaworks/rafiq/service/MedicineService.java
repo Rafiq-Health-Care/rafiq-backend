@@ -25,9 +25,10 @@ public interface MedicineService {
 
     void deleteMedicine(UUID medicineId) throws SchedulerException;
 
-    Medicine updateMedicine(Medicine entity, UUID medicineId);
+    Medicine updateMedicine(Medicine entity, UUID medicineId) throws SchedulerException;
 
-    Medicine updateSpecific(UUID medicineId, UpdateMedicinePatchRequest request);
+    Medicine updateSpecific(UUID medicineId, UpdateMedicinePatchRequest request)
+            throws SchedulerException;
 
     List<UUID> bulkMedicineOperation(@Valid BulkMedicineOperationRequest request)
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException;

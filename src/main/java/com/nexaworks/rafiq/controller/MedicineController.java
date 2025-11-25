@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.UUID;
 
+import org.quartz.SchedulerException;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -58,7 +59,8 @@ public class MedicineController {
         return ResponseEntity.ok().body(new GetMedicineResponse(medicineResponse, reminders));
     }
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteMedicine(@PathVariable("id") UUID medicineId) {
+    public ResponseEntity<Void> deleteMedicine(@PathVariable("id") UUID medicineId)
+            throws SchedulerException {
         medicineService.deleteMedicine(medicineId);
         return ResponseEntity.noContent().build();
     }

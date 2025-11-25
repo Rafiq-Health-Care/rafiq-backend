@@ -95,7 +95,7 @@ public class MedicineServiceImpl implements MedicineService {
 
     @Override
     @Transactional
-    public Medicine updateMedicine(Medicine entity, UUID medicineId) {
+    public Medicine updateMedicine(Medicine entity, UUID medicineId) throws SchedulerException {
         Medicine medicine = getMedicine(medicineId, patientService.getPatientProfile());
         medicine.setDosage(entity.getDosage());
         medicine.setFrequency(entity.getFrequency());
@@ -105,6 +105,8 @@ public class MedicineServiceImpl implements MedicineService {
         medicine.setType(entity.getType());
         medicine.setStatus(entity.getStatus());
         medicine.setName(entity.getName());
+        medicine.setReminderFrequency(entity.getReminderFrequency());
+        medicine.setCustomDays(entity.getCustomDays());
         quartzSchedulerService.updateJob(new JobKey(medicineId.toString(), "MedicineReminder"),
                 cornExpressionBuilder.buildCornExpression(medicine.getFrequency(),
                         medicine.getReminderFrequency(), medicine.getCustomDays(),
@@ -114,7 +116,8 @@ public class MedicineServiceImpl implements MedicineService {
 
     @Override
     @Transactional
-    public Medicine updateSpecific(UUID medicineId, UpdateMedicinePatchRequest request) {
+    public Medicine updateSpecific(UUID medicineId, UpdateMedicinePatchRequest request)
+            throws SchedulerException {
         Medicine medicine = getMedicine(medicineId, patientService.getPatientProfile());
         request.dosage().ifPresent(medicine::setDosage);
         request.frequency().ifPresent(medicine::setFrequency);
@@ -124,6 +127,8 @@ public class MedicineServiceImpl implements MedicineService {
         request.type().ifPresent(medicine::setType);
         request.status().ifPresent(medicine::setStatus);
         request.name().ifPresent(medicine::setName);
+        request.reminderFrequency().ifPresent(medicine::setReminderFrequency);
+        request.customDays().ifPresent(medicine::setCustomDays);
         quartzSchedulerService.updateJob(new JobKey(medicineId.toString(), "MedicineReminder"),
                 cornExpressionBuilder.buildCornExpression(medicine.getFrequency(),
                         medicine.getReminderFrequency(), medicine.getCustomDays(),

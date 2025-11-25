@@ -64,5 +64,6 @@ public class MedicineReminderJob implements Job {
             log.info("Medicine is not active. Deleted scheduled job for medicine: {}",
                     medicine.getName());
         }
+        // todo schedule reminder history
     }
 }
