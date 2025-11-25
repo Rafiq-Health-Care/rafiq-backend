@@ -5,8 +5,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.entities.Reminder;
-import com.nexaworks.rafiq.entities.ReminderLog;
-import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 import com.nexaworks.rafiq.repository.ReminderLogRepository;
 import com.nexaworks.rafiq.secheduler.job.MedicineReminderJob;
 import com.nexaworks.rafiq.secheduler.service.QuartzSchedulerService;
@@ -27,14 +25,10 @@ public class QuartzSchedulerServiceImpl implements QuartzSchedulerService {
     @Transactional
     public void scheduleJob(String jobName, String groupName, String cronExpression,
             Reminder reminder) throws SchedulerException {
-        ReminderLog reminderLog = ReminderLog.builder().reminder(reminder)
-                .status(ReminderStatus.UPCOMING).build();
-
-        reminderLog = reminderLogRepository.save(reminderLog);
 
         JobDetail jobDetail = JobBuilder.newJob(MedicineReminderJob.class)
                 .withIdentity(jobName, groupName)
-                .usingJobData("reminderId", String.valueOf(reminderLog.getId()))
+                .usingJobData("reminderId", String.valueOf(reminder.getId()))
                 .usingJobData("notificationToken", userService.getNotificationToken())
                 .storeDurably().build();
 

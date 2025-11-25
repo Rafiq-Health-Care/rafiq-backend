@@ -533,12 +533,10 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             drugRepository.save(drug2);
 
             Medicine medicine1 = Medicine.builder().name("Aspirin").drug(drug1).dosage("100mg")
-                    .frequency(MedicineFrequency.ONCE_DAILY).patient(user.getPatientProfile())
-                    .build();
+                    .frequency(MedicineFrequency.ONCE).patient(user.getPatientProfile()).build();
 
             Medicine medicine2 = Medicine.builder().name("Ibuprofen").drug(drug2).dosage("200mg")
-                    .frequency(MedicineFrequency.TWICE_DAILY).patient(user.getPatientProfile())
-                    .build();
+                    .frequency(MedicineFrequency.TWICE).patient(user.getPatientProfile()).build();
 
             Medicine savedMedicine1 = medicineRepository.save(medicine1);
             Medicine savedMedicine2 = medicineRepository.save(medicine2);
@@ -594,8 +592,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             drugRepository.save(drug);
 
             Medicine medicine = Medicine.builder().name("Aspirin").drug(drug).dosage("100mg")
-                    .frequency(MedicineFrequency.ONCE_DAILY).patient(user.getPatientProfile())
-                    .build();
+                    .frequency(MedicineFrequency.ONCE).patient(user.getPatientProfile()).build();
 
             Medicine savedMedicine = medicineRepository.save(medicine);
 
@@ -634,7 +631,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             drugRepository.save(drug);
 
             Medicine medicine = Medicine.builder().name("Aspirin").drug(drug).dosage("100mg")
-                    .frequency(MedicineFrequency.ONCE_DAILY).patient(user.getPatientProfile())
+                    .frequency(MedicineFrequency.ONCE).patient(user.getPatientProfile())
                     .group(savedGroup).build();
 
             Medicine savedMedicine = medicineRepository.save(medicine);

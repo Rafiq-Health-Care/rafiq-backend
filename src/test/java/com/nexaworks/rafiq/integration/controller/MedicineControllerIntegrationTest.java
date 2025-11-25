@@ -176,9 +176,9 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             // Add medicines for the user
             medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.AS_NEEDED)
                     .dosage("100 mg").drug(drug1).patient(user.getPatientProfile()).build());
-            medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.TWICE_DAILY)
+            medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.TWICE)
                     .dosage("200 mg").drug(drug2).patient(user.getPatientProfile()).build());
-            medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.ONCE_DAILY)
+            medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.ONCE)
                     .dosage("150 mg").drug(drug3).patient(user.getPatientProfile()).build());
 
             mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
@@ -269,7 +269,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.AS_NEEDED)
                     .dosage("100 mg").drug(drug1).patient(user1.getPatientProfile()).build());
 
-            medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.TWICE_DAILY)
+            medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.TWICE)
                     .dosage("200 mg").drug(drug2).patient(user2.getPatientProfile()).build());
 
             mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
@@ -303,8 +303,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         void shouldReturnMedicineDetails_WhenMedicineExistsAndBelongsToUser() throws Exception {
             User user = createTestUser();
             Drug drug = createDrugWithName("Aspirin");
-            Medicine medicine = medicineRepository.save(
-                    Medicine.builder().frequency(MedicineFrequency.TWICE_DAILY).dosage("100 mg")
+            Medicine medicine = medicineRepository
+                    .save(Medicine.builder().frequency(MedicineFrequency.TWICE).dosage("100 mg")
                             .drug(drug).name("Aspirin").patient(user.getPatientProfile()).build());
 
             mockMvc.perform(
@@ -316,8 +316,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                             .value(medicine.getId().toString()))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.name").value("Aspirin"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.dosage").value("100 mg"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.frequency")
-                            .value("TWICE_DAILY"))
+                    .andExpect(
+                            MockMvcResultMatchers.jsonPath("$.medicine.frequency").value("TWICE"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.reminders").isArray());
         }
 
@@ -326,9 +326,9 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         void shouldReturnMedicineWithReminders_WhenMedicineHasReminders() throws Exception {
             User user = createTestUser();
             Drug drug = createDrugWithName("Paracetamol");
-            Medicine medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.ONCE_DAILY).dosage("500 mg").drug(drug)
-                    .name("Paracetamol").patient(user.getPatientProfile()).build());
+            Medicine medicine = medicineRepository.save(
+                    Medicine.builder().frequency(MedicineFrequency.ONCE).dosage("500 mg").drug(drug)
+                            .name("Paracetamol").patient(user.getPatientProfile()).build());
 
             mockMvc.perform(
                     MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId())
@@ -399,7 +399,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Instant endDate = startDate.plus(30, java.time.temporal.ChronoUnit.DAYS);
 
             Medicine medicine = medicineRepository.save(
-                    Medicine.builder().frequency(MedicineFrequency.THRICE_DAILY).dosage("850 mg")
+                    Medicine.builder().frequency(MedicineFrequency.THIRD_TIMES).dosage("850 mg")
                             .drug(drug).name("Metformin").startDate(startDate).endDate(endDate)
                             .notes("Take with food").patient(user.getPatientProfile()).build());
 
@@ -412,7 +412,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.name").value("Metformin"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.dosage").value("850 mg"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.frequency")
-                            .value("THRICE_DAILY"))
+                            .value("THIRD_TIMES"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.notes")
                             .value("Take with food"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.startDate").exists())
@@ -456,8 +456,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
             Drug drug = createDrugWithName("Metformin");
             Medicine medicine = medicineRepository
-                    .save(Medicine.builder().frequency(MedicineFrequency.TWICE_DAILY)
-                            .dosage("500 mg").drug(drug).name("Metformin").notes("Take with meals")
+                    .save(Medicine.builder().frequency(MedicineFrequency.TWICE).dosage("500 mg")
+                            .drug(drug).name("Metformin").notes("Take with meals")
                             .patient(user.getPatientProfile()).build());
 
             UUID medicineId = medicine.getId();
@@ -492,9 +492,9 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Drug drug = createDrugWithName("Paracetamol");
 
             // Create medicine for user2
-            Medicine medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.ONCE_DAILY).dosage("650 mg").drug(drug)
-                    .name("Paracetamol").patient(user2.getPatientProfile()).build());
+            Medicine medicine = medicineRepository.save(
+                    Medicine.builder().frequency(MedicineFrequency.ONCE).dosage("650 mg").drug(drug)
+                            .name("Paracetamol").patient(user2.getPatientProfile()).build());
 
             UUID medicineId = medicine.getId();
 
@@ -548,12 +548,12 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             // Create medicine for user1
             Medicine medicine1 = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.ONCE_DAILY).dosage("100 mg").drug(drug1)
+                    .frequency(MedicineFrequency.ONCE).dosage("100 mg").drug(drug1)
                     .name("Medicine1").patient(user1.getPatientProfile()).build());
 
             // Create medicine for user2
             Medicine medicine2 = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.TWICE_DAILY).dosage("200 mg").drug(drug2)
+                    .frequency(MedicineFrequency.TWICE).dosage("200 mg").drug(drug2)
                     .name("Medicine2").patient(user2.getPatientProfile()).build());
 
             // User1 deletes their medicine
@@ -593,8 +593,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Instant newEndDate = newStartDate.plus(30, java.time.temporal.ChronoUnit.DAYS);
 
             UpdateMedicineRequest updateRequest = new UpdateMedicineRequest("Aspirin Updated",
-                    "200 mg", "Take with food", MedicineFrequency.TWICE_DAILY, newStartDate,
-                    newEndDate, MedicineType.PRESCRIPTION, MedicineStatus.ACTIVE);
+                    "200 mg", "Take with food", MedicineFrequency.TWICE, newStartDate, newEndDate,
+                    MedicineType.PRESCRIPTION, MedicineStatus.ACTIVE);
 
             String payload = objectMapper.writeValueAsString(updateRequest);
 
@@ -610,8 +610,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .andExpect(
                             MockMvcResultMatchers.jsonPath("$.data.name").value("Aspirin Updated"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.dosage").value("200 mg"))
-                    .andExpect(
-                            MockMvcResultMatchers.jsonPath("$.data.frequency").value("TWICE_DAILY"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.frequency").value("TWICE"))
                     .andExpect(
                             MockMvcResultMatchers.jsonPath("$.data.notes").value("Take with food"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.type").value("PRESCRIPTION"))
@@ -621,7 +620,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine updatedMedicine = medicineRepository.findById(medicine.getId()).get();
             assertThat(updatedMedicine.getName()).isEqualTo("Aspirin Updated");
             assertThat(updatedMedicine.getDosage()).isEqualTo("200 mg");
-            assertThat(updatedMedicine.getFrequency()).isEqualTo(MedicineFrequency.TWICE_DAILY);
+            assertThat(updatedMedicine.getFrequency()).isEqualTo(MedicineFrequency.TWICE);
         }
 
         @Test
@@ -630,17 +629,16 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
             Drug drug = createDrugWithName("Metformin");
 
-            Medicine medicine = medicineRepository
-                    .save(Medicine.builder().frequency(MedicineFrequency.ONCE_DAILY)
-                            .dosage("500 mg").drug(drug).name("Metformin").notes("Original notes")
-                            .patient(user.getPatientProfile()).build());
+            Medicine medicine = medicineRepository.save(Medicine.builder()
+                    .frequency(MedicineFrequency.ONCE).dosage("500 mg").drug(drug).name("Metformin")
+                    .notes("Original notes").patient(user.getPatientProfile()).build());
 
             Instant startDate = Instant.now();
             Instant endDate = startDate.plus(60, java.time.temporal.ChronoUnit.DAYS);
 
             UpdateMedicineRequest updateRequest = new UpdateMedicineRequest(
                     "Metformin Extended Release", "1000 mg", "Take with evening meal",
-                    MedicineFrequency.ONCE_DAILY, startDate, endDate, MedicineType.PRESCRIPTION,
+                    MedicineFrequency.ONCE, startDate, endDate, MedicineType.PRESCRIPTION,
                     MedicineStatus.ACTIVE);
 
             String payload = objectMapper.writeValueAsString(updateRequest);
@@ -685,7 +683,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Instant endDate = startDate.plus(30, java.time.temporal.ChronoUnit.DAYS);
 
             UpdateMedicineRequest updateRequest = new UpdateMedicineRequest("Medicine Name",
-                    "100 mg", "Notes", MedicineFrequency.ONCE_DAILY, startDate, endDate,
+                    "100 mg", "Notes", MedicineFrequency.ONCE, startDate, endDate,
                     MedicineType.PRESCRIPTION, MedicineStatus.ACTIVE);
 
             String payload = objectMapper.writeValueAsString(updateRequest);
@@ -713,7 +711,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Instant endDate = startDate.plus(30, java.time.temporal.ChronoUnit.DAYS);
 
             UpdateMedicineRequest updateRequest = new UpdateMedicineRequest("Ibuprofen Updated",
-                    "600 mg", "Updated notes", MedicineFrequency.TWICE_DAILY, startDate, endDate,
+                    "600 mg", "Updated notes", MedicineFrequency.TWICE, startDate, endDate,
                     MedicineType.PRESCRIPTION, MedicineStatus.ACTIVE);
 
             String payload = objectMapper.writeValueAsString(updateRequest);
@@ -737,14 +735,14 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Drug drug = createDrugWithName("Amoxicillin");
 
             Medicine medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.THRICE_DAILY).dosage("500 mg").drug(drug)
+                    .frequency(MedicineFrequency.THIRD_TIMES).dosage("500 mg").drug(drug)
                     .name("Amoxicillin").patient(user.getPatientProfile()).build());
 
             Instant startDate = Instant.now();
             Instant endDate = startDate.plus(7, java.time.temporal.ChronoUnit.DAYS);
 
             UpdateMedicineRequest updateRequest = new UpdateMedicineRequest("Amoxicillin Updated",
-                    "750 mg", "Notes", MedicineFrequency.TWICE_DAILY, startDate, endDate,
+                    "750 mg", "Notes", MedicineFrequency.TWICE, startDate, endDate,
                     MedicineType.PRESCRIPTION, MedicineStatus.ACTIVE);
 
             String payload = objectMapper.writeValueAsString(updateRequest);
@@ -763,8 +761,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Instant endDate = startDate.plus(30, java.time.temporal.ChronoUnit.DAYS);
 
             UpdateMedicineRequest updateRequest = new UpdateMedicineRequest("Medicine", "100 mg",
-                    "Notes", MedicineFrequency.ONCE_DAILY, startDate, endDate,
-                    MedicineType.PRESCRIPTION, MedicineStatus.ACTIVE);
+                    "Notes", MedicineFrequency.ONCE, startDate, endDate, MedicineType.PRESCRIPTION,
+                    MedicineStatus.ACTIVE);
 
             String payload = objectMapper.writeValueAsString(updateRequest);
 
@@ -781,7 +779,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Drug drug = createDrugWithName("Vitamin D");
 
             Medicine medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.ONCE_DAILY).dosage("1000 IU").drug(drug)
+                    .frequency(MedicineFrequency.ONCE).dosage("1000 IU").drug(drug)
                     .name("Vitamin D").type(MedicineType.TABLET).status(MedicineStatus.ACTIVE)
                     .patient(user.getPatientProfile()).build());
 
@@ -789,8 +787,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Instant endDate = startDate.plus(90, java.time.temporal.ChronoUnit.DAYS);
 
             UpdateMedicineRequest updateRequest = new UpdateMedicineRequest("Vitamin D3", "2000 IU",
-                    "Supplement", MedicineFrequency.ONCE_DAILY, startDate, endDate,
-                    MedicineType.LIQUID, MedicineStatus.INACTIVE);
+                    "Supplement", MedicineFrequency.ONCE, startDate, endDate, MedicineType.LIQUID,
+                    MedicineStatus.INACTIVE);
 
             String payload = objectMapper.writeValueAsString(updateRequest);
 
@@ -859,7 +857,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Drug drug = createDrugWithName("Metformin");
 
             Medicine medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.TWICE_DAILY).dosage("500 mg").drug(drug)
+                    .frequency(MedicineFrequency.TWICE).dosage("500 mg").drug(drug)
                     .name("Metformin").notes("Take with meals").type(MedicineType.TABLET)
                     .status(MedicineStatus.ACTIVE).patient(user.getPatientProfile()).build());
 
@@ -870,15 +868,15 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON).content(patchPayload)
                     .with(SecurityMockMvcRequestPostProcessors.user(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.frequency")
-                            .value("THRICE_DAILY"))
+                    .andExpect(
+                            MockMvcResultMatchers.jsonPath("$.data.frequency").value("THIRD_TIMES"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.dosage").value("500 mg"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.notes")
                             .value("Take with meals"));
 
             // Verify only frequency changed
             Medicine updatedMedicine = medicineRepository.findById(medicine.getId()).get();
-            assertThat(updatedMedicine.getFrequency()).isEqualTo(MedicineFrequency.THRICE_DAILY);
+            assertThat(updatedMedicine.getFrequency()).isEqualTo(MedicineFrequency.THIRD_TIMES);
             assertThat(updatedMedicine.getDosage()).isEqualTo("500 mg");
             assertThat(updatedMedicine.getNotes()).isEqualTo("Take with meals");
         }
@@ -945,10 +943,10 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .frequency(MedicineFrequency.AS_NEEDED).dosage("100 mg").drug(drug1)
                     .name("Medicine1").patient(user.getPatientProfile()).build());
             Medicine medicine2 = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.ONCE_DAILY).dosage("200 mg").drug(drug2)
+                    .frequency(MedicineFrequency.ONCE).dosage("200 mg").drug(drug2)
                     .name("Medicine2").patient(user.getPatientProfile()).build());
             Medicine medicine3 = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.TWICE_DAILY).dosage("300 mg").drug(drug3)
+                    .frequency(MedicineFrequency.TWICE).dosage("300 mg").drug(drug3)
                     .name("Medicine3").patient(user.getPatientProfile()).build());
 
             BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(
@@ -983,10 +981,9 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .save(Medicine.builder().frequency(MedicineFrequency.AS_NEEDED).dosage("100 mg")
                             .drug(drug1).name("Drug1").status(MedicineStatus.INACTIVE)
                             .patient(user.getPatientProfile()).build());
-            Medicine medicine2 = medicineRepository.save(
-                    Medicine.builder().frequency(MedicineFrequency.ONCE_DAILY).dosage("200 mg")
-                            .drug(drug2).name("Drug2").status(MedicineStatus.INACTIVE)
-                            .patient(user.getPatientProfile()).build());
+            Medicine medicine2 = medicineRepository.save(Medicine.builder()
+                    .frequency(MedicineFrequency.ONCE).dosage("200 mg").drug(drug2).name("Drug2")
+                    .status(MedicineStatus.INACTIVE).patient(user.getPatientProfile()).build());
 
             BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(
                     List.of(medicine1.getId(), medicine2.getId()), Action.MARK_ACTIVE,
@@ -1018,8 +1015,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .save(Medicine.builder().frequency(MedicineFrequency.AS_NEEDED).dosage("100 mg")
                             .drug(drug1).name("ActiveDrug1").status(MedicineStatus.ACTIVE)
                             .patient(user.getPatientProfile()).build());
-            Medicine medicine2 = medicineRepository.save(
-                    Medicine.builder().frequency(MedicineFrequency.TWICE_DAILY).dosage("200 mg")
+            Medicine medicine2 = medicineRepository
+                    .save(Medicine.builder().frequency(MedicineFrequency.TWICE).dosage("200 mg")
                             .drug(drug2).name("ActiveDrug2").status(MedicineStatus.ACTIVE)
                             .patient(user.getPatientProfile()).build());
 
@@ -1085,7 +1082,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .name("User1Drug").patient(user1.getPatientProfile()).build());
 
             Medicine user2Medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.ONCE_DAILY).dosage("200 mg").drug(drug2)
+                    .frequency(MedicineFrequency.ONCE).dosage("200 mg").drug(drug2)
                     .name("User2Drug").patient(user2.getPatientProfile()).build());
 
             // User1 tries to delete both medicines including user2's medicine

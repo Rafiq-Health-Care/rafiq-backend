@@ -1,6 +1,5 @@
 package com.nexaworks.rafiq.mapper;
 
-import java.time.Instant;
 import java.util.Collections;
 
 import org.mapstruct.Mapper;
@@ -15,41 +14,25 @@ import com.nexaworks.rafiq.service.MedicineService;
 public interface ReminderMapper {
 
     ReminderResponse toResponse(Reminder reminder);
-    default Reminder toEntity(AddReminderRequest addReminderRequest,
-            MedicineService medicineService) {
-        if (addReminderRequest == null) {
-            return null;
-        }
-        return Reminder.builder()
-                .medicine(medicineService.getMedicineById(addReminderRequest.medicineId()))
-                .hour(Integer.parseInt(addReminderRequest.time().split(":")[0]))
-                .minute(Integer.parseInt(addReminderRequest.time().split(":")[1]))
-                .frequency(addReminderRequest.frequency())
-                .startDate(addReminderRequest.startDate() == null
-                        ? Instant.now()
-                        : addReminderRequest.startDate())
-                .endDate(addReminderRequest.endDate()).vibrate(addReminderRequest.vibrate())
-                .customDays(addReminderRequest.dayOfWeek() == null
-                        ? Collections.emptyList()
-                        : addReminderRequest.dayOfWeek())
-                .build();
+
+    default Reminder toEntity(AddReminderRequest request, MedicineService medicineService) {
+        return Reminder.builder().medicine(medicineService.getMedicineById(request.medicineId()))
+                .startDate(request.startDate()).endDate(request.endDate())
+                .vibrate(request.vibrate()).build();
     }
 
     default AddReminderResponse toAddReminderResponse(Reminder savedReminder) {
-        if (savedReminder == null) {
-            return null;
-        }
-        String time = String.format("%02d:%02d", savedReminder.getHour(),
-                savedReminder.getMinute());
-        return new AddReminderResponse(savedReminder.getId(), savedReminder.getPatient().getId(),
-                savedReminder.getMedicine().getId(), savedReminder.getMedicine().getName(),
-                savedReminder.getMedicine().getDosage(), time, savedReminder.getFrequency(),
-                savedReminder.getCustomDays(), savedReminder.getStartDate(),
-                savedReminder.getEndDate(), savedReminder.getMedicine().getNotes(),
-                savedReminder.isVibrate(), savedReminder.getMedicine().getStatus(),
-                savedReminder.getCreatedAt(), savedReminder.getUpdatedAt()
-
-        );
-
+        return new AddReminderResponse(savedReminder.getId(),
+                savedReminder.getPatient().getUser().getId(), savedReminder.getMedicine().getId(),
+                savedReminder.getMedicine().getName(), savedReminder.getMedicine().getDosage(),
+                savedReminder.getStartDate().toString(),
+                savedReminder.getMedicine().getReminderFrequency(),
+                savedReminder.getMedicine().getCustomDays() != null
+                        ? savedReminder.getMedicine().getCustomDays()
+                        : Collections.emptyList(),
+                savedReminder.getStartDate(), savedReminder.getEndDate(),
+                savedReminder.getMedicine().getNotes(), savedReminder.isVibrate(),
+                savedReminder.getMedicine().getStatus(), savedReminder.getCreatedAt(),
+                savedReminder.getUpdatedAt());
     }
 }

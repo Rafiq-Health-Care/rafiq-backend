@@ -2,11 +2,10 @@ package com.nexaworks.rafiq.entities;
 
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-import com.nexaworks.rafiq.entities.enums.MedicineFrequency;
-import com.nexaworks.rafiq.entities.enums.MedicineStatus;
-import com.nexaworks.rafiq.entities.enums.MedicineType;
+import com.nexaworks.rafiq.entities.enums.*;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -24,17 +23,30 @@ public class Medicine extends BaseEntity {
     @NotNull
     @Column(nullable = false)
     private String dosage;
+
     @NotNull
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private MedicineFrequency frequency;
+
+    @Enumerated(EnumType.STRING)
+    private ReminderFrequency reminderFrequency;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "custom_days", joinColumns = @JoinColumn(name = "reminder_id"))
+    @Column(name = "day")
+    @Enumerated(EnumType.STRING)
+    private List<Day> customDays;
+
     @NotNull
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private MedicineStatus status = MedicineStatus.ACTIVE;
+
     @Enumerated(EnumType.STRING)
     private MedicineType type;
+
     private Instant startDate;
     private Instant endDate;
     private String notes;
