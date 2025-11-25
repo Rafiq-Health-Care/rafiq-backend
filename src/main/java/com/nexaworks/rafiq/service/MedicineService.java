@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.quartz.SchedulerException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -22,7 +23,7 @@ public interface MedicineService {
 
     Medicine getMedicineById(UUID medicineId);
 
-    void deleteMedicine(UUID medicineId);
+    void deleteMedicine(UUID medicineId) throws SchedulerException;
 
     Medicine updateMedicine(Medicine entity, UUID medicineId);
 

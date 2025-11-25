@@ -11,4 +11,6 @@ public interface QuartzSchedulerService {
             throws SchedulerException;
 
     void deleteJob(JobKey jobKey) throws SchedulerException;
+
+    void updateJob(JobKey medicineReminder, String s) throws SchedulerException;
 }

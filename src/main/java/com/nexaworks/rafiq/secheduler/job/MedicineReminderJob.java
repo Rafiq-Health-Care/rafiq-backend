@@ -30,7 +30,7 @@ public class MedicineReminderJob implements Job {
     private final ApplicationEventPublisher publisher;
     private final QuartzSchedulerService schedulerService;
     @Override
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+    public void execute(JobExecutionContext jobExecutionContext) {
         log.info("Sending the notification");
         JobDetail jobDetail = jobExecutionContext.getJobDetail();
         UUID reminderId = UUID.fromString(jobDetail.getJobDataMap().getString("reminderId"));

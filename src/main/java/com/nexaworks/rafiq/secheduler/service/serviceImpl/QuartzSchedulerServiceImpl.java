@@ -64,4 +64,33 @@ public class QuartzSchedulerServiceImpl implements QuartzSchedulerService {
             log.info("Job not found: {}", jobKey);
         }
     }
+
+    @Override
+    public void updateJob(JobKey medicineReminder, String cornExpression)
+            throws SchedulerException {
+        if (!scheduler.checkExists(medicineReminder)) {
+            log.warn("Job not found: {}", medicineReminder);
+            throw new SchedulerException("Job not found: " + medicineReminder);
+        }
+        JobDetail jobDetail = scheduler.getJobDetail(medicineReminder);
+        if (jobDetail == null) {
+            log.warn("Job not found: {}", medicineReminder);
+            throw new SchedulerException("Job not found: " + medicineReminder);
+        }
+        List<? extends Trigger> triggers = scheduler.getTriggersOfJob(medicineReminder);
+        triggers.forEach(trigger -> {
+            try {
+                scheduler.unscheduleJob(trigger.getKey());
+            } catch (SchedulerException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        String triggerName = medicineReminder.getName() + "Trigger";
+        CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule(cornExpression)
+                .withMisfireHandlingInstructionDoNothing();
+        Trigger trigger = TriggerBuilder.newTrigger()
+                .withIdentity(triggerName, medicineReminder.getGroup())
+                .withSchedule(scheduleBuilder).startNow().build();
+        scheduler.scheduleJob(jobDetail, trigger);
+    }
 }

@@ -51,8 +51,8 @@ public class ReminderServiceImpl implements ReminderService {
         String cornExpression = cornExpressionBuilder.buildCornExpression(medicine.getFrequency(),
                 medicine.getReminderFrequency(), medicine.getCustomDays(), reminder.getStartDate());
         try {
-            schedulerService.scheduleJob(medicine.getName() + medicine.getPatient().getId(),
-                    "MedicineReminder", cornExpression, reminder);
+            schedulerService.scheduleJob(medicine.getId().toString(), "MedicineReminder",
+                    cornExpression, reminder);
         } catch (SchedulerException e) {
             log.error("Error scheduling reminder for medicine: {}", medicine.getName(), e);
         }
