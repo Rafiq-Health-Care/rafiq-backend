@@ -66,8 +66,8 @@ public class MedicineController {
     }
     @PutMapping("/{id}")
     public ResponseEntity<AddResponse<MedicineResponse>> updateMedicine(
-            @PathVariable("id") UUID medicineId,
-            @Valid @RequestBody UpdateMedicineRequest request) {
+            @PathVariable("id") UUID medicineId, @Valid @RequestBody UpdateMedicineRequest request)
+            throws SchedulerException {
         Medicine medicine = medicineService.updateMedicine(medicineMapper.toEntity(request),
                 medicineId);
         return ResponseEntity.ok().body(new AddResponse<>(true, "Medicine updated successfully",
@@ -75,7 +75,8 @@ public class MedicineController {
     }
     @PatchMapping("/{id}")
     public ResponseEntity<AddResponse<MedicineResponse>> updateSpecific(
-            @PathVariable("id") UUID medicineId, @RequestBody UpdateMedicinePatchRequest request) {
+            @PathVariable("id") UUID medicineId, @RequestBody UpdateMedicinePatchRequest request)
+            throws SchedulerException {
         Medicine medicine = medicineService.updateSpecific(medicineId, request);
         return ResponseEntity.ok().body(new AddResponse<>(true, "Medicine updated successfully",
                 medicineMapper.toDto(medicine)));
