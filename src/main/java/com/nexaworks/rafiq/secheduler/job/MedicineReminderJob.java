@@ -28,6 +28,7 @@ public class MedicineReminderJob implements Job {
     private final ApplicationEventPublisher publisher;
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+        // todo check the medicine status before sending the notification
         log.info("Sending the notification");
         JobDetail jobDetail = jobExecutionContext.getJobDetail();
         UUID reminderId = UUID.fromString(jobDetail.getJobDataMap().getString("reminderId"));
@@ -43,12 +44,12 @@ public class MedicineReminderJob implements Job {
                         .toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
                 .build();
         Medicine medicine = reminder.getMedicine();
-        reminderLogRepo.save(reminderLog);
+        reminderLog = reminderLogRepo.save(reminderLog);
         reminderRepo.save(reminder);
 
         MedicineNotification notification = new MedicineNotification(notificationToken,
                 medicine.getName(), medicine.getId(), reminder.isVibrate(), medicine.getDosage(),
-                medicine.getNotes());
+                medicine.getNotes(), reminderLog.getId());
         publisher.publishEvent(notification);
     }
 }
