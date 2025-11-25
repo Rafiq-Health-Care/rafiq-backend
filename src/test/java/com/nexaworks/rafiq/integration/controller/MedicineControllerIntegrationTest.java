@@ -91,7 +91,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Drug drug = createDrug();
             UUID medicineId = drugRepository.findAll().get(0).getId();
             AddMedicineRequest addMedicineRequest = new AddMedicineRequest(medicineId, "20 ml",
-                    MedicineFrequency.AS_NEEDED, Instant.now(), null, null, null);
+                    MedicineFrequency.AS_NEEDED, null, null, Instant.now(), null, null, null);
             String payload = objectMapper.writeValueAsString(addMedicineRequest);
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
@@ -107,7 +107,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         void shouldReturnBadRequestWhenMedicineIdIsInvalid() throws Exception {
             User user = createTestUser();
             AddMedicineRequest addMedicineRequest = new AddMedicineRequest(null, "20 ml",
-                    MedicineFrequency.AS_NEEDED, Instant.now(), null, null, null);
+                    MedicineFrequency.AS_NEEDED, null, null, Instant.now(), null, null, null);
             String payload = objectMapper.writeValueAsString(addMedicineRequest);
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
@@ -121,7 +121,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Drug drug = createDrug();
             UUID medicineId = drugRepository.findAll().get(0).getId();
             AddMedicineRequest addMedicineRequest = new AddMedicineRequest(medicineId, "20 ml",
-                    MedicineFrequency.AS_NEEDED, Instant.now(), null, null, null);
+                    MedicineFrequency.AS_NEEDED, null, null, Instant.now(), null, null, null);
             String payload = objectMapper.writeValueAsString(addMedicineRequest);
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
@@ -141,7 +141,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Drug drug = createDrug();
             UUID medicineId = drugRepository.findAll().get(0).getId();
             AddMedicineRequest addMedicineRequest = new AddMedicineRequest(medicineId, "20 ml",
-                    MedicineFrequency.AS_NEEDED, Instant.now(), null, null, null);
+                    MedicineFrequency.AS_NEEDED, null, null, Instant.now(), null, null, null);
             String payload = objectMapper.writeValueAsString(addMedicineRequest);
             for (int i = 0; i < 200; i++) {
                 Drug tempDrug = createDrug();
@@ -862,7 +862,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .status(MedicineStatus.ACTIVE).patient(user.getPatientProfile()).build());
 
             // Update only frequency
-            String patchPayload = "{\"frequency\":\"THRICE_DAILY\"}";
+            String patchPayload = "{\"frequency\":\"THIRD_TIMES\"}";
 
             mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, medicine.getId())
                     .contentType(MediaType.APPLICATION_JSON).content(patchPayload)

@@ -8,9 +8,12 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.nexaworks.rafiq.dto.event.ReminderEvent;
+import com.nexaworks.rafiq.entities.Medicine;
 import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.entities.Reminder;
 import com.nexaworks.rafiq.repository.ReminderRepository;
+import com.nexaworks.rafiq.secheduler.service.CornExpressionBuilder;
+import com.nexaworks.rafiq.secheduler.service.QuartzSchedulerService;
 import com.nexaworks.rafiq.service.PatientService;
 import com.nexaworks.rafiq.service.ReminderService;
 
@@ -24,6 +27,8 @@ public class ReminderServiceImpl implements ReminderService {
     private final ReminderRepository reminderRepository;
     private final PatientService patientService;
     private final ApplicationEventPublisher eventPublisher;
+    private final QuartzSchedulerService schedulerService;
+    private final CornExpressionBuilder cornExpressionBuilder;
     @Override
     @Transactional
     public Reminder createReminder(Reminder reminder) throws SchedulerException {
@@ -37,5 +42,20 @@ public class ReminderServiceImpl implements ReminderService {
             }
         });
         return reminderRepository.save(reminder);
+    }
+
+    @Override
+    @Transactional
+    public void scheduleReminder(Reminder reminder) {
+        Medicine medicine = reminder.getMedicine();
+        String cornExpression = cornExpressionBuilder.buildCornExpression(medicine.getFrequency(),
+                medicine.getReminderFrequency(), medicine.getCustomDays(), reminder.getStartDate());
+        try {
+            schedulerService.scheduleJob(medicine.getName() + medicine.getPatient().getId(),
+                    "MedicineReminder", cornExpression, reminder);
+        } catch (SchedulerException e) {
+            log.error("Error scheduling reminder for medicine: {}", medicine.getName(), e);
+        }
+
     }
 }

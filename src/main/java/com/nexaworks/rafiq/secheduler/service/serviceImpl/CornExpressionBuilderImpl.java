@@ -100,12 +100,15 @@ public class CornExpressionBuilderImpl implements CornExpressionBuilder {
             MedicineFrequency medicineFrequency) {
         int numberOfHours = 24 / medicineFrequency.getNumberOfTimes();
         StringBuilder cornExpression = new StringBuilder();
+
         for (int i = 0; i < medicineFrequency.getNumberOfTimes(); i++) {
             int hour = (startHour + (i * numberOfHours)) % 24;
             if (i > 0) {
                 cornExpression.append(",");
             }
             cornExpression.append(hour);
+            log.info("cornExpression: {}", hour);
+            log.info(String.valueOf(startHour));
         }
         return String.format("0 %d %s * * ?", startMinute, cornExpression);
     }
