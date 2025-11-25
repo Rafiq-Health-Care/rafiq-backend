@@ -1,14 +1,14 @@
 package com.nexaworks.rafiq.secheduler.service;
 
+import java.util.Map;
+
 import org.quartz.JobKey;
 import org.quartz.SchedulerException;
 
-import com.nexaworks.rafiq.entities.Reminder;
-
 public interface QuartzSchedulerService {
 
-    void scheduleJob(String jobName, String groupName, String cronExpression, Reminder reminder)
-            throws SchedulerException;
+    void scheduleJob(String jobName, String groupName, String cronExpression,
+            Map<String, String> jobData) throws SchedulerException;
 
     void deleteJob(JobKey jobKey) throws SchedulerException;
 

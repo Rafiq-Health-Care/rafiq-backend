@@ -1,5 +1,7 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import java.util.Map;
+
 import org.quartz.SchedulerException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import com.nexaworks.rafiq.secheduler.service.CornExpressionBuilder;
 import com.nexaworks.rafiq.secheduler.service.QuartzSchedulerService;
 import com.nexaworks.rafiq.service.PatientService;
 import com.nexaworks.rafiq.service.ReminderService;
+import com.nexaworks.rafiq.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +32,7 @@ public class ReminderServiceImpl implements ReminderService {
     private final ApplicationEventPublisher eventPublisher;
     private final QuartzSchedulerService schedulerService;
     private final CornExpressionBuilder cornExpressionBuilder;
+    private final UserService userService;
     @Override
     @Transactional
     public Reminder createReminder(Reminder reminder) throws SchedulerException {
@@ -52,7 +56,10 @@ public class ReminderServiceImpl implements ReminderService {
                 medicine.getReminderFrequency(), medicine.getCustomDays(), reminder.getStartDate());
         try {
             schedulerService.scheduleJob(medicine.getId().toString(), "MedicineReminder",
-                    cornExpression, reminder);
+                    cornExpression, Map.of("reminderId", reminder.getId().toString(),
+                            "notificationToken", userService.getNotificationToken()));
+            log.info("Scheduled reminder for medicine: {} with cron expression: {}",
+                    medicine.getName(), cornExpression);
         } catch (SchedulerException e) {
             log.error("Error scheduling reminder for medicine: {}", medicine.getName(), e);
         }

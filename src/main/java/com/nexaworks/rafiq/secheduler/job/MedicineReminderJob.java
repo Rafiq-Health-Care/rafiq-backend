@@ -16,6 +16,7 @@ import com.nexaworks.rafiq.entities.enums.MedicineStatus;
 import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 import com.nexaworks.rafiq.repository.ReminderLogRepository;
 import com.nexaworks.rafiq.repository.ReminderRepository;
+import com.nexaworks.rafiq.secheduler.service.CornExpressionBuilder;
 import com.nexaworks.rafiq.secheduler.service.QuartzSchedulerService;
 
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class MedicineReminderJob implements Job {
     private final ReminderRepository reminderRepo;
     private final ApplicationEventPublisher publisher;
     private final QuartzSchedulerService schedulerService;
+    private final CornExpressionBuilder cornExpressionBuilder;
     @Override
     public void execute(JobExecutionContext jobExecutionContext) {
         log.info("Sending the notification");

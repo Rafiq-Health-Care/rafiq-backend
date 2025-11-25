@@ -1,12 +1,12 @@
 package com.nexaworks.rafiq.secheduler.service.serviceImpl;
 
 import java.util.List;
+import java.util.Map;
 
 import org.quartz.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.nexaworks.rafiq.entities.Reminder;
 import com.nexaworks.rafiq.secheduler.job.MedicineReminderJob;
 import com.nexaworks.rafiq.secheduler.service.QuartzSchedulerService;
 import com.nexaworks.rafiq.service.UserService;
@@ -24,24 +24,44 @@ public class QuartzSchedulerServiceImpl implements QuartzSchedulerService {
     @Override
     @Transactional
     public void scheduleJob(String jobName, String groupName, String cronExpression,
-            Reminder reminder) throws SchedulerException {
+            Map<String, String> jobData) throws SchedulerException {
+        if (jobName == null || jobName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Job name cannot be empty");
+        }
+        if (groupName == null || groupName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Group name cannot be empty");
+        }
+        if (cronExpression == null || cronExpression.trim().isEmpty()) {
+            throw new IllegalArgumentException("Cron expression cannot be empty");
+        }
+        if (jobData == null) {
+            throw new IllegalArgumentException("Job data cannot be null");
+        }
+        if (scheduler.checkExists(JobKey.jobKey(jobName, groupName))) {
+            log.warn("Job already exists: {} in group: {}", jobName, groupName);
+            return;
+        }
 
-        JobDetail jobDetail = JobBuilder.newJob(MedicineReminderJob.class)
-                .withIdentity(jobName, groupName)
-                .usingJobData("reminderId", String.valueOf(reminder.getId()))
-                .usingJobData("notificationToken", userService.getNotificationToken())
-                .storeDurably().build();
+        try {
+            JobDetail jobDetail = JobBuilder.newJob(MedicineReminderJob.class)
+                    .withIdentity(jobName, groupName).storeDurably().build();
+            jobDetail.getJobDataMap().putAll(jobData);
 
-        String triggerName = jobName + "Trigger";
-        CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule(cronExpression)
-                .withMisfireHandlingInstructionDoNothing();
+            String triggerName = jobName + "Trigger";
+            CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule(cronExpression)
+                    .withMisfireHandlingInstructionDoNothing();
 
-        Trigger trigger = TriggerBuilder.newTrigger().withIdentity(triggerName, groupName)
-                .withSchedule(scheduleBuilder).startNow().build();
-        scheduler.scheduleJob(jobDetail, trigger);
+            Trigger trigger = TriggerBuilder.newTrigger().withIdentity(triggerName, groupName)
+                    .withSchedule(scheduleBuilder).startNow().build();
+            scheduler.scheduleJob(jobDetail, trigger);
 
-        log.info("Job scheduled: {} in group: {} with cron: {}", jobName, groupName,
-                cronExpression);
+            log.info("Job scheduled: {} in group: {} with cron: {}", jobName, groupName,
+                    cronExpression);
+        } catch (Exception e) {
+            log.error("Error scheduling job: {}", jobName, e);
+            throw new SchedulerException("Error scheduling job: " + jobName, e);
+
+        }
     }
 
     @Override
