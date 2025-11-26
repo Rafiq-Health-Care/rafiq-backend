@@ -98,7 +98,7 @@ public class QuartzSchedulerServiceImpl implements QuartzSchedulerService {
         }
         if (!scheduler.checkExists(medicineReminder)) {
             log.warn("Job not found: {}", medicineReminder);
-            throw new SchedulerException("Job not found: " + medicineReminder);
+            return;
         }
         log.info("Updating job: {} with cron: {}", medicineReminder, cornExpression);
         JobDetail jobDetail = scheduler.getJobDetail(medicineReminder);

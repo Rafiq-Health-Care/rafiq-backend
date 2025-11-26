@@ -1,11 +1,9 @@
 package com.nexaworks.rafiq.secheduler.job;
 
+import java.util.Map;
 import java.util.UUID;
 
-import org.quartz.Job;
-import org.quartz.JobDetail;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
+import org.quartz.*;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +13,7 @@ import com.nexaworks.rafiq.entities.Reminder;
 import com.nexaworks.rafiq.entities.ReminderLog;
 import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 import com.nexaworks.rafiq.repository.ReminderLogRepository;
+import com.nexaworks.rafiq.secheduler.service.QuartzSchedulerService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ReminderHistoryJob implements Job {
     private final ReminderLogRepository reminderLogRepository;
     private final ApplicationEventPublisher publisher;
+    private final QuartzSchedulerService schedulerService;
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         log.info("Update reminder state");
@@ -45,6 +45,14 @@ public class ReminderHistoryJob implements Job {
                     medicine.getName(), medicine.getId(), reminder.isVibrate(),
                     medicine.getDosage(), medicine.getNotes(), reminderLog.getId());
             publisher.publishEvent(notification);
+            try {
+                schedulerService.scheduleOneTimeJob(
+                        Map.of("reminderLogId", reminderLog.getId().toString(), "notificationToken",
+                                notificationToken),
+                        "MedicineReminderHistory", reminderLog.getTimestamp().plusMinutes(10));
+            } catch (SchedulerException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
