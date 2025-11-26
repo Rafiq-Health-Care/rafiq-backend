@@ -229,4 +229,142 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             assertThat(savedMedicine.getCustomDays().size()).isEqualTo(3);
         }
     }
+
+    @Nested
+    @DisplayName("Get All Medicines")
+    class GetAllMedicines {
+        private final String GET_ALL_MEDICINES_ENDPOINT = "/medicines";
+
+        @Test
+        @DisplayName("Should return paginated medicines when user has medicines")
+        void shouldReturnPaginatedMedicines_WhenUserHasMedicines() throws Exception {
+            // Arrange
+            User user = createTestUser();
+            Drug drug1 = createDrug();
+            Drug drug2 = Drug.builder().tradeName("Ibuprofen").drugGroup("NSAIDs").price(8.0)
+                    .build();
+            drugRepository.save(drug2);
+
+            Medicine medicine1 = Medicine.builder().patient(user.getPatientProfile()).drug(drug1)
+                    .name(drug1.getTradeName()).dosage("100mg").frequency(MedicineFrequency.TWICE)
+                    .status(MedicineStatus.ACTIVE).startDate(Instant.now()).build();
+            medicineRepository.save(medicine1);
+
+            Medicine medicine2 = Medicine.builder().patient(user.getPatientProfile()).drug(drug2)
+                    .name(drug2.getTradeName()).dosage("200mg")
+                    .frequency(MedicineFrequency.THIRD_TIMES).status(MedicineStatus.ACTIVE)
+                    .startDate(Instant.now()).build();
+            medicineRepository.save(medicine2);
+
+            // Act & Assert
+            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(2))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(2))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.totalPages").value(1));
+        }
+
+        @Test
+        @DisplayName("Should return empty list when user has no medicines")
+        void shouldReturnEmptyList_WhenUserHasNoMedicines() throws Exception {
+            // Arrange
+            User user = createTestUser();
+
+            // Act & Assert
+            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(0))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(0));
+        }
+
+        @Test
+        @DisplayName("Should return only authenticated user's medicines")
+        void shouldReturnOnlyAuthenticatedUserMedicines() throws Exception {
+            // Arrange
+            User user1 = createTestUser();
+            User user2 = createTestUser("other@test.com", "Jane", "Smith", "+19876543210",
+                    Gender.FEMALE);
+            Drug drug = createDrug();
+
+            // Add medicine for user1
+            Medicine medicine1 = Medicine.builder().patient(user1.getPatientProfile()).drug(drug)
+                    .name(drug.getTradeName()).dosage("100mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).startDate(Instant.now()).build();
+            medicineRepository.save(medicine1);
+
+            // Add medicine for user2
+            Medicine medicine2 = Medicine.builder().patient(user2.getPatientProfile()).drug(drug)
+                    .name(drug.getTradeName()).dosage("200mg").frequency(MedicineFrequency.TWICE)
+                    .status(MedicineStatus.ACTIVE).startDate(Instant.now()).build();
+            medicineRepository.save(medicine2);
+
+            // Act & Assert - user1 should only see their own medicine
+            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
+                    .with(SecurityMockMvcRequestPostProcessors.user(user1)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(1))
+                    .andExpect(
+                            MockMvcResultMatchers.jsonPath("$.content[0].dosage").value("100mg"));
+        }
+
+        @Test
+        @DisplayName("Should support pagination with custom page size")
+        void shouldSupportPagination_WithCustomPageSize() throws Exception {
+            // Arrange
+            User user = createTestUser();
+            Drug drug = createDrug();
+
+            // Create 5 medicines
+            for (int i = 0; i < 5; i++) {
+                Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                        .name(drug.getTradeName()).dosage((i + 1) * 100 + "mg")
+                        .frequency(MedicineFrequency.ONCE).status(MedicineStatus.ACTIVE)
+                        .startDate(Instant.now()).build();
+                medicineRepository.save(medicine);
+            }
+
+            // Act & Assert - Request page 0 with size 2
+            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
+                    .param("page", "0").param("size", "2")
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(2))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(5))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.totalPages").value(3))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.size").value(2));
+        }
+
+        @Test
+        @DisplayName("Should filter medicines by status when status filter is provided")
+        void shouldFilterMedicinesByStatus_WhenStatusFilterProvided() throws Exception {
+            // Arrange
+            User user = createTestUser();
+            Drug drug = createDrug();
+
+            Medicine activeMedicine = Medicine.builder().patient(user.getPatientProfile())
+                    .drug(drug).name(drug.getTradeName()).dosage("100mg")
+                    .frequency(MedicineFrequency.ONCE).status(MedicineStatus.ACTIVE)
+                    .startDate(Instant.now()).build();
+            medicineRepository.save(activeMedicine);
+
+            Medicine inactiveMedicine = Medicine.builder().patient(user.getPatientProfile())
+                    .drug(drug).name(drug.getTradeName()).dosage("200mg")
+                    .frequency(MedicineFrequency.TWICE).status(MedicineStatus.INACTIVE)
+                    .startDate(Instant.now()).build();
+            medicineRepository.save(inactiveMedicine);
+
+            // Act & Assert - Filter by ACTIVE status
+            mockMvc.perform(
+                    MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT).param("status", "ACTIVE")
+                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(1))
+                    .andExpect(
+                            MockMvcResultMatchers.jsonPath("$.content[0].status").value("ACTIVE"));
+        }
+    }
 }

@@ -7,5 +7,5 @@ import com.nexaworks.rafiq.entities.enums.MedicineFrequency;
 import com.nexaworks.rafiq.entities.enums.MedicineStatus;
 
 public record MedicineGroupResponse(UUID id, String name, String dosage,
-        MedicineFrequency frequency, MedicineStatus Status, LocalDateTime nextReminder) {
+        MedicineFrequency frequency, MedicineStatus status, LocalDateTime nextReminder) {
 }

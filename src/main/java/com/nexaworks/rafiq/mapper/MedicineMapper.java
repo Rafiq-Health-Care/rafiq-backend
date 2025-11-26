@@ -26,7 +26,8 @@ public interface MedicineMapper {
                 entity.getNotes(), entity.getPhotoUrl(), entity.getType(), entity.getStatus(),
                 entity.getGroup() != null ? entity.getGroup().getId() : null,
                 entity.getGroup() != null ? entity.getGroup().getName() : null,
-                entity.getReminder().getId(), entity.getReminder().getNextReminder(),
+                entity.getReminder() == null ? null : entity.getReminder().getId(),
+                entity.getReminder() == null ? null : entity.getReminder().getNextReminder(),
                 entity.getCreatedAt(), entity.getUpdatedAt());
     }
 
@@ -36,7 +37,8 @@ public interface MedicineMapper {
             return null;
         }
         return new MedicineGroupResponse(entity.getId(), entity.getName(), entity.getDosage(),
-                entity.getFrequency(), entity.getStatus(), entity.getReminder().getNextReminder());
+                entity.getFrequency(), entity.getStatus(),
+                entity.getReminder() == null ? null : entity.getReminder().getNextReminder());
     }
 
 }
