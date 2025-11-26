@@ -46,13 +46,9 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
         @Primary
         public AiService mockAiService() {
             // Return a mock implementation that returns predictable results
-            return new AiService() {
-                @Override
-                public String extractLabResultsFromPdf(byte[] pdfFile)
-                        throws java.io.IOException, com.itextpdf.text.DocumentException {
-                    // Return a default mock response
-                    return "{\"name\":\"Test Result\",\"date\":\"2024-01-15\",\"tests\":[]}";
-                }
+            return pdfFile -> {
+                // Return a default mock response
+                return "{\"name\":\"Test Result\",\"date\":\"2024-01-15\",\"tests\":[]}";
             };
         }
     }
