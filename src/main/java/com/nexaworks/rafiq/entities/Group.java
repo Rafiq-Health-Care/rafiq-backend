@@ -25,7 +25,8 @@ public class Group extends BaseEntity {
     private String iconUrl;
     @Enumerated(EnumType.STRING)
     private Color color;
-    @OneToMany(mappedBy = "group")
+    @OneToMany(mappedBy = "group", cascade = {CascadeType.REMOVE, CascadeType.PERSIST,
+            CascadeType.MERGE}, fetch = FetchType.LAZY)
     private List<Medicine> medicines;
     @ManyToOne
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)

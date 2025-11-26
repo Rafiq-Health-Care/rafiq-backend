@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.secheduler.service;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import org.quartz.JobKey;
@@ -13,4 +14,7 @@ public interface QuartzSchedulerService {
     void deleteJob(JobKey jobKey) throws SchedulerException;
 
     void updateJob(JobKey medicineReminder, String s) throws SchedulerException;
+
+    void scheduleOneTimeJob(Map<String, String> reminderLogData, String groupName,
+            LocalDateTime dateTime) throws SchedulerException;
 }

@@ -36,7 +36,7 @@ public class Reminder extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "group_id", referencedColumnName = "id")
     private Group group;
-    @OneToMany(mappedBy = "reminder")
+    @OneToMany(mappedBy = "reminder", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ReminderLog> reminderLogs;
 
 }

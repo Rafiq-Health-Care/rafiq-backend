@@ -2,6 +2,7 @@ package com.nexaworks.rafiq.secheduler.job;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Map;
 import java.util.UUID;
 
 import org.quartz.*;
@@ -66,6 +67,14 @@ public class MedicineReminderJob implements Job {
             log.info("Medicine is not active. Deleted scheduled job for medicine: {}",
                     medicine.getName());
         }
-        // todo schedule reminder history
+        try {
+            schedulerService.scheduleOneTimeJob(
+                    Map.of("reminderLogId", reminderLog.getId().toString(), "notificationToken",
+                            notificationToken),
+                    "MedicineReminderHistory", reminderLog.getTimestamp().plusMinutes(10));
+        } catch (SchedulerException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }
