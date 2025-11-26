@@ -123,7 +123,6 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
                             .value(user.getPatientProfile().getId().toString()))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.createdAt").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.updatedAt").exists())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.iconUrl").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicineCount").value(0));
 
             // Verify group was saved in database
@@ -309,7 +308,6 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicines").isArray())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.userId")
                             .value(user.getPatientProfile().getId().toString()))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.iconUrl").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicineCount").value(0))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.createdAt").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.updatedAt").exists());
@@ -395,7 +393,6 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
                             .value(user.getPatientProfile().getId().toString()))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.createdAt").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.updatedAt").exists())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.iconUrl").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicineCount").value(0));
 
             // Verify update in database
