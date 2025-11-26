@@ -20,17 +20,23 @@ public interface MedicineMapper {
         }
 
         return new MedicineResponse(entity.getId(),
-                entity.getPatient() != null && entity.getPatient().getUser() != null
-                        ? entity.getPatient().getUser().getId()
-                        : null,
-                entity.getDrug() != null ? entity.getName() : null, entity.getDosage(),
-                entity.getFrequency(), entity.getStartDate(), entity.getEndDate(),
+                entity.getPatient() != null ? entity.getPatient().getId() : null, entity.getName(),
+                entity.getDosage(), entity.getFrequency(), entity.getReminderFrequency(),
+                entity.getCustomDays(), entity.getStartDate(), entity.getEndDate(),
                 entity.getNotes(), entity.getPhotoUrl(), entity.getType(), entity.getStatus(),
-                entity.getGroup() == null ? null : entity.getGroup().getId(),
-                entity.getGroup() == null ? null : entity.getGroup().getName(),
-                entity.getReminders().size(), entity.getCreatedAt(), entity.getUpdatedAt());
+                entity.getGroup() != null ? entity.getGroup().getId() : null,
+                entity.getGroup() != null ? entity.getGroup().getName() : null,
+                entity.getReminder().getId(), entity.getReminder().getNextReminder(),
+                entity.getCreatedAt(), entity.getUpdatedAt());
     }
+
     MedicinePreview toPreviewDto(Medicine entity);
-    MedicineGroupResponse toGroupDto(Medicine entity);
+    default MedicineGroupResponse toGroupDto(Medicine entity) {
+        if (entity == null) {
+            return null;
+        }
+        return new MedicineGroupResponse(entity.getId(), entity.getName(), entity.getDosage(),
+                entity.getFrequency(), entity.getStatus(), entity.getReminder().getNextReminder());
+    }
 
 }

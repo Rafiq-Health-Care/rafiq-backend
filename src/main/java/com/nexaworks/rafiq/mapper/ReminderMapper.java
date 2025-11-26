@@ -1,7 +1,5 @@
 package com.nexaworks.rafiq.mapper;
 
-import java.util.Collections;
-
 import org.mapstruct.Mapper;
 
 import com.nexaworks.rafiq.dto.request.reminder.AddReminderRequest;
@@ -17,22 +15,12 @@ public interface ReminderMapper {
 
     default Reminder toEntity(AddReminderRequest request, MedicineService medicineService) {
         return Reminder.builder().medicine(medicineService.getMedicineById(request.medicineId()))
-                .startDate(request.startDate()).endDate(request.endDate())
                 .vibrate(request.vibrate()).build();
     }
 
     default AddReminderResponse toAddReminderResponse(Reminder savedReminder) {
-        return new AddReminderResponse(savedReminder.getId(),
-                savedReminder.getPatient().getUser().getId(), savedReminder.getMedicine().getId(),
-                savedReminder.getMedicine().getName(), savedReminder.getMedicine().getDosage(),
-                savedReminder.getStartDate().toString(),
-                savedReminder.getMedicine().getReminderFrequency(),
-                savedReminder.getMedicine().getCustomDays() != null
-                        ? savedReminder.getMedicine().getCustomDays()
-                        : Collections.emptyList(),
-                savedReminder.getStartDate(), savedReminder.getEndDate(),
-                savedReminder.getMedicine().getNotes(), savedReminder.isVibrate(),
-                savedReminder.getMedicine().getStatus(), savedReminder.getCreatedAt(),
+        return new AddReminderResponse(savedReminder.getId(), savedReminder.getMedicine().getId(),
+                savedReminder.isVibrate(), savedReminder.getCreatedAt(),
                 savedReminder.getUpdatedAt());
     }
 }

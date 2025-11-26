@@ -33,4 +33,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(404)
                 .body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.NOT_FOUND));
     }
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(400)
+                .body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.BAD_REQUEST));
+    }
 }

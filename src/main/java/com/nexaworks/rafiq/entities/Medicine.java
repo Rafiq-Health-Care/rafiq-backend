@@ -1,9 +1,7 @@
 package com.nexaworks.rafiq.entities;
 
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.nexaworks.rafiq.entities.enums.*;
 
@@ -72,10 +70,9 @@ public class Medicine extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", referencedColumnName = "id")
     private Group group;
-    @OneToMany(mappedBy = "medicine", cascade = {CascadeType.REMOVE, CascadeType.PERSIST,
-            CascadeType.MERGE}, fetch = FetchType.LAZY)
-    @Builder.Default
-    private Set<Reminder> reminders = new HashSet<>();
+    @OneToOne(mappedBy = "medicine", cascade = {CascadeType.REMOVE, CascadeType.PERSIST,
+            CascadeType.MERGE})
+    private Reminder reminder;
 
     @Override
     public boolean equals(Object obj) {

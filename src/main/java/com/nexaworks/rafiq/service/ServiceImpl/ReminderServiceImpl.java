@@ -53,7 +53,7 @@ public class ReminderServiceImpl implements ReminderService {
     public void scheduleReminder(Reminder reminder) {
         Medicine medicine = reminder.getMedicine();
         String cornExpression = cornExpressionBuilder.buildCornExpression(medicine.getFrequency(),
-                medicine.getReminderFrequency(), medicine.getCustomDays(), reminder.getStartDate());
+                medicine.getReminderFrequency(), medicine.getCustomDays(), medicine.getStartDate());
         try {
             schedulerService.scheduleJob(medicine.getId().toString(), "MedicineReminder",
                     cornExpression, Map.of("reminderId", reminder.getId().toString(),

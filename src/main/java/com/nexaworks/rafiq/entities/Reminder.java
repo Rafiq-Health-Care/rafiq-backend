@@ -1,6 +1,5 @@
 package com.nexaworks.rafiq.entities;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,12 +21,10 @@ import lombok.experimental.SuperBuilder;
 public class Reminder extends BaseEntity {
 
     private boolean vibrate;
-    private Instant startDate;
-    private Instant endDate;
     @Enumerated(EnumType.STRING)
     private ReminderStatus status;
     private LocalDateTime nextReminder;
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "medicine_id", referencedColumnName = "id", nullable = false)
     private Medicine medicine;
     @ManyToOne

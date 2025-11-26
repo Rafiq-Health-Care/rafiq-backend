@@ -118,7 +118,13 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.description")
                             .value("Medications for pain management"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.color").value("BLUE"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.groupId").exists());
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.groupId").exists())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.patientId")
+                            .value(user.getPatientProfile().getId().toString()))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.createdAt").exists())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.updatedAt").exists())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.iconUrl").exists())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicineCount").value(0));
 
             // Verify group was saved in database
             assertThat(groupRepository.count()).isEqualTo(1);
@@ -300,7 +306,13 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.description")
                             .value("Medications for heart health"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.color").value("RED"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicines").isArray());
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicines").isArray())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.userId")
+                            .value(user.getPatientProfile().getId().toString()))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.iconUrl").exists())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicineCount").value(0))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.createdAt").exists())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.updatedAt").exists());
         }
 
         @Test
@@ -378,7 +390,13 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.name").value("New Name"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.description")
                             .value("New Description"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.color").value("BLUE"));
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.color").value("BLUE"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.patientId")
+                            .value(user.getPatientProfile().getId().toString()))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.createdAt").exists())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.updatedAt").exists())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.iconUrl").exists())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicineCount").value(0));
 
             // Verify update in database
             com.nexaworks.rafiq.entities.Group updatedGroup = groupRepository
