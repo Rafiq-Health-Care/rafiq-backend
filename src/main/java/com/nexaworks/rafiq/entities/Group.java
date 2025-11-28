@@ -2,7 +2,7 @@ package com.nexaworks.rafiq.entities;
 
 import java.util.List;
 
-import com.nexaworks.rafiq.enums.Color;
+import com.nexaworks.rafiq.entities.enums.Color;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -25,10 +25,11 @@ public class Group extends BaseEntity {
     private String iconUrl;
     @Enumerated(EnumType.STRING)
     private Color color;
-    @OneToMany(mappedBy = "group")
+    @OneToMany(mappedBy = "group", cascade = {CascadeType.REMOVE, CascadeType.PERSIST,
+            CascadeType.MERGE}, fetch = FetchType.LAZY)
     private List<Medicine> medicines;
     @ManyToOne
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
-    private PatientProfile patientProfile;
+    private PatientProfile patient;
 
 }

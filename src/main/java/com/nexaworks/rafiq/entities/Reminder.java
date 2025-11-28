@@ -1,15 +1,12 @@
 package com.nexaworks.rafiq.entities;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
-import com.nexaworks.rafiq.enums.Day;
-import com.nexaworks.rafiq.enums.ReminderFrequency;
+import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Getter
@@ -20,22 +17,22 @@ import lombok.experimental.SuperBuilder;
 @Entity
 public class Reminder extends BaseEntity {
 
-    private int hour;
-    private int minute;
-    @Enumerated(EnumType.STRING)
-    private ReminderFrequency frequency;
-    private List<Day> customDays;
     private boolean vibrate;
-    @ManyToOne
+    @Enumerated(EnumType.STRING)
+    private ReminderStatus status;
+    private LocalDateTime nextReminder;
+    @Builder.Default
+    private Boolean disable = false;
+    @OneToOne
     @JoinColumn(name = "medicine_id", referencedColumnName = "id", nullable = false)
     private Medicine medicine;
     @ManyToOne
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
     private PatientProfile patient;
     @ManyToOne
-    @JoinColumn(name = "group_id", referencedColumnName = "id", nullable = true)
+    @JoinColumn(name = "group_id", referencedColumnName = "id")
     private Group group;
-    @OneToMany(mappedBy = "reminder")
+    @OneToMany(mappedBy = "reminder", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ReminderLog> reminderLogs;
 
 }

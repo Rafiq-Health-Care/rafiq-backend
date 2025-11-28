@@ -28,7 +28,7 @@ import com.nexaworks.rafiq.entities.LabTest;
 import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.enums.Gender;
+import com.nexaworks.rafiq.entities.enums.Gender;
 import com.nexaworks.rafiq.integration.BaseIntegrationTest;
 import com.nexaworks.rafiq.repository.LabResultRepository;
 import com.nexaworks.rafiq.repository.LabTestRepository;
@@ -46,13 +46,9 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
         @Primary
         public AiService mockAiService() {
             // Return a mock implementation that returns predictable results
-            return new AiService() {
-                @Override
-                public String extractLabResultsFromPdf(byte[] pdfFile)
-                        throws java.io.IOException, com.itextpdf.text.DocumentException {
-                    // Return a default mock response
-                    return "{\"name\":\"Test Result\",\"date\":\"2024-01-15\",\"tests\":[]}";
-                }
+            return pdfFile -> {
+                // Return a default mock response
+                return "{\"name\":\"Test Result\",\"date\":\"2024-01-15\",\"tests\":[]}";
             };
         }
     }

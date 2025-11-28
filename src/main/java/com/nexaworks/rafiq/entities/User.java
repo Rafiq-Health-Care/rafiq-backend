@@ -8,7 +8,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.nexaworks.rafiq.enums.Gender;
+import com.nexaworks.rafiq.entities.enums.Gender;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -47,6 +47,7 @@ public class User extends BaseEntity implements UserDetails, Principal {
     private boolean locked = false;
     @Builder.Default
     private boolean enabled = false;
+    private String notificationToken;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;

@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.UUID;
 
+import org.quartz.SchedulerException;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -14,9 +15,8 @@ import com.nexaworks.rafiq.dto.request.medicine.*;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.medicine.AddResponse;
 import com.nexaworks.rafiq.dto.response.medicine.BulkOperationResponse;
-import com.nexaworks.rafiq.dto.response.medicine.GetMedicineResponse;
+import com.nexaworks.rafiq.dto.response.medicine.MedicineGroupResponse;
 import com.nexaworks.rafiq.dto.response.medicine.MedicineResponse;
-import com.nexaworks.rafiq.dto.response.reminder.ReminderResponse;
 import com.nexaworks.rafiq.entities.Medicine;
 import com.nexaworks.rafiq.mapper.MedicineMapper;
 import com.nexaworks.rafiq.mapper.PageMapper;
@@ -44,28 +44,27 @@ public class MedicineController {
                 .body(new AddResponse<>(true, "Medicine added successfully", medicineResponse));
     }
     @GetMapping
-    public ResponseEntity<PageResponse<MedicineResponse>> getAllMedicines(
+    public ResponseEntity<PageResponse<MedicineGroupResponse>> getAllMedicines(
             @ParameterObject Pageable pageable, @ParameterObject MedicineFilter filter) {
         return ResponseEntity.ok().body(
                 pageMapper.mapToMedicinePage(medicineService.getAllMedicines(pageable, filter)));
     }
     @GetMapping("/{id}")
-    public ResponseEntity<GetMedicineResponse> getMedicine(@PathVariable("id") UUID medicineId) {
+    public ResponseEntity<MedicineResponse> getMedicine(@PathVariable("id") UUID medicineId) {
         Medicine medicine = medicineService.getMedicineById(medicineId);
         MedicineResponse medicineResponse = medicineMapper.toDto(medicine);
-        List<ReminderResponse> reminders = medicine.getReminders().stream()
-                .map(reminderMapper::toResponse).toList();
-        return ResponseEntity.ok().body(new GetMedicineResponse(medicineResponse, reminders));
+        return ResponseEntity.ok().body(medicineResponse);
     }
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteMedicine(@PathVariable("id") UUID medicineId) {
+    public ResponseEntity<Void> deleteMedicine(@PathVariable("id") UUID medicineId)
+            throws SchedulerException {
         medicineService.deleteMedicine(medicineId);
         return ResponseEntity.noContent().build();
     }
     @PutMapping("/{id}")
     public ResponseEntity<AddResponse<MedicineResponse>> updateMedicine(
-            @PathVariable("id") UUID medicineId,
-            @Valid @RequestBody UpdateMedicineRequest request) {
+            @PathVariable("id") UUID medicineId, @Valid @RequestBody UpdateMedicineRequest request)
+            throws SchedulerException {
         Medicine medicine = medicineService.updateMedicine(medicineMapper.toEntity(request),
                 medicineId);
         return ResponseEntity.ok().body(new AddResponse<>(true, "Medicine updated successfully",
@@ -73,7 +72,8 @@ public class MedicineController {
     }
     @PatchMapping("/{id}")
     public ResponseEntity<AddResponse<MedicineResponse>> updateSpecific(
-            @PathVariable("id") UUID medicineId, @RequestBody UpdateMedicinePatchRequest request) {
+            @PathVariable("id") UUID medicineId, @RequestBody UpdateMedicinePatchRequest request)
+            throws SchedulerException {
         Medicine medicine = medicineService.updateSpecific(medicineId, request);
         return ResponseEntity.ok().body(new AddResponse<>(true, "Medicine updated successfully",
                 medicineMapper.toDto(medicine)));

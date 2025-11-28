@@ -28,4 +28,10 @@ public class PatientProfile extends BaseEntity {
     @OneToMany(mappedBy = "patient", cascade = {CascadeType.REMOVE, CascadeType.PERSIST,
             CascadeType.MERGE}, fetch = FetchType.LAZY)
     private List<Medicine> medicines;
+    @OneToMany(mappedBy = "patient", cascade = {CascadeType.REMOVE, CascadeType.MERGE,
+            CascadeType.PERSIST}, fetch = FetchType.LAZY)
+    private List<Group> groups;
+    @OneToMany(mappedBy = "patient", cascade = {CascadeType.REMOVE,
+            CascadeType.MERGE}, fetch = FetchType.LAZY)
+    private List<ReminderLog> reminderLogs;
 }

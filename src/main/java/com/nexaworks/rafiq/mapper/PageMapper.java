@@ -11,7 +11,7 @@ import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.lab.LabResponse;
 import com.nexaworks.rafiq.dto.response.labTest.TestResponse;
 import com.nexaworks.rafiq.dto.response.medicine.DrugSearchResponse;
-import com.nexaworks.rafiq.dto.response.medicine.MedicineResponse;
+import com.nexaworks.rafiq.dto.response.medicine.MedicineGroupResponse;
 import com.nexaworks.rafiq.entities.*;
 
 import lombok.RequiredArgsConstructor;
@@ -47,8 +47,9 @@ public class PageMapper {
                 all.isFirst());
     }
 
-    public PageResponse<MedicineResponse> mapToMedicinePage(Page<Medicine> all) {
-        return new PageResponse<>(all.getContent().stream().map(medicineMapper::toDto).toList(),
+    public PageResponse<MedicineGroupResponse> mapToMedicinePage(Page<Medicine> all) {
+        return new PageResponse<>(
+                all.getContent().stream().map(medicineMapper::toGroupDto).toList(),
                 (int) all.getTotalElements(), all.getSize(), all.getTotalPages(), all.isLast(),
                 all.isFirst());
     }

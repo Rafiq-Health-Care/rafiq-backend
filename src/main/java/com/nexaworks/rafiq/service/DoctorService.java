@@ -2,7 +2,7 @@ package com.nexaworks.rafiq.service;
 
 import java.util.UUID;
 
-import com.nexaworks.rafiq.dto.UploadResults;
+import com.nexaworks.rafiq.dto.client.cloundinary.UploadResults;
 import com.nexaworks.rafiq.entities.DoctorProfile;
 import com.nexaworks.rafiq.entities.User;
 

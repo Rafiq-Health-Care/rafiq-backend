@@ -6,40 +6,8 @@ BEGIN
     END IF;
 END $$;
 
--- Add name column to medicine table (matches entity field: private String name;)
-ALTER TABLE medicine ADD COLUMN IF NOT EXISTS name VARCHAR(255);
-
--- Add group_id column (changed from ManyToMany to ManyToOne)
--- Entity has: @ManyToOne @JoinColumn should be used instead of @JoinTable
-ALTER TABLE medicine ADD COLUMN IF NOT EXISTS group_id UUID;
-
--- Migrate data from medicine_groups join table to new group_id column
--- Note: If a medicine has multiple groups, we take the first one
-UPDATE medicine m
-SET group_id = (
-    SELECT mg.group_id 
-    FROM medicine_groups mg 
-    WHERE mg.medicine_id = m.id 
-    LIMIT 1
-)
-WHERE EXISTS (SELECT 1 FROM medicine_groups mg WHERE mg.medicine_id = m.id)
-  AND m.group_id IS NULL;
-
--- Add foreign key constraint after data migration
--- Entity relationship: @ManyToOne(fetch = FetchType.LAZY) private Group group;
-DO $$ 
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint 
-        WHERE conname = 'fk_medicine_group'
-    ) THEN
-        ALTER TABLE medicine ADD CONSTRAINT fk_medicine_group 
-            FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE SET NULL;
-    END IF;
-END $$;
-
--- Create index for group_id foreign key (for query performance)
-CREATE INDEX IF NOT EXISTS idx_medicine_group_id ON medicine(group_id);
+-- Note: name and group_id columns are now created in V9 migration
+-- This migration only adds full-text search capabilities
 
 -- Add tsvector column for full-text search on medicine name
 -- Entity has: @Column(name = "search_vector", columnDefinition = "tsvector", insertable = false, updatable = false)
@@ -57,8 +25,4 @@ UPDATE medicine m
 SET name = d.trade_name
 FROM drug d
 WHERE m.drug_id = d.id AND (m.name IS NULL OR m.name = '');
-
--- Drop the old ManyToMany join table (medicine_groups) since we now use direct foreign key
--- Entity should use @JoinColumn(name = "group_id") instead of @JoinTable
-DROP TABLE IF EXISTS medicine_groups;
 

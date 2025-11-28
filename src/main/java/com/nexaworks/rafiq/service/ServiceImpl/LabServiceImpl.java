@@ -12,11 +12,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.nexaworks.rafiq.dto.UploadResults;
+import com.nexaworks.rafiq.dto.client.cloundinary.UploadResults;
 import com.nexaworks.rafiq.entities.Address;
 import com.nexaworks.rafiq.entities.Lab;
 import com.nexaworks.rafiq.entities.LabTest;
-import com.nexaworks.rafiq.enums.UploadType;
+import com.nexaworks.rafiq.entities.enums.UploadType;
 import com.nexaworks.rafiq.exception.custom.LabException;
 import com.nexaworks.rafiq.repository.LabRepository;
 import com.nexaworks.rafiq.service.AddressService;

@@ -1,19 +1,32 @@
 spring:
+  # Dev tools config
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      enabled: true
   # Application config
   application:
     name: rafiq
   config:
     import: optional:file:./.env.properties
+
   # Database config
   datasource:
     url: ${DATASOURCE_URL}
     username: ${DATASOURCE_USERNAME}
     password: ${DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
    # JPA config
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
       show-sql: true
     defer-datasource-initialization: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -50,6 +63,28 @@ spring:
           facebook:
             client-id: ${FACEBOOK_CLIENT_ID}
             client-secret: ${FACEBOOK_CLIENT_SECRET}
+  # Quartz scheduler config
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: always
+    properties:
+      org:
+        quartz:
+          jobStore:
+            dataSource: quartzDataSource
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+          dataSource:
+            quartzDataSource:
+              provider: hikaricp
+              driver: org.postgresql.Driver
+              URL: ${spring.datasource.url}
+              user: ${spring.datasource.username}
+              password: ${spring.datasource.password}
+          scheduler:
+            instanceName: RafiqScheduler
+          threadPool:
+            threadCount: 1
   # Mail config
   mail:
     host: ${MAIL_HOST}
@@ -94,3 +129,8 @@ access:
   # Server config
 server:
   port: 8030
+  tomcat:
+    threads:
+      max: 10
+      min-spare: 2
+    accept-count: 5

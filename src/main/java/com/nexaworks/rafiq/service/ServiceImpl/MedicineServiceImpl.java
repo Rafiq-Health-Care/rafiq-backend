@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.jetbrains.annotations.NotNull;
+import org.quartz.SchedulerException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ import com.nexaworks.rafiq.entities.Drug;
 import com.nexaworks.rafiq.entities.Group;
 import com.nexaworks.rafiq.entities.Medicine;
 import com.nexaworks.rafiq.entities.PatientProfile;
-import com.nexaworks.rafiq.enums.MedicineStatus;
+import com.nexaworks.rafiq.entities.enums.MedicineStatus;
 import com.nexaworks.rafiq.exception.custom.GroupNotFoundException;
 import com.nexaworks.rafiq.exception.custom.MedicineAlreadyExist;
 import com.nexaworks.rafiq.exception.custom.MedicineLimit;
@@ -44,6 +45,7 @@ public class MedicineServiceImpl implements MedicineService {
     private final DrugService drugService;
     private final PatientService patientService;
     private final GroupService groupService;
+
     @Override
     @Transactional
     public Medicine addMedicine(Medicine entity, UUID drugId) {
@@ -98,12 +100,15 @@ public class MedicineServiceImpl implements MedicineService {
         medicine.setType(entity.getType());
         medicine.setStatus(entity.getStatus());
         medicine.setName(entity.getName());
+        medicine.setReminderFrequency(entity.getReminderFrequency());
+        medicine.setCustomDays(entity.getCustomDays());
         return medicineRepository.save(medicine);
     }
 
     @Override
     @Transactional
-    public Medicine updateSpecific(UUID medicineId, UpdateMedicinePatchRequest request) {
+    public Medicine updateSpecific(UUID medicineId, UpdateMedicinePatchRequest request)
+            throws SchedulerException {
         Medicine medicine = getMedicine(medicineId, patientService.getPatientProfile());
         request.dosage().ifPresent(medicine::setDosage);
         request.frequency().ifPresent(medicine::setFrequency);
@@ -113,7 +118,9 @@ public class MedicineServiceImpl implements MedicineService {
         request.type().ifPresent(medicine::setType);
         request.status().ifPresent(medicine::setStatus);
         request.name().ifPresent(medicine::setName);
-        return medicine;
+        request.reminderFrequency().ifPresent(medicine::setReminderFrequency);
+        request.customDays().ifPresent(medicine::setCustomDays);
+        return medicineRepository.save(medicine);
     }
 
     @NotNull
@@ -156,7 +163,7 @@ public class MedicineServiceImpl implements MedicineService {
         groupId.orElseThrow(() -> new GroupNotFoundException("Group id is required"));
         Group group = groupService.getGroupById(groupId.get());
         PatientProfile patient = patientService.getPatientProfile();
-        if (!group.getPatientProfile().getId().equals(patient.getId())) {
+        if (!group.getPatient().getId().equals(patient.getId())) {
             throw new GroupNotFoundException("Medicine not found with id: " + ids);
         }
         ids.forEach(medicineId -> {

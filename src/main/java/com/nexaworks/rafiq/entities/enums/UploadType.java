@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.enums;
+package com.nexaworks.rafiq.entities.enums;
 
 import lombok.Getter;
 

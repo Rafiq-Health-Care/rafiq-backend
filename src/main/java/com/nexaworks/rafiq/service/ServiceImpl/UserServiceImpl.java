@@ -1,6 +1,6 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
-import static com.nexaworks.rafiq.enums.Roles.*;
+import static com.nexaworks.rafiq.entities.enums.Roles.*;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -25,7 +25,7 @@ import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.enums.TokenType;
+import com.nexaworks.rafiq.entities.enums.TokenType;
 import com.nexaworks.rafiq.exception.custom.InvalidPasswordException;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.repository.UserRepository;
@@ -46,7 +46,6 @@ public class UserServiceImpl implements UserService {
     private final PatientService patientService;
     private final DoctorService doctorService;
     private final TokenService tokenService;
-    private final ImageService imageService;
     private final ApplicationEventPublisher eventPublisher;
     private final AuthSessionManager authSessionManager;
 
@@ -183,5 +182,11 @@ public class UserServiceImpl implements UserService {
         User oAuthUser = userRepository.save(user);
         log.info("User created {}", user.getEmail());
         return oAuthUser;
+    }
+
+    @Override
+    public String getNotificationToken() {
+        User user = getUser();
+        return user.getNotificationToken();
     }
 }

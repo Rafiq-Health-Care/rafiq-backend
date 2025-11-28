@@ -28,7 +28,7 @@ import com.nexaworks.rafiq.entities.Drug;
 import com.nexaworks.rafiq.entities.Group;
 import com.nexaworks.rafiq.entities.Medicine;
 import com.nexaworks.rafiq.entities.PatientProfile;
-import com.nexaworks.rafiq.enums.Color;
+import com.nexaworks.rafiq.entities.enums.Color;
 import com.nexaworks.rafiq.exception.custom.GroupIsAlreadyExistsException;
 import com.nexaworks.rafiq.exception.custom.GroupNotFoundException;
 import com.nexaworks.rafiq.exception.custom.MedicineNotFound;
@@ -69,7 +69,7 @@ public class GroupServiceImplTest {
         void getGroupById_ShouldReturnGroup_WhenGroupExistsAndBelongsToPatient() {
             // Arrange
             Group group = Group.builder().id(groupId).name("Pain Relief")
-                    .description("Pain medications").patientProfile(patientProfile).build();
+                    .description("Pain medications").patient(patientProfile).build();
 
             when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
             when(patientService.getPatientProfile()).thenReturn(patientProfile);
@@ -108,8 +108,8 @@ public class GroupServiceImplTest {
             PatientProfile differentPatient = PatientProfile.builder().id(differentPatientId)
                     .build();
 
-            Group group = Group.builder().id(groupId).name("Pain Relief")
-                    .patientProfile(differentPatient).build();
+            Group group = Group.builder().id(groupId).name("Pain Relief").patient(differentPatient)
+                    .build();
 
             when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
             when(patientService.getPatientProfile()).thenReturn(patientProfile);
@@ -136,8 +136,8 @@ public class GroupServiceImplTest {
                     .color(Color.BLUE).build();
 
             Group savedGroup = Group.builder().id(groupId).name("Vitamins")
-                    .description("Vitamin supplements").color(Color.BLUE)
-                    .patientProfile(patientProfile).build();
+                    .description("Vitamin supplements").color(Color.BLUE).patient(patientProfile)
+                    .build();
 
             when(groupRepository.existsGroupByName("Vitamins")).thenReturn(false);
             when(patientService.getPatientProfile()).thenReturn(patientProfile);
@@ -150,7 +150,7 @@ public class GroupServiceImplTest {
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(groupId);
             assertThat(result.getName()).isEqualTo("Vitamins");
-            assertThat(result.getPatientProfile()).isEqualTo(patientProfile);
+            assertThat(result.getPatient()).isEqualTo(patientProfile);
             verify(groupRepository, times(1)).existsGroupByName("Vitamins");
             verify(patientService, times(1)).getPatientProfile();
             verify(groupRepository, times(1)).save(any(Group.class));
@@ -185,16 +185,16 @@ public class GroupServiceImplTest {
         void getGroups_ShouldReturnPaginatedGroups_WithAscendingSort() {
             // Arrange
             List<Group> groups = new ArrayList<>();
-            groups.add(Group.builder().id(UUID.randomUUID()).name("Group A")
-                    .patientProfile(patientProfile).build());
-            groups.add(Group.builder().id(UUID.randomUUID()).name("Group B")
-                    .patientProfile(patientProfile).build());
+            groups.add(Group.builder().id(UUID.randomUUID()).name("Group A").patient(patientProfile)
+                    .build());
+            groups.add(Group.builder().id(UUID.randomUUID()).name("Group B").patient(patientProfile)
+                    .build());
 
             Pageable pageable = PageRequest.of(0, 10, Sort.by("name").ascending());
             Page<Group> groupPage = new PageImpl<>(groups, pageable, groups.size());
 
             when(patientService.getPatientProfile()).thenReturn(patientProfile);
-            when(groupRepository.findByPatientProfileId(eq(patientId), any(Pageable.class)))
+            when(groupRepository.findByPatientId(eq(patientId), any(Pageable.class)))
                     .thenReturn(groupPage);
 
             // Act
@@ -205,8 +205,7 @@ public class GroupServiceImplTest {
             assertThat(result.getTotalElements()).isEqualTo(2);
             assertThat(result.getContent().size()).isEqualTo(2);
             verify(patientService, times(1)).getPatientProfile();
-            verify(groupRepository, times(1)).findByPatientProfileId(eq(patientId),
-                    any(Pageable.class));
+            verify(groupRepository, times(1)).findByPatientId(eq(patientId), any(Pageable.class));
         }
 
         @Test
@@ -214,16 +213,16 @@ public class GroupServiceImplTest {
         void getGroups_ShouldReturnPaginatedGroups_WithDescendingSort() {
             // Arrange
             List<Group> groups = new ArrayList<>();
-            groups.add(Group.builder().id(UUID.randomUUID()).name("Group B")
-                    .patientProfile(patientProfile).build());
-            groups.add(Group.builder().id(UUID.randomUUID()).name("Group A")
-                    .patientProfile(patientProfile).build());
+            groups.add(Group.builder().id(UUID.randomUUID()).name("Group B").patient(patientProfile)
+                    .build());
+            groups.add(Group.builder().id(UUID.randomUUID()).name("Group A").patient(patientProfile)
+                    .build());
 
             Pageable pageable = PageRequest.of(0, 10, Sort.by("name").descending());
             Page<Group> groupPage = new PageImpl<>(groups, pageable, groups.size());
 
             when(patientService.getPatientProfile()).thenReturn(patientProfile);
-            when(groupRepository.findByPatientProfileId(eq(patientId), any(Pageable.class)))
+            when(groupRepository.findByPatientId(eq(patientId), any(Pageable.class)))
                     .thenReturn(groupPage);
 
             // Act
@@ -234,8 +233,7 @@ public class GroupServiceImplTest {
             assertThat(result.getTotalElements()).isEqualTo(2);
             assertThat(result.getContent().size()).isEqualTo(2);
             verify(patientService, times(1)).getPatientProfile();
-            verify(groupRepository, times(1)).findByPatientProfileId(eq(patientId),
-                    any(Pageable.class));
+            verify(groupRepository, times(1)).findByPatientId(eq(patientId), any(Pageable.class));
         }
 
         @Test
@@ -247,7 +245,7 @@ public class GroupServiceImplTest {
             Page<Group> groupPage = new PageImpl<>(groups, pageable, 0);
 
             when(patientService.getPatientProfile()).thenReturn(patientProfile);
-            when(groupRepository.findByPatientProfileId(eq(patientId), any(Pageable.class)))
+            when(groupRepository.findByPatientId(eq(patientId), any(Pageable.class)))
                     .thenReturn(groupPage);
 
             // Act
@@ -258,8 +256,7 @@ public class GroupServiceImplTest {
             assertThat(result.getTotalElements()).isEqualTo(0);
             assertThat(result.getContent().size()).isEqualTo(0);
             verify(patientService, times(1)).getPatientProfile();
-            verify(groupRepository, times(1)).findByPatientProfileId(eq(patientId),
-                    any(Pageable.class));
+            verify(groupRepository, times(1)).findByPatientId(eq(patientId), any(Pageable.class));
         }
     }
 
@@ -272,14 +269,14 @@ public class GroupServiceImplTest {
         void updateGroupById_ShouldUpdateGroupSuccessfully_WhenRequestIsValid() {
             // Arrange
             Group existingGroup = Group.builder().id(groupId).name("Old Name")
-                    .description("Old Description").color(Color.BLUE).patientProfile(patientProfile)
+                    .description("Old Description").color(Color.BLUE).patient(patientProfile)
                     .build();
 
             UpdateGroupRequest request = new UpdateGroupRequest("New Name", "New Description",
                     Color.RED);
 
             Group updatedGroup = Group.builder().id(groupId).name("New Name")
-                    .description("New Description").color(Color.RED).patientProfile(patientProfile)
+                    .description("New Description").color(Color.RED).patient(patientProfile)
                     .build();
 
             when(groupRepository.findById(groupId)).thenReturn(Optional.of(existingGroup));
@@ -303,15 +300,14 @@ public class GroupServiceImplTest {
         void updateGroupById_ShouldThrowGroupIsAlreadyExistsException_WhenUpdatingToExistingName() {
             // Arrange
             Group existingGroup = Group.builder().id(groupId).name("Old Name")
-                    .description("Old Description").patientProfile(patientProfile).build();
+                    .description("Old Description").patient(patientProfile).build();
 
             UpdateGroupRequest request = new UpdateGroupRequest("Existing Name", "New Description",
                     Color.RED);
 
             when(groupRepository.findById(groupId)).thenReturn(Optional.of(existingGroup));
             when(patientService.getPatientProfile()).thenReturn(patientProfile);
-            when(groupRepository.existsGroupByPatientProfile_IdAndName(any(), any()))
-                    .thenReturn(true);
+            when(groupRepository.existsGroupByPatient_IdAndName(any(), any())).thenReturn(true);
 
             // Act & Assert
             assertThatExceptionOfType(GroupIsAlreadyExistsException.class)
@@ -326,7 +322,7 @@ public class GroupServiceImplTest {
         void updateGroupById_ShouldUpdateOnlyProvidedFields_WhenPartialUpdateRequest() {
             // Arrange
             Group existingGroup = Group.builder().id(groupId).name("Old Name")
-                    .description("Old Description").color(Color.BLUE).patientProfile(patientProfile)
+                    .description("Old Description").color(Color.BLUE).patient(patientProfile)
                     .build();
 
             UpdateGroupRequest request = new UpdateGroupRequest(null, "Updated Description", null);
@@ -355,8 +351,8 @@ public class GroupServiceImplTest {
         @DisplayName("Should delete group successfully when group exists")
         void deleteGroupById_ShouldDeleteGroupSuccessfully_WhenGroupExists() {
             // Arrange
-            Group group = Group.builder().id(groupId).name("Test Group")
-                    .patientProfile(patientProfile).build();
+            Group group = Group.builder().id(groupId).name("Test Group").patient(patientProfile)
+                    .build();
 
             when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
             when(patientService.getPatientProfile()).thenReturn(patientProfile);
@@ -401,8 +397,8 @@ public class GroupServiceImplTest {
             List<Medicine> medicines = new ArrayList<>();
             medicines.add(medicine);
 
-            Group group = Group.builder().id(groupId).name("Pain Relief")
-                    .patientProfile(patientProfile).medicines(medicines).build();
+            Group group = Group.builder().id(groupId).name("Pain Relief").patient(patientProfile)
+                    .medicines(medicines).build();
 
             when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
             when(patientService.getPatientProfile()).thenReturn(patientProfile);
@@ -429,8 +425,8 @@ public class GroupServiceImplTest {
             List<Medicine> medicines = new ArrayList<>();
             medicines.add(medicine);
 
-            Group group = Group.builder().id(groupId).name("Pain Relief")
-                    .patientProfile(patientProfile).medicines(medicines).build();
+            Group group = Group.builder().id(groupId).name("Pain Relief").patient(patientProfile)
+                    .medicines(medicines).build();
 
             when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
             when(patientService.getPatientProfile()).thenReturn(patientProfile);
@@ -452,8 +448,8 @@ public class GroupServiceImplTest {
             UUID medicineId = UUID.randomUUID();
             List<Medicine> medicines = new ArrayList<>();
 
-            Group group = Group.builder().id(groupId).name("Empty Group")
-                    .patientProfile(patientProfile).medicines(medicines).build();
+            Group group = Group.builder().id(groupId).name("Empty Group").patient(patientProfile)
+                    .medicines(medicines).build();
 
             when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
             when(patientService.getPatientProfile()).thenReturn(patientProfile);

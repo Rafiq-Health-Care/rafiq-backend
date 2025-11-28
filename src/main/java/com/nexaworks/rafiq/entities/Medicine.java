@@ -1,12 +1,9 @@
 package com.nexaworks.rafiq.entities;
 
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
-import com.nexaworks.rafiq.enums.MedicineFrequency;
-import com.nexaworks.rafiq.enums.MedicineStatus;
-import com.nexaworks.rafiq.enums.MedicineType;
+import com.nexaworks.rafiq.entities.enums.*;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -24,17 +21,30 @@ public class Medicine extends BaseEntity {
     @NotNull
     @Column(nullable = false)
     private String dosage;
+
     @NotNull
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private MedicineFrequency frequency;
+
+    @Enumerated(EnumType.STRING)
+    private ReminderFrequency reminderFrequency;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "custom_days", joinColumns = @JoinColumn(name = "reminder_id"))
+    @Column(name = "day")
+    @Enumerated(EnumType.STRING)
+    private List<Day> customDays;
+
     @NotNull
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private MedicineStatus status = MedicineStatus.ACTIVE;
+
     @Enumerated(EnumType.STRING)
     private MedicineType type;
+
     private Instant startDate;
     private Instant endDate;
     private String notes;
@@ -60,10 +70,9 @@ public class Medicine extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", referencedColumnName = "id")
     private Group group;
-    @OneToMany(mappedBy = "medicine", cascade = {CascadeType.REMOVE, CascadeType.PERSIST,
-            CascadeType.MERGE}, fetch = FetchType.LAZY)
-    @Builder.Default
-    private Set<Reminder> reminders = new HashSet<>();
+    @OneToOne(mappedBy = "medicine", cascade = {CascadeType.REMOVE, CascadeType.MERGE,
+            CascadeType.PERSIST}, orphanRemoval = true)
+    private Reminder reminder;
 
     @Override
     public boolean equals(Object obj) {

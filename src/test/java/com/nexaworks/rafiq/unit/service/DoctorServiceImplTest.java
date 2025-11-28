@@ -13,7 +13,7 @@ import org.mockito.*;
 import com.nexaworks.rafiq.entities.DoctorProfile;
 import com.nexaworks.rafiq.entities.Specialization;
 import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.enums.Status;
+import com.nexaworks.rafiq.entities.enums.Status;
 import com.nexaworks.rafiq.repository.DoctorRepository;
 import com.nexaworks.rafiq.service.ServiceImpl.DoctorServiceImpl;
 import com.nexaworks.rafiq.service.SpecializationService;

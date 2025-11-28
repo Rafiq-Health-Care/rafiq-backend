@@ -21,12 +21,13 @@ import com.nexaworks.rafiq.entities.Drug;
 import com.nexaworks.rafiq.entities.Group;
 import com.nexaworks.rafiq.entities.Medicine;
 import com.nexaworks.rafiq.entities.PatientProfile;
-import com.nexaworks.rafiq.enums.Action;
-import com.nexaworks.rafiq.enums.MedicineStatus;
+import com.nexaworks.rafiq.entities.enums.Action;
+import com.nexaworks.rafiq.entities.enums.MedicineStatus;
 import com.nexaworks.rafiq.exception.custom.GroupNotFoundException;
 import com.nexaworks.rafiq.exception.custom.MedicineAlreadyExist;
 import com.nexaworks.rafiq.exception.custom.MedicineLimit;
 import com.nexaworks.rafiq.repository.MedicineRepository;
+import com.nexaworks.rafiq.secheduler.service.QuartzSchedulerService;
 import com.nexaworks.rafiq.service.PatientService;
 import com.nexaworks.rafiq.service.ServiceImpl.DrugServiceImpl;
 import com.nexaworks.rafiq.service.ServiceImpl.GroupServiceImpl;
@@ -44,6 +45,8 @@ public class MedicineServiceImplTest {
     PatientService patientService;
     @Mock
     GroupServiceImpl groupService;
+    @Mock
+    QuartzSchedulerService quartzSchedulerService;
     @InjectMocks
     MedicineServiceImpl medicineService;
     static PatientProfile patient;
@@ -240,7 +243,7 @@ public class MedicineServiceImplTest {
                 BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
                         Action.MOVE_TO_GROUP, Optional.of(groupId));
 
-                Group group = Group.builder().id(groupId).patientProfile(patient).build();
+                Group group = Group.builder().id(groupId).patient(patient).build();
                 Medicine medicine1 = Medicine.builder().id(medicineId1).patient(patient).build();
                 Medicine medicine2 = Medicine.builder().id(medicineId2).patient(patient).build();
 
@@ -283,7 +286,7 @@ public class MedicineServiceImplTest {
                 BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
                         Action.MOVE_TO_GROUP, Optional.of(groupId));
 
-                Group group = Group.builder().id(groupId).patientProfile(patient).build();
+                Group group = Group.builder().id(groupId).patient(patient).build();
                 Medicine medicine1 = Medicine.builder().id(medicineId1).patient(patient).build();
 
                 when(groupService.getGroupById(groupId)).thenReturn(group);

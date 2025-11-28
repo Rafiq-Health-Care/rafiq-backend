@@ -35,4 +35,6 @@ public interface UserService {
     User getUser();
 
     User addUser(String email, String firstName, String lastName);
+
+    String getNotificationToken();
 }

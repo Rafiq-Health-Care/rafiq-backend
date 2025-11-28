@@ -1,0 +1,80 @@
+name: Run Tests
+
+on:
+  pull_request:
+    branches:
+      - dev
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  test:
+    name: All Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Make mvnw executable
+        run: chmod +x ./mvnw
+
+      - name: Run All Tests
+        run: ./mvnw clean test -B
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          GOOGLE_CLIENT_ID: 674352979461-s3eeqrfte3254663qm4i1oq5alhbmb80.apps.googleusercontent.com
+          GOOGLE_CLIENT_SECRET: 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
+          FACEBOOK_CLIENT_ID: 24714780961515318
+          FACEBOOK_CLIENT_SECRET: b63d0d699f88da369eca0542f72ceb5a
+          MAIL_HOST: localhost
+          MAIL_PORT: 1025
+          MAIL_USERNAME: bialy
+          MAIL_PASSWORD: bialy
+          MAIL_PROTOCOL: smtp
+          GOOGLE_GENAI_API_KEY: AIzaSyCb6fcMHBwrOXhXFHt8mLyMUQtbHfQ7kp4
+          CLOUDINARY_CLOUD_NAME: dbdkrenhl
+          CLOUDINARY_API_KEY: 974593956567557
+          CLOUDINARY_API_SECRET: 3PAziKNw52iCHEaFMia0iOVMz-4
+          JWT_SECRET: 6f8e8219c9147e4fd69b1ca054a33f981f3464c79cc3d8688ed93e9c87fd2e56
+          JWT_EXPIRATION: 3600000
+          REFRESH_EXPIRATION: 3600000000
+          OTP_EXPIRATION: 300000
+          ACCESS_TOKEN_EXPIRATION: 360000
+          DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
+          DATASOURCE_USERNAME: test
+          DATASOURCE_PASSWORD: test
+
+      - name: Publish Test Report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Test Results
+          path: 'target/surefire-reports/TEST-*.xml'
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: target/surefire-reports/
+          retention-days: 30

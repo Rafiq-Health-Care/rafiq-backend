@@ -7,12 +7,12 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import com.nexaworks.rafiq.dto.UploadResults;
+import com.nexaworks.rafiq.dto.client.cloundinary.UploadResults;
 import com.nexaworks.rafiq.dto.event.DoctorRegisterEvent;
 import com.nexaworks.rafiq.dto.event.ForgetPasswordEvent;
 import com.nexaworks.rafiq.dto.event.NewOtpEvent;
 import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
-import com.nexaworks.rafiq.enums.UploadType;
+import com.nexaworks.rafiq.entities.enums.UploadType;
 import com.nexaworks.rafiq.service.DoctorService;
 import com.nexaworks.rafiq.service.EmailContentService;
 import com.nexaworks.rafiq.service.EmailSenderService;

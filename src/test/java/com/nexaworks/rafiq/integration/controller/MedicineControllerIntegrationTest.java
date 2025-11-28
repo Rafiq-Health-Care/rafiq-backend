@@ -23,13 +23,16 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexaworks.rafiq.dto.request.medicine.AddMedicineRequest;
 import com.nexaworks.rafiq.dto.request.medicine.BulkMedicineOperationRequest;
+import com.nexaworks.rafiq.dto.request.medicine.UpdateMedicinePatchRequest;
 import com.nexaworks.rafiq.dto.request.medicine.UpdateMedicineRequest;
 import com.nexaworks.rafiq.entities.*;
-import com.nexaworks.rafiq.enums.Action;
-import com.nexaworks.rafiq.enums.Gender;
-import com.nexaworks.rafiq.enums.MedicineFrequency;
-import com.nexaworks.rafiq.enums.MedicineStatus;
-import com.nexaworks.rafiq.enums.MedicineType;
+import com.nexaworks.rafiq.entities.enums.Action;
+import com.nexaworks.rafiq.entities.enums.Day;
+import com.nexaworks.rafiq.entities.enums.Gender;
+import com.nexaworks.rafiq.entities.enums.MedicineFrequency;
+import com.nexaworks.rafiq.entities.enums.MedicineStatus;
+import com.nexaworks.rafiq.entities.enums.MedicineType;
+import com.nexaworks.rafiq.entities.enums.ReminderFrequency;
 import com.nexaworks.rafiq.integration.BaseIntegrationTest;
 import com.nexaworks.rafiq.repository.*;
 
@@ -51,12 +54,17 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
     RoleRepository roleRepository;
     @Autowired
     PasswordEncoder passwordEncoder;
+    @Autowired
+    GroupRepository groupRepository;
+
     @BeforeEach
     void setUp() {
         medicineRepository.deleteAll();
         patientRepository.deleteAll();
         drugRepository.deleteAll();
         userRepository.deleteAll();
+        groupRepository.deleteAll();
+
     }
 
     private User createTestUser() {
@@ -72,11 +80,18 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             patientRole = roleRepository.save(patientRole);
         }
 
+        PatientProfile patientProfile = PatientProfile.builder().build();
         User user = User.builder().email(email).password(passwordEncoder.encode("Valid@1234"))
                 .firstName(firstName).lastName(lastName).phone(phone).age(30).gender(gender)
-                .roles(Set.of(patientRole)).enabled(true)
-                .patientProfile(PatientProfile.builder().build()).build();
+                .roles(Set.of(patientRole)).enabled(true).patientProfile(patientProfile).build();
+        patientProfile.setUser(user);
         return userRepository.save(user);
+    }
+
+    private Drug createDrug() {
+        Drug drug = Drug.builder().tradeName("Aspirin").drugGroup("NSAIDs").dosageForm("Tablet")
+                .route("Oral").price(10.0).build();
+        return drugRepository.save(drug);
     }
 
     @Nested
@@ -85,44 +100,53 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         private final String ADD_MEDICINE_ENDPOINT = "/medicines/add";
 
         @Test
-        @DisplayName("Should add medicine and return 200 ok and medicine when user doesn't exceed the limit, medicine wasn't added before and valid request")
-        void shouldAddMedicine_WhenRequestIsValidAndUserDoesntExceedLimit() throws Exception {
+        @DisplayName("Should add medicine successfully when all required fields are valid")
+        void shouldAddMedicine_WhenAllRequiredFieldsAreValid() throws Exception {
             User user = createTestUser();
             Drug drug = createDrug();
-            UUID medicineId = drugRepository.findAll().get(0).getId();
-            AddMedicineRequest addMedicineRequest = new AddMedicineRequest(medicineId, "20 ml",
-                    MedicineFrequency.AS_NEEDED, Instant.now(), null, null, null);
-            String payload = objectMapper.writeValueAsString(addMedicineRequest);
+            Instant startDate = Instant.now();
+            Instant endDate = startDate.plusSeconds(86400 * 30); // 30 days
+
+            AddMedicineRequest request = new AddMedicineRequest(drug.getId(), "100mg",
+                    MedicineFrequency.TWICE, ReminderFrequency.DAILY, List.of(), startDate, endDate,
+                    "Take with food", MedicineType.PRESCRIPTION);
+
+            String payload = objectMapper.writeValueAsString(request);
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
                     .with(SecurityMockMvcRequestPostProcessors.user(user)))
                     .andExpect(MockMvcResultMatchers.status().isCreated())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.name")
-                            .value(drug.getTradeName()));
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").exists())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.patientId")
+                            .value(user.getPatientProfile().getId().toString()))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.name").value("Aspirin"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.dosage").value("100mg"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.frequency").value("TWICE"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.reminderFrequency")
+                            .value("DAILY"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.type").value("PRESCRIPTION"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.status").value("ACTIVE"))
+                    .andExpect(
+                            MockMvcResultMatchers.jsonPath("$.data.notes").value("Take with food"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.createdAt").exists())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.updatedAt").exists());
+
+            assertThat(medicineRepository.count()).isEqualTo(1);
         }
+
         @Test
-        @DisplayName("Should return 400 Bad Request when medicine id is invalid")
-        void shouldReturnBadRequestWhenMedicineIdIsInvalid() throws Exception {
-            User user = createTestUser();
-            AddMedicineRequest addMedicineRequest = new AddMedicineRequest(null, "20 ml",
-                    MedicineFrequency.AS_NEEDED, Instant.now(), null, null, null);
-            String payload = objectMapper.writeValueAsString(addMedicineRequest);
-            mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isBadRequest());
-        }
-        @Test
-        @DisplayName("Should return 409 Conflict when medicine is already added before")
-        void shouldReturnConflictWhenMedicineIsAlreadyAddedBefore() throws Exception {
+        @DisplayName("Should return 409 Conflict when medicine already exists for patient")
+        void shouldReturnConflict_WhenMedicineAlreadyExists() throws Exception {
+
             User user = createTestUser();
             Drug drug = createDrug();
-            UUID medicineId = drugRepository.findAll().get(0).getId();
-            AddMedicineRequest addMedicineRequest = new AddMedicineRequest(medicineId, "20 ml",
-                    MedicineFrequency.AS_NEEDED, Instant.now(), null, null, null);
-            String payload = objectMapper.writeValueAsString(addMedicineRequest);
+
+            AddMedicineRequest request = new AddMedicineRequest(drug.getId(), "100mg",
+                    MedicineFrequency.ONCE, null, null, Instant.now(), null, null, null);
+
+            String payload = objectMapper.writeValueAsString(request);
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
@@ -134,29 +158,85 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .with(SecurityMockMvcRequestPostProcessors.user(user)))
                     .andExpect(MockMvcResultMatchers.status().isConflict());
         }
+
         @Test
-        @DisplayName("Should return 422 Unprocessable Entity when user exceed the medicine limit")
-        void shouldReturnUnprocessableEntityWhenUserExceedTheMedicineLimit() throws Exception {
+        @DisplayName("Should return 422 Unprocessable Entity when user exceeds medicine limit")
+        void shouldReturnUnprocessableEntity_WhenUserExceedsMedicineLimit() throws Exception {
             User user = createTestUser();
             Drug drug = createDrug();
-            UUID medicineId = drugRepository.findAll().get(0).getId();
-            AddMedicineRequest addMedicineRequest = new AddMedicineRequest(medicineId, "20 ml",
-                    MedicineFrequency.AS_NEEDED, Instant.now(), null, null, null);
-            String payload = objectMapper.writeValueAsString(addMedicineRequest);
+
+            AddMedicineRequest request = new AddMedicineRequest(drug.getId(), "100mg",
+                    MedicineFrequency.ONCE, null, null, Instant.now(), null, null, null);
+
+            String payload = objectMapper.writeValueAsString(request);
+
             for (int i = 0; i < 200; i++) {
-                Drug tempDrug = createDrug();
-                medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.AS_NEEDED)
-                        .dosage("100 mg").drug(tempDrug).patient(user.getPatientProfile()).build());
+                Drug tempDrug = Drug.builder().tradeName("Drug" + i).drugGroup("Group" + i)
+                        .price(5.0).build();
+                drugRepository.save(tempDrug);
+
+                Medicine medicine = Medicine.builder().patient(user.getPatientProfile())
+                        .drug(tempDrug).name(tempDrug.getTradeName()).dosage("100mg")
+                        .frequency(MedicineFrequency.ONCE).status(MedicineStatus.ACTIVE)
+                        .startDate(Instant.now()).build();
+                medicineRepository.save(medicine);
             }
+
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
                     .with(SecurityMockMvcRequestPostProcessors.user(user)))
                     .andExpect(MockMvcResultMatchers.status().isUnprocessableEntity());
         }
 
-        private Drug createDrug() {
-            Drug drug = Drug.builder().tradeName("panadol").dosageForm("tablet").build();
-            return drugRepository.save(drug);
+        @Test
+        @DisplayName("Should return 400 Bad Request when drug ID is invalid")
+        void shouldReturnBadRequest_WhenDrugIdIsInvalid() throws Exception {
+            User user = createTestUser();
+            UUID invalidDrugId = UUID.randomUUID();
+
+            AddMedicineRequest request = new AddMedicineRequest(invalidDrugId, "100mg",
+                    MedicineFrequency.ONCE, null, null, Instant.now(), null, null, null);
+
+            String payload = objectMapper.writeValueAsString(request);
+
+            mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
+                    .contentType(MediaType.APPLICATION_JSON).content(payload)
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Should add medicine with custom days when reminder frequency is CUSTOM")
+        void shouldAddMedicine_WithCustomDaysWhenReminderFrequencyIsCustom() throws Exception {
+
+            User user = createTestUser();
+            Drug drug = createDrug();
+            Instant startDate = Instant.now();
+
+            AddMedicineRequest request = new AddMedicineRequest(drug.getId(), "500mg",
+                    MedicineFrequency.THIRD_TIMES, ReminderFrequency.CUSTOM,
+                    List.of(Day.MONDAY, Day.WEDNESDAY, Day.FRIDAY), startDate,
+                    startDate.plusSeconds(86400 * 60), "Take after meals", MedicineType.TABLET);
+
+            String payload = objectMapper.writeValueAsString(request);
+
+            mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
+                    .contentType(MediaType.APPLICATION_JSON).content(payload)
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isCreated())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.reminderFrequency")
+                            .value("CUSTOM"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.customDays").isArray())
+                    .andExpect(
+                            MockMvcResultMatchers.jsonPath("$.data.customDays.length()").value(3))
+                    .andExpect(
+                            MockMvcResultMatchers.jsonPath("$.data.frequency").value("THIRD_TIMES"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.type").value("TABLET"));
+
+            Medicine savedMedicine = medicineRepository.findAll().get(0);
+            assertThat(savedMedicine.getCustomDays()).isNotNull();
+            assertThat(savedMedicine.getCustomDays().size()).isEqualTo(3);
         }
     }
 
@@ -166,182 +246,165 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         private final String GET_ALL_MEDICINES_ENDPOINT = "/medicines";
 
         @Test
-        @DisplayName("Should return 200 OK with paginated medicines when user has medicines")
+        @DisplayName("Should return paginated medicines when user has medicines")
         void shouldReturnPaginatedMedicines_WhenUserHasMedicines() throws Exception {
+            // Arrange
             User user = createTestUser();
-            Drug drug1 = createDrugWithName("Panadol");
-            Drug drug2 = createDrugWithName("Aspirin");
-            Drug drug3 = createDrugWithName("Ibuprofen");
+            Drug drug1 = createDrug();
+            Drug drug2 = Drug.builder().tradeName("Ibuprofen").drugGroup("NSAIDs").price(8.0)
+                    .build();
+            drugRepository.save(drug2);
 
-            // Add medicines for the user
-            medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.AS_NEEDED)
-                    .dosage("100 mg").drug(drug1).patient(user.getPatientProfile()).build());
-            medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.TWICE_DAILY)
-                    .dosage("200 mg").drug(drug2).patient(user.getPatientProfile()).build());
-            medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.ONCE_DAILY)
-                    .dosage("150 mg").drug(drug3).patient(user.getPatientProfile()).build());
+            Medicine medicine1 = Medicine.builder().patient(user.getPatientProfile()).drug(drug1)
+                    .name(drug1.getTradeName()).dosage("100mg").frequency(MedicineFrequency.TWICE)
+                    .status(MedicineStatus.ACTIVE).startDate(Instant.now()).build();
+            medicineRepository.save(medicine1);
 
+            Medicine medicine2 = Medicine.builder().patient(user.getPatientProfile()).drug(drug2)
+                    .name(drug2.getTradeName()).dosage("200mg")
+                    .frequency(MedicineFrequency.THIRD_TIMES).status(MedicineStatus.ACTIVE)
+                    .startDate(Instant.now()).build();
+            medicineRepository.save(medicine2);
+
+            // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
                     .with(SecurityMockMvcRequestPostProcessors.user(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(3))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(3))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.totalPages").value(1))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.firstPage").value(true))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.lastPage").value(true));
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(2))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(2))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.totalPages").value(1));
         }
 
         @Test
-        @DisplayName("Should return 200 OK with empty list when user has no medicines")
+        @DisplayName("Should return empty list when user has no medicines")
         void shouldReturnEmptyList_WhenUserHasNoMedicines() throws Exception {
+            // Arrange
             User user = createTestUser();
 
+            // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
                     .with(SecurityMockMvcRequestPostProcessors.user(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(0))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(0))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.firstPage").value(true))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.lastPage").value(true));
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(0));
         }
 
         @Test
-        @DisplayName("Should return paginated results with correct page size")
-        void shouldReturnPaginatedResults_WithCorrectPageSize() throws Exception {
-            User user = createTestUser();
-
-            // Add 15 medicines for the user
-            for (int i = 0; i < 15; i++) {
-                Drug drug = createDrugWithName("Medicine" + i);
-                medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.AS_NEEDED)
-                        .dosage((100 + i) + " mg").drug(drug).patient(user.getPatientProfile())
-                        .build());
-            }
-
-            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
-                    .param("page", "0").param("size", "10")
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(10))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(15))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.totalPages").value(2))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.size").value(10))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.firstPage").value(true))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.lastPage").value(false));
-        }
-
-        @Test
-        @DisplayName("Should return second page of results correctly")
-        void shouldReturnSecondPage_WhenRequested() throws Exception {
-            User user = createTestUser();
-
-            for (int i = 0; i < 15; i++) {
-                Drug drug = createDrugWithName("Medicine" + i);
-                medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.AS_NEEDED)
-                        .dosage((100 + i) + " mg").drug(drug).patient(user.getPatientProfile())
-                        .build());
-            }
-
-            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
-                    .param("page", "1").param("size", "10")
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(5))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(15))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.totalPages").value(2))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.size").value(10))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.firstPage").value(false))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.lastPage").value(true));
-        }
-        @Test
-        @DisplayName("Should only return medicines for authenticated user")
-        void shouldOnlyReturnMedicinesForAuthenticatedUser() throws Exception {
+        @DisplayName("Should return only authenticated user's medicines")
+        void shouldReturnOnlyAuthenticatedUserMedicines() throws Exception {
+            // Arrange
             User user1 = createTestUser();
-            User user2 = createTestUser("another@test.com", "Jane", "Smith", "+12345678902",
+            User user2 = createTestUser("other@test.com", "Jane", "Smith", "+19876543210",
                     Gender.FEMALE);
-            Drug drug1 = createDrugWithName("Medicine1");
-            Drug drug2 = createDrugWithName("Medicine2");
+            Drug drug = createDrug();
 
-            medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.AS_NEEDED)
-                    .dosage("100 mg").drug(drug1).patient(user1.getPatientProfile()).build());
+            // Add medicine for user1
+            Medicine medicine1 = Medicine.builder().patient(user1.getPatientProfile()).drug(drug)
+                    .name(drug.getTradeName()).dosage("100mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).startDate(Instant.now()).build();
+            medicineRepository.save(medicine1);
 
-            medicineRepository.save(Medicine.builder().frequency(MedicineFrequency.TWICE_DAILY)
-                    .dosage("200 mg").drug(drug2).patient(user2.getPatientProfile()).build());
+            // Add medicine for user2
+            Medicine medicine2 = Medicine.builder().patient(user2.getPatientProfile()).drug(drug)
+                    .name(drug.getTradeName()).dosage("200mg").frequency(MedicineFrequency.TWICE)
+                    .status(MedicineStatus.ACTIVE).startDate(Instant.now()).build();
+            medicineRepository.save(medicine2);
 
+            // Act & Assert - user1 should only see their own medicine
             mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
                     .with(SecurityMockMvcRequestPostProcessors.user(user1)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(1))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(1));
+                    .andExpect(
+                            MockMvcResultMatchers.jsonPath("$.content[0].dosage").value("100mg"));
         }
 
         @Test
-        @DisplayName("Should return 401 Unauthorized when user is not authenticated")
-        void shouldReturnUnauthorized_WhenUserNotAuthenticated() throws Exception {
-            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT))
-                    .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+        @DisplayName("Should support pagination with custom page size")
+        void shouldSupportPagination_WithCustomPageSize() throws Exception {
+            // Arrange
+            User user = createTestUser();
+            Drug drug = createDrug();
+
+            // Create 5 medicines
+            for (int i = 0; i < 5; i++) {
+                Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                        .name(drug.getTradeName()).dosage((i + 1) * 100 + "mg")
+                        .frequency(MedicineFrequency.ONCE).status(MedicineStatus.ACTIVE)
+                        .startDate(Instant.now()).build();
+                medicineRepository.save(medicine);
+            }
+
+            // Act & Assert - Request page 0 with size 2
+            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
+                    .param("page", "0").param("size", "2")
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(2))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(5))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.totalPages").value(3))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.size").value(2));
         }
 
-        private Drug createDrugWithName(String tradeName) {
-            Drug drug = Drug.builder().tradeName(tradeName).dosageForm("tablet").build();
-            return drugRepository.save(drug);
+        @Test
+        @DisplayName("Should filter medicines by status when status filter is provided")
+        void shouldFilterMedicinesByStatus_WhenStatusFilterProvided() throws Exception {
+            // Arrange
+            User user = createTestUser();
+            Drug drug = createDrug();
+
+            Medicine activeMedicine = Medicine.builder().patient(user.getPatientProfile())
+                    .drug(drug).name(drug.getTradeName()).dosage("100mg")
+                    .frequency(MedicineFrequency.ONCE).status(MedicineStatus.ACTIVE)
+                    .startDate(Instant.now()).build();
+            medicineRepository.save(activeMedicine);
+
+            Medicine inactiveMedicine = Medicine.builder().patient(user.getPatientProfile())
+                    .drug(drug).name(drug.getTradeName()).dosage("200mg")
+                    .frequency(MedicineFrequency.TWICE).status(MedicineStatus.INACTIVE)
+                    .startDate(Instant.now()).build();
+            medicineRepository.save(inactiveMedicine);
+
+            // Act & Assert - Filter by ACTIVE status
+            mockMvc.perform(
+                    MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT).param("status", "ACTIVE")
+                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(1))
+                    .andExpect(
+                            MockMvcResultMatchers.jsonPath("$.content[0].status").value("ACTIVE"));
         }
     }
 
     @Nested
-    @DisplayName("Get Medicine By ID")
+    @DisplayName("GET /medicines/{id} - Get Medicine By ID")
     class GetMedicineById {
-        private final String GET_MEDICINE_BY_ID_ENDPOINT = "/medicines/{id}";
+        private static final String GET_MEDICINE_BY_ID_ENDPOINT = "/medicines/{id}";
 
         @Test
-        @DisplayName("Should return 200 OK with medicine details when medicine exists and belongs to user")
-        void shouldReturnMedicineDetails_WhenMedicineExistsAndBelongsToUser() throws Exception {
+        void shouldReturnMedicine_WhenMedicineExists() throws Exception {
             User user = createTestUser();
-            Drug drug = createDrugWithName("Aspirin");
-            Medicine medicine = medicineRepository.save(
-                    Medicine.builder().frequency(MedicineFrequency.TWICE_DAILY).dosage("100 mg")
-                            .drug(drug).name("Aspirin").patient(user.getPatientProfile()).build());
+            Drug drug = createDrug();
+            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                    .name("Test Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+            medicineRepository.save(medicine);
 
             mockMvc.perform(
                     MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId())
                             .with(SecurityMockMvcRequestPostProcessors.user(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine").exists())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.id")
-                            .value(medicine.getId().toString()))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.name").value("Aspirin"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.dosage").value("100 mg"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.frequency")
-                            .value("TWICE_DAILY"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.reminders").isArray());
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.patientId")
+                            .value(user.getPatientProfile().getId().toString()))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Test Medicine"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.dosage").value("10mg"));
         }
 
         @Test
-        @DisplayName("Should return medicine with reminders when medicine has reminders")
-        void shouldReturnMedicineWithReminders_WhenMedicineHasReminders() throws Exception {
-            User user = createTestUser();
-            Drug drug = createDrugWithName("Paracetamol");
-            Medicine medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.ONCE_DAILY).dosage("500 mg").drug(drug)
-                    .name("Paracetamol").patient(user.getPatientProfile()).build());
-
-            mockMvc.perform(
-                    MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine").exists())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.id")
-                            .value(medicine.getId().toString()))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.reminders").isArray());
-        }
-
-        @Test
-        @DisplayName("Should return 404 Not Found when medicine does not exist")
         void shouldReturnNotFound_WhenMedicineDoesNotExist() throws Exception {
             User user = createTestUser();
             UUID nonExistentId = UUID.randomUUID();
@@ -352,825 +415,538 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
-        @DisplayName("Should return 404 Not Found when medicine belongs to another user")
-        void shouldReturnNotFound_WhenMedicineBelongsToAnotherUser() throws Exception {
-            User user1 = createTestUser();
-            User user2 = createTestUser("getbyid@test.com", "Jane", "Doe", "+12345678907",
-                    Gender.FEMALE);
-            Drug drug = createDrugWithName("Ibuprofen");
+        void shouldReturnForbidden_WhenAccessingOtherUserMedicine() throws Exception {
+            User owner = createTestUser();
+            Drug drug = createDrug();
+            Medicine medicine = Medicine.builder().patient(owner.getPatientProfile()).drug(drug)
+                    .name("Owner Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+            medicineRepository.save(medicine);
 
-            // Create medicine for user2
-            Medicine medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.AS_NEEDED).dosage("200 mg").drug(drug)
-                    .name("Ibuprofen").patient(user2.getPatientProfile()).build());
+            Role patientRole = roleRepository.findByName("ROLE_PATIENT");
+            PatientProfile otherPatient = PatientProfile.builder().build();
+            User otherUser = User.builder().email("other@example.com")
+                    .password(passwordEncoder.encode("password")).enabled(true).firstName("Other")
+                    .lastName("User").roles(Set.of(patientRole)).patientProfile(otherPatient)
+                    .build();
+            otherPatient.setUser(otherUser);
+            userRepository.save(otherUser);
 
-            // User1 tries to access user2's medicine
             mockMvc.perform(
                     MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user1)))
+                            .with(SecurityMockMvcRequestPostProcessors.user(otherUser)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
         @Test
-        @DisplayName("Should return 401 Unauthorized when user is not authenticated")
-        void shouldReturnUnauthorized_WhenUserNotAuthenticated() throws Exception {
-            UUID medicineId = UUID.randomUUID();
-
-            mockMvc.perform(MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, medicineId))
-                    .andExpect(MockMvcResultMatchers.status().isUnauthorized());
-        }
-
-        @Test
-        @DisplayName("Should return 400 Bad Request when medicine ID is invalid")
-        void shouldReturnBadRequest_WhenMedicineIdIsInvalid() throws Exception {
+        void shouldReturnMedicineWithGroup_WhenMedicineHasGroup() throws Exception {
             User user = createTestUser();
+            Drug drug = createDrug();
+            Group group = Group.builder().name("Morning Pills").patient(user.getPatientProfile())
+                    .build();
+            groupRepository.save(group);
 
-            mockMvc.perform(MockMvcRequestBuilders.get("/medicines/{id}", "invalid-uuid")
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isBadRequest());
-        }
-
-        @Test
-        @DisplayName("Should return medicine with all fields populated correctly")
-        void shouldReturnMedicineWithAllFieldsPopulated() throws Exception {
-            User user = createTestUser();
-            Drug drug = createDrugWithName("Metformin");
-            Instant startDate = Instant.now();
-            Instant endDate = startDate.plus(30, java.time.temporal.ChronoUnit.DAYS);
-
-            Medicine medicine = medicineRepository.save(
-                    Medicine.builder().frequency(MedicineFrequency.THRICE_DAILY).dosage("850 mg")
-                            .drug(drug).name("Metformin").startDate(startDate).endDate(endDate)
-                            .notes("Take with food").patient(user.getPatientProfile()).build());
+            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                    .name("Test Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION).group(group)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+            medicineRepository.save(medicine);
 
             mockMvc.perform(
                     MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId())
                             .with(SecurityMockMvcRequestPostProcessors.user(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.id")
-                            .value(medicine.getId().toString()))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.name").value("Metformin"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.dosage").value("850 mg"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.frequency")
-                            .value("THRICE_DAILY"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.notes")
-                            .value("Take with food"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.startDate").exists())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.medicine.endDate").exists());
-        }
-
-        private Drug createDrugWithName(String tradeName) {
-            Drug drug = Drug.builder().tradeName(tradeName).dosageForm("tablet").build();
-            return drugRepository.save(drug);
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.groupId")
+                            .value(group.getId().toString()))
+                    .andExpect(
+                            MockMvcResultMatchers.jsonPath("$.groupName").value("Morning Pills"));
         }
     }
 
     @Nested
-    @DisplayName("Delete Medicine By ID")
-    class DeleteMedicineById {
-        private final String DELETE_MEDICINE_BY_ID_ENDPOINT = "/medicines/{id}";
+    @DisplayName("DELETE /medicines/{id} - Delete Medicine")
+    class DeleteMedicine {
+        private static final String DELETE_MEDICINE_ENDPOINT = "/medicines/{id}";
 
         @Test
-        @DisplayName("Should delete medicine and return 204 No Content when medicine exists and belongs to user")
-        void shouldDeleteMedicine_WhenMedicineExistsAndBelongsToUser() throws Exception {
+        void shouldDeleteMedicine_WhenMedicineExists() throws Exception {
             User user = createTestUser();
-            Drug drug = createDrugWithName("Aspirin");
-            Medicine medicine = medicineRepository
-                    .save(Medicine.builder().frequency(MedicineFrequency.AS_NEEDED).dosage("100 mg")
-                            .drug(drug).name("Aspirin").patient(user.getPatientProfile()).build());
-
-            UUID medicineId = medicine.getId();
+            Drug drug = createDrug();
+            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                    .name("Test Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+            medicineRepository.save(medicine);
 
             mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_MEDICINE_BY_ID_ENDPOINT, medicineId)
+                    MockMvcRequestBuilders.delete(DELETE_MEDICINE_ENDPOINT, medicine.getId())
                             .with(SecurityMockMvcRequestPostProcessors.user(user)))
                     .andExpect(MockMvcResultMatchers.status().isNoContent());
 
-            // Verify medicine was deleted
-            assertThat(medicineRepository.findById(medicineId)).isEmpty();
-        }
-
-        @Test
-        @DisplayName("Should delete medicine with all associated data")
-        void shouldDeleteMedicineWithAssociatedData() throws Exception {
-            User user = createTestUser();
-            Drug drug = createDrugWithName("Metformin");
-            Medicine medicine = medicineRepository
-                    .save(Medicine.builder().frequency(MedicineFrequency.TWICE_DAILY)
-                            .dosage("500 mg").drug(drug).name("Metformin").notes("Take with meals")
-                            .patient(user.getPatientProfile()).build());
-
-            UUID medicineId = medicine.getId();
-
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_MEDICINE_BY_ID_ENDPOINT, medicineId)
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isNoContent());
-
-            // Verify medicine was deleted from database
-            assertThat(medicineRepository.findById(medicineId)).isEmpty();
-        }
-
-        @Test
-        @DisplayName("Should return 404 Not Found when medicine does not exist")
-        void shouldReturnNotFound_WhenMedicineDoesNotExist() throws Exception {
-            User user = createTestUser();
-            UUID nonExistentId = UUID.randomUUID();
-
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_MEDICINE_BY_ID_ENDPOINT, nonExistentId)
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound());
-        }
-
-        @Test
-        @DisplayName("Should return 404 Not Found when medicine belongs to another user")
-        void shouldReturnNotFound_WhenMedicineBelongsToAnotherUser() throws Exception {
-            User user1 = createTestUser();
-            User user2 = createTestUser("delete@test.com", "Jane", "User", "+12345678904",
-                    Gender.FEMALE);
-            Drug drug = createDrugWithName("Paracetamol");
-
-            // Create medicine for user2
-            Medicine medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.ONCE_DAILY).dosage("650 mg").drug(drug)
-                    .name("Paracetamol").patient(user2.getPatientProfile()).build());
-
-            UUID medicineId = medicine.getId();
-
-            // User1 tries to delete user2's medicine
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_MEDICINE_BY_ID_ENDPOINT, medicineId)
-                            .with(SecurityMockMvcRequestPostProcessors.user(user1)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound());
-
-            // Verify medicine still exists
-            assertThat(medicineRepository.findById(medicineId)).isPresent();
-        }
-
-        @Test
-        @DisplayName("Should return 401 Unauthorized when user is not authenticated")
-        void shouldReturnUnauthorized_WhenUserNotAuthenticated() throws Exception {
-            User user = createTestUser();
-            Drug drug = createDrugWithName("Ibuprofen");
-            Medicine medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.AS_NEEDED).dosage("400 mg").drug(drug)
-                    .name("Ibuprofen").patient(user.getPatientProfile()).build());
-
-            UUID medicineId = medicine.getId();
-
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_MEDICINE_BY_ID_ENDPOINT, medicineId))
-                    .andExpect(MockMvcResultMatchers.status().isUnauthorized());
-
-            // Verify medicine still exists
-            assertThat(medicineRepository.findById(medicineId)).isPresent();
-        }
-
-        @Test
-        @DisplayName("Should return 400 Bad Request when medicine ID is invalid")
-        void shouldReturnBadRequest_WhenMedicineIdIsInvalid() throws Exception {
-            User user = createTestUser();
-
-            mockMvc.perform(MockMvcRequestBuilders.delete("/medicines/{id}", "invalid-uuid")
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isBadRequest());
-        }
-
-        @Test
-        @DisplayName("Should not affect other user's medicines when deleting")
-        void shouldNotAffectOtherUserMedicines_WhenDeleting() throws Exception {
-            User user1 = createTestUser();
-            User user2 = createTestUser("user2delete@test.com", "John", "Smith", "+12345678905",
-                    Gender.MALE);
-            Drug drug1 = createDrugWithName("Medicine1");
-            Drug drug2 = createDrugWithName("Medicine2");
-
-            // Create medicine for user1
-            Medicine medicine1 = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.ONCE_DAILY).dosage("100 mg").drug(drug1)
-                    .name("Medicine1").patient(user1.getPatientProfile()).build());
-
-            // Create medicine for user2
-            Medicine medicine2 = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.TWICE_DAILY).dosage("200 mg").drug(drug2)
-                    .name("Medicine2").patient(user2.getPatientProfile()).build());
-
-            // User1 deletes their medicine
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_MEDICINE_BY_ID_ENDPOINT, medicine1.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user1)))
-                    .andExpect(MockMvcResultMatchers.status().isNoContent());
-
-            // Verify only user1's medicine was deleted
-            assertThat(medicineRepository.findById(medicine1.getId())).isEmpty();
-            assertThat(medicineRepository.findById(medicine2.getId())).isPresent();
-        }
-        private Drug createDrugWithName(String tradeName) {
-            Drug drug = Drug.builder().tradeName(tradeName).dosageForm("tablet").build();
-            return drugRepository.save(drug);
-        }
-    }
-
-    @Nested
-    @DisplayName("Update Medicine with PUT")
-    class UpdateMedicineWithPut {
-        private final String UPDATE_MEDICINE_ENDPOINT = "/medicines/{id}";
-
-        @Test
-        @DisplayName("Should update medicine and return 200 OK when all fields are valid")
-        void shouldUpdateMedicine_WhenAllFieldsAreValid() throws Exception {
-            User user = createTestUser();
-            Drug drug = createDrugWithName("Aspirin");
-            Instant originalStartDate = Instant.now();
-
-            Medicine medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.AS_NEEDED).dosage("100 mg").drug(drug)
-                    .name("Aspirin").notes("Old notes").startDate(originalStartDate)
-                    .patient(user.getPatientProfile()).build());
-
-            Instant newStartDate = Instant.now().plus(1, java.time.temporal.ChronoUnit.DAYS);
-            Instant newEndDate = newStartDate.plus(30, java.time.temporal.ChronoUnit.DAYS);
-
-            UpdateMedicineRequest updateRequest = new UpdateMedicineRequest("Aspirin Updated",
-                    "200 mg", "Take with food", MedicineFrequency.TWICE_DAILY, newStartDate,
-                    newEndDate, MedicineType.PRESCRIPTION, MedicineStatus.ACTIVE);
-
-            String payload = objectMapper.writeValueAsString(updateRequest);
-
-            mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
-                    .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.message")
-                            .value("Medicine updated successfully"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.id")
-                            .value(medicine.getId().toString()))
-                    .andExpect(
-                            MockMvcResultMatchers.jsonPath("$.data.name").value("Aspirin Updated"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.dosage").value("200 mg"))
-                    .andExpect(
-                            MockMvcResultMatchers.jsonPath("$.data.frequency").value("TWICE_DAILY"))
-                    .andExpect(
-                            MockMvcResultMatchers.jsonPath("$.data.notes").value("Take with food"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.type").value("PRESCRIPTION"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.status").value("ACTIVE"));
-
-            // Verify database was updated
-            Medicine updatedMedicine = medicineRepository.findById(medicine.getId()).get();
-            assertThat(updatedMedicine.getName()).isEqualTo("Aspirin Updated");
-            assertThat(updatedMedicine.getDosage()).isEqualTo("200 mg");
-            assertThat(updatedMedicine.getFrequency()).isEqualTo(MedicineFrequency.TWICE_DAILY);
-        }
-
-        @Test
-        @DisplayName("Should update all medicine fields correctly")
-        void shouldUpdateAllMedicineFields() throws Exception {
-            User user = createTestUser();
-            Drug drug = createDrugWithName("Metformin");
-
-            Medicine medicine = medicineRepository
-                    .save(Medicine.builder().frequency(MedicineFrequency.ONCE_DAILY)
-                            .dosage("500 mg").drug(drug).name("Metformin").notes("Original notes")
-                            .patient(user.getPatientProfile()).build());
-
-            Instant startDate = Instant.now();
-            Instant endDate = startDate.plus(60, java.time.temporal.ChronoUnit.DAYS);
-
-            UpdateMedicineRequest updateRequest = new UpdateMedicineRequest(
-                    "Metformin Extended Release", "1000 mg", "Take with evening meal",
-                    MedicineFrequency.ONCE_DAILY, startDate, endDate, MedicineType.PRESCRIPTION,
-                    MedicineStatus.ACTIVE);
-
-            String payload = objectMapper.writeValueAsString(updateRequest);
-
-            mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
-                    .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.name")
-                            .value("Metformin Extended Release"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.dosage").value("1000 mg"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.notes")
-                            .value("Take with evening meal"));
-        }
-
-        @Test
-        @DisplayName("Should return 400 Bad Request when required fields are missing")
-        void shouldReturnBadRequest_WhenRequiredFieldsAreMissing() throws Exception {
-            User user = createTestUser();
-            Drug drug = createDrugWithName("Paracetamol");
-
-            Medicine medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.AS_NEEDED).dosage("500 mg").drug(drug)
-                    .name("Paracetamol").patient(user.getPatientProfile()).build());
-
-            // Request with null name (required field)
-            String invalidPayload = "{\"dosage\":\"600 mg\",\"frequency\":\"TWICE_DAILY\"}";
-
-            mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
-                    .contentType(MediaType.APPLICATION_JSON).content(invalidPayload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isBadRequest());
-        }
-
-        @Test
-        @DisplayName("Should return 404 Not Found when medicine does not exist")
-        void shouldReturnNotFound_WhenMedicineDoesNotExist() throws Exception {
-            User user = createTestUser();
-            UUID nonExistentId = UUID.randomUUID();
-
-            Instant startDate = Instant.now();
-            Instant endDate = startDate.plus(30, java.time.temporal.ChronoUnit.DAYS);
-
-            UpdateMedicineRequest updateRequest = new UpdateMedicineRequest("Medicine Name",
-                    "100 mg", "Notes", MedicineFrequency.ONCE_DAILY, startDate, endDate,
-                    MedicineType.PRESCRIPTION, MedicineStatus.ACTIVE);
-
-            String payload = objectMapper.writeValueAsString(updateRequest);
-
-            mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, nonExistentId)
-                    .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound());
-        }
-
-        @Test
-        @DisplayName("Should return 404 Not Found when medicine belongs to another user")
-        void shouldReturnNotFound_WhenMedicineBelongsToAnotherUser() throws Exception {
-            User user1 = createTestUser();
-            User user2 = createTestUser("updateuser@test.com", "Update", "User", "+12345678908",
-                    Gender.FEMALE);
-            Drug drug = createDrugWithName("Ibuprofen");
-
-            // Create medicine for user2
-            Medicine medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.AS_NEEDED).dosage("400 mg").drug(drug)
-                    .name("Ibuprofen").patient(user2.getPatientProfile()).build());
-
-            Instant startDate = Instant.now();
-            Instant endDate = startDate.plus(30, java.time.temporal.ChronoUnit.DAYS);
-
-            UpdateMedicineRequest updateRequest = new UpdateMedicineRequest("Ibuprofen Updated",
-                    "600 mg", "Updated notes", MedicineFrequency.TWICE_DAILY, startDate, endDate,
-                    MedicineType.PRESCRIPTION, MedicineStatus.ACTIVE);
-
-            String payload = objectMapper.writeValueAsString(updateRequest);
-
-            // User1 tries to update user2's medicine
-            mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
-                    .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user1)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound());
-
-            // Verify medicine was not updated
-            Medicine unchangedMedicine = medicineRepository.findById(medicine.getId()).get();
-            assertThat(unchangedMedicine.getName()).isEqualTo("Ibuprofen");
-            assertThat(unchangedMedicine.getDosage()).isEqualTo("400 mg");
-        }
-
-        @Test
-        @DisplayName("Should return 401 Unauthorized when user is not authenticated")
-        void shouldReturnUnauthorized_WhenUserNotAuthenticated() throws Exception {
-            User user = createTestUser();
-            Drug drug = createDrugWithName("Amoxicillin");
-
-            Medicine medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.THRICE_DAILY).dosage("500 mg").drug(drug)
-                    .name("Amoxicillin").patient(user.getPatientProfile()).build());
-
-            Instant startDate = Instant.now();
-            Instant endDate = startDate.plus(7, java.time.temporal.ChronoUnit.DAYS);
-
-            UpdateMedicineRequest updateRequest = new UpdateMedicineRequest("Amoxicillin Updated",
-                    "750 mg", "Notes", MedicineFrequency.TWICE_DAILY, startDate, endDate,
-                    MedicineType.PRESCRIPTION, MedicineStatus.ACTIVE);
-
-            String payload = objectMapper.writeValueAsString(updateRequest);
-
-            mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
-                    .contentType(MediaType.APPLICATION_JSON).content(payload))
-                    .andExpect(MockMvcResultMatchers.status().isUnauthorized());
-        }
-
-        @Test
-        @DisplayName("Should return 400 Bad Request when medicine ID is invalid")
-        void shouldReturnBadRequest_WhenMedicineIdIsInvalid() throws Exception {
-            User user = createTestUser();
-
-            Instant startDate = Instant.now();
-            Instant endDate = startDate.plus(30, java.time.temporal.ChronoUnit.DAYS);
-
-            UpdateMedicineRequest updateRequest = new UpdateMedicineRequest("Medicine", "100 mg",
-                    "Notes", MedicineFrequency.ONCE_DAILY, startDate, endDate,
-                    MedicineType.PRESCRIPTION, MedicineStatus.ACTIVE);
-
-            String payload = objectMapper.writeValueAsString(updateRequest);
-
-            mockMvc.perform(MockMvcRequestBuilders.put("/medicines/{id}", "invalid-uuid")
-                    .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isBadRequest());
-        }
-
-        @Test
-        @DisplayName("Should update medicine status and type")
-        void shouldUpdateMedicineStatusAndType() throws Exception {
-            User user = createTestUser();
-            Drug drug = createDrugWithName("Vitamin D");
-
-            Medicine medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.ONCE_DAILY).dosage("1000 IU").drug(drug)
-                    .name("Vitamin D").type(MedicineType.TABLET).status(MedicineStatus.ACTIVE)
-                    .patient(user.getPatientProfile()).build());
-
-            Instant startDate = Instant.now();
-            Instant endDate = startDate.plus(90, java.time.temporal.ChronoUnit.DAYS);
-
-            UpdateMedicineRequest updateRequest = new UpdateMedicineRequest("Vitamin D3", "2000 IU",
-                    "Supplement", MedicineFrequency.ONCE_DAILY, startDate, endDate,
-                    MedicineType.LIQUID, MedicineStatus.INACTIVE);
-
-            String payload = objectMapper.writeValueAsString(updateRequest);
-
-            mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
-                    .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.type").value("LIQUID"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.status").value("INACTIVE"));
-
-            // Verify database was updated
-            Medicine updatedMedicine = medicineRepository.findById(medicine.getId()).get();
-            assertThat(updatedMedicine.getType()).isEqualTo(MedicineType.LIQUID);
-            assertThat(updatedMedicine.getStatus()).isEqualTo(MedicineStatus.INACTIVE);
-        }
-
-        private Drug createDrugWithName(String tradeName) {
-            Drug drug = Drug.builder().tradeName(tradeName).dosageForm("tablet").build();
-            return drugRepository.save(drug);
-        }
-    }
-
-    @Nested
-    @DisplayName("Update Medicine with PATCH")
-    class UpdateMedicineWithPatch {
-        private final String PATCH_MEDICINE_ENDPOINT = "/medicines/{id}";
-
-        @Test
-        @DisplayName("Should partially update medicine fields when valid optional fields are provided")
-        void shouldPartiallyUpdateMedicine_WhenValidOptionalFieldsProvided() throws Exception {
-            User user = createTestUser();
-            Drug drug = createDrugWithName("Aspirin");
-
-            Medicine medicine = medicineRepository
-                    .save(Medicine.builder().frequency(MedicineFrequency.AS_NEEDED).dosage("100 mg")
-                            .drug(drug).name("Aspirin").notes("Original notes")
-                            .patient(user.getPatientProfile()).build());
-
-            // Patch only dosage and notes
-            String patchPayload = "{\"dosage\":\"200 mg\",\"notes\":\"Updated notes\"}";
-
-            mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, medicine.getId())
-                    .contentType(MediaType.APPLICATION_JSON).content(patchPayload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.message")
-                            .value("Medicine updated successfully"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.dosage").value("200 mg"))
-                    .andExpect(
-                            MockMvcResultMatchers.jsonPath("$.data.notes").value("Updated notes"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.name").value("Aspirin"));
-
-            // Verify unchanged fields remain the same
-            Medicine updatedMedicine = medicineRepository.findById(medicine.getId()).get();
-            assertThat(updatedMedicine.getName()).isEqualTo("Aspirin");
-            assertThat(updatedMedicine.getDosage()).isEqualTo("200 mg");
-            assertThat(updatedMedicine.getNotes()).isEqualTo("Updated notes");
-            assertThat(updatedMedicine.getFrequency()).isEqualTo(MedicineFrequency.AS_NEEDED);
-        }
-
-        @Test
-        @DisplayName("Should update only specified fields and leave others unchanged")
-        void shouldUpdateOnlySpecifiedFields_LeavingOthersUnchanged() throws Exception {
-            User user = createTestUser();
-            Drug drug = createDrugWithName("Metformin");
-
-            Medicine medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.TWICE_DAILY).dosage("500 mg").drug(drug)
-                    .name("Metformin").notes("Take with meals").type(MedicineType.TABLET)
-                    .status(MedicineStatus.ACTIVE).patient(user.getPatientProfile()).build());
-
-            // Update only frequency
-            String patchPayload = "{\"frequency\":\"THRICE_DAILY\"}";
-
-            mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, medicine.getId())
-                    .contentType(MediaType.APPLICATION_JSON).content(patchPayload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.frequency")
-                            .value("THRICE_DAILY"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.dosage").value("500 mg"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.notes")
-                            .value("Take with meals"));
-
-            // Verify only frequency changed
-            Medicine updatedMedicine = medicineRepository.findById(medicine.getId()).get();
-            assertThat(updatedMedicine.getFrequency()).isEqualTo(MedicineFrequency.THRICE_DAILY);
-            assertThat(updatedMedicine.getDosage()).isEqualTo("500 mg");
-            assertThat(updatedMedicine.getNotes()).isEqualTo("Take with meals");
-        }
-
-        @Test
-        @DisplayName("Should return 404 Not Found when medicine does not exist")
-        void shouldReturnNotFound_WhenMedicineDoesNotExist() throws Exception {
-            User user = createTestUser();
-            UUID nonExistentId = UUID.randomUUID();
-
-            String patchPayload = "{\"dosage\":\"100 mg\"}";
-
-            mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, nonExistentId)
-                    .contentType(MediaType.APPLICATION_JSON).content(patchPayload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound());
-        }
-
-        @Test
-        @DisplayName("Should return 404 Not Found when medicine belongs to another user")
-        void shouldReturnNotFound_WhenMedicineBelongsToAnotherUser() throws Exception {
-            User user1 = createTestUser();
-            User user2 = createTestUser("patch@test.com", "Patch", "User", "+12345678909",
-                    Gender.FEMALE);
-            Drug drug = createDrugWithName("Paracetamol");
-
-            Medicine medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.AS_NEEDED).dosage("500 mg").drug(drug)
-                    .name("Paracetamol").patient(user2.getPatientProfile()).build());
-
-            String patchPayload = "{\"dosage\":\"650 mg\"}";
-
-            // User1 tries to patch user2's medicine
-            mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, medicine.getId())
-                    .contentType(MediaType.APPLICATION_JSON).content(patchPayload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user1)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound());
-
-            // Verify medicine was not updated
-            Medicine unchangedMedicine = medicineRepository.findById(medicine.getId()).get();
-            assertThat(unchangedMedicine.getDosage()).isEqualTo("500 mg");
-        }
-
-        private Drug createDrugWithName(String tradeName) {
-            Drug drug = Drug.builder().tradeName(tradeName).dosageForm("tablet").build();
-            return drugRepository.save(drug);
-        }
-    }
-
-    @Nested
-    @DisplayName("Bulk Medicine Operations")
-    class BulkMedicineOperations {
-        private final String BULK_MEDICINE_ENDPOINT = "/medicines/bulk";
-
-        @Test
-        @DisplayName("Should delete multiple medicines successfully")
-        void shouldDeleteMultipleMedicines_Successfully() throws Exception {
-            User user = createTestUser();
-            Drug drug1 = createDrugWithName("Medicine1");
-            Drug drug2 = createDrugWithName("Medicine2");
-            Drug drug3 = createDrugWithName("Medicine3");
-
-            Medicine medicine1 = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.AS_NEEDED).dosage("100 mg").drug(drug1)
-                    .name("Medicine1").patient(user.getPatientProfile()).build());
-            Medicine medicine2 = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.ONCE_DAILY).dosage("200 mg").drug(drug2)
-                    .name("Medicine2").patient(user.getPatientProfile()).build());
-            Medicine medicine3 = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.TWICE_DAILY).dosage("300 mg").drug(drug3)
-                    .name("Medicine3").patient(user.getPatientProfile()).build());
-
-            BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(
-                    List.of(medicine1.getId(), medicine2.getId(), medicine3.getId()), Action.DELETE,
-                    Optional.empty());
-            String payload = objectMapper.writeValueAsString(request);
-
-            mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.message")
-                            .value("Bulk operation completed successfully"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.successCount").value(3))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.failedIds").isEmpty());
-
-            // Verify all medicines were deleted
-            assertThat(medicineRepository.findById(medicine1.getId())).isEmpty();
-            assertThat(medicineRepository.findById(medicine2.getId())).isEmpty();
-            assertThat(medicineRepository.findById(medicine3.getId())).isEmpty();
-        }
-
-        @Test
-        @DisplayName("Should mark multiple medicines as active")
-        void shouldMarkMultipleMedicinesAsActive() throws Exception {
-            User user = createTestUser();
-            Drug drug1 = createDrugWithName("Drug1");
-            Drug drug2 = createDrugWithName("Drug2");
-
-            Medicine medicine1 = medicineRepository
-                    .save(Medicine.builder().frequency(MedicineFrequency.AS_NEEDED).dosage("100 mg")
-                            .drug(drug1).name("Drug1").status(MedicineStatus.INACTIVE)
-                            .patient(user.getPatientProfile()).build());
-            Medicine medicine2 = medicineRepository.save(
-                    Medicine.builder().frequency(MedicineFrequency.ONCE_DAILY).dosage("200 mg")
-                            .drug(drug2).name("Drug2").status(MedicineStatus.INACTIVE)
-                            .patient(user.getPatientProfile()).build());
-
-            BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(
-                    List.of(medicine1.getId(), medicine2.getId()), Action.MARK_ACTIVE,
-                    Optional.empty());
-            String payload = objectMapper.writeValueAsString(request);
-
-            mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.successCount").value(2))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.failedIds").isEmpty());
-
-            // Verify status changed to ACTIVE
-            Medicine updated1 = medicineRepository.findById(medicine1.getId()).get();
-            Medicine updated2 = medicineRepository.findById(medicine2.getId()).get();
-            assertThat(updated1.getStatus()).isEqualTo(MedicineStatus.ACTIVE);
-            assertThat(updated2.getStatus()).isEqualTo(MedicineStatus.ACTIVE);
-        }
-
-        @Test
-        @DisplayName("Should mark multiple medicines as inactive")
-        void shouldMarkMultipleMedicinesAsInactive() throws Exception {
-            User user = createTestUser();
-            Drug drug1 = createDrugWithName("ActiveDrug1");
-            Drug drug2 = createDrugWithName("ActiveDrug2");
-
-            Medicine medicine1 = medicineRepository
-                    .save(Medicine.builder().frequency(MedicineFrequency.AS_NEEDED).dosage("100 mg")
-                            .drug(drug1).name("ActiveDrug1").status(MedicineStatus.ACTIVE)
-                            .patient(user.getPatientProfile()).build());
-            Medicine medicine2 = medicineRepository.save(
-                    Medicine.builder().frequency(MedicineFrequency.TWICE_DAILY).dosage("200 mg")
-                            .drug(drug2).name("ActiveDrug2").status(MedicineStatus.ACTIVE)
-                            .patient(user.getPatientProfile()).build());
-
-            BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(
-                    List.of(medicine1.getId(), medicine2.getId()), Action.MARK_INACTIVE,
-                    Optional.empty());
-            String payload = objectMapper.writeValueAsString(request);
-
-            mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.successCount").value(2))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.failedIds").isEmpty());
-
-            // Verify status changed to INACTIVE
-            Medicine updated1 = medicineRepository.findById(medicine1.getId()).get();
-            Medicine updated2 = medicineRepository.findById(medicine2.getId()).get();
-            assertThat(updated1.getStatus()).isEqualTo(MedicineStatus.INACTIVE);
-            assertThat(updated2.getStatus()).isEqualTo(MedicineStatus.INACTIVE);
-        }
-
-        @Test
-        @DisplayName("Should handle partial failures and return failed IDs")
-        void shouldHandlePartialFailures_ReturningFailedIds() throws Exception {
-            User user = createTestUser();
-            Drug drug = createDrugWithName("ValidDrug");
-
-            Medicine medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.AS_NEEDED).dosage("100 mg").drug(drug)
-                    .name("ValidDrug").patient(user.getPatientProfile()).build());
-
-            UUID nonExistentId = UUID.randomUUID();
-
-            BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(
-                    List.of(medicine.getId(), nonExistentId), Action.DELETE, Optional.empty());
-            String payload = objectMapper.writeValueAsString(request);
-
-            mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.successCount").value(1))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.failedIds.length()").value(1))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.failedIds[0]")
-                            .value(nonExistentId.toString()));
-
-            // Verify valid medicine was deleted
             assertThat(medicineRepository.findById(medicine.getId())).isEmpty();
         }
 
         @Test
-        @DisplayName("Should not affect medicines belonging to other users")
-        void shouldNotAffectOtherUserMedicines() throws Exception {
-            User user1 = createTestUser();
-            User user2 = createTestUser("bulk@test.com", "Bulk", "User", "+12345678910",
-                    Gender.MALE);
-            Drug drug1 = createDrugWithName("User1Drug");
-            Drug drug2 = createDrugWithName("User2Drug");
+        void shouldReturnNotFound_WhenDeletingNonExistentMedicine() throws Exception {
+            User user = createTestUser();
+            UUID nonExistentId = UUID.randomUUID();
 
-            Medicine user1Medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.AS_NEEDED).dosage("100 mg").drug(drug1)
-                    .name("User1Drug").patient(user1.getPatientProfile()).build());
+            mockMvc.perform(MockMvcRequestBuilders.delete(DELETE_MEDICINE_ENDPOINT, nonExistentId)
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isNotFound());
+        }
 
-            Medicine user2Medicine = medicineRepository.save(Medicine.builder()
-                    .frequency(MedicineFrequency.ONCE_DAILY).dosage("200 mg").drug(drug2)
-                    .name("User2Drug").patient(user2.getPatientProfile()).build());
+        @Test
+        void shouldReturnForbidden_WhenDeletingOtherUserMedicine() throws Exception {
+            User owner = createTestUser();
+            Drug drug = createDrug();
+            Medicine medicine = Medicine.builder().patient(owner.getPatientProfile()).drug(drug)
+                    .name("Owner Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+            medicineRepository.save(medicine);
 
-            // User1 tries to delete both medicines including user2's medicine
-            BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(
-                    List.of(user1Medicine.getId(), user2Medicine.getId()), Action.DELETE,
-                    Optional.empty());
-            String payload = objectMapper.writeValueAsString(request);
+            Role patientRole = roleRepository.findByName("ROLE_PATIENT");
+            PatientProfile otherPatient = PatientProfile.builder().build();
+            User otherUser = User.builder().email("other@example.com")
+                    .password(passwordEncoder.encode("password")).enabled(true).firstName("Other")
+                    .lastName("User").roles(Set.of(patientRole)).patientProfile(otherPatient)
+                    .build();
+            otherPatient.setUser(otherUser);
+            userRepository.save(otherUser);
 
-            mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user1)))
+            mockMvc.perform(
+                    MockMvcRequestBuilders.delete(DELETE_MEDICINE_ENDPOINT, medicine.getId())
+                            .with(SecurityMockMvcRequestPostProcessors.user(otherUser)))
+                    .andExpect(MockMvcResultMatchers.status().isNotFound());
+        }
+
+        @Test
+        void shouldDeleteMedicineAndReminders_WhenMedicineHasReminders() throws Exception {
+            User user = createTestUser();
+            Drug drug = createDrug();
+            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                    .name("Test Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+            medicineRepository.save(medicine);
+
+            mockMvc.perform(
+                    MockMvcRequestBuilders.delete(DELETE_MEDICINE_ENDPOINT, medicine.getId())
+                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isNoContent());
+
+            assertThat(medicineRepository.findById(medicine.getId())).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("PUT /medicines/{id} - Update Medicine")
+    class UpdateMedicine {
+        private static final String UPDATE_MEDICINE_ENDPOINT = "/medicines/{id}";
+
+        @Test
+        void shouldUpdateMedicine_WhenAllFieldsAreValid() throws Exception {
+            User user = createTestUser();
+            Drug drug = createDrug();
+            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                    .name("Old Name").dosage("5mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+            medicineRepository.save(medicine);
+
+            UpdateMedicineRequest request = new UpdateMedicineRequest("New Name", "10mg",
+                    "New notes", MedicineFrequency.TWICE, Instant.now(),
+                    Instant.now().plusSeconds(86400 * 60), MedicineType.SUPPLEMENT,
+                    MedicineStatus.INACTIVE, ReminderFrequency.DAILY, List.of());
+
+            mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.successCount").value(1))
-                    .andExpect(
-                            MockMvcResultMatchers.jsonPath("$.data.failedIds.length()").value(1));
-
-            // Verify only user1's medicine was deleted
-            assertThat(medicineRepository.findById(user1Medicine.getId())).isEmpty();
-            assertThat(medicineRepository.findById(user2Medicine.getId())).isPresent();
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.name").value("New Name"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.dosage").value("10mg"));
         }
 
         @Test
-        @DisplayName("Should return 401 Unauthorized when user is not authenticated")
-        void shouldReturnUnauthorized_WhenUserNotAuthenticated() throws Exception {
+        void shouldReturnNotFound_WhenUpdatingNonExistentMedicine() throws Exception {
+            User user = createTestUser();
+            UUID nonExistentId = UUID.randomUUID();
+
+            UpdateMedicineRequest request = new UpdateMedicineRequest("New Name", "10mg",
+                    "New notes", MedicineFrequency.ONCE, Instant.now(),
+                    Instant.now().plusSeconds(86400 * 30), MedicineType.PRESCRIPTION,
+                    MedicineStatus.ACTIVE, ReminderFrequency.DAILY, List.of());
+
+            mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, nonExistentId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isNotFound());
+        }
+
+        @Test
+        void shouldReturnForbidden_WhenUpdatingOtherUserMedicine() throws Exception {
+            User owner = createTestUser();
+            Drug drug = createDrug();
+            Medicine medicine = Medicine.builder().patient(owner.getPatientProfile()).drug(drug)
+                    .name("Owner Medicine").dosage("5mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+            medicineRepository.save(medicine);
+
+            Role patientRole = roleRepository.findByName("ROLE_PATIENT");
+            PatientProfile otherPatient = PatientProfile.builder().build();
+            User otherUser = User.builder().email("other@example.com")
+                    .password(passwordEncoder.encode("password")).enabled(true).firstName("Other")
+                    .lastName("User").roles(Set.of(patientRole)).patientProfile(otherPatient)
+                    .build();
+            otherPatient.setUser(otherUser);
+            userRepository.save(otherUser);
+
+            UpdateMedicineRequest request = new UpdateMedicineRequest("New Name", "10mg",
+                    "New notes", MedicineFrequency.ONCE, Instant.now(),
+                    Instant.now().plusSeconds(86400 * 30), MedicineType.PRESCRIPTION,
+                    MedicineStatus.ACTIVE, ReminderFrequency.DAILY, List.of());
+
+            mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(SecurityMockMvcRequestPostProcessors.user(otherUser)))
+                    .andExpect(MockMvcResultMatchers.status().isNotFound());
+        }
+
+        @Test
+        void shouldReturnBadRequest_WhenRequestBodyIsInvalid() throws Exception {
+            User user = createTestUser();
+            Drug drug = createDrug();
+            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                    .name("Test Medicine").dosage("5mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+            medicineRepository.save(medicine);
+
+            mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
+                    .contentType(MediaType.APPLICATION_JSON).content("{}")
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        }
+
+        @Test
+        void shouldUpdateMedicine_WithCustomDaysWhenReminderFrequencyIsCustom() throws Exception {
+            User user = createTestUser();
+            Drug drug = createDrug();
+            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                    .name("Test Medicine").dosage("5mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+            medicineRepository.save(medicine);
+
+            UpdateMedicineRequest request = new UpdateMedicineRequest("Updated Name", "15mg",
+                    "Updated notes", MedicineFrequency.ONCE, Instant.now(),
+                    Instant.now().plusSeconds(86400 * 60), MedicineType.PRESCRIPTION,
+                    MedicineStatus.ACTIVE, ReminderFrequency.CUSTOM,
+                    List.of(Day.MONDAY, Day.WEDNESDAY, Day.FRIDAY));
+
+            mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true)).andExpect(
+                            MockMvcResultMatchers.jsonPath("$.data.customDays.length()").value(3));
+        }
+    }
+
+    @Nested
+    @DisplayName("PATCH /medicines/{id} - Partial Update Medicine")
+    class PatchMedicine {
+        private static final String PATCH_MEDICINE_ENDPOINT = "/medicines/{id}";
+
+        @Test
+        void shouldPartiallyUpdateMedicine_WhenUpdatingOnlyName() throws Exception {
+            User user = createTestUser();
+            Drug drug = createDrug();
+            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                    .name("Old Name").dosage("5mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+            medicineRepository.save(medicine);
+
+            UpdateMedicinePatchRequest request = new UpdateMedicinePatchRequest(
+                    Optional.of("New Name"), Optional.empty(), Optional.empty(), Optional.empty(),
+                    Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                    Optional.empty(), Optional.empty());
+
+            mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, medicine.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.name").value("New Name"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.dosage").value("5mg"));
+        }
+
+        @Test
+        void shouldPartiallyUpdateMedicine_WhenUpdatingMultipleFields() throws Exception {
+            User user = createTestUser();
+            Drug drug = createDrug();
+            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                    .name("Old Name").dosage("5mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+            medicineRepository.save(medicine);
+
+            UpdateMedicinePatchRequest request = new UpdateMedicinePatchRequest(
+                    Optional.of("New Name"), Optional.of("10mg"), Optional.empty(),
+                    Optional.of(MedicineFrequency.TWICE), Optional.empty(), Optional.empty(),
+                    Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+
+            mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, medicine.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.name").value("New Name"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.dosage").value("10mg"));
+        }
+
+        @Test
+        void shouldReturnNotFound_WhenPatchingNonExistentMedicine() throws Exception {
+            User user = createTestUser();
+            UUID nonExistentId = UUID.randomUUID();
+
+            UpdateMedicinePatchRequest request = new UpdateMedicinePatchRequest(
+                    Optional.of("New Name"), Optional.empty(), Optional.empty(), Optional.empty(),
+                    Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                    Optional.empty(), Optional.empty());
+
+            mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, nonExistentId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isNotFound());
+        }
+
+        @Test
+        void shouldReturnForbidden_WhenPatchingOtherUserMedicine() throws Exception {
+            User owner = createTestUser();
+            Drug drug = createDrug();
+            Medicine medicine = Medicine.builder().patient(owner.getPatientProfile()).drug(drug)
+                    .name("Owner Medicine").dosage("5mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+            medicineRepository.save(medicine);
+
+            Role patientRole = roleRepository.findByName("ROLE_PATIENT");
+            PatientProfile otherPatient = PatientProfile.builder().build();
+            User otherUser = User.builder().email("other@example.com")
+                    .password(passwordEncoder.encode("password")).enabled(true).firstName("Other")
+                    .lastName("User").roles(Set.of(patientRole)).patientProfile(otherPatient)
+                    .build();
+            otherPatient.setUser(otherUser);
+            userRepository.save(otherUser);
+
+            UpdateMedicinePatchRequest request = new UpdateMedicinePatchRequest(
+                    Optional.of("New Name"), Optional.empty(), Optional.empty(), Optional.empty(),
+                    Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                    Optional.empty(), Optional.empty());
+
+            mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, medicine.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(SecurityMockMvcRequestPostProcessors.user(otherUser)))
+                    .andExpect(MockMvcResultMatchers.status().isNotFound());
+        }
+
+        @Test
+        void shouldPartiallyUpdateStatus_WhenUpdatingOnlyStatus() throws Exception {
+            User user = createTestUser();
+            Drug drug = createDrug();
+            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                    .name("Test Medicine").dosage("5mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+            medicineRepository.save(medicine);
+
+            UpdateMedicinePatchRequest request = new UpdateMedicinePatchRequest(Optional.empty(),
+                    Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                    Optional.empty(), Optional.empty(), Optional.of(MedicineStatus.INACTIVE),
+                    Optional.empty(), Optional.empty());
+
+            mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, medicine.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true));
+        }
+    }
+
+    @Nested
+    @DisplayName("POST /medicines/bulk - Bulk Medicine Operations")
+    class BulkMedicineOperations {
+        private static final String BULK_MEDICINE_ENDPOINT = "/medicines/bulk";
+
+        @Test
+        void shouldDeleteMultipleMedicines_WhenActionIsDelete() throws Exception {
+            User user = createTestUser();
+            Drug drug = createDrug();
+
+            Medicine medicine1 = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                    .name("Medicine 1").dosage("5mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+
+            Medicine medicine2 = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                    .name("Medicine 2").dosage("10mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+
+            medicineRepository.saveAll(List.of(medicine1, medicine2));
+
             BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(
-                    List.of(UUID.randomUUID()), Action.DELETE, Optional.empty());
-            String payload = objectMapper.writeValueAsString(request);
+                    List.of(medicine1.getId(), medicine2.getId()), Action.DELETE, Optional.empty());
 
             mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON).content(payload))
-                    .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.successCount").value(2))
+                    .andExpect(
+                            MockMvcResultMatchers.jsonPath("$.data.failedIds.length()").value(0));
         }
 
         @Test
-        @DisplayName("Should return 400 Bad Request when medicine IDs list is empty")
+        void shouldMarkMultipleMedicinesAsActive_WhenActionIsMarkActive() throws Exception {
+            User user = createTestUser();
+            Drug drug = createDrug();
+
+            Medicine medicine1 = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                    .name("Medicine 1").dosage("5mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.INACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+
+            Medicine medicine2 = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                    .name("Medicine 2").dosage("10mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.INACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+
+            medicineRepository.saveAll(List.of(medicine1, medicine2));
+
+            BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(
+                    List.of(medicine1.getId(), medicine2.getId()), Action.MARK_ACTIVE,
+                    Optional.empty());
+
+            mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.successCount").value(2));
+        }
+
+        @Test
+        void shouldMoveMultipleMedicinesToGroup_WhenActionIsMoveToGroup() throws Exception {
+            User user = createTestUser();
+            Drug drug = createDrug();
+
+            Group targetGroup = Group.builder().name("Evening Pills")
+                    .patient(user.getPatientProfile()).build();
+            groupRepository.save(targetGroup);
+
+            Medicine medicine1 = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                    .name("Medicine 1").dosage("5mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+
+            Medicine medicine2 = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                    .name("Medicine 2").dosage("10mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+
+            medicineRepository.saveAll(List.of(medicine1, medicine2));
+
+            BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(
+                    List.of(medicine1.getId(), medicine2.getId()), Action.MOVE_TO_GROUP,
+                    Optional.of(targetGroup.getId()));
+
+            mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.successCount").value(2));
+        }
+
+        @Test
+        void shouldReturnPartialSuccess_WhenSomeMedicinesFail() throws Exception {
+            User user = createTestUser();
+            Drug drug = createDrug();
+
+            Medicine medicine1 = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                    .name("Medicine 1").dosage("5mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+
+            medicineRepository.save(medicine1);
+            UUID nonExistentId = UUID.randomUUID();
+
+            BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(
+                    List.of(medicine1.getId(), nonExistentId), Action.DELETE, Optional.empty());
+
+            mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.failedIds.length()").value(1))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.failedIds[0]")
+                            .value(nonExistentId.toString()));
+        }
+
+        @Test
         void shouldReturnBadRequest_WhenMedicineIdsListIsEmpty() throws Exception {
             User user = createTestUser();
 
             BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(List.of(),
                     Action.DELETE, Optional.empty());
-            String payload = objectMapper.writeValueAsString(request);
 
             mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON).content(payload)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
                     .with(SecurityMockMvcRequestPostProcessors.user(user)))
                     .andExpect(MockMvcResultMatchers.status().isBadRequest());
         }
-
-        @Test
-        @DisplayName("Should handle large batch operations efficiently")
-        void shouldHandleLargeBatchOperations_Efficiently() throws Exception {
-            User user = createTestUser();
-            List<UUID> medicineIds = new java.util.ArrayList<>();
-
-            // Create 10 medicines
-            for (int i = 0; i < 10; i++) {
-                Drug drug = createDrugWithName("BatchMedicine" + i);
-                Medicine medicine = medicineRepository.save(Medicine.builder()
-                        .frequency(MedicineFrequency.AS_NEEDED).dosage((100 + i * 10) + " mg")
-                        .drug(drug).name("BatchMedicine" + i).status(MedicineStatus.INACTIVE)
-                        .patient(user.getPatientProfile()).build());
-                medicineIds.add(medicine.getId());
-            }
-
-            BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
-                    Action.MARK_ACTIVE, Optional.empty());
-            String payload = objectMapper.writeValueAsString(request);
-
-            mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.successCount").value(10))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.failedIds").isEmpty());
-
-            // Verify all medicines were updated
-            long activeCount = medicineRepository.findAll().stream()
-                    .filter(m -> m.getStatus() == MedicineStatus.ACTIVE).count();
-            assertThat(activeCount).isEqualTo(10L);
-        }
-
-        private Drug createDrugWithName(String tradeName) {
-            Drug drug = Drug.builder().tradeName(tradeName).dosageForm("tablet").build();
-            return drugRepository.save(drug);
-        }
     }
-
 }

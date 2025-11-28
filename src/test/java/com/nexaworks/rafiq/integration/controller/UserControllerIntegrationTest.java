@@ -23,7 +23,7 @@ import com.nexaworks.rafiq.dto.request.user.UserRegistrationRequest;
 import com.nexaworks.rafiq.dto.request.user.VerificationRequest;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.enums.TokenType;
+import com.nexaworks.rafiq.entities.enums.TokenType;
 import com.nexaworks.rafiq.integration.BaseIntegrationTest;
 import com.nexaworks.rafiq.repository.SpecializationRepository;
 import com.nexaworks.rafiq.repository.TokenRepository;

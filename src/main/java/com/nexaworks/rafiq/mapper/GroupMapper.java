@@ -18,7 +18,7 @@ public interface GroupMapper {
 
     @Transactional(readOnly = true)
     default AddGroupResponse toDto(Group savedGroup) {
-        return new AddGroupResponse(savedGroup.getId(), savedGroup.getPatientProfile().getId(),
+        return new AddGroupResponse(savedGroup.getId(), savedGroup.getPatient().getId(),
                 savedGroup.getDescription(), savedGroup.getColor(), savedGroup.getName(),
                 savedGroup.getCreatedAt().toEpochMilli(), savedGroup.getUpdatedAt().toEpochMilli(),
                 savedGroup.getIconUrl(),
@@ -38,7 +38,7 @@ public interface GroupMapper {
 
     default Response<GroupDetailsResponse> toResponse(Group group, MedicineMapper medicineMapper) {
         return new Response<>(true, new GroupDetailsResponse(group.getId(),
-                group.getPatientProfile().getId(), group.getName(), group.getDescription(),
+                group.getPatient().getId(), group.getName(), group.getDescription(),
                 group.getColor(), group.getIconUrl(),
                 group.getMedicines() != null ? group.getMedicines().size() : 0,
                 group.getMedicines() != null

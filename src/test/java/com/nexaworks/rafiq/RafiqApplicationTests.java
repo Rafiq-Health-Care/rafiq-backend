@@ -2,9 +2,13 @@ package com.nexaworks.rafiq;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+
+import com.nexaworks.rafiq.integration.BaseIntegrationTest;
 
 @SpringBootTest
-class RafiqApplicationTests {
+@ActiveProfiles("test")
+class RafiqApplicationTests extends BaseIntegrationTest {
 
     @Test
     void contextLoads() {
