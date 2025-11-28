@@ -3,7 +3,7 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import org.quartz.SchedulerException;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +15,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import com.nexaworks.rafiq.dto.event.ReminderEvent;
 import com.nexaworks.rafiq.dto.request.reminder.GetAllRemindersHistoryResponseProjection;
 import com.nexaworks.rafiq.dto.request.reminder.ReminderFilters;
+import com.nexaworks.rafiq.dto.response.reminder.GetAllRemindersResponse;
 import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.entities.Reminder;
 import com.nexaworks.rafiq.entities.ReminderLog;
@@ -41,7 +42,7 @@ public class ReminderServiceImpl implements ReminderService {
 
     @Override
     @Transactional
-    public Reminder createReminder(Reminder reminder) throws SchedulerException {
+    public Reminder createReminder(Reminder reminder) {
         PatientProfile patient = patientService.getPatientProfile();
         reminder.setPatient(patient);
         log.info("Creating reminder for medicine: {}", reminder.getMedicine().getName());
@@ -83,6 +84,33 @@ public class ReminderServiceImpl implements ReminderService {
                 .patient(patient).timestamp(takenTime).build();
         reminderLogRepository.save(reminderLog);
         // todo update the next reminder date
+    }
+
+    @Override
+    public Page<GetAllRemindersResponse> getAllReminders(Pageable pageable) {
+        PatientProfile patient = patientService.getPatientProfile();
+        return reminderRepository.findAll(patient.getId(), pageable);
+    }
+
+    @Override
+    public Reminder getReminderById(UUID reminderId) {
+        return getReminder(reminderId);
+    }
+
+    private @NotNull Reminder getReminder(UUID reminderId) {
+        Reminder reminder = reminderRepository.findById(reminderId)
+                .orElseThrow(IllegalArgumentException::new);
+        if (!reminder.getPatient().getId().equals(patientService.getPatientProfile().getId())) {
+            throw new IllegalArgumentException("Invalid Reminder Id");
+        }
+        return reminder;
+    }
+
+    @Override
+    public Reminder updateVibration(UUID reminderId, Boolean vibrate) {
+        Reminder reminder = getReminder(reminderId);
+        reminder.setVibrate(vibrate);
+        return reminderRepository.save(reminder);
     }
 
 }

@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.*;
 import com.nexaworks.rafiq.dto.request.reminder.AddReminderRequest;
 import com.nexaworks.rafiq.dto.request.reminder.GetAllRemindersHistoryResponseProjection;
 import com.nexaworks.rafiq.dto.request.reminder.ReminderFilters;
+import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.medicine.AddResponse;
 import com.nexaworks.rafiq.dto.response.reminder.AddReminderResponse;
+import com.nexaworks.rafiq.dto.response.reminder.GetAllRemindersResponse;
+import com.nexaworks.rafiq.dto.response.reminder.GetReminderByIdResponse;
 import com.nexaworks.rafiq.entities.Reminder;
 import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 import com.nexaworks.rafiq.mapper.ReminderMapper;
@@ -42,9 +45,14 @@ public class ReminderController {
                 .body(new AddResponse<>(true, "Reminder created successfully", response));
     }
     @GetMapping("/history")
-    public ResponseEntity<Page<GetAllRemindersHistoryResponseProjection>> getAllReminders(
+    public ResponseEntity<PageResponse<GetAllRemindersHistoryResponseProjection>> getAllReminders(
             @ParameterObject Pageable pageable, @RequestBody ReminderFilters filters) {
-        return ResponseEntity.ok().body(reminderService.getHistory(pageable, filters));
+        Page<GetAllRemindersHistoryResponseProjection> reminders = reminderService
+                .getHistory(pageable, filters);
+        return ResponseEntity.ok()
+                .body(new PageResponse<>(reminders.getContent(), (int) reminders.getTotalElements(),
+                        reminders.getSize(), reminders.getTotalPages(), reminders.isFirst(),
+                        reminders.isLast()));
     }
     @PostMapping("/taken/{reminder-id}")
     public ResponseEntity<Void> assignMedicineAsTaken(
@@ -59,5 +67,29 @@ public class ReminderController {
         reminderService.updateReminderStatus(reminderId, ReminderStatus.MISSED, takenTime);
         return ResponseEntity.noContent().build();
     }
+    @GetMapping("/all")
+    public ResponseEntity<PageResponse<GetAllRemindersResponse>> getAllReminders(
+            @ParameterObject Pageable pageable) {
+        Page<GetAllRemindersResponse> reminders = reminderService.getAllReminders(pageable);
+        return ResponseEntity.ok()
+                .body(new PageResponse<>(reminders.getContent(), (int) reminders.getTotalElements(),
+                        reminders.getSize(), reminders.getTotalPages(), reminders.isFirst(),
+                        reminders.isLast()));
+    }
+    @GetMapping("/{reminder-id}")
+    public ResponseEntity<GetReminderByIdResponse> getReminderById(
+            @PathVariable("reminder-id") UUID reminderId) {
+        return ResponseEntity.ok().body(reminderMapper
+                .toGetReminderByIdResponse(reminderService.getReminderById(reminderId)));
+    }
+    @PatchMapping("updateVibration/{vibrate}/reminder/{reminder-id}")
+    public ResponseEntity<AddResponse<AddReminderResponse>> updateVibration(
+            @PathVariable("vibrate") Boolean vibrate,
+            @PathVariable("reminder-id") UUID reminderId) {
+        return ResponseEntity.ok()
+                .body(new AddResponse<>(true, "Reminder vibration updated successfully",
+                        reminderMapper.toAddReminderResponse(
+                                reminderService.updateVibration(reminderId, vibrate))));
 
+    }
 }
