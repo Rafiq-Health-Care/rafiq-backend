@@ -6,10 +6,7 @@ import java.util.List;
 import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Getter
@@ -24,6 +21,8 @@ public class Reminder extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ReminderStatus status;
     private LocalDateTime nextReminder;
+    @Builder.Default
+    private Boolean disable = false;
     @OneToOne
     @JoinColumn(name = "medicine_id", referencedColumnName = "id", nullable = false)
     private Medicine medicine;

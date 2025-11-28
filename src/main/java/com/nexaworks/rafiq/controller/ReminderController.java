@@ -92,4 +92,14 @@ public class ReminderController {
                                 reminderService.updateVibration(reminderId, vibrate))));
 
     }
+    @DeleteMapping("/{reminder-id}")
+    public ResponseEntity<Void> deleteReminder(@PathVariable("reminder-id") UUID reminderId) {
+        reminderService.deleteReminder(reminderId);
+        return ResponseEntity.noContent().build();
+    }
+    @PatchMapping("/disable/{reminder-id}")
+    public ResponseEntity<Void> disableReminder(@PathVariable("reminder-id") UUID reminderId) {
+        reminderService.disableReminder(reminderId);
+        return ResponseEntity.noContent().build();
+    }
 }

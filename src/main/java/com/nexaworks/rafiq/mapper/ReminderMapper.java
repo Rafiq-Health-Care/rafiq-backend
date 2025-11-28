@@ -17,7 +17,7 @@ public interface ReminderMapper {
 
     default Reminder toEntity(AddReminderRequest request, MedicineService medicineService) {
         return Reminder.builder().medicine(medicineService.getMedicineById(request.medicineId()))
-                .vibrate(request.vibrate()).build();
+                .vibrate(request.vibrate()).nextReminder(request.nextReminder()).build();
     }
 
     default AddReminderResponse toAddReminderResponse(Reminder savedReminder) {

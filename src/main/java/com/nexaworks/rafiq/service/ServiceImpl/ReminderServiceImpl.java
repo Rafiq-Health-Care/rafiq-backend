@@ -115,4 +115,18 @@ public class ReminderServiceImpl implements ReminderService {
         return reminderRepository.save(reminder);
     }
 
+    @Override
+    @Transactional
+    public void deleteReminder(UUID reminderId) {
+        Reminder reminder = getReminder(reminderId);
+        reminderRepository.delete(reminder);
+    }
+
+    @Override
+    @Transactional
+    public void disableReminder(UUID reminderId) {
+        Reminder reminder = getReminder(reminderId);
+        reminder.setDisable(true);
+    }
+
 }

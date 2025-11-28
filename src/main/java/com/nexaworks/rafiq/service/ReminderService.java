@@ -26,4 +26,8 @@ public interface ReminderService {
     Reminder getReminderById(UUID reminderId);
 
     Reminder updateVibration(UUID reminderId, Boolean vibrate);
+
+    void deleteReminder(UUID reminderId);
+
+    void disableReminder(UUID reminderId);
 }
