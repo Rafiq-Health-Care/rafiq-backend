@@ -127,19 +127,20 @@ class AuthServiceImplTest {
             String generatedOtp = "123456";
 
             when(userService.findByEmail(request.email())).thenReturn(Optional.of(testUser));
-            when(tokenService.generateOtpToken(testUser)).thenReturn(generatedOtp);
+            when(tokenService.generateAccessToken(Optional.ofNullable(testUser)))
+                    .thenReturn(generatedOtp);
 
             // Act
             authService.forgetPassword(request);
 
             // Assert
             verify(userService).findByEmail(request.email());
-            verify(tokenService).generateOtpToken(testUser);
+            verify(tokenService).generateAccessToken(Optional.ofNullable(testUser));
             verify(eventPublisher).publishEvent(eventCaptor.capture());
 
             ForgetPasswordEvent capturedEvent = eventCaptor.getValue();
             assertThat(capturedEvent.email()).isEqualTo(testUser.getEmail());
-            assertThat(capturedEvent.otp()).isEqualTo(generatedOtp);
+            assertThat(capturedEvent.accessToken()).isEqualTo(generatedOtp);
             assertThat(capturedEvent.name()).isEqualTo(testUser.getFirstName());
         }
 

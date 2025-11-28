@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class NotificationListener {
+    public static final String FORGET_PASSWORD_URL = "http://localhost:5173/update-password";
     private final EmailContentService emailContentService;
     private final EmailSenderService emailSenderService;
     private final ImageService imageService;
@@ -35,7 +36,6 @@ public class NotificationListener {
     public void handleUserRegistrationEvent(UserRegistrationEvent event) {
         Map<String, Object> model = emailContentService.createOtpEmail(event.otp(), event.name(),
                 "url");
-        log.info("Sending email to {}", event.email());
         emailSenderService.sendEmail(model, event.email(), "Verify your email address",
                 "OTP_TEMPLATE.html");
     }
@@ -45,16 +45,14 @@ public class NotificationListener {
     public void handleNewOtpEvent(NewOtpEvent event) {
         Map<String, Object> model = emailContentService.createOtpEmail(event.otp(), event.name(),
                 "url");
-        log.info("Sending email to {}", event.email());
         emailSenderService.sendEmail(model, event.email(), "New OTP", "new-otp.html");
     }
 
     @Async
     @EventListener
     public void handleForgetPasswordEvent(ForgetPasswordEvent event) {
-        Map<String, Object> model = emailContentService.createOtpEmail(event.otp(), event.name(),
-                "url");
-        log.info("Sending email to {}", event.email());
+        Map<String, Object> model = emailContentService
+                .createResetPasswordEmail(event.accessToken(), event.name(), FORGET_PASSWORD_URL);
         emailSenderService.sendEmail(model, event.email(), "Reset your password",
                 "forget-password.html");
     }
