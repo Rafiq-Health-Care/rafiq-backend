@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.jetbrains.annotations.NotNull;
-import org.quartz.JobKey;
 import org.quartz.SchedulerException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +27,6 @@ import com.nexaworks.rafiq.exception.custom.MedicineAlreadyExist;
 import com.nexaworks.rafiq.exception.custom.MedicineLimit;
 import com.nexaworks.rafiq.exception.custom.MedicineNotFound;
 import com.nexaworks.rafiq.repository.MedicineRepository;
-import com.nexaworks.rafiq.secheduler.service.CornExpressionBuilder;
 import com.nexaworks.rafiq.secheduler.service.QuartzSchedulerService;
 import com.nexaworks.rafiq.service.DrugService;
 import com.nexaworks.rafiq.service.GroupService;
@@ -49,7 +47,6 @@ public class MedicineServiceImpl implements MedicineService {
     private final PatientService patientService;
     private final GroupService groupService;
     private final QuartzSchedulerService quartzSchedulerService;
-    private final CornExpressionBuilder cornExpressionBuilder;
     @Override
     @Transactional
     public Medicine addMedicine(Medicine entity, UUID drugId) {
@@ -87,15 +84,14 @@ public class MedicineServiceImpl implements MedicineService {
 
     @Override
     @Transactional
-    public void deleteMedicine(UUID medicineId) throws SchedulerException {
+    public void deleteMedicine(UUID medicineId) {
         Medicine medicine = getMedicine(medicineId, patientService.getPatientProfile());
         medicineRepository.delete(medicine);
-        quartzSchedulerService.deleteJob(new JobKey(medicineId.toString(), "MedicineReminder"));
     }
 
     @Override
     @Transactional
-    public Medicine updateMedicine(Medicine entity, UUID medicineId) throws SchedulerException {
+    public Medicine updateMedicine(Medicine entity, UUID medicineId) {
         Medicine medicine = getMedicine(medicineId, patientService.getPatientProfile());
         medicine.setDosage(entity.getDosage());
         medicine.setFrequency(entity.getFrequency());
@@ -107,10 +103,6 @@ public class MedicineServiceImpl implements MedicineService {
         medicine.setName(entity.getName());
         medicine.setReminderFrequency(entity.getReminderFrequency());
         medicine.setCustomDays(entity.getCustomDays());
-        quartzSchedulerService.updateJob(new JobKey(medicineId.toString(), "MedicineReminder"),
-                cornExpressionBuilder.buildCornExpression(medicine.getFrequency(),
-                        medicine.getReminderFrequency(), medicine.getCustomDays(),
-                        medicine.getStartDate()));
         return medicineRepository.save(medicine);
     }
 
@@ -129,10 +121,6 @@ public class MedicineServiceImpl implements MedicineService {
         request.name().ifPresent(medicine::setName);
         request.reminderFrequency().ifPresent(medicine::setReminderFrequency);
         request.customDays().ifPresent(medicine::setCustomDays);
-        quartzSchedulerService.updateJob(new JobKey(medicineId.toString(), "MedicineReminder"),
-                cornExpressionBuilder.buildCornExpression(medicine.getFrequency(),
-                        medicine.getReminderFrequency(), medicine.getCustomDays(),
-                        medicine.getStartDate()));
         return medicineRepository.save(medicine);
     }
 

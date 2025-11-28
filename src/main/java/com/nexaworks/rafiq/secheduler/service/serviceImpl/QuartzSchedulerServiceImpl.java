@@ -1,17 +1,12 @@
 package com.nexaworks.rafiq.secheduler.service.serviceImpl;
 
-import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.quartz.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.nexaworks.rafiq.secheduler.job.MedicineReminderJob;
-import com.nexaworks.rafiq.secheduler.job.ReminderHistoryJob;
 import com.nexaworks.rafiq.secheduler.service.QuartzSchedulerService;
 import com.nexaworks.rafiq.service.UserService;
 
@@ -28,7 +23,7 @@ public class QuartzSchedulerServiceImpl implements QuartzSchedulerService {
     @Override
     @Transactional
     public void scheduleJob(String jobName, String groupName, String cronExpression,
-            Map<String, String> jobData) throws SchedulerException {
+            Map<String, String> jobData, Class<? extends Job> job) throws SchedulerException {
         if (jobName == null || jobName.trim().isEmpty()) {
             throw new IllegalArgumentException("Job name cannot be empty");
         }
@@ -49,8 +44,8 @@ public class QuartzSchedulerServiceImpl implements QuartzSchedulerService {
                 cronExpression);
 
         try {
-            JobDetail jobDetail = JobBuilder.newJob(MedicineReminderJob.class)
-                    .withIdentity(jobName, groupName).storeDurably().build();
+            JobDetail jobDetail = JobBuilder.newJob(job).withIdentity(jobName, groupName)
+                    .storeDurably().build();
             jobDetail.getJobDataMap().putAll(jobData);
 
             String triggerName = jobName + "Trigger";
@@ -121,30 +116,6 @@ public class QuartzSchedulerServiceImpl implements QuartzSchedulerService {
                 .withIdentity(triggerName, medicineReminder.getGroup())
                 .withSchedule(scheduleBuilder).startNow().build();
         scheduler.scheduleJob(jobDetail, trigger);
-    }
-
-    @Override
-    public void scheduleOneTimeJob(Map<String, String> reminderLogData, String groupName,
-            LocalDateTime dateTime) throws SchedulerException {
-        try {
-            JobDetail jobDetail = JobBuilder.newJob(ReminderHistoryJob.class)
-                    .withIdentity("ReminderHistoryJob-" + UUID.randomUUID(), groupName)
-                    .storeDurably().build();
-            jobDetail.getJobDataMap().putAll(reminderLogData);
-
-            String triggerName = "ReminderHistoryJobTrigger-" + UUID.randomUUID();
-            Trigger trigger = TriggerBuilder.newTrigger()
-                    .startAt(Date
-                            .from(dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant()))
-                    .withIdentity(triggerName, groupName).build();
-            scheduler.scheduleJob(jobDetail, trigger);
-            log.info("One-time job scheduled: {} in group: {} at {}", jobDetail.getKey(), groupName,
-                    dateTime);
-
-        } catch (SchedulerException e) {
-            throw new SchedulerException("Error scheduling one-time job", e);
-        }
-
     }
 
 }

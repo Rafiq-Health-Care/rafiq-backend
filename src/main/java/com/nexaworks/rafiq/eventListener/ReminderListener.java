@@ -18,6 +18,5 @@ public class ReminderListener {
     @EventListener(ReminderEvent.class)
     public void reminderEvent(ReminderEvent event) {
         log.info("Received reminder event");
-        reminderService.scheduleReminder(event.reminder());
     }
 }

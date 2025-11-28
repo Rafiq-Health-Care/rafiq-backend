@@ -1,7 +1,5 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
-import java.util.Map;
-
 import org.quartz.SchedulerException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -10,11 +8,9 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.nexaworks.rafiq.dto.event.ReminderEvent;
-import com.nexaworks.rafiq.entities.Medicine;
 import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.entities.Reminder;
 import com.nexaworks.rafiq.repository.ReminderRepository;
-import com.nexaworks.rafiq.secheduler.service.CornExpressionBuilder;
 import com.nexaworks.rafiq.secheduler.service.QuartzSchedulerService;
 import com.nexaworks.rafiq.service.PatientService;
 import com.nexaworks.rafiq.service.ReminderService;
@@ -31,7 +27,7 @@ public class ReminderServiceImpl implements ReminderService {
     private final PatientService patientService;
     private final ApplicationEventPublisher eventPublisher;
     private final QuartzSchedulerService schedulerService;
-    private final CornExpressionBuilder cornExpressionBuilder;
+
     private final UserService userService;
     @Override
     @Transactional
@@ -46,23 +42,5 @@ public class ReminderServiceImpl implements ReminderService {
             }
         });
         return reminderRepository.save(reminder);
-    }
-
-    @Override
-    @Transactional
-    public void scheduleReminder(Reminder reminder) {
-        Medicine medicine = reminder.getMedicine();
-        String cornExpression = cornExpressionBuilder.buildCornExpression(medicine.getFrequency(),
-                medicine.getReminderFrequency(), medicine.getCustomDays(), medicine.getStartDate());
-        try {
-            schedulerService.scheduleJob(medicine.getId().toString(), "MedicineReminder",
-                    cornExpression, Map.of("reminderId", reminder.getId().toString(),
-                            "notificationToken", userService.getNotificationToken()));
-            log.info("Scheduled reminder for medicine: {} with cron expression: {}",
-                    medicine.getName(), cornExpression);
-        } catch (SchedulerException e) {
-            log.error("Error scheduling reminder for medicine: {}", medicine.getName(), e);
-        }
-
     }
 }
