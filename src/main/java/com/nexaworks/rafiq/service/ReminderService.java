@@ -29,5 +29,5 @@ public interface ReminderService {
 
     void deleteReminder(UUID reminderId);
 
-    void disableReminder(UUID reminderId);
+    void disableReminder(UUID reminderId, Boolean disable);
 }

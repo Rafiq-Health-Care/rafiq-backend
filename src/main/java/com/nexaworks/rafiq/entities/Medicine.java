@@ -70,8 +70,8 @@ public class Medicine extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", referencedColumnName = "id")
     private Group group;
-    @OneToOne(mappedBy = "medicine", cascade = {CascadeType.REMOVE, CascadeType.PERSIST,
-            CascadeType.MERGE})
+    @OneToOne(mappedBy = "medicine", cascade = {CascadeType.REMOVE, CascadeType.MERGE,
+            CascadeType.PERSIST}, orphanRemoval = true)
     private Reminder reminder;
 
     @Override

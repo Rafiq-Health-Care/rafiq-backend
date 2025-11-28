@@ -97,9 +97,10 @@ public class ReminderController {
         reminderService.deleteReminder(reminderId);
         return ResponseEntity.noContent().build();
     }
-    @PatchMapping("/disable/{reminder-id}")
-    public ResponseEntity<Void> disableReminder(@PathVariable("reminder-id") UUID reminderId) {
-        reminderService.disableReminder(reminderId);
+    @PatchMapping("/disable/{reminder-id}/{disable}")
+    public ResponseEntity<Void> disableReminder(@PathVariable("reminder-id") UUID reminderId,
+            @PathVariable("disable") Boolean disable) {
+        reminderService.disableReminder(reminderId, disable);
         return ResponseEntity.noContent().build();
     }
 }
