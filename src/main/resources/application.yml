@@ -10,6 +10,7 @@ spring:
     name: rafiq
   config:
     import: optional:file:./.env.properties
+
   # Database config
   datasource:
     url: ${DATASOURCE_URL}

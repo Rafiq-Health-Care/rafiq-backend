@@ -1,13 +1,18 @@
 spring:
   datasource:
     hikari:
-      maximum-pool-size: 20
-      minimum-idle: 20
-      max-lifetime: 30000
-      connection-timeout: 5000
+      maximum-pool-size: 5
+      minimum-idle: 1
+      max-lifetime: 60000
+      connection-timeout: 10000
+      idle-timeout: 30000
   jpa:
     hibernate:
       ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
   flyway:
     enabled: false
   batch:
@@ -20,3 +25,6 @@ spring:
       mode: never
   lifecycle:
    timeout-per-shutdown-phase: 20s
+  test:
+    database:
+      replace: none
