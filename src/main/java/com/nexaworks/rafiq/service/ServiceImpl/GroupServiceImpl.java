@@ -35,7 +35,7 @@ public class GroupServiceImpl implements GroupService {
         Group group = groupRepository.findById(groupId).orElseThrow(
                 () -> new GroupNotFoundException("Group not found with id: " + groupId));
         UUID patientId = patientService.getPatientProfile().getId();
-        if (!group.getPatientProfile().getId().equals(patientId)) {
+        if (!group.getPatient().getId().equals(patientId)) {
             throw new GroupNotFoundException("Group not found with id: " + groupId);
         }
         return group;
@@ -48,7 +48,7 @@ public class GroupServiceImpl implements GroupService {
             throw new GroupIsAlreadyExistsException(
                     "Group with name " + group.getName() + " already exists");
         }
-        group.setPatientProfile(patientService.getPatientProfile());
+        group.setPatient(patientService.getPatientProfile());
         return groupRepository.save(group);
     }
 
@@ -59,7 +59,7 @@ public class GroupServiceImpl implements GroupService {
                 : Sort.by(sort).descending();
         Pageable pageable = PageRequest.of(page, size, sortOrder);
         UUID patientId = patientService.getPatientProfile().getId();
-        return groupRepository.findByPatientProfileId(patientId, pageable);
+        return groupRepository.findByPatientId(patientId, pageable);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class GroupServiceImpl implements GroupService {
     public Group updateGroupById(UpdateGroupRequest request, UUID id) {
         Group existingGroup = getGroupById(id);
         Optional.ofNullable(request.name()).ifPresent(name -> {
-            if (groupRepository.existsGroupByPatientProfile_IdAndName(
+            if (groupRepository.existsGroupByPatient_IdAndName(
                     patientService.getPatientProfile().getId(), name)) {
                 throw new GroupIsAlreadyExistsException(
                         "Group with name " + name + " already exists");

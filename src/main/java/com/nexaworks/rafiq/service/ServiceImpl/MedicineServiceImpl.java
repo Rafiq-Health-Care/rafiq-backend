@@ -164,7 +164,7 @@ public class MedicineServiceImpl implements MedicineService {
         groupId.orElseThrow(() -> new GroupNotFoundException("Group id is required"));
         Group group = groupService.getGroupById(groupId.get());
         PatientProfile patient = patientService.getPatientProfile();
-        if (!group.getPatientProfile().getId().equals(patient.getId())) {
+        if (!group.getPatient().getId().equals(patient.getId())) {
             throw new GroupNotFoundException("Medicine not found with id: " + ids);
         }
         ids.forEach(medicineId -> {

@@ -243,7 +243,7 @@ public class MedicineServiceImplTest {
                 BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
                         Action.MOVE_TO_GROUP, Optional.of(groupId));
 
-                Group group = Group.builder().id(groupId).patientProfile(patient).build();
+                Group group = Group.builder().id(groupId).patient(patient).build();
                 Medicine medicine1 = Medicine.builder().id(medicineId1).patient(patient).build();
                 Medicine medicine2 = Medicine.builder().id(medicineId2).patient(patient).build();
 
@@ -286,7 +286,7 @@ public class MedicineServiceImplTest {
                 BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
                         Action.MOVE_TO_GROUP, Optional.of(groupId));
 
-                Group group = Group.builder().id(groupId).patientProfile(patient).build();
+                Group group = Group.builder().id(groupId).patient(patient).build();
                 Medicine medicine1 = Medicine.builder().id(medicineId1).patient(patient).build();
 
                 when(groupService.getGroupById(groupId)).thenReturn(group);

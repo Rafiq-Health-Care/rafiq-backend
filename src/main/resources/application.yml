@@ -1,4 +1,10 @@
 spring:
+  # Dev tools config
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      enabled: true
   # Application config
   application:
     name: rafiq
@@ -10,6 +16,12 @@ spring:
     username: ${DATASOURCE_USERNAME}
     password: ${DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
    # JPA config
   jpa:
     hibernate:
@@ -70,7 +82,7 @@ spring:
           scheduler:
             instanceName: RafiqScheduler
           threadPool:
-            threadCount: 10
+            threadCount: 1
   # Mail config
   mail:
     host: ${MAIL_HOST}
@@ -115,3 +127,8 @@ access:
   # Server config
 server:
   port: 8030
+  tomcat:
+    threads:
+      max: 10
+      min-spare: 2
+    accept-count: 5
