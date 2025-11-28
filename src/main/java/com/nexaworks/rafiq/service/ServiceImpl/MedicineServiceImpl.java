@@ -27,7 +27,6 @@ import com.nexaworks.rafiq.exception.custom.MedicineAlreadyExist;
 import com.nexaworks.rafiq.exception.custom.MedicineLimit;
 import com.nexaworks.rafiq.exception.custom.MedicineNotFound;
 import com.nexaworks.rafiq.repository.MedicineRepository;
-import com.nexaworks.rafiq.secheduler.service.QuartzSchedulerService;
 import com.nexaworks.rafiq.service.DrugService;
 import com.nexaworks.rafiq.service.GroupService;
 import com.nexaworks.rafiq.service.MedicineService;
@@ -46,7 +45,7 @@ public class MedicineServiceImpl implements MedicineService {
     private final DrugService drugService;
     private final PatientService patientService;
     private final GroupService groupService;
-    private final QuartzSchedulerService quartzSchedulerService;
+
     @Override
     @Transactional
     public Medicine addMedicine(Medicine entity, UUID drugId) {

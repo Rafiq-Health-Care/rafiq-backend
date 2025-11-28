@@ -1,17 +1,26 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import org.quartz.SchedulerException;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.nexaworks.rafiq.dto.event.ReminderEvent;
+import com.nexaworks.rafiq.dto.request.reminder.GetAllRemindersHistoryResponseProjection;
+import com.nexaworks.rafiq.dto.request.reminder.ReminderFilters;
 import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.entities.Reminder;
+import com.nexaworks.rafiq.entities.ReminderLog;
+import com.nexaworks.rafiq.entities.enums.ReminderStatus;
+import com.nexaworks.rafiq.repository.ReminderLogRepository;
 import com.nexaworks.rafiq.repository.ReminderRepository;
-import com.nexaworks.rafiq.secheduler.service.QuartzSchedulerService;
 import com.nexaworks.rafiq.service.PatientService;
 import com.nexaworks.rafiq.service.ReminderService;
 import com.nexaworks.rafiq.service.UserService;
@@ -26,9 +35,10 @@ public class ReminderServiceImpl implements ReminderService {
     private final ReminderRepository reminderRepository;
     private final PatientService patientService;
     private final ApplicationEventPublisher eventPublisher;
-    private final QuartzSchedulerService schedulerService;
 
     private final UserService userService;
+    private final ReminderLogRepository reminderLogRepository;
+
     @Override
     @Transactional
     public Reminder createReminder(Reminder reminder) throws SchedulerException {
@@ -43,4 +53,36 @@ public class ReminderServiceImpl implements ReminderService {
         });
         return reminderRepository.save(reminder);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<GetAllRemindersHistoryResponseProjection> getHistory(Pageable pageable,
+            ReminderFilters filters) {
+        UUID patientId = patientService.getPatientProfile().getId();
+        UUID reminderId = null;
+        if (filters.medicineId() != null) {
+            reminderId = reminderRepository.findReminderByMedicineId(filters.medicineId());
+        }
+        return reminderLogRepository.findLogsHistory(filters.startDate(), filters.endDate(),
+                reminderId, filters.status(), patientId, pageable);
+    }
+
+    @Override
+    @Transactional
+    public void updateReminderStatus(UUID reminderId, ReminderStatus status,
+            LocalDateTime takenTime) {
+        // todo handle exception
+        Reminder reminder = reminderRepository.findById(reminderId)
+                .orElseThrow(() -> new IllegalArgumentException("Reminder not found"));
+        PatientProfile patient = patientService.getPatientProfile();
+        // todo handle exception
+        if (!reminder.getPatient().getId().equals(patient.getId())) {
+            throw new IllegalArgumentException("Invalid Reminder Id");
+        }
+        ReminderLog reminderLog = ReminderLog.builder().status(status).reminder(reminder)
+                .patient(patient).timestamp(takenTime).build();
+        reminderLogRepository.save(reminderLog);
+        // todo update the next reminder date
+    }
+
 }
