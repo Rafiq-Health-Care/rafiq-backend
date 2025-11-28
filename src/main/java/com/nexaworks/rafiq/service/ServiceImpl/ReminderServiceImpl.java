@@ -20,6 +20,7 @@ import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.entities.Reminder;
 import com.nexaworks.rafiq.entities.ReminderLog;
 import com.nexaworks.rafiq.entities.enums.ReminderStatus;
+import com.nexaworks.rafiq.exception.custom.ReminderNotFound;
 import com.nexaworks.rafiq.repository.ReminderLogRepository;
 import com.nexaworks.rafiq.repository.ReminderRepository;
 import com.nexaworks.rafiq.service.PatientService;
@@ -72,13 +73,13 @@ public class ReminderServiceImpl implements ReminderService {
     @Transactional
     public void updateReminderStatus(UUID reminderId, ReminderStatus status,
             LocalDateTime takenTime) {
-        // todo handle exception
+
         Reminder reminder = reminderRepository.findById(reminderId)
-                .orElseThrow(() -> new IllegalArgumentException("Reminder not found"));
+                .orElseThrow(() -> new ReminderNotFound("Reminder not found"));
         PatientProfile patient = patientService.getPatientProfile();
-        // todo handle exception
+
         if (!reminder.getPatient().getId().equals(patient.getId())) {
-            throw new IllegalArgumentException("Invalid Reminder Id");
+            throw new ReminderNotFound("Invalid Reminder Id");
         }
         ReminderLog reminderLog = ReminderLog.builder().status(status).reminder(reminder)
                 .patient(patient).timestamp(takenTime).build();
@@ -99,14 +100,15 @@ public class ReminderServiceImpl implements ReminderService {
 
     private @NotNull Reminder getReminder(UUID reminderId) {
         Reminder reminder = reminderRepository.findById(reminderId)
-                .orElseThrow(IllegalArgumentException::new);
+                .orElseThrow(() -> new ReminderNotFound("Reminder not found"));
         if (!reminder.getPatient().getId().equals(patientService.getPatientProfile().getId())) {
-            throw new IllegalArgumentException("Invalid Reminder Id");
+            throw new ReminderNotFound("Invalid Reminder Id");
         }
         return reminder;
     }
 
     @Override
+    @Transactional
     public Reminder updateVibration(UUID reminderId, Boolean vibrate) {
         Reminder reminder = getReminder(reminderId);
         reminder.setVibrate(vibrate);
