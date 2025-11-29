@@ -23,6 +23,10 @@ public class Drug extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     String pharmacology;
     double price;
+
+    @Column(name = "search_vector", columnDefinition = "tsvector", insertable = false, updatable = false)
+    private String searchVector;
+
     @ManyToMany
     @JoinTable(name = "drug_active_ingredient", joinColumns = @JoinColumn(name = "drug_id"), inverseJoinColumns = @JoinColumn(name = "active_ingredient_id"))
     List<ActiveIngredient> activeIngredients;

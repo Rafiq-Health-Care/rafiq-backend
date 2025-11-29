@@ -1,3 +1,7 @@
+-- =============================================
+-- V3: Insert Default Roles and Specializations
+-- =============================================
+
 -- Insert roles: ROLE_DOCTOR, ROLE_PATIENT, ROLE_USER, ROLE_ADMIN
 DO $$
 DECLARE
@@ -123,5 +127,4 @@ BEGIN
         VALUES (gen_random_uuid(), 'Endocrinology', 'Hormone and metabolic disorders', 'ENDO', CURRENT_TIMESTAMP, system_user_id);
     END IF;
 END $$;
-
 

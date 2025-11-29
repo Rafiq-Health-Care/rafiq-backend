@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.utils;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
@@ -23,13 +24,17 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthSessionManager {
     private final JwtService jwtService;
     private final TokenService tokenService;
+    @Value("${jwt.expiration}")
+    private long jwtExpiry;
+    @Value("${refresh.expiration}")
+    private long refreshTokenExpiry;
 
     @NotNull
     public LoginResponse createLoginSession(HttpServletResponse response, User user) {
         String jwt = jwtService.generateToken(user);
         String refreshToken = tokenService.generateRefreshToken(user);
-        addTokenToCookie(response, jwt, "jwt", 60 * 60 * 24);
-        addTokenToCookie(response, refreshToken, "refreshToken", 60 * 60 * 24 * 30);
+        addTokenToCookie(response, jwt, "jwt", (int) jwtExpiry);
+        addTokenToCookie(response, refreshToken, "refreshToken", (int) refreshTokenExpiry);
         return new LoginResponse(user.getRoles().stream().map(Role::getName)
                 .filter(role -> !role.equals("ROLE_USER")).findFirst());
     }
