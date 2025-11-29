@@ -21,8 +21,8 @@ public interface ReminderLogRepository extends JpaRepository<ReminderLog, UUID> 
                    m.dosage AS dosage,
                    rl.timestamp AS time
             FROM ReminderLog rl
-            JOIN Reminder r ON rl.reminder.id = r.id
-            JOIN Medicine m ON r.medicine.id = m.id
+            JOIN Reminder r ON rl.reminder
+            JOIN Medicine m ON r.medicine
             WHERE (CAST(:startDate AS timestamp) IS NULL OR rl.updatedAt >= :startDate)
               AND (CAST(:endDate AS timestamp) IS NULL OR rl.updatedAt <= :endDate)
               AND (CAST(:reminderId AS uuid) IS NULL OR r.id = :reminderId)
