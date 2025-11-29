@@ -11,4 +11,6 @@ import com.nexaworks.rafiq.entities.User;
 public interface UserRepository extends JpaRepository<User, UUID> {
     @EntityGraph(attributePaths = "roles")
     Optional<User> findByEmail(String email);
+
+    boolean existsUserByEmail(String email);
 }
