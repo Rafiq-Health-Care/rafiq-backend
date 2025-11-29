@@ -162,7 +162,7 @@ public class UserServiceImplTest {
     @Test
     void registerPatient_ShouldThrowException_WhenUserWithEmailAlreadyExists() {
         User user = getUser();
-        when(userRepository.findByEmail(anyString())).thenReturn(java.util.Optional.of(user));
+        when(userRepository.existsUserByEmail(anyString())).thenReturn(true);
         assertThrows(com.nexaworks.rafiq.exception.custom.RegistrationException.class,
                 () -> userService.registerPatient(user));
         verify(userRepository, never()).save(any(User.class));
@@ -206,7 +206,7 @@ public class UserServiceImplTest {
     @Test
     void registerDoctor_ShouldThrowException_WhenUserWithEmailAlreadyExists() {
         User user = getUser();
-        when(userRepository.findByEmail(anyString())).thenReturn(java.util.Optional.of(user));
+        when(userRepository.existsUserByEmail(anyString())).thenReturn(true);
         assertThrows(RegistrationException.class,
                 () -> userService.registerDoctor(user, null, null, null));
         verify(userRepository, never()).save(any(User.class));

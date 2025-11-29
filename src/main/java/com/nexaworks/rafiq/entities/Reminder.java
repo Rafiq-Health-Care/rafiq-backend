@@ -3,6 +3,8 @@ package com.nexaworks.rafiq.entities;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.hibernate.annotations.BatchSize;
+
 import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 
 import jakarta.persistence.*;
@@ -15,6 +17,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@Table(name = "reminder", indexes = {@Index(name = "patient_idx", columnList = "patient_id"),
+        @Index(name = "medicine_idx", columnList = "medicine_id")})
 public class Reminder extends BaseEntity {
 
     private boolean vibrate;
@@ -33,6 +37,7 @@ public class Reminder extends BaseEntity {
     @JoinColumn(name = "group_id", referencedColumnName = "id")
     private Group group;
     @OneToMany(mappedBy = "reminder", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @BatchSize(size = 100)
     private List<ReminderLog> reminderLogs;
 
 }

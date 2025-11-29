@@ -31,11 +31,7 @@ import com.nexaworks.rafiq.entities.enums.Color;
 import com.nexaworks.rafiq.entities.enums.Gender;
 import com.nexaworks.rafiq.entities.enums.MedicineFrequency;
 import com.nexaworks.rafiq.integration.BaseIntegrationTest;
-import com.nexaworks.rafiq.repository.DrugRepository;
-import com.nexaworks.rafiq.repository.GroupRepository;
-import com.nexaworks.rafiq.repository.MedicineRepository;
-import com.nexaworks.rafiq.repository.RoleRepository;
-import com.nexaworks.rafiq.repository.UserRepository;
+import com.nexaworks.rafiq.repository.*;
 
 @DisplayName("Group Controller Integration Test Cases")
 public class GroupControllerIntegrationTest extends BaseIntegrationTest {
@@ -63,6 +59,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     DrugRepository drugRepository;
+    @Autowired
+    private PatientRepository patientRepository;
 
     @BeforeEach
     void setUp() {
@@ -87,8 +85,9 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
         User user = User.builder().email(email).password(passwordEncoder.encode("Valid@1234"))
                 .firstName(firstName).lastName(lastName).phone(phone).age(30).gender(gender)
-                .roles(Set.of(patientRole)).enabled(true)
-                .patientProfile(PatientProfile.builder().build()).build();
+                .roles(Set.of(patientRole)).enabled(true).build();
+        PatientProfile patientProfile = PatientProfile.builder().user(user).build();
+        user.setPatientProfile(patientProfile);
         return userRepository.save(user);
     }
 

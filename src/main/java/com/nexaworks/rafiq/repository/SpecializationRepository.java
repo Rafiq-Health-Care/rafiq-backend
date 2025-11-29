@@ -8,9 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.nexaworks.rafiq.entities.Specialization;
 
 public interface SpecializationRepository extends JpaRepository<Specialization, UUID> {
-    boolean existsByCode(String code);
-
     Optional<Specialization> findByCode(String code);
-
-    Optional<Specialization> findByName(String name);
 }

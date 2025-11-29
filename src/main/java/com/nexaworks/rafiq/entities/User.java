@@ -20,11 +20,12 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
+@ToString(exclude = {"password", "addresses", "tokens", "doctorProfile", "patientProfile", "roles"})
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {@Index(columnList = "email", unique = true)})
 public class User extends BaseEntity implements UserDetails, Principal {
 
     @Email
@@ -34,19 +35,25 @@ public class User extends BaseEntity implements UserDetails, Principal {
 
     @JsonIgnore
     private String password;
+
     @NotBlank
     private String firstName;
     private String lastName;
     private String phone;
+
     @Min(0)
     @Max(120)
     private int age;
+
     @Builder.Default
     private boolean active = true;
+
     @Builder.Default
-    private boolean locked = false;
+    private boolean locked = false; // for softly delete
+
     @Builder.Default
     private boolean enabled = false;
+
     private String notificationToken;
 
     @Enumerated(EnumType.STRING)
@@ -57,23 +64,21 @@ public class User extends BaseEntity implements UserDetails, Principal {
     @Builder.Default
     private Set<Role> roles = new HashSet<>();
 
-    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.REMOVE}, orphanRemoval = true)
-    @JoinColumn(name = "doctor_profile_id", referencedColumnName = "id")
+    @OneToOne(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
+            CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.EAGER)
     private DoctorProfile doctorProfile;
 
-    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.REMOVE}, orphanRemoval = true)
-    @JoinColumn(name = "patient_profile_id", referencedColumnName = "id")
+    @OneToOne(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
+            CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.EAGER)
     private PatientProfile patientProfile;
 
     @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.REMOVE}, orphanRemoval = true)
+            CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<Address> addresses = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.REMOVE}, orphanRemoval = true)
+            CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<Token> tokens = new ArrayList<>();
 
@@ -119,5 +124,4 @@ public class User extends BaseEntity implements UserDetails, Principal {
     public void removeRole(Role role) {
         this.roles.remove(role);
     }
-
 }

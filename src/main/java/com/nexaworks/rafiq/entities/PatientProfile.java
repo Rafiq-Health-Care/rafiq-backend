@@ -15,11 +15,14 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@Table(name = "patient_profile", indexes = {
+        @Index(name = "user_patient_idx", columnList = "user_id")})
 public class PatientProfile extends BaseEntity {
 
     private String description;
 
-    @OneToOne(mappedBy = "patientProfile")
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
 
     @OneToMany(mappedBy = "patient", cascade = {CascadeType.REMOVE, CascadeType.PERSIST,

@@ -27,7 +27,6 @@ public class EmailSenderServiceImpl implements EmailSenderService {
     private final JavaMailSender javaMailSender;
     private final SpringTemplateEngine templateEngine;
 
-    // todo add retry logic
     @Async
     @Override
     @Retryable(retryFor = {MailSenderException.class,

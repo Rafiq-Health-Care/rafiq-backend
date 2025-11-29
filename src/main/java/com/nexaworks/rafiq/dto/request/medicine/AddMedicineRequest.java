@@ -13,7 +13,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record AddMedicineRequest(@NotNull UUID medicineId, @NotBlank String dosage,
-        @NotNull MedicineFrequency frequency, ReminderFrequency reminderFrequency,
+        @NotNull MedicineFrequency frequency, @NotNull ReminderFrequency reminderFrequency,
         List<Day> customDays, @NotNull Instant startDate, Instant endDate, String notes,
         MedicineType type) {
 }

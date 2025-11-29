@@ -75,7 +75,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void registerPatient(User user) {
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+        if (userRepository.existsUserByEmail(user.getEmail())) {
             throw new RegistrationException(
                     "User with email " + user.getEmail() + " already exists");
         }
@@ -109,7 +109,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void registerDoctor(User user, MultipartFile nationalId, UUID specialization,
             String description) throws IOException {
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+        if (userRepository.existsUserByEmail(user.getEmail())) {
             throw new RegistrationException(
                     "User with email " + user.getEmail() + " already exists");
         }

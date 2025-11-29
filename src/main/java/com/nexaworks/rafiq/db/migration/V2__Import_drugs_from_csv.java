@@ -17,7 +17,7 @@ import org.flywaydb.core.api.migration.Context;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class V7__Import_drugs_from_csv extends BaseJavaMigration {
+public class V2__Import_drugs_from_csv extends BaseJavaMigration {
 
     private static final UUID SYSTEM_USER_ID = UUID
             .fromString("00000000-0000-0000-0000-000000000001");

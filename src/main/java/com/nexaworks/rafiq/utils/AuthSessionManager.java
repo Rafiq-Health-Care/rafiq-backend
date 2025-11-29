@@ -28,7 +28,7 @@ public class AuthSessionManager {
     public LoginResponse createLoginSession(HttpServletResponse response, User user) {
         String jwt = jwtService.generateToken(user);
         String refreshToken = tokenService.generateRefreshToken(user);
-        addTokenToCookie(response, jwt, "jwt", 60 * 60 * 24);
+        addTokenToCookie(response, jwt, "jwt", 60 * 60 * 24 * 7);
         addTokenToCookie(response, refreshToken, "refreshToken", 60 * 60 * 24 * 30);
         return new LoginResponse(user.getRoles().stream().map(Role::getName)
                 .filter(role -> !role.equals("ROLE_USER")).findFirst());
