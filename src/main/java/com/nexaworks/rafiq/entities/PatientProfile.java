@@ -15,7 +15,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "patient_profile", indexes = {@Index(name = "user_idx", columnList = "user_id")})
+@Table(name = "patient_profile", indexes = {
+        @Index(name = "user_patient_idx", columnList = "user_id")})
 public class PatientProfile extends BaseEntity {
 
     private String description;

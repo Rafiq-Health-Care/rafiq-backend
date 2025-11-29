@@ -29,7 +29,7 @@ public class DoctorProfile extends BaseEntity {
     private String nationalId;
     private String hospitalId;
 
-    @OneToOne(mappedBy = "doctorProfile")
+    @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
 

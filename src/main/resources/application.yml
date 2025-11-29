@@ -26,14 +26,14 @@ spring:
    # JPA config
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
       show-sql: true
     defer-datasource-initialization: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   # Flyway config - must run before JPA validation
   flyway:
     baseline-on-migrate: true
-    enabled: true
+    enabled: false
     locations: classpath:db/migration,classpath:com/nexaworks/rafiq/db/migration
     user: ${DATASOURCE_USERNAME}
     password: ${DATASOURCE_PASSWORD}
