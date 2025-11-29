@@ -37,7 +37,8 @@ public interface MedicineMapper {
             return null;
         }
         return new MedicineGroupResponse(entity.getId(), entity.getName(), entity.getDosage(),
-                entity.getFrequency(), entity.getStatus(),
+                entity.getFrequency(), entity.getReminderFrequency(), entity.getCustomDays(),
+                entity.getStatus(),
                 entity.getReminder() == null ? null : entity.getReminder().getNextReminder());
     }
 
