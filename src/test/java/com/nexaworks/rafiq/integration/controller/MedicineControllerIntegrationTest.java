@@ -144,7 +144,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Drug drug = createDrug();
 
             AddMedicineRequest request = new AddMedicineRequest(drug.getId(), "100mg",
-                    MedicineFrequency.ONCE, null, null, Instant.now(), null, null, null);
+                    MedicineFrequency.ONCE, ReminderFrequency.DAILY, null, Instant.now(), null,
+                    null, null);
 
             String payload = objectMapper.writeValueAsString(request);
 
@@ -166,7 +167,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Drug drug = createDrug();
 
             AddMedicineRequest request = new AddMedicineRequest(drug.getId(), "100mg",
-                    MedicineFrequency.ONCE, null, null, Instant.now(), null, null, null);
+                    MedicineFrequency.ONCE, ReminderFrequency.DAILY, null, Instant.now(), null,
+                    null, null);
 
             String payload = objectMapper.writeValueAsString(request);
 
