@@ -19,7 +19,7 @@ public interface ReminderRepository extends JpaRepository<Reminder, UUID> {
                    m.dosage AS dosage,
                    r.id AS reminderId,
                    r.nextReminder AS time
-            FROM  Reminder r JOIN Medicine m ON r.medicine.id = m.id
+            FROM  Reminder r JOIN r.medicine m
             WHERE r.patient.id = :id
 
             """)
