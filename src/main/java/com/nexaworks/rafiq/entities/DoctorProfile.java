@@ -2,6 +2,8 @@ package com.nexaworks.rafiq.entities;
 
 import java.util.List;
 
+import org.hibernate.annotations.BatchSize;
+
 import com.nexaworks.rafiq.entities.enums.Status;
 
 import jakarta.persistence.*;
@@ -17,6 +19,9 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@Table(name = "doctor_profile", indexes = {
+        @Index(name = "doctor_profile_idx", columnList = "user_id"),
+        @Index(name = "specialization_idx", columnList = "specialization_id")})
 public class DoctorProfile extends BaseEntity {
     private String description;
     private String hospitalName;
@@ -25,19 +30,22 @@ public class DoctorProfile extends BaseEntity {
     private String hospitalId;
 
     @OneToOne(mappedBy = "doctorProfile")
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "specialization_id", nullable = false)
     private Specialization specialization;
 
-    @OneToMany(mappedBy = "doctor", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "doctor", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @BatchSize(size = 10)
     private List<MedicalCertifications> medicalCertifications;
 
-    @OneToMany(mappedBy = "doctor")
+    @OneToMany(mappedBy = "doctor", fetch = FetchType.LAZY)
+    @BatchSize(size = 10)
     private List<LabTest> labTests;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "social_links_id", referencedColumnName = "id")
     private SocialLinks socialLinks;
 
