@@ -4,6 +4,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nexaworks.rafiq.dto.request.basicMedicalProfile.CreateBasicMedicalProfileRequest;
 import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.repository.PatientRepository;
@@ -30,5 +31,26 @@ public class PatientServiceImpl implements PatientService {
     public PatientProfile getPatientProfile() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return user.getPatientProfile();
+    }
+
+    @Override
+    @Transactional
+    public PatientProfile completePatientProfile(CreateBasicMedicalProfileRequest request) {
+        PatientProfile patientProfile = getPatientProfile();
+
+        patientProfile.setHeight(request.heightInCm());
+        patientProfile.setAlcoholism(request.alcoholism());
+        patientProfile.setBloodType(request.bloodType());
+        patientProfile.setCigarettesPerDay(request.cigarettesPerDay());
+        patientProfile.setDrinksPerWeek(request.drinksPerWeek());
+        patientProfile.setEmergencyContactName(request.emergencyContactName());
+        patientProfile.setEmergencyContactPhone(request.emergencyContactPhone());
+        patientProfile.setLastSmoked(request.lastSmoked());
+        patientProfile.setOccupation(request.occupation());
+        patientProfile.setPregnant(request.pregnant());
+        patientProfile.setSmokeStatus(request.smokeStatus());
+        patientProfile.setWeight((int) Math.round(request.weightInKg()));
+
+        return patientRepository.save(patientProfile);
     }
 }
