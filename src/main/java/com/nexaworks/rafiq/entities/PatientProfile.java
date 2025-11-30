@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.entities;
 
+import java.util.Date;
 import java.util.List;
 
 import com.nexaworks.rafiq.entities.enums.BloodType;
@@ -35,8 +36,12 @@ public class PatientProfile extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private SmokeStatus smokeStatus;
+    private int cigarettesPerDay;
+    private Date lastSmoked;
 
     private boolean alcoholism;
+    private int drinksPerWeek;
+
     private boolean pregnant;
     private String occupation;
     private String emergencyContactName;
