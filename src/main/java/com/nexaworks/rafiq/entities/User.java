@@ -12,8 +12,6 @@ import com.nexaworks.rafiq.entities.enums.Gender;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -41,9 +39,7 @@ public class User extends BaseEntity implements UserDetails, Principal {
     private String lastName;
     private String phone;
 
-    @Min(0)
-    @Max(120)
-    private int age;
+    private Date birthDate;
 
     @Builder.Default
     private boolean active = true;

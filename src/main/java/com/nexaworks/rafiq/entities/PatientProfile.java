@@ -2,7 +2,11 @@ package com.nexaworks.rafiq.entities;
 
 import java.util.List;
 
+import com.nexaworks.rafiq.entities.enums.BloodType;
+import com.nexaworks.rafiq.entities.enums.SmokeStatus;
+
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,13 +24,30 @@ import lombok.experimental.SuperBuilder;
 public class PatientProfile extends BaseEntity {
 
     private String description;
+    @Positive
+    private int height;
+
+    @Positive
+    private int weight;
+
+    @Enumerated(EnumType.STRING)
+    private BloodType bloodType;
+
+    @Enumerated(EnumType.STRING)
+    private SmokeStatus smokeStatus;
+
+    private boolean alcoholism;
+    private boolean pregnant;
+    private String occupation;
+    private String emergencyContactName;
+    private String emergencyContactPhone;
 
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
 
     @OneToMany(mappedBy = "patient", cascade = {CascadeType.REMOVE, CascadeType.PERSIST,
-            CascadeType.MERGE})
+            CascadeType.MERGE}, fetch = FetchType.LAZY)
     private List<LabTest> labTests;
     @OneToMany(mappedBy = "patient", cascade = {CascadeType.REMOVE, CascadeType.PERSIST,
             CascadeType.MERGE}, fetch = FetchType.LAZY)
