@@ -13,10 +13,10 @@ public interface PatientMapper {
     @Mapping(source = "user.email", target = "email")
     @Mapping(source = "user.phone", target = "phoneNumber")
     @Mapping(source = "id", target = "patientId")
-    @Mapping(target = "bmi", expression = "java(getBmiStatus(user.getWeight(), user.getHeight()))")
+    @Mapping(target = "bmi", expression = "java(getBmiStatus(patient.getWeight(), patient.getHeight()))")
     PatientProfileResponse toResponse(PatientProfile patient);
 
-    default String getBmiStatus(Double weight, Double height) {
+    default String getBmiStatus(int weight, int height) {
         int bmi = (int) (weight / (height * height));
         return bmi < 18.5 ? "Underweight" : bmi >= 18.5 && bmi < 25 ? "Normal" : "Overweight";
     }

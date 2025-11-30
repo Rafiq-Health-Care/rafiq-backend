@@ -3,7 +3,7 @@ package com.nexaworks.rafiq.mapper;
 import java.util.Collections;
 
 import org.mapstruct.Mapper;
-import org.springframework.transaction.annotation.Transactional;
+import org.mapstruct.Mapping;
 
 import com.nexaworks.rafiq.dto.request.group.AddGroupRequest;
 import com.nexaworks.rafiq.dto.response.Group.AddGroupResponse;
@@ -16,14 +16,10 @@ import com.nexaworks.rafiq.entities.Group;
 public interface GroupMapper {
     Group toEntity(AddGroupRequest addGroupRequest);
 
-    @Transactional(readOnly = true)
-    default AddGroupResponse toDto(Group savedGroup) {
-        return new AddGroupResponse(savedGroup.getId(), savedGroup.getPatient().getId(),
-                savedGroup.getDescription(), savedGroup.getColor(), savedGroup.getName(),
-                savedGroup.getCreatedAt().toEpochMilli(), savedGroup.getUpdatedAt().toEpochMilli(),
-                savedGroup.getIconUrl(),
-                savedGroup.getMedicines() != null ? savedGroup.getMedicines().size() : 0);
-    }
+    @Mapping(source = "patient.id", target = "patientId")
+    @Mapping(source = "id", target = "groupId")
+    @Mapping(target = "medicineCount", expression = "java(group.getMedicines() != null ? group.getMedicines().size() : 0)")
+    AddGroupResponse toDto(Group savedGroup);
 
     default GroupResponse toGroupDto(Group group, MedicineMapper medicineMapper) {
         return new GroupResponse(group.getId(), group.getName(), group.getDescription(),
@@ -35,7 +31,6 @@ public interface GroupMapper {
 
         );
     }
-
     default Response<GroupDetailsResponse> toResponse(Group group, MedicineMapper medicineMapper) {
         return new Response<>(true, new GroupDetailsResponse(group.getId(),
                 group.getPatient().getId(), group.getName(), group.getDescription(),
