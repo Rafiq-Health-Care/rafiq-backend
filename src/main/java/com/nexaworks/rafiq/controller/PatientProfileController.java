@@ -39,5 +39,12 @@ public class PatientProfileController {
         return ResponseEntity.ok().body(
                 patientMapper.convertToCompleteProfile(patientProfile, testMapper, medicineMapper));
     }
+    @PutMapping
+    public ResponseEntity<AddResponse<PatientProfileResponse>> updatePatientProfile(
+            @Valid @RequestBody CreateBasicMedicalProfileRequest request) {
+        PatientProfile patient = patientService.completePatientProfile(request);
+        return ResponseEntity.ok().body(new AddResponse<>(true,
+                "Patient profile updated successfully", patientMapper.toResponse(patient)));
+    }
 
 }
