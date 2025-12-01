@@ -1,6 +1,8 @@
 package com.nexaworks.rafiq.dto.request.user;
 
-import java.util.Date;
+import java.time.LocalDate;
+
+import com.nexaworks.rafiq.validation.annotation.ValidAge;
 
 import jakarta.validation.constraints.*;
 
@@ -10,5 +12,5 @@ public record UserRegistrationRequest(@NotBlank @Email String email, @NotBlank
         @NotBlank String firstName, String lastName,
         @NotBlank @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "Invalid phone number format") String phone,
         @NotBlank @Pattern(regexp = "^(male|female)$", message = "Gender must be either 'male' or 'female'") String gender,
-        Date birthDate) {
+        @ValidAge LocalDate birthDate) {
 }

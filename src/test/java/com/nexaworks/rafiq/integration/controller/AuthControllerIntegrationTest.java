@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -78,8 +78,9 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
         }
 
         User user = User.builder().email(email).password(passwordEncoder.encode(password))
-                .firstName(firstName).lastName(lastName).phone("+12345678901").birthDate(new Date())
-                .gender(Gender.MALE).roles(Set.of(patientRole)).enabled(true).build();
+                .firstName(firstName).lastName(lastName).phone("+12345678901")
+                .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE).roles(Set.of(patientRole))
+                .enabled(true).build();
         return userRepository.save(user);
     }
 

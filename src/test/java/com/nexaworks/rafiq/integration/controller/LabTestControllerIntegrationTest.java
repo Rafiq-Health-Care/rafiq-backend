@@ -3,6 +3,7 @@ package com.nexaworks.rafiq.integration.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.*;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -107,9 +108,9 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
 
         // Create user with patient profile
         User user = User.builder().email(email).password(passwordEncoder.encode(password))
-                .firstName(firstName).lastName(lastName).phone("+12345678901").birthDate(new Date())
-                .gender(Gender.MALE).roles(Set.of(patientRole)).enabled(true)
-                .patientProfile(patientProfile).build();
+                .firstName(firstName).lastName(lastName).phone("+12345678901")
+                .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE).roles(Set.of(patientRole))
+                .enabled(true).patientProfile(patientProfile).build();
 
         // Set bidirectional relationship
         patientProfile.setUser(user);

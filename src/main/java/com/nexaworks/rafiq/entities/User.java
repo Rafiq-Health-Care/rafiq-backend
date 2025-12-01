@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.entities;
 
 import java.security.Principal;
+import java.time.LocalDate;
 import java.util.*;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -39,7 +40,7 @@ public class User extends BaseEntity implements UserDetails, Principal {
     private String lastName;
     private String phone;
 
-    private Date birthDate;
+    private LocalDate birthDate;
 
     @Builder.Default
     private boolean active = true;

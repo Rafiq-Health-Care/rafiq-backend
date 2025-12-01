@@ -53,7 +53,7 @@ public class GroupController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "direction", defaultValue = "asc") String direction) {
         Page<Group> groups = groupService.getGroups(page, size, direction, sort);
-        return ResponseEntity.ok().body(pageMapper.mapToGroupPage(groups));
+        return ResponseEntity.ok().body(pageMapper.mapToGroupPage(groups, groupMapper));
     }
     @GetMapping("/{id}")
     public ResponseEntity<Response<GroupDetailsResponse>> getGroup(@PathVariable UUID id) {

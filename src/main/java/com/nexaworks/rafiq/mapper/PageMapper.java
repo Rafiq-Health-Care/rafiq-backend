@@ -1,10 +1,9 @@
 package com.nexaworks.rafiq.mapper;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import org.mapstruct.Context;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Component;
 
 import com.nexaworks.rafiq.dto.response.Group.AddGroupResponse;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
@@ -14,51 +13,50 @@ import com.nexaworks.rafiq.dto.response.medicine.DrugSearchResponse;
 import com.nexaworks.rafiq.dto.response.medicine.MedicineGroupResponse;
 import com.nexaworks.rafiq.entities.*;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+@Mapper(componentModel = "spring", uses = {DrugMapper.class, MedicineMapper.class,
+        GroupMapper.class})
+public interface PageMapper {
 
-@Component
-@RequiredArgsConstructor
-@Slf4j
-public class PageMapper {
-    private final DrugMapper drugMapper;
-    private final MedicineMapper medicineMapper;
-    private final GroupMapper groupMapper;
-    public PageResponse<LabResponse> mapToLabPage(Page<Lab> all) {
-        List<LabResponse> content = all.getContent().stream()
-                .map(lab -> new LabResponse(lab.getId(), lab.getName(), lab.getLogo()))
-                .collect(Collectors.toList());
-        return new PageResponse<>(content, (int) all.getTotalElements(), all.getSize(),
-                all.getTotalPages(), all.isLast(), all.isFirst());
-    }
+    @Mapping(target = "content", expression = "java(all.getContent().stream().map(lab -> new LabResponse(lab.getId(), lab.getName(), lab.getLogo())).collect(java.util.stream.Collectors.toList()))")
+    @Mapping(target = "numberOfElements", expression = "java((int) all.getTotalElements())")
+    @Mapping(target = "size", expression = "java(all.getSize())")
+    @Mapping(target = "totalPages", expression = "java(all.getTotalPages())")
+    @Mapping(target = "lastPage", expression = "java(all.isLast())")
+    @Mapping(target = "firstPage", expression = "java(all.isFirst())")
+    PageResponse<LabResponse> mapToLabPage(Page<Lab> all);
 
-    public PageResponse<TestResponse> mapToTestResponse(Page<LabTest> all) {
-        List<TestResponse> content = all
-                .getContent().stream().map(labTest -> new TestResponse(labTest.getName(),
-                        labTest.getId(), labTest.getPdf(), labTest.getFileType()))
-                .collect(Collectors.toList());
-        return new PageResponse<>(content, (int) all.getTotalElements(), all.getSize(),
-                all.getTotalPages(), all.isLast(), all.isFirst());
-    }
-    public PageResponse<DrugSearchResponse> mapToDrugSearchResponsePage(Page<Drug> all) {
+    @Mapping(target = "content", expression = "java(all.getContent().stream().map(labTest -> new TestResponse(labTest.getName(), labTest.getId(), labTest.getPdf(), labTest.getFileType())).collect(java.util.stream.Collectors.toList()))")
+    @Mapping(target = "numberOfElements", expression = "java((int) all.getTotalElements())")
+    @Mapping(target = "size", expression = "java(all.getSize())")
+    @Mapping(target = "totalPages", expression = "java(all.getTotalPages())")
+    @Mapping(target = "lastPage", expression = "java(all.isLast())")
+    @Mapping(target = "firstPage", expression = "java(all.isFirst())")
+    PageResponse<TestResponse> mapToTestResponse(Page<LabTest> all);
+    @Mapping(target = "content", expression = "java(all.getContent().stream().map(drugMapper::toDto).collect(java.util.stream.Collectors.toList()))")
+    @Mapping(target = "numberOfElements", expression = "java((int) all.getTotalElements())")
+    @Mapping(target = "size", expression = "java(all.getSize())")
+    @Mapping(target = "totalPages", expression = "java(all.getTotalPages())")
+    @Mapping(target = "lastPage", expression = "java(all.isLast())")
+    @Mapping(target = "firstPage", expression = "java(all.isFirst())")
+    PageResponse<DrugSearchResponse> mapToDrugSearchResponsePage(Page<Drug> all,
+            @Context DrugMapper drugMapper);
 
-        return new PageResponse<>(all.getContent().stream().map(drugMapper::toDto).toList(),
-                (int) all.getTotalElements(), all.getSize(), all.getTotalPages(), all.isLast(),
-                all.isFirst());
-    }
+    @Mapping(target = "content", expression = "java(all.getContent().stream().map(medicineMapper::toGroupDto).collect(java.util.stream.Collectors.toList()))")
+    @Mapping(target = "numberOfElements", expression = "java((int) all.getTotalElements())")
+    @Mapping(target = "size", expression = "java(all.getSize())")
+    @Mapping(target = "totalPages", expression = "java(all.getTotalPages())")
+    @Mapping(target = "lastPage", expression = "java(all.isLast())")
+    @Mapping(target = "firstPage", expression = "java(all.isFirst())")
+    PageResponse<MedicineGroupResponse> mapToMedicinePage(Page<Medicine> all,
+            @Context MedicineMapper medicineMapper);
 
-    public PageResponse<MedicineGroupResponse> mapToMedicinePage(Page<Medicine> all) {
-        return new PageResponse<>(
-                all.getContent().stream().map(medicineMapper::toGroupDto).toList(),
-                (int) all.getTotalElements(), all.getSize(), all.getTotalPages(), all.isLast(),
-                all.isFirst());
-    }
-
-    public PageResponse<AddGroupResponse> mapToGroupPage(Page<Group> groups) {
-        List<AddGroupResponse> content = groups.getContent().stream().map(groupMapper::toDto)
-                .collect(Collectors.toList());
-        return new PageResponse<>(content, (int) groups.getTotalElements(), groups.getSize(),
-                groups.getTotalPages(), groups.isLast(), groups.isFirst());
-    }
+    @Mapping(target = "content", expression = "java(all.getContent().stream().map(groupMapper::toDto).collect(java.util.stream.Collectors.toList()))")
+    @Mapping(target = "numberOfElements", expression = "java((int) all.getTotalElements())")
+    @Mapping(target = "size", expression = "java(all.getSize())")
+    @Mapping(target = "totalPages", expression = "java(all.getTotalPages())")
+    @Mapping(target = "lastPage", expression = "java(all.isLast())")
+    @Mapping(target = "firstPage", expression = "java(all.isFirst())")
+    PageResponse<AddGroupResponse> mapToGroupPage(Page<Group> all,
+            @Context GroupMapper groupMapper);
 
 }

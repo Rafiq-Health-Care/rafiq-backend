@@ -3,8 +3,8 @@ package com.nexaworks.rafiq.integration.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
@@ -80,7 +80,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
         PatientProfile patientProfile = PatientProfile.builder().build();
         User user = User.builder().email("test@example.com")
                 .password(passwordEncoder.encode("Valid@1234")).firstName("John").lastName("Doe")
-                .phone("+12345678901").birthDate(new Date()).gender(Gender.MALE)
+                .phone("+12345678901").birthDate(LocalDate.of(1999, 1, 1)).gender(Gender.MALE)
                 .roles(Set.of(patientRole)).enabled(true).patientProfile(patientProfile).build();
         patientProfile.setUser(user);
         return userRepository.save(user);

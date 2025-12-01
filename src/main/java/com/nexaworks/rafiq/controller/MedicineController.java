@@ -46,8 +46,8 @@ public class MedicineController {
     @GetMapping
     public ResponseEntity<PageResponse<MedicineGroupResponse>> getAllMedicines(
             @ParameterObject Pageable pageable, @ParameterObject MedicineFilter filter) {
-        return ResponseEntity.ok().body(
-                pageMapper.mapToMedicinePage(medicineService.getAllMedicines(pageable, filter)));
+        return ResponseEntity.ok().body(pageMapper.mapToMedicinePage(
+                medicineService.getAllMedicines(pageable, filter), medicineMapper));
     }
     @GetMapping("/{id}")
     public ResponseEntity<MedicineResponse> getMedicine(@PathVariable("id") UUID medicineId) {

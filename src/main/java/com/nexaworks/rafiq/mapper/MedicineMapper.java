@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import com.nexaworks.rafiq.dto.request.medicine.AddMedicineRequest;
 import com.nexaworks.rafiq.dto.request.medicine.UpdateMedicineRequest;
@@ -14,32 +15,15 @@ public interface MedicineMapper {
     Medicine toEntity(AddMedicineRequest request);
     Medicine toEntity(UpdateMedicineRequest request);
 
-    default MedicineResponse toDto(Medicine entity) {
-        if (entity == null) {
-            return null;
-        }
-
-        return new MedicineResponse(entity.getId(),
-                entity.getPatient() != null ? entity.getPatient().getId() : null, entity.getName(),
-                entity.getDosage(), entity.getFrequency(), entity.getReminderFrequency(),
-                entity.getCustomDays(), entity.getStartDate(), entity.getEndDate(),
-                entity.getNotes(), entity.getPhotoUrl(), entity.getType(), entity.getStatus(),
-                entity.getGroup() != null ? entity.getGroup().getId() : null,
-                entity.getGroup() != null ? entity.getGroup().getName() : null,
-                entity.getReminder() == null ? null : entity.getReminder().getId(),
-                entity.getReminder() == null ? null : entity.getReminder().getNextReminder(),
-                entity.getCreatedAt(), entity.getUpdatedAt());
-    }
+    @Mapping(target = "patientId", source = "patient.id")
+    @Mapping(target = "groupId", expression = "java(entity.getGroup() != null ? entity.getGroup().getId() : null)")
+    @Mapping(target = "reminderId", expression = "java(entity.getReminder() != null ? entity.getReminder().getId() : null)")
+    @Mapping(target = "nextReminder", expression = "java(entity.getReminder() != null ? entity.getReminder().getNextReminder() : null)")
+    @Mapping(target = "groupName", expression = "java(entity.getGroup() != null ? entity.getGroup().getName() : null)")
+    MedicineResponse toDto(Medicine entity);
 
     MedicinePreview toPreviewDto(Medicine entity);
-    default MedicineGroupResponse toGroupDto(Medicine entity) {
-        if (entity == null) {
-            return null;
-        }
-        return new MedicineGroupResponse(entity.getId(), entity.getName(), entity.getDosage(),
-                entity.getFrequency(), entity.getReminderFrequency(), entity.getCustomDays(),
-                entity.getStatus(),
-                entity.getReminder() == null ? null : entity.getReminder().getNextReminder());
-    }
+    @Mapping(target = "nextReminder", expression = "java(entity.getReminder() != null ? entity.getReminder().getNextReminder() : null)")
+    MedicineGroupResponse toGroupDto(Medicine entity);
 
 }

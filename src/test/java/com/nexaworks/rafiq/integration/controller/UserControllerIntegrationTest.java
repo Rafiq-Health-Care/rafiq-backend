@@ -3,7 +3,7 @@ package com.nexaworks.rafiq.integration.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -69,7 +69,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                 // Arrange
                 String email = "john.doe.integration@example.com";
                 UserRegistrationRequest request = new UserRegistrationRequest(email, "Valid@1234",
-                        "John", "Doe", "+12345678901", "male", new Date(99, 0, 1));
+                        "John", "Doe", "+12345678901", "male", LocalDate.of(1999, 1, 1));
 
                 String payload = objectMapper.writeValueAsString(request);
 
@@ -93,7 +93,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             void shouldReturnBadRequestForInvalidEmail() throws Exception {
                 String email = "not-an-email";
                 UserRegistrationRequest invalidRequest = new UserRegistrationRequest(email,
-                        "Valid@1234", "John", "Doe", "+12345678901", "male", new Date(99, 0, 1));
+                        "Valid@1234", "John", "Doe", "+12345678901", "male",
+                        LocalDate.of(1999, 1, 1));
 
                 String payload = objectMapper.writeValueAsString(invalidRequest);
 
@@ -113,7 +114,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                 String email = "valid.email@example.com";
                 UserRegistrationRequest invalidRequest = new UserRegistrationRequest(email,
                         "Val id@1234", // Password with space
-                        "John", "Doe", "+12345678901", "male", new Date(94, 0, 1));
+                        "John", "Doe", "+12345678901", "male", LocalDate.of(1994, 1, 1));
 
                 String payload = objectMapper.writeValueAsString(invalidRequest);
 
@@ -133,7 +134,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                 String email = "test.phone@example.com";
                 UserRegistrationRequest invalidRequest = new UserRegistrationRequest(email,
                         "Valid@1234", "John", "Doe", "01234567890", // Invalid phone - starts with 0
-                        "male", new Date(94, 0, 1));
+                        "male", LocalDate.of(1994, 1, 1));
 
                 String payload = objectMapper.writeValueAsString(invalidRequest);
 
@@ -153,8 +154,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                 String email = "test.age@example.com";
                 UserRegistrationRequest invalidRequest = new UserRegistrationRequest(email,
                         "Valid@1234", "John", "Doe", "+12345678901", "male",
-                        new Date(System.currentTimeMillis() + 1000000000L)); // Invalid age - future
-                                                                             // date
+                        LocalDate.now().plusDays(1)); // Invalid age - future
+                                                      // date
 
                 String payload = objectMapper.writeValueAsString(invalidRequest);
 
@@ -173,8 +174,9 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             void shouldReturnBadRequestForInvalidGender() throws Exception {
                 String email = "test.gender@example.com";
                 UserRegistrationRequest invalidRequest = new UserRegistrationRequest(email,
-                        "Valid@1234", "John", "Doe", "+12345678901", "other", new Date(94, 0, 1)); // Invalid
-                                                                                                   // gender
+                        "Valid@1234", "John", "Doe", "+12345678901", "other",
+                        LocalDate.of(1994, 1, 1)); // Invalid
+                // gender
 
                 String payload = objectMapper.writeValueAsString(invalidRequest);
 
@@ -194,7 +196,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                 String email = "test.firstname@example.com";
                 UserRegistrationRequest invalidRequest = new UserRegistrationRequest(email,
                         "Valid@1234", "", // Blank first name
-                        "Doe", "+12345678901", "male", new Date(94, 0, 1));
+                        "Doe", "+12345678901", "male", LocalDate.of(1994, 1, 1));
 
                 String payload = objectMapper.writeValueAsString(invalidRequest);
 
@@ -214,7 +216,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                 // Arrange - First register a patient
                 String email = "duplicate@example.com";
                 UserRegistrationRequest firstRequest = new UserRegistrationRequest(email,
-                        "Valid@1234", "John", "Doe", "+12345678901", "male", new Date(94, 0, 1));
+                        "Valid@1234", "John", "Doe", "+12345678901", "male",
+                        LocalDate.of(1994, 1, 1));
 
                 String firstPayload = objectMapper.writeValueAsString(firstRequest);
 
@@ -230,7 +233,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                 // Arrange - Try to register again with same email
                 UserRegistrationRequest duplicateRequest = new UserRegistrationRequest(email,
                         "AnotherValid@1234", "Jane", "Smith", "+19876543210", "female",
-                        new Date(99, 0, 1));
+                        LocalDate.of(1999, 1, 1));
 
                 String duplicatePayload = objectMapper.writeValueAsString(duplicateRequest);
 
@@ -261,7 +264,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                 // Arrange
                 String email = "dr.john.doe@example.com";
                 UserRegistrationRequest userRequest = new UserRegistrationRequest(email,
-                        "Valid@1234", "John", "Doe", "+12345678901", "male", new Date(94, 0, 1));
+                        "Valid@1234", "John", "Doe", "+12345678901", "male",
+                        LocalDate.of(1994, 1, 1));
 
                 UUID specializationId = specializationRepository.findAll().stream().findFirst()
                         .orElseThrow(
@@ -299,7 +303,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                 // Arrange
                 String email = "not-an-email";
                 UserRegistrationRequest userRequest = new UserRegistrationRequest(email,
-                        "Valid@1234", "John", "Doe", "+12345678901", "male", new Date(94, 0, 1));
+                        "Valid@1234", "John", "Doe", "+12345678901", "male",
+                        LocalDate.of(1994, 1, 1));
 
                 UUID specializationId = specializationRepository.findAll().stream().findFirst()
                         .orElseThrow(
@@ -333,7 +338,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                 String email = "dr.valid.email@example.com";
                 UserRegistrationRequest userRequest = new UserRegistrationRequest(email,
                         "Val id@1234", // Password with space
-                        "John", "Doe", "+12345678901", "male", new Date(94, 0, 1));
+                        "John", "Doe", "+12345678901", "male", LocalDate.of(1994, 1, 1));
 
                 UUID specializationId = specializationRepository.findAll().stream().findFirst()
                         .orElseThrow(
@@ -367,7 +372,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                 String email = "dr.test.phone@example.com";
                 UserRegistrationRequest userRequest = new UserRegistrationRequest(email,
                         "Valid@1234", "John", "Doe", "01234567890", // Invalid phone - starts with 0
-                        "male", new Date(94, 0, 1));
+                        "male", LocalDate.of(1994, 1, 1));
 
                 UUID specializationId = specializationRepository.findAll().stream().findFirst()
                         .orElseThrow(
@@ -401,9 +406,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                 String email = "dr.test.age@example.com";
                 UserRegistrationRequest userRequest = new UserRegistrationRequest(email,
                         "Valid@1234", "John", "Doe", "+12345678901", "male",
-                        new Date(System.currentTimeMillis() + 1000000000L)); // Invalid age - future
-                                                                             // date
-
+                        LocalDate.now().plusDays(1));
                 UUID specializationId = specializationRepository.findAll().stream().findFirst()
                         .orElseThrow(
                                 () -> new RuntimeException("No specialization found in database"))
@@ -435,8 +438,9 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                 // Arrange
                 String email = "dr.test.gender@example.com";
                 UserRegistrationRequest userRequest = new UserRegistrationRequest(email,
-                        "Valid@1234", "John", "Doe", "+12345678901", "other", new Date(94, 0, 1)); // Invalid
-                                                                                                   // gender
+                        "Valid@1234", "John", "Doe", "+12345678901", "other",
+                        LocalDate.of(1994, 1, 1)); // Invalid
+                // gender
 
                 UUID specializationId = specializationRepository.findAll().stream().findFirst()
                         .orElseThrow(
@@ -470,7 +474,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                 String email = "dr.test.firstname@example.com";
                 UserRegistrationRequest userRequest = new UserRegistrationRequest(email,
                         "Valid@1234", "", // Blank first name
-                        "Doe", "+12345678901", "male", new Date(94, 0, 1));
+                        "Doe", "+12345678901", "male", LocalDate.of(1994, 1, 1));
 
                 UUID specializationId = specializationRepository.findAll().stream().findFirst()
                         .orElseThrow(
@@ -503,7 +507,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                 // Arrange - First register a doctor
                 String email = "dr.duplicate@example.com";
                 UserRegistrationRequest firstUserRequest = new UserRegistrationRequest(email,
-                        "Valid@1234", "John", "Doe", "+12345678901", "male", new Date(94, 0, 1));
+                        "Valid@1234", "John", "Doe", "+12345678901", "male",
+                        LocalDate.of(1994, 1, 1));
 
                 UUID specializationId = specializationRepository.findAll().stream().findFirst()
                         .orElseThrow(
@@ -532,7 +537,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                 // Arrange - Try to register again with same email
                 UserRegistrationRequest duplicateUserRequest = new UserRegistrationRequest(email,
                         "AnotherValid@1234", "Jane", "Smith", "+19876543210", "female",
-                        new Date(99, 0, 1));
+                        LocalDate.of(1999, 1, 1));
 
                 DoctorRegistrationRequest duplicateRequest = new DoctorRegistrationRequest(
                         duplicateUserRequest, specializationId, "Experienced surgeon");
@@ -578,7 +583,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             // Arrange - Register a patient first
             String email = "verify.user@example.com";
             UserRegistrationRequest request = new UserRegistrationRequest(email, "Valid@1234",
-                    "John", "Doe", "+12345678901", "male", new Date(94, 0, 1));
+                    "John", "Doe", "+12345678901", "male", LocalDate.of(1994, 1, 1));
 
             String payload = objectMapper.writeValueAsString(request);
 
@@ -638,7 +643,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             // Arrange - Register a patient first
             String email = "newotp@example.com";
             UserRegistrationRequest request = new UserRegistrationRequest(email, "Valid@1234",
-                    "John", "Doe", "+12345678901", "male", new Date(94, 0, 1));
+                    "John", "Doe", "+12345678901", "male", LocalDate.of(1994, 1, 1));
 
             String payload = objectMapper.writeValueAsString(request);
 
