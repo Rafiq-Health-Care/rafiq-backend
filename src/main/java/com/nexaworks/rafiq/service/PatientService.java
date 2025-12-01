@@ -12,4 +12,5 @@ public interface PatientService {
     PatientProfile getPatientProfile();
 
     PatientProfile completePatientProfile(@Valid CreateBasicMedicalProfileRequest request);
+
 }
