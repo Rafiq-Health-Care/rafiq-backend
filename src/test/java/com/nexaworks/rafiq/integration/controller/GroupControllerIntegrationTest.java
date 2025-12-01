@@ -3,6 +3,7 @@ package com.nexaworks.rafiq.integration.controller;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
@@ -84,8 +85,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
         }
 
         User user = User.builder().email(email).password(passwordEncoder.encode("Valid@1234"))
-                .firstName(firstName).lastName(lastName).phone(phone).age(30).gender(gender)
-                .roles(Set.of(patientRole)).enabled(true).build();
+                .firstName(firstName).lastName(lastName).phone(phone).birthDate(new Date())
+                .gender(gender).roles(Set.of(patientRole)).enabled(true).build();
         PatientProfile patientProfile = PatientProfile.builder().user(user).build();
         user.setPatientProfile(patientProfile);
         return userRepository.save(user);

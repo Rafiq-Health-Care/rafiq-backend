@@ -107,7 +107,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
 
         // Create user with patient profile
         User user = User.builder().email(email).password(passwordEncoder.encode(password))
-                .firstName(firstName).lastName(lastName).phone("+12345678901").age(30)
+                .firstName(firstName).lastName(lastName).phone("+12345678901").birthDate(new Date())
                 .gender(Gender.MALE).roles(Set.of(patientRole)).enabled(true)
                 .patientProfile(patientProfile).build();
 

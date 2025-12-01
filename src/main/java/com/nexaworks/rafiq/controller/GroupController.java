@@ -58,8 +58,8 @@ public class GroupController {
     @GetMapping("/{id}")
     public ResponseEntity<Response<GroupDetailsResponse>> getGroup(@PathVariable UUID id) {
         Group group = groupService.getGroupById(id);
-        Response<GroupDetailsResponse> response = groupMapper.toResponse(group, medicineMapper);
-        return ResponseEntity.ok().body(response);
+        GroupDetailsResponse response = groupMapper.toResponse(group, medicineMapper);
+        return ResponseEntity.ok().body(new Response<>(true, response));
     }
     @PatchMapping("/{id}")
     public ResponseEntity<AddResponse<AddGroupResponse>> updateGroup(

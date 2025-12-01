@@ -25,11 +25,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final UserMapper userMapper;
 
     @PostMapping("/register/patient")
     public ResponseEntity<Void> registerPatient(
             @Valid @RequestBody UserRegistrationRequest request) {
-        userService.registerPatient(UserMapper.toUser(request));
+        userService.registerPatient(userMapper.toUser(request));
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -38,7 +39,7 @@ public class UserController {
             @RequestPart("doctorData") @Valid DoctorRegistrationRequest request,
             @RequestPart(value = "nationalId", required = false) MultipartFile nationalId)
             throws IOException {
-        userService.registerDoctor(UserMapper.toUser(request.user()), nationalId,
+        userService.registerDoctor(userMapper.toUser(request.user()), nationalId,
                 request.specialization(), request.description());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

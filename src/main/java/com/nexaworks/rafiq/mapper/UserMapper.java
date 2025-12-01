@@ -1,24 +1,20 @@
 package com.nexaworks.rafiq.mapper;
 
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
 import com.nexaworks.rafiq.dto.request.user.UserRegistrationRequest;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.Gender;
 
-import jakarta.validation.Valid;
+@Mapper(componentModel = "spring")
+public interface UserMapper {
 
-public class UserMapper {
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "gender", expression = "java(parseGender(request.gender()))")
+    User toUser(UserRegistrationRequest request);
 
-    public static User toUser(@Valid UserRegistrationRequest request) {
-        if (request == null) {
-            return null;
-        }
-        return User.builder().email(request.email()).password(request.password())
-                .firstName(request.firstName()).lastName(request.lastName()).phone(request.phone())
-                .age(request.age()).gender(parseGender(request.gender())).active(true).locked(false)
-                .enabled(false).build();
-    }
-
-    private static Gender parseGender(String gender) {
+    default Gender parseGender(String gender) {
         if (gender == null)
             return null;
         String g = gender.trim().toLowerCase();

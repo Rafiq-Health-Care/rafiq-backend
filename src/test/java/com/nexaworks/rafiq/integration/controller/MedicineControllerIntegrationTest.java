@@ -3,10 +3,7 @@ package com.nexaworks.rafiq.integration.controller;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -82,8 +79,9 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
         PatientProfile patientProfile = PatientProfile.builder().build();
         User user = User.builder().email(email).password(passwordEncoder.encode("Valid@1234"))
-                .firstName(firstName).lastName(lastName).phone(phone).age(30).gender(gender)
-                .roles(Set.of(patientRole)).enabled(true).patientProfile(patientProfile).build();
+                .firstName(firstName).lastName(lastName).phone(phone).birthDate(new Date())
+                .gender(gender).roles(Set.of(patientRole)).enabled(true)
+                .patientProfile(patientProfile).build();
         patientProfile.setUser(user);
         return userRepository.save(user);
     }

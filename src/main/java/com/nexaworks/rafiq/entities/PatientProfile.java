@@ -7,7 +7,7 @@ import com.nexaworks.rafiq.entities.enums.BloodType;
 import com.nexaworks.rafiq.entities.enums.SmokeStatus;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,10 +25,10 @@ import lombok.experimental.SuperBuilder;
 public class PatientProfile extends BaseEntity {
 
     private String description;
-    @Positive
+    @PositiveOrZero
     private int height;
 
-    @Positive
+    @PositiveOrZero
     private int weight;
 
     @Enumerated(EnumType.STRING)
