@@ -1,5 +1,7 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
+import java.util.UUID;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,6 +10,7 @@ import com.nexaworks.rafiq.dto.request.basicMedicalProfile.CreateBasicMedicalPro
 import com.nexaworks.rafiq.entities.PatientProfile;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.repository.PatientRepository;
+import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.PatientService;
 
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PatientServiceImpl implements PatientService {
     private final PatientRepository patientRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -29,8 +33,10 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public PatientProfile getPatientProfile() {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return user.getPatientProfile();
+        UUID patientId = (UUID) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        User patient = userRepository.findById(patientId).orElseThrow();
+        return patient.getPatientProfile();
     }
 
     @Override

@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -113,8 +112,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(CREATE_REMINDER_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isCreated())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
@@ -132,8 +130,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(CREATE_REMINDER_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -147,8 +144,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(CREATE_REMINDER_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isCreated())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.vibrate").value(false));
         }
@@ -178,8 +174,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.get(GET_HISTORY_ENDPOINT).param("page", "0")
                     .param("size", "10").contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(filters))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(filters)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray());
         }
@@ -192,8 +187,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.get(GET_HISTORY_ENDPOINT).param("page", "0")
                     .param("size", "10").contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(filters))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(filters)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content").isEmpty());
         }
@@ -220,8 +214,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.get(GET_HISTORY_ENDPOINT).param("page", "0")
                     .param("size", "10").contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(filters))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user2)))
+                    .content(objectMapper.writeValueAsString(filters)).with(withUserId(user2)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content").isEmpty());
         }
@@ -245,8 +238,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             LocalDateTime takenTime = LocalDateTime.now();
 
             mockMvc.perform(MockMvcRequestBuilders.post(MARK_TAKEN_ENDPOINT, reminder.getId())
-                    .param("taken-time", takenTime.toString())
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .param("taken-time", takenTime.toString()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNoContent());
 
             assertThat(reminderLogRepository.findAll()).hasSize(1);
@@ -259,8 +251,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             LocalDateTime takenTime = LocalDateTime.now();
 
             mockMvc.perform(MockMvcRequestBuilders.post(MARK_TAKEN_ENDPOINT, nonExistentId)
-                    .param("taken-time", takenTime.toString())
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .param("taken-time", takenTime.toString()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -286,8 +277,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             LocalDateTime takenTime = LocalDateTime.now();
 
             mockMvc.perform(MockMvcRequestBuilders.post(MARK_TAKEN_ENDPOINT, reminder.getId())
-                    .param("taken-time", takenTime.toString())
-                    .with(SecurityMockMvcRequestPostProcessors.user(otherUser)))
+                    .param("taken-time", takenTime.toString()).with(withUserId(otherUser)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
     }
@@ -310,8 +300,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             LocalDateTime missedTime = LocalDateTime.now();
 
             mockMvc.perform(MockMvcRequestBuilders.post(MARK_MISSED_ENDPOINT, reminder.getId())
-                    .param("taken-time", missedTime.toString())
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .param("taken-time", missedTime.toString()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNoContent());
 
             assertThat(reminderLogRepository.findAll()).hasSize(1);
@@ -324,8 +313,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             LocalDateTime missedTime = LocalDateTime.now();
 
             mockMvc.perform(MockMvcRequestBuilders.post(MARK_MISSED_ENDPOINT, nonExistentId)
-                    .param("taken-time", missedTime.toString())
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .param("taken-time", missedTime.toString()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -351,8 +339,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             LocalDateTime missedTime = LocalDateTime.now();
 
             mockMvc.perform(MockMvcRequestBuilders.post(MARK_MISSED_ENDPOINT, reminder.getId())
-                    .param("taken-time", missedTime.toString())
-                    .with(SecurityMockMvcRequestPostProcessors.user(otherUser)))
+                    .param("taken-time", missedTime.toString()).with(withUserId(otherUser)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
     }
@@ -373,8 +360,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             reminderRepository.save(reminder);
 
             mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_REMINDERS_ENDPOINT)
-                    .param("page", "0").param("size", "10")
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .param("page", "0").param("size", "10").with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(1));
@@ -385,8 +371,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
 
             mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_REMINDERS_ENDPOINT)
-                    .param("page", "0").param("size", "10")
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .param("page", "0").param("size", "10").with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content").isEmpty());
         }
@@ -410,8 +395,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             userRepository.save(user2);
 
             mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_REMINDERS_ENDPOINT)
-                    .param("page", "0").param("size", "10")
-                    .with(SecurityMockMvcRequestPostProcessors.user(user2)))
+                    .param("page", "0").param("size", "10").with(withUserId(user2)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content").isEmpty());
         }
@@ -432,9 +416,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
                     .nextReminder(LocalDateTime.now().plusHours(1)).build();
             reminderRepository.save(reminder);
 
-            mockMvc.perform(
-                    MockMvcRequestBuilders.get(GET_REMINDER_BY_ID_ENDPOINT, reminder.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .get(GET_REMINDER_BY_ID_ENDPOINT, reminder.getId()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.medicineId")
                             .value(medicine.getId().toString()));
@@ -446,8 +429,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             UUID nonExistentId = UUID.randomUUID();
 
             mockMvc.perform(MockMvcRequestBuilders.get(GET_REMINDER_BY_ID_ENDPOINT, nonExistentId)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound());
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
         @Test
@@ -469,9 +451,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             otherPatient.setUser(otherUser);
             userRepository.save(otherUser);
 
-            mockMvc.perform(
-                    MockMvcRequestBuilders.get(GET_REMINDER_BY_ID_ENDPOINT, reminder.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(otherUser)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .get(GET_REMINDER_BY_ID_ENDPOINT, reminder.getId()).with(withUserId(otherUser)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
     }
@@ -493,7 +474,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(
                     MockMvcRequestBuilders.patch(UPDATE_VIBRATION_ENDPOINT, false, reminder.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                            .with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.vibrate").value(false));
@@ -504,9 +485,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
             UUID nonExistentId = UUID.randomUUID();
 
-            mockMvc.perform(
-                    MockMvcRequestBuilders.patch(UPDATE_VIBRATION_ENDPOINT, true, nonExistentId)
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .patch(UPDATE_VIBRATION_ENDPOINT, true, nonExistentId).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -531,7 +511,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(
                     MockMvcRequestBuilders.patch(UPDATE_VIBRATION_ENDPOINT, false, reminder.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(otherUser)))
+                            .with(withUserId(otherUser)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
     }
@@ -551,9 +531,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
                     .nextReminder(LocalDateTime.now().plusHours(1)).build();
             reminderRepository.save(reminder);
 
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_REMINDER_ENDPOINT, reminder.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .delete(DELETE_REMINDER_ENDPOINT, reminder.getId()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNoContent());
 
             assertThat(reminderRepository.findById(reminder.getId())).isEmpty();
@@ -565,8 +544,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             UUID nonExistentId = UUID.randomUUID();
 
             mockMvc.perform(MockMvcRequestBuilders.delete(DELETE_REMINDER_ENDPOINT, nonExistentId)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound());
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
         @Test
@@ -588,9 +566,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             otherPatient.setUser(otherUser);
             userRepository.save(otherUser);
 
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_REMINDER_ENDPOINT, reminder.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(otherUser)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .delete(DELETE_REMINDER_ENDPOINT, reminder.getId()).with(withUserId(otherUser)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
     }
@@ -612,7 +589,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(
                     MockMvcRequestBuilders.patch(DISABLE_REMINDER_ENDPOINT, reminder.getId(), true)
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                            .with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNoContent());
 
             Reminder updatedReminder = reminderRepository.findById(reminder.getId()).orElseThrow();
@@ -631,7 +608,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(
                     MockMvcRequestBuilders.patch(DISABLE_REMINDER_ENDPOINT, reminder.getId(), false)
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                            .with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNoContent());
 
             Reminder updatedReminder = reminderRepository.findById(reminder.getId()).orElseThrow();
@@ -643,9 +620,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
             UUID nonExistentId = UUID.randomUUID();
 
-            mockMvc.perform(
-                    MockMvcRequestBuilders.patch(DISABLE_REMINDER_ENDPOINT, nonExistentId, true)
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .patch(DISABLE_REMINDER_ENDPOINT, nonExistentId, true).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -670,7 +646,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(
                     MockMvcRequestBuilders.patch(DISABLE_REMINDER_ENDPOINT, reminder.getId(), true)
-                            .with(SecurityMockMvcRequestPostProcessors.user(otherUser)))
+                            .with(withUserId(otherUser)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
     }

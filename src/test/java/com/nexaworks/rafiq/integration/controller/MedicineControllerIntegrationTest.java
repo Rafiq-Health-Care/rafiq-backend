@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -114,8 +113,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isCreated())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isCreated())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.patientId")
@@ -150,13 +148,11 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isCreated());
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isCreated());
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isConflict());
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isConflict());
         }
 
         @Test
@@ -185,7 +181,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isUnprocessableEntity());
         }
 
@@ -202,7 +198,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isBadRequest());
         }
 
@@ -223,8 +219,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isCreated())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isCreated())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.reminderFrequency")
                             .value("CUSTOM"))
@@ -268,8 +263,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             medicineRepository.save(medicine2);
 
             // Act & Assert
-            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(
+                    MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(2))
@@ -284,8 +279,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
 
             // Act & Assert
-            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(
+                    MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(0))
@@ -314,8 +309,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             medicineRepository.save(medicine2);
 
             // Act & Assert - user1 should only see their own medicine
-            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user1)))
+            mockMvc.perform(
+                    MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT).with(withUserId(user1)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(1))
                     .andExpect(
@@ -340,8 +335,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             // Act & Assert - Request page 0 with size 2
             mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
-                    .param("page", "0").param("size", "2")
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .param("page", "0").param("size", "2").with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(2))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(5))
@@ -369,9 +363,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             medicineRepository.save(inactiveMedicine);
 
             // Act & Assert - Filter by ACTIVE status
-            mockMvc.perform(
-                    MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT).param("status", "ACTIVE")
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
+                    .param("status", "ACTIVE").with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(1))
                     .andExpect(
@@ -395,9 +388,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .build();
             medicineRepository.save(medicine);
 
-            mockMvc.perform(
-                    MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.patientId")
                             .value(user.getPatientProfile().getId().toString()))
@@ -411,8 +403,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             UUID nonExistentId = UUID.randomUUID();
 
             mockMvc.perform(MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, nonExistentId)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound());
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
         @Test
@@ -435,9 +426,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             otherPatient.setUser(otherUser);
             userRepository.save(otherUser);
 
-            mockMvc.perform(
-                    MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(otherUser)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId()).with(withUserId(otherUser)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -456,9 +446,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .build();
             medicineRepository.save(medicine);
 
-            mockMvc.perform(
-                    MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.groupId")
                             .value(group.getId().toString()))
@@ -483,9 +472,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .build();
             medicineRepository.save(medicine);
 
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_MEDICINE_ENDPOINT, medicine.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .delete(DELETE_MEDICINE_ENDPOINT, medicine.getId()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNoContent());
 
             assertThat(medicineRepository.findById(medicine.getId())).isEmpty();
@@ -497,8 +485,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             UUID nonExistentId = UUID.randomUUID();
 
             mockMvc.perform(MockMvcRequestBuilders.delete(DELETE_MEDICINE_ENDPOINT, nonExistentId)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound());
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
         @Test
@@ -521,9 +508,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             otherPatient.setUser(otherUser);
             userRepository.save(otherUser);
 
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_MEDICINE_ENDPOINT, medicine.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(otherUser)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .delete(DELETE_MEDICINE_ENDPOINT, medicine.getId()).with(withUserId(otherUser)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -538,9 +524,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .build();
             medicineRepository.save(medicine);
 
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_MEDICINE_ENDPOINT, medicine.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .delete(DELETE_MEDICINE_ENDPOINT, medicine.getId()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNoContent());
 
             assertThat(medicineRepository.findById(medicine.getId())).isEmpty();
@@ -570,8 +555,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.name").value("New Name"))
@@ -590,8 +574,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, nonExistentId)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -622,8 +605,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(otherUser)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(otherUser)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -639,8 +621,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             medicineRepository.save(medicine);
 
             mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
-                    .contentType(MediaType.APPLICATION_JSON).content("{}")
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .contentType(MediaType.APPLICATION_JSON).content("{}").with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isBadRequest());
         }
 
@@ -663,8 +644,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true)).andExpect(
                             MockMvcResultMatchers.jsonPath("$.data.customDays.length()").value(3));
@@ -694,8 +674,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, medicine.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.name").value("New Name"))
@@ -720,8 +699,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, medicine.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.name").value("New Name"))
@@ -740,8 +718,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, nonExistentId)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -772,8 +749,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, medicine.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(otherUser)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(otherUser)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -795,8 +771,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, medicine.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true));
         }
@@ -831,8 +806,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.successCount").value(2))
@@ -865,8 +839,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.successCount").value(2));
@@ -901,8 +874,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.successCount").value(2));
@@ -927,8 +899,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.failedIds.length()").value(1))
@@ -945,8 +916,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isBadRequest());
         }
     }

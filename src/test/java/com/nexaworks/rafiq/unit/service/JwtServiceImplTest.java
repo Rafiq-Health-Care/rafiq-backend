@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -56,18 +57,19 @@ public class JwtServiceImplTest {
         assertNotNull(token);
     }
 
-    @DisplayName("Generated token must have the email")
+    @DisplayName("Generated token must have user id")
     @Test
     void jwtMustHaveTheEmail() {
         User user = mock(User.class);
-        when(user.getEmail()).thenReturn("bialy@gmail.com");
+        UUID id = UUID.randomUUID();
+        when(user.getId()).thenReturn(id);
         Collection<? extends GrantedAuthority> authorities = List
                 .of(new SimpleGrantedAuthority("ROLE_ADMIN"));
         doReturn(authorities).when(user).getAuthorities();
         String token = jwtService.generateToken(user);
         Claims claims = Jwts.parser().verifyWith(jwtService.getKey()).build()
                 .parseSignedClaims(token).getPayload();
-        assertEquals(claims.getSubject(), user.getEmail());
+        assertEquals(claims.getSubject(), id.toString());
     }
 
     @DisplayName("Generated token must have the claims")

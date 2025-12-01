@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -110,8 +109,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_GROUP_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isCreated())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isCreated())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Group added successfully"))
@@ -143,7 +141,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_GROUP_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
             // Verify no group was saved
@@ -162,8 +160,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Add first group
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_GROUP_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isCreated());
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isCreated());
 
             // Try to add group with same name
             AddGroupRequest duplicateRequest = new AddGroupRequest("Vitamins",
@@ -173,8 +170,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_GROUP_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(duplicatePayload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isConflict())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isConflict())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Group with name Vitamins already exists"));
 
@@ -213,7 +209,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_GROUPS_ENDPOINT).param("page", "0")
-                    .param("size", "10").with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .param("size", "10").with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(3))
@@ -231,7 +227,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_GROUPS_ENDPOINT).param("page", "0")
-                    .param("size", "10").with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .param("size", "10").with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(0))
@@ -267,8 +263,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_GROUPS_ENDPOINT).param("page", "0")
                     .param("size", "10").param("sort", "name").param("direction", "desc")
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(3))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].name").value("C-Group"))
@@ -296,9 +291,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
 
             // Act & Assert
-            mockMvc.perform(
-                    MockMvcRequestBuilders.get(GET_GROUP_BY_ID_ENDPOINT + savedGroup.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .get(GET_GROUP_BY_ID_ENDPOINT + savedGroup.getId()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.name")
@@ -322,9 +316,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             java.util.UUID nonExistentGroupId = java.util.UUID.randomUUID();
 
             // Act & Assert
-            mockMvc.perform(
-                    MockMvcRequestBuilders.get(GET_GROUP_BY_ID_ENDPOINT + nonExistentGroupId)
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .get(GET_GROUP_BY_ID_ENDPOINT + nonExistentGroupId).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Group not found with id: " + nonExistentGroupId));
@@ -348,9 +341,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             // Try to access with user2
             // Act & Assert
-            mockMvc.perform(
-                    MockMvcRequestBuilders.get(GET_GROUP_BY_ID_ENDPOINT + savedGroup.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user2)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .get(GET_GROUP_BY_ID_ENDPOINT + savedGroup.getId()).with(withUserId(user2)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Group not found with id: " + savedGroup.getId()));
@@ -381,8 +373,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.patch(UPDATE_GROUP_ENDPOINT + savedGroup.getId())
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Group updated successfully"))
@@ -417,8 +408,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.patch(UPDATE_GROUP_ENDPOINT + nonExistentGroupId)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isNotFound())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Group not found with id: " + nonExistentGroupId));
         }
@@ -448,7 +438,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             mockMvc.perform(
                     MockMvcRequestBuilders.patch(UPDATE_GROUP_ENDPOINT + savedGroup2.getId())
                             .contentType(MediaType.APPLICATION_JSON).content(payload)
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                            .with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isConflict())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Group with name Existing Group already exists"));
@@ -474,9 +464,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             assertThat(groupRepository.count()).isEqualTo(1);
 
             // Act & Assert
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_GROUP_ENDPOINT + savedGroup.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .delete(DELETE_GROUP_ENDPOINT + savedGroup.getId()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNoContent());
 
             // Verify deletion
@@ -491,9 +480,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             UUID nonExistentGroupId = UUID.randomUUID();
 
             // Act & Assert
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_GROUP_ENDPOINT + nonExistentGroupId)
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .delete(DELETE_GROUP_ENDPOINT + nonExistentGroupId).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Group not found with id: " + nonExistentGroupId));
@@ -515,9 +503,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
 
             // Act & Assert
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_GROUP_ENDPOINT + savedGroup.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user2)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .delete(DELETE_GROUP_ENDPOINT + savedGroup.getId()).with(withUserId(user2)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
 
             // Verify group was not deleted
@@ -564,8 +551,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINES_ENDPOINT + savedGroup.getId())
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Medicines added to group successfully"))
@@ -588,8 +574,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINES_ENDPOINT + nonExistentGroupId)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound());
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
         @Test
@@ -620,8 +605,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINES_ENDPOINT + savedGroup.getId())
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.addedCount").value(1));
         }
     }
@@ -653,11 +637,9 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             Medicine savedMedicine = medicineRepository.save(medicine);
 
             // Act & Assert
-            mockMvc.perform(MockMvcRequestBuilders
-                    .post(REMOVE_MEDICINE_ENDPOINT + savedGroup.getId() + "/"
-                            + savedMedicine.getId())
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
+            mockMvc.perform(MockMvcRequestBuilders.post(
+                    REMOVE_MEDICINE_ENDPOINT + savedGroup.getId() + "/" + savedMedicine.getId())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.content().json(
                             "{\"success\":true,\"message\":\"Medicine removed from group\"}"));
 
@@ -677,8 +659,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders
                     .post(REMOVE_MEDICINE_ENDPOINT + nonExistentGroupId + "/" + medicineId)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound());
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
         @Test
@@ -695,11 +676,9 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             UUID nonExistentMedicineId = UUID.randomUUID();
 
             // Act & Assert
-            mockMvc.perform(MockMvcRequestBuilders
-                    .post(REMOVE_MEDICINE_ENDPOINT + savedGroup.getId() + "/"
-                            + nonExistentMedicineId)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound())
+            mockMvc.perform(MockMvcRequestBuilders.post(
+                    REMOVE_MEDICINE_ENDPOINT + savedGroup.getId() + "/" + nonExistentMedicineId)
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isNotFound())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Medicine with id "
                             + nonExistentMedicineId + " not found in group Test Group"));
         }

@@ -1,7 +1,6 @@
 package com.nexaworks.rafiq.integration.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -389,7 +388,8 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert - Reset password with authentication
                 mockMvc.perform(MockMvcRequestBuilders.post(RESET_PASSWORD_ENDPOINT)
-                        .contentType(MediaType.APPLICATION_JSON).content(payload).with(user(user))) // Authenticate
+                        .contentType(MediaType.APPLICATION_JSON).content(payload)
+                        .with(withUserId(user))) // Authenticate
                         // as
                         // this
                         // user
@@ -440,7 +440,8 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert - Should return 400 for incorrect old password
                 mockMvc.perform(MockMvcRequestBuilders.post(RESET_PASSWORD_ENDPOINT)
-                        .contentType(MediaType.APPLICATION_JSON).content(payload).with(user(user))) // Authenticate
+                        .contentType(MediaType.APPLICATION_JSON).content(payload)
+                        .with(withUserId(user))) // Authenticate
                         // as
                         // this
                         // user
@@ -467,7 +468,8 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert - Should return 400 for validation error
                 mockMvc.perform(MockMvcRequestBuilders.post(RESET_PASSWORD_ENDPOINT)
-                        .contentType(MediaType.APPLICATION_JSON).content(payload).with(user(user))) // Authenticate
+                        .contentType(MediaType.APPLICATION_JSON).content(payload)
+                        .with(withUserId(user))) // Authenticate
                         // as
                         // this
                         // user

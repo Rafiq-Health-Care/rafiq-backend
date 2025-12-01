@@ -167,7 +167,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUser() {
 
-        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userRepository.findById(
+                (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+                .orElseThrow();
     }
 
     @Override

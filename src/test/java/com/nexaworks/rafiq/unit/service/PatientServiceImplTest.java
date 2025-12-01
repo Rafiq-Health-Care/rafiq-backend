@@ -43,4 +43,5 @@ public class PatientServiceImplTest {
         assertThat(patientProfile.getUser()).isEqualTo(patient);
         verify(patientRepository, times(1)).save(any(PatientProfile.class));
     }
+
 }

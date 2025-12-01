@@ -260,7 +260,8 @@ class AuthServiceImplTest {
             ResetPasswordRequest request = new ResetPasswordRequest("oldPass", "newPass123");
 
             when(securityContext.getAuthentication()).thenReturn(authentication);
-            when(authentication.getPrincipal()).thenReturn(testUser);
+            when(authentication.getPrincipal()).thenReturn(testUser.getId());
+            when(userRepository.findById(testUser.getId())).thenReturn(Optional.of(testUser));
             SecurityContextHolder.setContext(securityContext);
 
             // Act
@@ -493,11 +494,12 @@ class AuthServiceImplTest {
     class GetAuthenticatedUserTests {
 
         @Test
-        @DisplayName("Should return authenticated user from security context")
-        void shouldReturnAuthenticatedUserFromSecurityContext() {
+        @DisplayName("Should return authenticated user id from security context")
+        void shouldReturnAuthenticatedUserIdFromSecurityContext() {
             // Arrange
             when(securityContext.getAuthentication()).thenReturn(authentication);
-            when(authentication.getPrincipal()).thenReturn(testUser);
+            when(authentication.getPrincipal()).thenReturn(testUser.getId());
+            when(userRepository.findById(testUser.getId())).thenReturn(Optional.of(testUser));
             SecurityContextHolder.setContext(securityContext);
 
             // Act
