@@ -22,7 +22,6 @@ import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.PatientProfile;
-import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.TokenType;
@@ -100,8 +99,6 @@ public class UserServiceImpl implements UserService {
 
     private User extracted(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        Role role = roleService.getRole(ROLE_USER);
-        user.getRoles().add(role);
         return user;
     }
 
@@ -180,7 +177,6 @@ public class UserServiceImpl implements UserService {
         user.setFirstName(firstName);
         user.setLastName(lastName);
         user.setEnabled(false);
-        user.getRoles().add(roleService.getRole(ROLE_USER));
         User oAuthUser = userRepository.save(user);
         log.info("User created {}", user.getEmail());
         return oAuthUser;
