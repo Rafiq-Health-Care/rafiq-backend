@@ -19,12 +19,13 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@ToString(exclude = {"password", "addresses", "tokens", "doctorProfile", "patientProfile", "roles"})
+@ToString(exclude = {"password", "addresses", "tokens", "roles"})
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
 @Entity
 @Table(name = "users", indexes = {@Index(columnList = "email", unique = true)})
+@Inheritance(strategy = InheritanceType.JOINED)
 public class User extends BaseEntity implements UserDetails, Principal {
 
     @Email
@@ -60,14 +61,6 @@ public class User extends BaseEntity implements UserDetails, Principal {
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     @Builder.Default
     private Set<Role> roles = new HashSet<>();
-
-    @OneToOne(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.EAGER)
-    private DoctorProfile doctorProfile;
-
-    @OneToOne(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.EAGER)
-    private PatientProfile patientProfile;
 
     @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
             CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -109,12 +102,6 @@ public class User extends BaseEntity implements UserDetails, Principal {
         return this.enabled;
     }
 
-    public boolean isDoctor() {
-        return this.doctorProfile != null;
-    }
-    public boolean isPatient() {
-        return this.patientProfile != null;
-    }
     public void addRole(Role role) {
         this.roles.add(role);
     }

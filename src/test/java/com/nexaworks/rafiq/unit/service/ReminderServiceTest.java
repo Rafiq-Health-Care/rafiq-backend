@@ -54,7 +54,7 @@ public class ReminderServiceTest {
     @InjectMocks
     private ReminderServiceImpl reminderService;
 
-    private PatientProfile testPatient;
+    private Patient testPatient;
     private Medicine testMedicine;
     private Reminder testReminder;
     private UUID testPatientId;
@@ -65,7 +65,7 @@ public class ReminderServiceTest {
         testPatientId = UUID.randomUUID();
         testReminderId = UUID.randomUUID();
 
-        testPatient = PatientProfile.builder().id(testPatientId).build();
+        testPatient = Patient.builder().id(testPatientId).build();
 
         testMedicine = Medicine.builder().id(UUID.randomUUID()).name("Test Medicine")
                 .drug(Drug.builder().id(UUID.randomUUID()).build()).build();
@@ -227,8 +227,7 @@ public class ReminderServiceTest {
             Pageable pageable = PageRequest.of(0, 10);
 
             UUID differentPatientId = UUID.randomUUID();
-            PatientProfile differentPatient = PatientProfile.builder().id(differentPatientId)
-                    .build();
+            Patient differentPatient = Patient.builder().id(differentPatientId).build();
 
             when(patientService.getPatientProfile()).thenReturn(differentPatient);
             when(reminderLogRepository.findLogsHistory(any(), any(), any(), any(),
@@ -300,8 +299,7 @@ public class ReminderServiceTest {
         @DisplayName("Should throw exception when patient doesn't own reminder")
         void shouldThrowException_WhenPatientDoesntOwnReminder() {
             UUID differentPatientId = UUID.randomUUID();
-            PatientProfile differentPatient = PatientProfile.builder().id(differentPatientId)
-                    .build();
+            Patient differentPatient = Patient.builder().id(differentPatientId).build();
 
             when(reminderRepository.findById(testReminderId)).thenReturn(Optional.of(testReminder));
             when(patientService.getPatientProfile()).thenReturn(differentPatient);

@@ -27,8 +27,8 @@ import com.nexaworks.rafiq.dto.event.NewOtpEvent;
 import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
-import com.nexaworks.rafiq.entities.DoctorProfile;
-import com.nexaworks.rafiq.entities.PatientProfile;
+import com.nexaworks.rafiq.entities.Doctor;
+import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.Roles;
@@ -130,7 +130,7 @@ public class UserServiceImplTest {
     void registerPatient_ShouldAddUserAndPublishEventToSendActivationEmail_WhenPatientIsRegistered() {
         User user = getUser();
 
-        PatientProfile expectedProfile = new PatientProfile();
+        Patient expectedProfile = new Patient();
         String expectedToken = "123456";
         Role patientRole = new Role();
         patientRole.setName("PATIENT");
@@ -176,7 +176,7 @@ public class UserServiceImplTest {
         User user = getUser();
         Role doctorRole = new Role();
         doctorRole.setName("DOCTOR");
-        DoctorProfile expectedProfile = new DoctorProfile();
+        Doctor expectedProfile = new Doctor();
         String expectedToken = "123456";
 
         when(imageService.uploadResource(any(), any()))

@@ -21,9 +21,7 @@ import com.nexaworks.rafiq.dto.event.NewOtpEvent;
 import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
-import com.nexaworks.rafiq.entities.PatientProfile;
-import com.nexaworks.rafiq.entities.Token;
-import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.entities.*;
 import com.nexaworks.rafiq.entities.enums.TokenType;
 import com.nexaworks.rafiq.exception.custom.InvalidPasswordException;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
@@ -42,8 +40,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleService roleService;
-    private final PatientService patientService;
-    private final DoctorService doctorService;
+    private final SpecializationService specializationService;
     private final TokenService tokenService;
     private final ApplicationEventPublisher eventPublisher;
     private final AuthSessionManager authSessionManager;
@@ -78,14 +75,14 @@ public class UserServiceImpl implements UserService {
             throw new RegistrationException(
                     "User with email " + user.getEmail() + " already exists");
         }
-        User patient = extracted(user);
+        Patient patient = (Patient) extracted(user);
         patient.getRoles().add(roleService.getRole(ROLE_PATIENT));
         userRepository.save(patient);
-        PatientProfile patientProfile = patientService.createPatientProfile(patient);
-        patient.setPatientProfile(patientProfile);
+
         log.info("User registered {}", user.getEmail());
+
         String otp = tokenService.generateOtpToken(patient);
-        log.info("OTP generated {}", otp);
+
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
@@ -110,18 +107,24 @@ public class UserServiceImpl implements UserService {
             throw new RegistrationException(
                     "User with email " + user.getEmail() + " already exists");
         }
-        User doctor = extracted(user);
-        userRepository.save(doctor);
+
+        Doctor doctor = (Doctor) extracted(user);
         doctor.getRoles().add(roleService.getRole(ROLE_DOCTOR));
-        doctor.setDoctorProfile(doctorService.createProfile(doctor, description, specialization));
+        doctor.setDescription(description);
+        Specialization specializationEntity = specializationService
+                .getSpecialization(specialization);
+        doctor.setSpecialization(specializationEntity);
+
+        userRepository.save(doctor);
+        log.info("Doctor registered {}", user.getEmail());
         String otp = tokenService.generateOtpToken(doctor);
-        log.info("OTP generated {}", otp);
+
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
                 eventPublisher.publishEvent(new DoctorRegisterEvent(
                         new UserRegistrationEvent(user.getEmail(), otp, user.getFirstName()),
-                        doctor.getDoctorProfile().getId(), nationalId));
+                        doctor.getId(), nationalId));
             }
         });
     }
@@ -177,6 +180,7 @@ public class UserServiceImpl implements UserService {
         user.setFirstName(firstName);
         user.setLastName(lastName);
         user.setEnabled(false);
+        user.getRoles().add(roleService.getRole(ROLE_USER));
         User oAuthUser = userRepository.save(user);
         log.info("User created {}", user.getEmail());
         return oAuthUser;
@@ -186,5 +190,8 @@ public class UserServiceImpl implements UserService {
     public String getNotificationToken() {
         User user = getUser();
         return user.getNotificationToken();
+    }
+    public UUID getUserId() {
+        return (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }

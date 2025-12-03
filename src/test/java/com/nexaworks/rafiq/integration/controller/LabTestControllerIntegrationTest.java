@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexaworks.rafiq.dto.request.labTest.TestRequest;
 import com.nexaworks.rafiq.dto.request.labTest.TestResultRequest;
 import com.nexaworks.rafiq.entities.LabTest;
-import com.nexaworks.rafiq.entities.PatientProfile;
+import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.Gender;
@@ -102,26 +102,18 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
             patientRole = roleRepository.save(patientRole);
         }
 
-        // Create patient profile (don't save yet)
-        PatientProfile patientProfile = PatientProfile.builder().description("Test patient")
-                .build();
-
-        // Create user with patient profile
-        User user = User.builder().email(email).password(passwordEncoder.encode(password))
+        // Create Patient directly (Patient extends User with is-a relationship)
+        Patient patient = Patient.builder().email(email).password(passwordEncoder.encode(password))
                 .firstName(firstName).lastName(lastName).phone("+12345678901")
                 .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE).roles(Set.of(patientRole))
-                .enabled(true).patientProfile(patientProfile).build();
+                .enabled(true).description("Test patient").build();
 
-        // Set bidirectional relationship
-        patientProfile.setUser(user);
-
-        // Save user (will cascade to patientProfile)
-        return userRepository.save(user);
+        return patientRepository.save(patient);
     }
 
     private LabTest createLabTest(String name, User user) {
         LabTest labTest = LabTest.builder().name(name).description("Test description")
-                .patient(user.getPatientProfile()).date(Instant.now()).build();
+                .patient((Patient) user).date(Instant.now()).build();
         return labTestRepository.save(labTest);
     }
 

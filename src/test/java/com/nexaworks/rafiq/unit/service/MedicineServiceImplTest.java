@@ -20,7 +20,7 @@ import com.nexaworks.rafiq.dto.request.medicine.BulkMedicineOperationRequest;
 import com.nexaworks.rafiq.entities.Drug;
 import com.nexaworks.rafiq.entities.Group;
 import com.nexaworks.rafiq.entities.Medicine;
-import com.nexaworks.rafiq.entities.PatientProfile;
+import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.enums.Action;
 import com.nexaworks.rafiq.entities.enums.MedicineStatus;
 import com.nexaworks.rafiq.exception.custom.GroupNotFoundException;
@@ -49,12 +49,12 @@ public class MedicineServiceImplTest {
     QuartzSchedulerService quartzSchedulerService;
     @InjectMocks
     MedicineServiceImpl medicineService;
-    static PatientProfile patient;
+    static Patient patient;
     UUID drugId = UUID.randomUUID();
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        patient = PatientProfile.builder().id(UUID.randomUUID()).build();
+        patient = Patient.builder().id(UUID.randomUUID()).build();
     }
     @Nested
     @DisplayName("Add medicine test")
@@ -183,8 +183,7 @@ public class MedicineServiceImplTest {
                 BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
                         Action.DELETE, Optional.empty());
 
-                PatientProfile otherPatient = PatientProfile.builder().id(UUID.randomUUID())
-                        .build();
+                Patient otherPatient = Patient.builder().id(UUID.randomUUID()).build();
 
                 Medicine medicine1 = Medicine.builder().id(medicineId1).patient(patient).build();
                 Medicine medicine2 = Medicine.builder().id(medicineId2).patient(otherPatient)
@@ -212,7 +211,7 @@ public class MedicineServiceImplTest {
                 BulkMedicineOperationRequest request = new BulkMedicineOperationRequest(medicineIds,
                         Action.DELETE, Optional.empty());
                 Medicine medicine1 = Medicine.builder().id(medicineId1)
-                        .patient(PatientProfile.builder().id(UUID.randomUUID()).build()).build();
+                        .patient(Patient.builder().id(UUID.randomUUID()).build()).build();
                 Medicine medicine2 = Medicine.builder().id(medicineId2).patient(patient).build();
 
                 when(patientService.getPatientProfile()).thenReturn(patient);

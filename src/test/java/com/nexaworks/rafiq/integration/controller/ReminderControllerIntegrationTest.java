@@ -76,13 +76,12 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             patientRole = roleRepository.save(patientRole);
         }
 
-        PatientProfile patientProfile = PatientProfile.builder().build();
-        User user = User.builder().email("test@example.com")
+        // Create Patient directly (Patient extends User with is-a relationship)
+        Patient patient = Patient.builder().email("test@example.com")
                 .password(passwordEncoder.encode("Valid@1234")).firstName("John").lastName("Doe")
                 .phone("+12345678901").birthDate(LocalDate.of(1999, 1, 1)).gender(Gender.MALE)
-                .roles(Set.of(patientRole)).enabled(true).patientProfile(patientProfile).build();
-        patientProfile.setUser(user);
-        return userRepository.save(user);
+                .roles(Set.of(patientRole)).enabled(true).build();
+        return patientRepository.save(patient);
     }
 
     private Medicine createMedicineForUser(User user) {
@@ -90,7 +89,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
                 .route("Oral").price(10.0).build();
         drugRepository.save(drug);
 
-        Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+        Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                 .name("Test Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
                 .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                 .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30)).build();
@@ -160,14 +159,13 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
             Medicine medicine = createMedicineForUser(user);
 
-            Reminder reminder = Reminder.builder().patient(user.getPatientProfile())
-                    .medicine(medicine).vibrate(true).status(ReminderStatus.UPCOMING)
+            Reminder reminder = Reminder.builder().patient((Patient) user).medicine(medicine)
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
                     .nextReminder(LocalDateTime.now().plusHours(1)).build();
             reminderRepository.save(reminder);
 
-            ReminderLog log = ReminderLog.builder().reminder(reminder)
-                    .patient(user.getPatientProfile()).status(ReminderStatus.TAKEN)
-                    .timestamp(LocalDateTime.now()).build();
+            ReminderLog log = ReminderLog.builder().reminder(reminder).patient((Patient) user)
+                    .status(ReminderStatus.TAKEN).timestamp(LocalDateTime.now()).build();
             reminderLogRepository.save(log);
 
             ReminderFilters filters = new ReminderFilters(null, null, null, ReminderStatus.TAKEN);
@@ -197,18 +195,17 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User user1 = createTestUser();
             Medicine medicine1 = createMedicineForUser(user1);
 
-            Reminder reminder1 = Reminder.builder().patient(user1.getPatientProfile())
-                    .medicine(medicine1).vibrate(true).status(ReminderStatus.UPCOMING)
+            Reminder reminder1 = Reminder.builder().patient((Patient) user1).medicine(medicine1)
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
                     .nextReminder(LocalDateTime.now().plusHours(1)).build();
             reminderRepository.save(reminder1);
 
             Role patientRole = roleRepository.findByName("ROLE_PATIENT");
-            PatientProfile patient2 = PatientProfile.builder().build();
-            User user2 = User.builder().email("user2@example.com")
+            // Create Patient directly (Patient extends User)
+            Patient patient2 = Patient.builder().email("user2@example.com")
                     .password(passwordEncoder.encode("password")).firstName("Jane").lastName("Doe")
-                    .roles(Set.of(patientRole)).enabled(true).patientProfile(patient2).build();
-            patient2.setUser(user2);
-            userRepository.save(user2);
+                    .roles(Set.of(patientRole)).enabled(true).build();
+            User user2 = patientRepository.save(patient2);
 
             ReminderFilters filters = new ReminderFilters(null, null, null, null);
 
@@ -230,8 +227,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
             Medicine medicine = createMedicineForUser(user);
 
-            Reminder reminder = Reminder.builder().patient(user.getPatientProfile())
-                    .medicine(medicine).vibrate(true).status(ReminderStatus.UPCOMING)
+            Reminder reminder = Reminder.builder().patient((Patient) user).medicine(medicine)
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
                     .nextReminder(LocalDateTime.now().plusHours(1)).build();
             reminderRepository.save(reminder);
 
@@ -260,19 +257,17 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User owner = createTestUser();
             Medicine medicine = createMedicineForUser(owner);
 
-            Reminder reminder = Reminder.builder().patient(owner.getPatientProfile())
-                    .medicine(medicine).vibrate(true).status(ReminderStatus.UPCOMING)
+            Reminder reminder = Reminder.builder().patient((Patient) owner).medicine(medicine)
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
                     .nextReminder(LocalDateTime.now().plusHours(1)).build();
             reminderRepository.save(reminder);
 
             Role patientRole = roleRepository.findByName("ROLE_PATIENT");
-            PatientProfile otherPatient = PatientProfile.builder().build();
-            User otherUser = User.builder().email("other@example.com")
+            // Create Patient directly (Patient extends User)
+            Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).enabled(true)
-                    .patientProfile(otherPatient).build();
-            otherPatient.setUser(otherUser);
-            userRepository.save(otherUser);
+                    .lastName("User").roles(Set.of(patientRole)).enabled(true).build();
+            User otherUser = patientRepository.save(otherPatient);
 
             LocalDateTime takenTime = LocalDateTime.now();
 
@@ -292,8 +287,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
             Medicine medicine = createMedicineForUser(user);
 
-            Reminder reminder = Reminder.builder().patient(user.getPatientProfile())
-                    .medicine(medicine).vibrate(true).status(ReminderStatus.UPCOMING)
+            Reminder reminder = Reminder.builder().patient((Patient) user).medicine(medicine)
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
                     .nextReminder(LocalDateTime.now().plusHours(1)).build();
             reminderRepository.save(reminder);
 
@@ -322,19 +317,17 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User owner = createTestUser();
             Medicine medicine = createMedicineForUser(owner);
 
-            Reminder reminder = Reminder.builder().patient(owner.getPatientProfile())
-                    .medicine(medicine).vibrate(true).status(ReminderStatus.UPCOMING)
+            Reminder reminder = Reminder.builder().patient((Patient) owner).medicine(medicine)
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
                     .nextReminder(LocalDateTime.now().plusHours(1)).build();
             reminderRepository.save(reminder);
 
             Role patientRole = roleRepository.findByName("ROLE_PATIENT");
-            PatientProfile otherPatient = PatientProfile.builder().build();
-            User otherUser = User.builder().email("other@example.com")
+            // Create Patient directly (Patient extends User)
+            Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).enabled(true)
-                    .patientProfile(otherPatient).build();
-            otherPatient.setUser(otherUser);
-            userRepository.save(otherUser);
+                    .lastName("User").roles(Set.of(patientRole)).enabled(true).build();
+            User otherUser = patientRepository.save(otherPatient);
 
             LocalDateTime missedTime = LocalDateTime.now();
 
@@ -354,8 +347,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
             Medicine medicine = createMedicineForUser(user);
 
-            Reminder reminder = Reminder.builder().patient(user.getPatientProfile())
-                    .medicine(medicine).vibrate(true).status(ReminderStatus.UPCOMING)
+            Reminder reminder = Reminder.builder().patient((Patient) user).medicine(medicine)
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
                     .nextReminder(LocalDateTime.now().plusHours(1)).build();
             reminderRepository.save(reminder);
 
@@ -381,18 +374,17 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User user1 = createTestUser();
             Medicine medicine1 = createMedicineForUser(user1);
 
-            Reminder reminder1 = Reminder.builder().patient(user1.getPatientProfile())
-                    .medicine(medicine1).vibrate(true).status(ReminderStatus.UPCOMING)
+            Reminder reminder1 = Reminder.builder().patient((Patient) user1).medicine(medicine1)
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
                     .nextReminder(LocalDateTime.now().plusHours(1)).build();
             reminderRepository.save(reminder1);
 
             Role patientRole = roleRepository.findByName("ROLE_PATIENT");
-            PatientProfile patient2 = PatientProfile.builder().build();
-            User user2 = User.builder().email("user2@example.com")
+            // Create Patient directly (Patient extends User)
+            Patient patient2 = Patient.builder().email("user2@example.com")
                     .password(passwordEncoder.encode("password")).firstName("Jane").lastName("Doe")
-                    .roles(Set.of(patientRole)).enabled(true).patientProfile(patient2).build();
-            patient2.setUser(user2);
-            userRepository.save(user2);
+                    .roles(Set.of(patientRole)).enabled(true).build();
+            User user2 = patientRepository.save(patient2);
 
             mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_REMINDERS_ENDPOINT)
                     .param("page", "0").param("size", "10").with(withUserId(user2)))
@@ -411,8 +403,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
             Medicine medicine = createMedicineForUser(user);
 
-            Reminder reminder = Reminder.builder().patient(user.getPatientProfile())
-                    .medicine(medicine).vibrate(true).status(ReminderStatus.UPCOMING)
+            Reminder reminder = Reminder.builder().patient((Patient) user).medicine(medicine)
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
                     .nextReminder(LocalDateTime.now().plusHours(1)).build();
             reminderRepository.save(reminder);
 
@@ -437,19 +429,17 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User owner = createTestUser();
             Medicine medicine = createMedicineForUser(owner);
 
-            Reminder reminder = Reminder.builder().patient(owner.getPatientProfile())
-                    .medicine(medicine).vibrate(true).status(ReminderStatus.UPCOMING)
+            Reminder reminder = Reminder.builder().patient((Patient) owner).medicine(medicine)
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
                     .nextReminder(LocalDateTime.now().plusHours(1)).build();
             reminderRepository.save(reminder);
 
             Role patientRole = roleRepository.findByName("ROLE_PATIENT");
-            PatientProfile otherPatient = PatientProfile.builder().build();
-            User otherUser = User.builder().email("other@example.com")
+            // Create Patient directly (Patient extends User)
+            Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).enabled(true)
-                    .patientProfile(otherPatient).build();
-            otherPatient.setUser(otherUser);
-            userRepository.save(otherUser);
+                    .lastName("User").roles(Set.of(patientRole)).enabled(true).build();
+            User otherUser = patientRepository.save(otherPatient);
 
             mockMvc.perform(MockMvcRequestBuilders
                     .get(GET_REMINDER_BY_ID_ENDPOINT, reminder.getId()).with(withUserId(otherUser)))
@@ -467,8 +457,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
             Medicine medicine = createMedicineForUser(user);
 
-            Reminder reminder = Reminder.builder().patient(user.getPatientProfile())
-                    .medicine(medicine).vibrate(true).status(ReminderStatus.UPCOMING)
+            Reminder reminder = Reminder.builder().patient((Patient) user).medicine(medicine)
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
                     .nextReminder(LocalDateTime.now().plusHours(1)).build();
             reminderRepository.save(reminder);
 
@@ -495,19 +485,17 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User owner = createTestUser();
             Medicine medicine = createMedicineForUser(owner);
 
-            Reminder reminder = Reminder.builder().patient(owner.getPatientProfile())
-                    .medicine(medicine).vibrate(true).status(ReminderStatus.UPCOMING)
+            Reminder reminder = Reminder.builder().patient((Patient) owner).medicine(medicine)
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
                     .nextReminder(LocalDateTime.now().plusHours(1)).build();
             reminderRepository.save(reminder);
 
             Role patientRole = roleRepository.findByName("ROLE_PATIENT");
-            PatientProfile otherPatient = PatientProfile.builder().build();
-            User otherUser = User.builder().email("other@example.com")
+            // Create Patient directly (Patient extends User)
+            Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).enabled(true)
-                    .patientProfile(otherPatient).build();
-            otherPatient.setUser(otherUser);
-            userRepository.save(otherUser);
+                    .lastName("User").roles(Set.of(patientRole)).enabled(true).build();
+            User otherUser = patientRepository.save(otherPatient);
 
             mockMvc.perform(
                     MockMvcRequestBuilders.patch(UPDATE_VIBRATION_ENDPOINT, false, reminder.getId())
@@ -526,8 +514,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
             Medicine medicine = createMedicineForUser(user);
 
-            Reminder reminder = Reminder.builder().patient(user.getPatientProfile())
-                    .medicine(medicine).vibrate(true).status(ReminderStatus.UPCOMING)
+            Reminder reminder = Reminder.builder().patient((Patient) user).medicine(medicine)
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
                     .nextReminder(LocalDateTime.now().plusHours(1)).build();
             reminderRepository.save(reminder);
 
@@ -552,19 +540,17 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User owner = createTestUser();
             Medicine medicine = createMedicineForUser(owner);
 
-            Reminder reminder = Reminder.builder().patient(owner.getPatientProfile())
-                    .medicine(medicine).vibrate(true).status(ReminderStatus.UPCOMING)
+            Reminder reminder = Reminder.builder().patient((Patient) owner).medicine(medicine)
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
                     .nextReminder(LocalDateTime.now().plusHours(1)).build();
             reminderRepository.save(reminder);
 
             Role patientRole = roleRepository.findByName("ROLE_PATIENT");
-            PatientProfile otherPatient = PatientProfile.builder().build();
-            User otherUser = User.builder().email("other@example.com")
+            // Create Patient directly (Patient extends User)
+            Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).enabled(true)
-                    .patientProfile(otherPatient).build();
-            otherPatient.setUser(otherUser);
-            userRepository.save(otherUser);
+                    .lastName("User").roles(Set.of(patientRole)).enabled(true).build();
+            User otherUser = patientRepository.save(otherPatient);
 
             mockMvc.perform(MockMvcRequestBuilders
                     .delete(DELETE_REMINDER_ENDPOINT, reminder.getId()).with(withUserId(otherUser)))
@@ -582,8 +568,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
             Medicine medicine = createMedicineForUser(user);
 
-            Reminder reminder = Reminder.builder().patient(user.getPatientProfile())
-                    .medicine(medicine).vibrate(true).status(ReminderStatus.UPCOMING)
+            Reminder reminder = Reminder.builder().patient((Patient) user).medicine(medicine)
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
                     .nextReminder(LocalDateTime.now().plusHours(1)).disable(false).build();
             reminderRepository.save(reminder);
 
@@ -601,8 +587,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
             Medicine medicine = createMedicineForUser(user);
 
-            Reminder reminder = Reminder.builder().patient(user.getPatientProfile())
-                    .medicine(medicine).vibrate(true).status(ReminderStatus.UPCOMING)
+            Reminder reminder = Reminder.builder().patient((Patient) user).medicine(medicine)
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
                     .nextReminder(LocalDateTime.now().plusHours(1)).disable(true).build();
             reminderRepository.save(reminder);
 
@@ -630,19 +616,17 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             User owner = createTestUser();
             Medicine medicine = createMedicineForUser(owner);
 
-            Reminder reminder = Reminder.builder().patient(owner.getPatientProfile())
-                    .medicine(medicine).vibrate(true).status(ReminderStatus.UPCOMING)
+            Reminder reminder = Reminder.builder().patient((Patient) owner).medicine(medicine)
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
                     .nextReminder(LocalDateTime.now().plusHours(1)).build();
             reminderRepository.save(reminder);
 
             Role patientRole = roleRepository.findByName("ROLE_PATIENT");
-            PatientProfile otherPatient = PatientProfile.builder().build();
-            User otherUser = User.builder().email("other@example.com")
+            // Create Patient directly (Patient extends User)
+            Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).enabled(true)
-                    .patientProfile(otherPatient).build();
-            otherPatient.setUser(otherUser);
-            userRepository.save(otherUser);
+                    .lastName("User").roles(Set.of(patientRole)).enabled(true).build();
+            User otherUser = patientRepository.save(otherPatient);
 
             mockMvc.perform(
                     MockMvcRequestBuilders.patch(DISABLE_REMINDER_ENDPOINT, reminder.getId(), true)

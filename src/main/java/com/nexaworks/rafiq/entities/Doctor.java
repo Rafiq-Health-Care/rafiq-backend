@@ -19,19 +19,14 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "doctor_profile", indexes = {
-        @Index(name = "doctor_profile_idx", columnList = "user_id"),
+@Table(name = "doctor", indexes = {
         @Index(name = "specialization_idx", columnList = "specialization_id")})
-public class DoctorProfile extends BaseEntity {
+public class Doctor extends User {
     private String description;
     private String hospitalName;
     private String personalPhoto;
     private String nationalId;
     private String hospitalId;
-
-    @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    private User user;
 
     @ManyToOne
     @JoinColumn(name = "specialization_id", nullable = false)

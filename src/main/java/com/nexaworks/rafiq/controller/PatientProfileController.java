@@ -8,7 +8,7 @@ import com.nexaworks.rafiq.dto.request.basicMedicalProfile.CreateBasicMedicalPro
 import com.nexaworks.rafiq.dto.response.medicine.AddResponse;
 import com.nexaworks.rafiq.dto.response.patientProfile.CompletePatientProfile;
 import com.nexaworks.rafiq.dto.response.patientProfile.PatientProfileResponse;
-import com.nexaworks.rafiq.entities.PatientProfile;
+import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.mapper.MedicineMapper;
 import com.nexaworks.rafiq.mapper.PatientMapper;
 import com.nexaworks.rafiq.mapper.TestMapper;
@@ -29,20 +29,20 @@ public class PatientProfileController {
     @PostMapping
     public ResponseEntity<AddResponse<PatientProfileResponse>> addPatientProfile(
             @Valid @RequestBody CreateBasicMedicalProfileRequest request) {
-        PatientProfile patient = patientService.completePatientProfile(request);
+        Patient patient = patientService.completePatientProfile(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(new AddResponse<>(true,
                 "Patient profile created successfully", patientMapper.toResponse(patient)));
     }
     @GetMapping
     public ResponseEntity<CompletePatientProfile> getPatientProfile() {
-        PatientProfile patientProfile = patientService.getPatientProfile();
-        return ResponseEntity.ok().body(
-                patientMapper.convertToCompleteProfile(patientProfile, testMapper, medicineMapper));
+        Patient patient = patientService.getPatientProfile();
+        return ResponseEntity.ok()
+                .body(patientMapper.convertToCompleteProfile(patient, testMapper, medicineMapper));
     }
     @PutMapping
     public ResponseEntity<AddResponse<PatientProfileResponse>> updatePatientProfile(
             @Valid @RequestBody CreateBasicMedicalProfileRequest request) {
-        PatientProfile patient = patientService.completePatientProfile(request);
+        Patient patient = patientService.completePatientProfile(request);
         return ResponseEntity.ok().body(new AddResponse<>(true,
                 "Patient profile updated successfully", patientMapper.toResponse(patient)));
     }

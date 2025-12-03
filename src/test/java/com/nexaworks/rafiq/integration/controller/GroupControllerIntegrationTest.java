@@ -22,11 +22,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexaworks.rafiq.dto.request.group.AddGroupRequest;
 import com.nexaworks.rafiq.dto.request.group.AddMedicinesToGroup;
 import com.nexaworks.rafiq.dto.request.group.UpdateGroupRequest;
-import com.nexaworks.rafiq.entities.Drug;
-import com.nexaworks.rafiq.entities.Medicine;
-import com.nexaworks.rafiq.entities.PatientProfile;
-import com.nexaworks.rafiq.entities.Role;
-import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.entities.*;
+import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.enums.Color;
 import com.nexaworks.rafiq.entities.enums.Gender;
 import com.nexaworks.rafiq.entities.enums.MedicineFrequency;
@@ -83,13 +80,12 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             patientRole = roleRepository.save(patientRole);
         }
 
-        User user = User.builder().email(email).password(passwordEncoder.encode("Valid@1234"))
-                .firstName(firstName).lastName(lastName).phone(phone)
-                .birthDate(LocalDate.of(1990, 1, 1)).gender(gender).roles(Set.of(patientRole))
-                .enabled(true).build();
-        PatientProfile patientProfile = PatientProfile.builder().user(user).build();
-        user.setPatientProfile(patientProfile);
-        return userRepository.save(user);
+        // Create Patient directly (Patient extends User with is-a relationship)
+        Patient patient = Patient.builder().email(email)
+                .password(passwordEncoder.encode("Valid@1234")).firstName(firstName)
+                .lastName(lastName).phone(phone).birthDate(LocalDate.of(1990, 1, 1)).gender(gender)
+                .roles(Set.of(patientRole)).enabled(true).build();
+        return patientRepository.save(patient);
     }
 
     @Nested
@@ -119,7 +115,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.color").value("BLUE"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.groupId").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.patientId")
-                            .value(user.getPatientProfile().getId().toString()))
+                            .value(user.getId().toString()))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.createdAt").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.updatedAt").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicineCount").value(0));
@@ -193,15 +189,15 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Create multiple groups for the user
             com.nexaworks.rafiq.entities.Group group1 = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Antibiotics").description("Antibiotic medications").color(Color.RED)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group group2 = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Vitamins").description("Daily vitamins").color(Color.GREEN)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group group3 = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Pain Relief").description("Pain medications").color(Color.BLUE)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             groupRepository.save(group1);
             groupRepository.save(group2);
@@ -246,15 +242,15 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Create groups with different names
             com.nexaworks.rafiq.entities.Group group1 = com.nexaworks.rafiq.entities.Group.builder()
                     .name("A-Group").description("First alphabetically").color(Color.RED)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group group2 = com.nexaworks.rafiq.entities.Group.builder()
                     .name("C-Group").description("Third alphabetically").color(Color.GREEN)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group group3 = com.nexaworks.rafiq.entities.Group.builder()
                     .name("B-Group").description("Second alphabetically").color(Color.BLUE)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             groupRepository.save(group1);
             groupRepository.save(group2);
@@ -286,7 +282,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             com.nexaworks.rafiq.entities.Group group = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Heart Medications").description("Medications for heart health")
-                    .color(Color.RED).patient(user.getPatientProfile()).build();
+                    .color(Color.RED).patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
 
@@ -302,7 +298,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.color").value("RED"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicines").isArray())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.userId")
-                            .value(user.getPatientProfile().getId().toString()))
+                            .value(user.getId().toString()))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicineCount").value(0))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.createdAt").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.updatedAt").exists());
@@ -335,7 +331,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Create group for user1
             com.nexaworks.rafiq.entities.Group group = com.nexaworks.rafiq.entities.Group.builder()
                     .name("User1 Group").description("Group belonging to user1").color(Color.BLUE)
-                    .patient(user1.getPatientProfile()).build();
+                    .patient((Patient) user1).build();
 
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
 
@@ -362,7 +358,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             com.nexaworks.rafiq.entities.Group group = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Old Name").description("Old Description").color(Color.RED)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
 
@@ -382,7 +378,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
                             .value("New Description"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.color").value("BLUE"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.patientId")
-                            .value(user.getPatientProfile().getId().toString()))
+                            .value(user.getId().toString()))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.createdAt").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.updatedAt").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicineCount").value(0));
@@ -421,11 +417,11 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             com.nexaworks.rafiq.entities.Group group1 = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Existing Group").description("Description").color(Color.RED)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group group2 = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Group to Update").description("Description").color(Color.BLUE)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             groupRepository.save(group1);
             com.nexaworks.rafiq.entities.Group savedGroup2 = groupRepository.save(group2);
@@ -458,7 +454,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             com.nexaworks.rafiq.entities.Group group = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Group to Delete").description("Will be deleted").color(Color.RED)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
             assertThat(groupRepository.count()).isEqualTo(1);
@@ -498,7 +494,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             com.nexaworks.rafiq.entities.Group group = com.nexaworks.rafiq.entities.Group.builder()
                     .name("User1 Group").description("Belongs to user1").color(Color.RED)
-                    .patient(user1.getPatientProfile()).build();
+                    .patient((Patient) user1).build();
 
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
 
@@ -525,7 +521,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             com.nexaworks.rafiq.entities.Group group = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Test Group").description("Group for medicines").color(Color.BLUE)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
 
@@ -536,10 +532,10 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             drugRepository.save(drug2);
 
             Medicine medicine1 = Medicine.builder().name("Aspirin").drug(drug1).dosage("100mg")
-                    .frequency(MedicineFrequency.ONCE).patient(user.getPatientProfile()).build();
+                    .frequency(MedicineFrequency.ONCE).patient((Patient) user).build();
 
             Medicine medicine2 = Medicine.builder().name("Ibuprofen").drug(drug2).dosage("200mg")
-                    .frequency(MedicineFrequency.TWICE).patient(user.getPatientProfile()).build();
+                    .frequency(MedicineFrequency.TWICE).patient((Patient) user).build();
 
             Medicine savedMedicine1 = medicineRepository.save(medicine1);
             Medicine savedMedicine2 = medicineRepository.save(medicine2);
@@ -585,7 +581,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             com.nexaworks.rafiq.entities.Group group = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Test Group").description("Group for medicines").color(Color.BLUE)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
 
@@ -593,7 +589,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             drugRepository.save(drug);
 
             Medicine medicine = Medicine.builder().name("Aspirin").drug(drug).dosage("100mg")
-                    .frequency(MedicineFrequency.ONCE).patient(user.getPatientProfile()).build();
+                    .frequency(MedicineFrequency.ONCE).patient((Patient) user).build();
 
             Medicine savedMedicine = medicineRepository.save(medicine);
 
@@ -623,7 +619,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             com.nexaworks.rafiq.entities.Group group = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Test Group").description("Group for medicines").color(Color.BLUE)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
 
@@ -631,8 +627,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             drugRepository.save(drug);
 
             Medicine medicine = Medicine.builder().name("Aspirin").drug(drug).dosage("100mg")
-                    .frequency(MedicineFrequency.ONCE).patient(user.getPatientProfile())
-                    .group(savedGroup).build();
+                    .frequency(MedicineFrequency.ONCE).patient((Patient) user).group(savedGroup)
+                    .build();
 
             Medicine savedMedicine = medicineRepository.save(medicine);
 
@@ -670,7 +666,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             com.nexaworks.rafiq.entities.Group group = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Test Group").description("Group for medicines").color(Color.BLUE)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
             UUID nonExistentMedicineId = UUID.randomUUID();

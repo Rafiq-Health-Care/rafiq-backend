@@ -20,9 +20,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "patient_profile", indexes = {
-        @Index(name = "user_patient_idx", columnList = "user_id")})
-public class PatientProfile extends BaseEntity {
+@Table(name = "patient_profile")
+public class Patient extends User {
 
     private String description;
     @PositiveOrZero
@@ -46,10 +45,6 @@ public class PatientProfile extends BaseEntity {
     private String occupation;
     private String emergencyContactName;
     private String emergencyContactPhone;
-
-    @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    private User user;
 
     @OneToMany(mappedBy = "patient", cascade = {CascadeType.REMOVE, CascadeType.PERSIST,
             CascadeType.MERGE}, fetch = FetchType.LAZY)
