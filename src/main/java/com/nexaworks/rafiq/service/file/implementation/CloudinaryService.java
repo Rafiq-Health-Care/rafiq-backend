@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service.ServiceImpl;
+package com.nexaworks.rafiq.service.file.implementation;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -13,7 +13,7 @@ import com.nexaworks.rafiq.entities.enums.UploadType;
 import com.nexaworks.rafiq.exception.custom.EmptyFileException;
 import com.nexaworks.rafiq.exception.custom.FileException;
 import com.nexaworks.rafiq.exception.custom.FileUploadException;
-import com.nexaworks.rafiq.service.ImageService;
+import com.nexaworks.rafiq.service.file.ImageService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

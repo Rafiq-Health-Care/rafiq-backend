@@ -19,8 +19,8 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import com.nexaworks.rafiq.exception.custom.MailSenderException;
-import com.nexaworks.rafiq.service.EmailSenderService;
-import com.nexaworks.rafiq.service.ServiceImpl.EmailSenderServiceImpl;
+import com.nexaworks.rafiq.service.notification.EmailSenderService;
+import com.nexaworks.rafiq.service.notification.implementation.EmailSenderServiceImpl;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;

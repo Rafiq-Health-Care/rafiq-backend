@@ -7,7 +7,7 @@ import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
-import com.nexaworks.rafiq.service.JwtService;
+import com.nexaworks.rafiq.service.authentication.JwtService;
 import com.nexaworks.rafiq.service.user.TokenService;
 
 import jakarta.servlet.http.Cookie;

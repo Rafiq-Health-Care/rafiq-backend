@@ -25,6 +25,8 @@ import com.nexaworks.rafiq.exception.custom.LabTestException;
 import com.nexaworks.rafiq.repository.LabTestRepository;
 import com.nexaworks.rafiq.repository.PatientRepository;
 import com.nexaworks.rafiq.service.*;
+import com.nexaworks.rafiq.service.file.ImageService;
+import com.nexaworks.rafiq.service.patient.PatientService;
 import com.nexaworks.rafiq.service.user.UserService;
 
 import jakarta.transaction.Transactional;

@@ -13,10 +13,10 @@ import com.nexaworks.rafiq.dto.event.ForgetPasswordEvent;
 import com.nexaworks.rafiq.dto.event.NewOtpEvent;
 import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.entities.enums.UploadType;
-import com.nexaworks.rafiq.service.EmailContentService;
-import com.nexaworks.rafiq.service.EmailSenderService;
-import com.nexaworks.rafiq.service.ImageService;
 import com.nexaworks.rafiq.service.doctor.DoctorService;
+import com.nexaworks.rafiq.service.file.ImageService;
+import com.nexaworks.rafiq.service.notification.EmailContentService;
+import com.nexaworks.rafiq.service.notification.EmailSenderService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

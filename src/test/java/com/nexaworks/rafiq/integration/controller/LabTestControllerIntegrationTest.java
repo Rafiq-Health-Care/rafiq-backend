@@ -36,7 +36,7 @@ import com.nexaworks.rafiq.repository.LabTestRepository;
 import com.nexaworks.rafiq.repository.PatientRepository;
 import com.nexaworks.rafiq.repository.RoleRepository;
 import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.AiService;
+import com.nexaworks.rafiq.service.ai.AiService;
 
 @DisplayName("Lab Test Controller Integration Test")
 public class LabTestControllerIntegrationTest extends BaseIntegrationTest {

@@ -1,11 +1,11 @@
-package com.nexaworks.rafiq.service.ServiceImpl;
+package com.nexaworks.rafiq.service.patient.implementation;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.repository.PatientRepository;
-import com.nexaworks.rafiq.service.PatientService;
+import com.nexaworks.rafiq.service.patient.PatientService;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 
 import lombok.RequiredArgsConstructor;

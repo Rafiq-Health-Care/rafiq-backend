@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service.ServiceImpl;
+package com.nexaworks.rafiq.service.notification.implementation;
 
 import java.util.Map;
 
@@ -13,7 +13,7 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import com.nexaworks.rafiq.exception.custom.MailSenderException;
-import com.nexaworks.rafiq.service.EmailSenderService;
+import com.nexaworks.rafiq.service.notification.EmailSenderService;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;

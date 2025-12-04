@@ -18,7 +18,7 @@ import com.nexaworks.rafiq.exception.custom.GroupNotFoundException;
 import com.nexaworks.rafiq.exception.custom.MedicineNotFound;
 import com.nexaworks.rafiq.repository.GroupRepository;
 import com.nexaworks.rafiq.service.GroupService;
-import com.nexaworks.rafiq.service.PatientService;
+import com.nexaworks.rafiq.service.patient.PatientService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -6,10 +6,6 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.nexaworks.rafiq.service.doctor.DoctorService;
-import com.nexaworks.rafiq.service.user.RoleService;
-import com.nexaworks.rafiq.service.user.TokenService;
-import com.nexaworks.rafiq.service.user.UserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,7 +21,11 @@ import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.*;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.*;
+import com.nexaworks.rafiq.service.doctor.DoctorService;
+import com.nexaworks.rafiq.service.patient.PatientService;
+import com.nexaworks.rafiq.service.user.RoleService;
+import com.nexaworks.rafiq.service.user.TokenService;
+import com.nexaworks.rafiq.service.user.UserService;
 import com.nexaworks.rafiq.utils.AuthSessionManager;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -72,7 +72,7 @@ public class UserServiceImpl implements UserService {
         verifyEmailAvailability(user);
         user.getRoles().add(roleService.getRole(ROLE_DOCTOR));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        doctorService.register((Doctor)user, specialization,description);
+        doctorService.register((Doctor) user, specialization, description);
 
         String otp = tokenService.generateOtpToken(user);
 

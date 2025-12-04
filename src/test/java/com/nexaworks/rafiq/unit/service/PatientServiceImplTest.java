@@ -1,7 +1,5 @@
 package com.nexaworks.rafiq.unit.service;
 
-import static org.mockito.Mockito.*;
-
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -12,7 +10,7 @@ import org.mockito.MockitoAnnotations;
 
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.repository.PatientRepository;
-import com.nexaworks.rafiq.service.ServiceImpl.PatientServiceImpl;
+import com.nexaworks.rafiq.service.patient.implementation.PatientServiceImpl;
 
 @DisplayName("PatientService Test Cases")
 public class PatientServiceImplTest {

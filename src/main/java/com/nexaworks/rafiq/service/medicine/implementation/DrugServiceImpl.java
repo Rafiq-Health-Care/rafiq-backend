@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service.ServiceImpl;
+package com.nexaworks.rafiq.service.medicine.implementation;
 
 import java.util.UUID;
 
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.nexaworks.rafiq.entities.Drug;
 import com.nexaworks.rafiq.repository.DrugRepository;
-import com.nexaworks.rafiq.service.DrugService;
+import com.nexaworks.rafiq.service.medicine.DrugService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

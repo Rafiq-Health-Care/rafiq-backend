@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service;
+package com.nexaworks.rafiq.service.authentication;
 
 import org.springframework.security.core.Authentication;
 

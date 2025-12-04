@@ -21,10 +21,10 @@ import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.exception.custom.LabTestException;
 import com.nexaworks.rafiq.repository.LabTestRepository;
 import com.nexaworks.rafiq.repository.PatientRepository;
-import com.nexaworks.rafiq.service.ImageService;
 import com.nexaworks.rafiq.service.ServiceImpl.LabResultServiceImpl;
 import com.nexaworks.rafiq.service.ServiceImpl.LabTestServiceImpl;
-import com.nexaworks.rafiq.service.ServiceImpl.PatientServiceImpl;
+import com.nexaworks.rafiq.service.file.ImageService;
+import com.nexaworks.rafiq.service.patient.implementation.PatientServiceImpl;
 import com.nexaworks.rafiq.service.user.implementation.UserServiceImpl;
 
 public class LabTestServiceImplTest {

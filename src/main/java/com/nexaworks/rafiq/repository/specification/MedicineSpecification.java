@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.specification;
+package com.nexaworks.rafiq.repository.specification;
 
 import java.util.ArrayList;
 import java.util.List;

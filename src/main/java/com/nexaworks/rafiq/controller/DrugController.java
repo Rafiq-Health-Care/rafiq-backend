@@ -10,7 +10,7 @@ import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.medicine.DrugSearchResponse;
 import com.nexaworks.rafiq.mapper.DrugMapper;
 import com.nexaworks.rafiq.mapper.PageMapper;
-import com.nexaworks.rafiq.service.DrugService;
+import com.nexaworks.rafiq.service.medicine.DrugService;
 
 import lombok.RequiredArgsConstructor;
 

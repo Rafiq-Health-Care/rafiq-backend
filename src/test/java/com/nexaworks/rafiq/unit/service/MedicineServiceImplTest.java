@@ -28,10 +28,10 @@ import com.nexaworks.rafiq.exception.custom.MedicineAlreadyExist;
 import com.nexaworks.rafiq.exception.custom.MedicineLimit;
 import com.nexaworks.rafiq.repository.MedicineRepository;
 import com.nexaworks.rafiq.secheduler.service.QuartzSchedulerService;
-import com.nexaworks.rafiq.service.PatientService;
-import com.nexaworks.rafiq.service.ServiceImpl.DrugServiceImpl;
 import com.nexaworks.rafiq.service.ServiceImpl.GroupServiceImpl;
 import com.nexaworks.rafiq.service.ServiceImpl.MedicineServiceImpl;
+import com.nexaworks.rafiq.service.medicine.implementation.DrugServiceImpl;
+import com.nexaworks.rafiq.service.patient.PatientService;
 import com.nexaworks.rafiq.service.user.UserService;
 
 import jakarta.validation.ValidationException;

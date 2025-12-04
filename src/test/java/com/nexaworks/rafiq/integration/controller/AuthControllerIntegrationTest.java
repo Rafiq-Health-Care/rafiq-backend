@@ -30,7 +30,7 @@ import com.nexaworks.rafiq.integration.BaseIntegrationTest;
 import com.nexaworks.rafiq.repository.RoleRepository;
 import com.nexaworks.rafiq.repository.TokenRepository;
 import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.JwtService;
+import com.nexaworks.rafiq.service.authentication.JwtService;
 
 import jakarta.servlet.http.Cookie;
 

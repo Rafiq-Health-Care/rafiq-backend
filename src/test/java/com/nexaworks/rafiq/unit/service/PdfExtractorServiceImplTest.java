@@ -23,9 +23,9 @@ import org.springframework.mock.web.MockMultipartFile;
 import com.itextpdf.text.DocumentException;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.custom.EmptyFileException;
-import com.nexaworks.rafiq.service.ServiceImpl.GeminiService;
 import com.nexaworks.rafiq.service.ServiceImpl.LabTestServiceImpl;
 import com.nexaworks.rafiq.service.ServiceImpl.PdfExtractorServiceImpl;
+import com.nexaworks.rafiq.service.ai.implementation.GeminiService;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 
 public class PdfExtractorServiceImplTest {

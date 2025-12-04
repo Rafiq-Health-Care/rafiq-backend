@@ -12,8 +12,8 @@ import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.mapper.MedicineMapper;
 import com.nexaworks.rafiq.mapper.PatientMapper;
 import com.nexaworks.rafiq.mapper.TestMapper;
-import com.nexaworks.rafiq.service.PatientProfileService;
-import com.nexaworks.rafiq.service.PatientService;
+import com.nexaworks.rafiq.service.patient.PatientProfileService;
+import com.nexaworks.rafiq.service.patient.PatientService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

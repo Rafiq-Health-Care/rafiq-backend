@@ -19,8 +19,8 @@ import com.nexaworks.rafiq.entities.LabTest;
 import com.nexaworks.rafiq.entities.enums.UploadType;
 import com.nexaworks.rafiq.exception.custom.LabException;
 import com.nexaworks.rafiq.repository.LabRepository;
-import com.nexaworks.rafiq.service.ImageService;
 import com.nexaworks.rafiq.service.LabService;
+import com.nexaworks.rafiq.service.file.ImageService;
 import com.nexaworks.rafiq.service.user.AddressService;
 
 import jakarta.transaction.Transactional;
