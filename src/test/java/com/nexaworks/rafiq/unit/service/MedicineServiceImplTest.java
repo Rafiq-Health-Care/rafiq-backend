@@ -47,6 +47,8 @@ public class MedicineServiceImplTest {
     GroupServiceImpl groupService;
     @Mock
     QuartzSchedulerService quartzSchedulerService;
+    @Mock
+    com.nexaworks.rafiq.service.UserService userService;
     @InjectMocks
     MedicineServiceImpl medicineService;
     static Patient patient;
@@ -120,6 +122,7 @@ public class MedicineServiceImplTest {
 
                 Medicine medicine1 = Medicine.builder().id(medicineId1).patient(patient).build();
                 Medicine medicine2 = Medicine.builder().id(medicineId2).patient(patient).build();
+                when(userService.getUserId()).thenReturn(patient.getId());
 
                 when(patientService.getPatientProfile()).thenReturn(patient);
                 when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
@@ -143,6 +146,7 @@ public class MedicineServiceImplTest {
                         Action.DELETE, Optional.empty());
 
                 Medicine medicine1 = Medicine.builder().id(medicineId1).patient(patient).build();
+                when(userService.getUserId()).thenReturn(patient.getId());
 
                 when(patientService.getPatientProfile()).thenReturn(patient);
                 when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
@@ -191,6 +195,7 @@ public class MedicineServiceImplTest {
                 Medicine medicine3 = Medicine.builder().id(medicineId3).patient(patient).build();
 
                 when(patientService.getPatientProfile()).thenReturn(patient);
+                when(userService.getUserId()).thenReturn(patient.getId());
                 when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
                 when(medicineRepository.findById(medicineId2)).thenReturn(Optional.of(medicine2));
                 when(medicineRepository.findById(medicineId3)).thenReturn(Optional.of(medicine3));
@@ -213,6 +218,7 @@ public class MedicineServiceImplTest {
                 Medicine medicine1 = Medicine.builder().id(medicineId1)
                         .patient(Patient.builder().id(UUID.randomUUID()).build()).build();
                 Medicine medicine2 = Medicine.builder().id(medicineId2).patient(patient).build();
+                when(userService.getUserId()).thenReturn(patient.getId());
 
                 when(patientService.getPatientProfile()).thenReturn(patient);
                 when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
@@ -247,7 +253,7 @@ public class MedicineServiceImplTest {
                 Medicine medicine2 = Medicine.builder().id(medicineId2).patient(patient).build();
 
                 when(groupService.getGroupById(groupId)).thenReturn(group);
-                when(patientService.getPatientProfile()).thenReturn(patient);
+                when(userService.getUserId()).thenReturn(patient.getId());
                 when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
                 when(medicineRepository.findById(medicineId2)).thenReturn(Optional.of(medicine2));
                 when(medicineRepository.save(any(Medicine.class)))
@@ -289,7 +295,7 @@ public class MedicineServiceImplTest {
                 Medicine medicine1 = Medicine.builder().id(medicineId1).patient(patient).build();
 
                 when(groupService.getGroupById(groupId)).thenReturn(group);
-                when(patientService.getPatientProfile()).thenReturn(patient);
+                when(userService.getUserId()).thenReturn(patient.getId());
                 when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
                 when(medicineRepository.findById(medicineId2)).thenReturn(Optional.empty());
                 when(medicineRepository.save(any(Medicine.class)))
@@ -321,7 +327,7 @@ public class MedicineServiceImplTest {
                 Medicine medicine2 = Medicine.builder().id(medicineId2).patient(patient)
                         .status(MedicineStatus.INACTIVE).build();
 
-                when(patientService.getPatientProfile()).thenReturn(patient);
+                when(userService.getUserId()).thenReturn(patient.getId());
                 when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
                 when(medicineRepository.findById(medicineId2)).thenReturn(Optional.of(medicine2));
                 when(medicineRepository.save(any(Medicine.class)))
@@ -347,7 +353,7 @@ public class MedicineServiceImplTest {
                 Medicine medicine1 = Medicine.builder().id(medicineId1).patient(patient)
                         .status(MedicineStatus.INACTIVE).build();
 
-                when(patientService.getPatientProfile()).thenReturn(patient);
+                when(userService.getUserId()).thenReturn(patient.getId());
                 when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
                 when(medicineRepository.findById(medicineId2)).thenReturn(Optional.empty());
                 when(medicineRepository.save(any(Medicine.class)))
@@ -380,6 +386,7 @@ public class MedicineServiceImplTest {
                         .status(MedicineStatus.ACTIVE).build();
 
                 when(patientService.getPatientProfile()).thenReturn(patient);
+                when(userService.getUserId()).thenReturn(patient.getId());
                 when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
                 when(medicineRepository.findById(medicineId2)).thenReturn(Optional.of(medicine2));
                 when(medicineRepository.save(any(Medicine.class)))
@@ -407,6 +414,7 @@ public class MedicineServiceImplTest {
                         .status(MedicineStatus.ACTIVE).build();
 
                 when(patientService.getPatientProfile()).thenReturn(patient);
+                when(userService.getUserId()).thenReturn(patient.getId());
                 when(medicineRepository.findById(medicineId1)).thenReturn(Optional.of(medicine1));
                 when(medicineRepository.findById(medicineId2)).thenReturn(Optional.empty());
                 when(medicineRepository.save(any(Medicine.class)))

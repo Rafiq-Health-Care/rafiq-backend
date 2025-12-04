@@ -19,7 +19,6 @@ import org.mockito.MockitoAnnotations;
 import com.nexaworks.rafiq.entities.LabTest;
 import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.exception.custom.LabTestException;
-import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.LabTestRepository;
 import com.nexaworks.rafiq.repository.PatientRepository;
 import com.nexaworks.rafiq.service.ImageService;
@@ -105,7 +104,7 @@ public class LabTestServiceImplTest {
         Patient patient = Patient.builder().id(UUID.randomUUID()).build();
         LabTest labTest = LabTest.builder().id(testId).patient(patient).build();
         patient.setLabTests(List.of(labTest));
-        when(patientService.getPatientProfile()).thenReturn(patient);
+        when(userService.getUserId()).thenReturn(patient.getId());
         when(labTestRepository.findById(testId)).thenReturn(java.util.Optional.of(labTest));
 
         labTestService.deleteTest(testId);
@@ -144,13 +143,4 @@ public class LabTestServiceImplTest {
         assertEquals(1, deleted);
     }
 
-    @DisplayName("Delete All test should throw exception if patient not found")
-    @Test
-    void deleteAllTest_ShouldThrowException_WhenPatientNotFound() {
-        // Create Patient directly (Patient extends User)
-        Patient patient = Patient.builder().id(UUID.randomUUID()).build();
-        when(patientService.getPatientProfile()).thenReturn(patient);
-        when(patientRepository.findById(patient.getId())).thenReturn(java.util.Optional.empty());
-        assertThrows(UserNotFoundException.class, () -> labTestService.deleteAll());
-    }
 }

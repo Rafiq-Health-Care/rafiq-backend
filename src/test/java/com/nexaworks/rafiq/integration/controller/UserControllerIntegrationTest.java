@@ -593,6 +593,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
             // Get the generated OTP from database using TokenRepository
             User user = userRepository.findByEmail(email).orElseThrow();
+
             Token otpToken = tokenRepository.findAll().stream()
                     .filter(t -> t.getUser().getId().equals(user.getId()))
                     .filter(t -> t.getTokenType().equals(TokenType.OTP)).findFirst().orElseThrow();

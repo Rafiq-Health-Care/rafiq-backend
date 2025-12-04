@@ -51,6 +51,9 @@ public class ReminderServiceTest {
     @Mock
     private ReminderLogRepository reminderLogRepository;
 
+    @Mock
+    private com.nexaworks.rafiq.service.UserService userService;
+
     @InjectMocks
     private ReminderServiceImpl reminderService;
 
@@ -164,7 +167,7 @@ public class ReminderServiceTest {
             Pageable pageable = PageRequest.of(0, 10);
 
             Page<GetAllRemindersHistoryResponseProjection> expectedPage = new PageImpl<>(List.of());
-            when(patientService.getPatientProfile()).thenReturn(testPatient);
+            when(userService.getUserId()).thenReturn(testPatientId);
             when(reminderRepository.findReminderByMedicineId(filters.medicineId()))
                     .thenReturn(testReminderId);
             when(reminderLogRepository.findLogsHistory(eq(startDate), eq(endDate),
@@ -175,7 +178,7 @@ public class ReminderServiceTest {
                     .getHistory(pageable, filters);
 
             assertThat(result).isNotNull();
-            verify(patientService).getPatientProfile();
+            verify(userService).getUserId();
             verify(reminderRepository).findReminderByMedicineId(filters.medicineId());
             verify(reminderLogRepository).findLogsHistory(startDate, endDate, testReminderId,
                     ReminderStatus.TAKEN, testPatientId, pageable);
@@ -189,7 +192,7 @@ public class ReminderServiceTest {
             Pageable pageable = PageRequest.of(0, 20);
 
             Page<GetAllRemindersHistoryResponseProjection> expectedPage = new PageImpl<>(List.of());
-            when(patientService.getPatientProfile()).thenReturn(testPatient);
+            when(userService.getUserId()).thenReturn(testPatientId);
             when(reminderLogRepository.findLogsHistory(any(), any(), eq(null),
                     eq(ReminderStatus.MISSED), eq(testPatientId), eq(pageable)))
                     .thenReturn(expectedPage);
@@ -208,7 +211,7 @@ public class ReminderServiceTest {
             Pageable pageable = PageRequest.of(2, 50);
 
             Page<GetAllRemindersHistoryResponseProjection> expectedPage = new PageImpl<>(List.of());
-            when(patientService.getPatientProfile()).thenReturn(testPatient);
+            when(userService.getUserId()).thenReturn(testPatientId);
             when(reminderLogRepository.findLogsHistory(any(), any(), eq(null), eq(null),
                     eq(testPatientId), eq(pageable))).thenReturn(expectedPage);
 
@@ -227,9 +230,8 @@ public class ReminderServiceTest {
             Pageable pageable = PageRequest.of(0, 10);
 
             UUID differentPatientId = UUID.randomUUID();
-            Patient differentPatient = Patient.builder().id(differentPatientId).build();
 
-            when(patientService.getPatientProfile()).thenReturn(differentPatient);
+            when(userService.getUserId()).thenReturn(differentPatientId);
             when(reminderLogRepository.findLogsHistory(any(), any(), any(), any(),
                     eq(differentPatientId), eq(pageable))).thenReturn(new PageImpl<>(List.of()));
 
@@ -249,7 +251,7 @@ public class ReminderServiceTest {
         void shouldUpdateReminderStatus_ToTaken() {
             LocalDateTime takenTime = LocalDateTime.now();
             when(reminderRepository.findById(testReminderId)).thenReturn(Optional.of(testReminder));
-            when(patientService.getPatientProfile()).thenReturn(testPatient);
+            when(userService.getUserId()).thenReturn(testPatientId);
             when(reminderLogRepository.save(any(ReminderLog.class))).thenReturn(new ReminderLog());
 
             reminderService.updateReminderStatus(testReminderId, ReminderStatus.TAKEN, takenTime);
@@ -269,7 +271,7 @@ public class ReminderServiceTest {
         void shouldUpdateReminderStatus_ToMissed() {
             LocalDateTime missedTime = LocalDateTime.now().minusHours(2);
             when(reminderRepository.findById(testReminderId)).thenReturn(Optional.of(testReminder));
-            when(patientService.getPatientProfile()).thenReturn(testPatient);
+            when(userService.getUserId()).thenReturn(testPatientId);
             when(reminderLogRepository.save(any(ReminderLog.class))).thenReturn(new ReminderLog());
 
             reminderService.updateReminderStatus(testReminderId, ReminderStatus.MISSED, missedTime);
@@ -299,10 +301,9 @@ public class ReminderServiceTest {
         @DisplayName("Should throw exception when patient doesn't own reminder")
         void shouldThrowException_WhenPatientDoesntOwnReminder() {
             UUID differentPatientId = UUID.randomUUID();
-            Patient differentPatient = Patient.builder().id(differentPatientId).build();
 
             when(reminderRepository.findById(testReminderId)).thenReturn(Optional.of(testReminder));
-            when(patientService.getPatientProfile()).thenReturn(differentPatient);
+            when(userService.getUserId()).thenReturn(differentPatientId);
 
             assertThatThrownBy(() -> reminderService.updateReminderStatus(testReminderId,
                     ReminderStatus.TAKEN, LocalDateTime.now())).isInstanceOf(ReminderNotFound.class)
