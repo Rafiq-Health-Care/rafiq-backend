@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,9 +15,9 @@ import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
+import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.PasswordService;
 import com.nexaworks.rafiq.service.TokenService;
-import com.nexaworks.rafiq.service.UserService;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 
 import lombok.RequiredArgsConstructor;
@@ -26,16 +27,17 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class PasswordServiceImpl implements PasswordService {
-    private final UserService userService;
+    private final UserRepository userRepository;
     private final TokenService tokenService;
     private final ApplicationEventPublisher eventPublisher;
     private final AuthService authService;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
     public void forgetPassword(ForgetPasswordRequest forgetPasswordRequest) {
         String email = forgetPasswordRequest.email();
-        Optional<User> user = userService.findByEmail(email);
+        Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) {
             return;
         }
@@ -52,14 +54,17 @@ public class PasswordServiceImpl implements PasswordService {
             throw new TokenInvalidException("Invalid Access Token");
         }
         User user = token.getUser();
-        userService.changePassword(user, changePasswordRequest.newPassword());
+        user.setPassword(passwordEncoder.encode(changePasswordRequest.newPassword()));
         log.info("Password changed for user {}", user.getEmail());
     }
 
     @Override
     public void resetPassword(ResetPasswordRequest resetPasswordRequest) {
         User user = authService.getAuthenticateUser();
-        userService.updatePassword(user, resetPasswordRequest);
+        if (passwordEncoder.matches(resetPasswordRequest.oldPassword(), user.getPassword())) {
+            user.setPassword(passwordEncoder.encode(resetPasswordRequest.newPassword()));
+        }
+        userRepository.save(user);
     }
 
 }

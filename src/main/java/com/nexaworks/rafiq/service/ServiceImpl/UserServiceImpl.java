@@ -19,11 +19,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.nexaworks.rafiq.dto.event.DoctorRegisterEvent;
 import com.nexaworks.rafiq.dto.event.NewOtpEvent;
 import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
-import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.*;
 import com.nexaworks.rafiq.entities.enums.TokenType;
-import com.nexaworks.rafiq.exception.custom.InvalidPasswordException;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
@@ -48,24 +46,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
-    }
-
-    @Override
-    @Transactional
-    public void changePassword(User user, String s) {
-        user.setPassword(passwordEncoder.encode(s));
-        userRepository.save(user);
-    }
-
-    @Override
-    @Transactional
-    public void updatePassword(User user, ResetPasswordRequest resetPasswordRequest) {
-        if (!passwordEncoder.matches(resetPasswordRequest.oldPassword(), user.getPassword())) {
-            throw new InvalidPasswordException("Old password is not correct");
-        }
-        user.setPassword(passwordEncoder.encode(resetPasswordRequest.newPassword()));
-        userRepository.save(user);
-        log.info("Password updated for user {}", user.getEmail());
     }
 
     @Override

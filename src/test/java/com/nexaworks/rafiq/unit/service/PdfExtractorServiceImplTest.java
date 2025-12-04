@@ -26,7 +26,7 @@ import com.nexaworks.rafiq.exception.custom.EmptyFileException;
 import com.nexaworks.rafiq.service.ServiceImpl.GeminiService;
 import com.nexaworks.rafiq.service.ServiceImpl.LabTestServiceImpl;
 import com.nexaworks.rafiq.service.ServiceImpl.PdfExtractorServiceImpl;
-import com.nexaworks.rafiq.service.ServiceImpl.UserServiceImpl;
+import com.nexaworks.rafiq.service.authentication.AuthService;
 
 public class PdfExtractorServiceImplTest {
     @Mock
@@ -36,7 +36,7 @@ public class PdfExtractorServiceImplTest {
     GeminiService geminiService;
 
     @Mock
-    UserServiceImpl userService;
+    AuthService authService;
 
     @InjectMocks
     PdfExtractorServiceImpl pdfExtractorService;
@@ -64,7 +64,7 @@ public class PdfExtractorServiceImplTest {
 
         when(labTestService.saveTestPdf(imageFile, user))
                 .thenReturn(CompletableFuture.completedFuture(id));
-        when(userService.getUser()).thenReturn(user);
+        when(authService.getAuthenticateUser()).thenReturn(user);
         when(geminiService.extractLabResultsFromPdf(any())).thenReturn("{}");
 
         String result = pdfExtractorService.extractPdf(imageFile);

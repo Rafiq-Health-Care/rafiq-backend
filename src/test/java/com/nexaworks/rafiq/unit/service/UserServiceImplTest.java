@@ -24,14 +24,12 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import com.nexaworks.rafiq.dto.event.NewOtpEvent;
 import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
-import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.Roles;
-import com.nexaworks.rafiq.exception.custom.InvalidPasswordException;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
 import com.nexaworks.rafiq.exception.custom.TokenNotFoundException;
@@ -101,30 +99,6 @@ public class UserServiceImplTest {
                 // Ignore exceptions in test
             }
         });
-    }
-
-    @DisplayName("Update password should encode and save the new password")
-    @Test
-    void updatePassword_ShouldEncodeAndSaveNewPassword_WhenOldPasswordMatches() {
-        User user = User.builder().id(java.util.UUID.randomUUID()).build();
-        ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest("123", "123");
-        when(passwordEncoder.matches(any(), any())).thenReturn(true);
-        when(passwordEncoder.encode(anyString())).thenReturn("123");
-        when(userRepository.save(user)).thenReturn(user);
-        userService.updatePassword(user, resetPasswordRequest);
-        verify(userRepository, times(1)).save(user);
-    }
-
-    @DisplayName("Update password should throw exception if old password doesn't match")
-    @Test
-    void updatePassword_ShouldThrowException_WhenOldPasswordDoesNotMatch() {
-        User user = User.builder().id(java.util.UUID.randomUUID()).build();
-        ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest("123", "123");
-        when(passwordEncoder.matches(any(), any())).thenReturn(false);
-        when(passwordEncoder.encode(anyString())).thenReturn("123");
-        assertThrows(InvalidPasswordException.class,
-                () -> userService.updatePassword(user, resetPasswordRequest));
-        verify(userRepository, never()).save(user);
     }
 
     @DisplayName("Register patient should add user and publish event to send the activation email")

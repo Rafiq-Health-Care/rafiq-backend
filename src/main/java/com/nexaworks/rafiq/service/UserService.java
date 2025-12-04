@@ -6,21 +6,15 @@ import java.util.UUID;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.User;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
 public interface UserService {
     Optional<User> findByEmail(String email);
-
-    void changePassword(User user, @NotBlank @Size(min = 8, max = 20) String s);
-
-    void updatePassword(User user, ResetPasswordRequest resetPasswordRequest);
 
     void registerPatient(User user);
 
