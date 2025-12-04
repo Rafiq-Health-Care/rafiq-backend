@@ -15,8 +15,8 @@ import com.nexaworks.rafiq.entities.Specialization;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.Status;
 import com.nexaworks.rafiq.repository.DoctorRepository;
-import com.nexaworks.rafiq.service.ServiceImpl.DoctorServiceImpl;
-import com.nexaworks.rafiq.service.SpecializationService;
+import com.nexaworks.rafiq.service.doctor.SpecializationService;
+import com.nexaworks.rafiq.service.doctor.implementation.DoctorServiceImpl;
 
 @DisplayName("DoctorService Test Cases")
 class DoctorServiceImplTest {

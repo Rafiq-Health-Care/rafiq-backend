@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.nexaworks.rafiq.dto.response.specialization.SpecializationResponse;
-import com.nexaworks.rafiq.service.SpecializationService;
+import com.nexaworks.rafiq.service.doctor.SpecializationService;
 
 import lombok.RequiredArgsConstructor;
 

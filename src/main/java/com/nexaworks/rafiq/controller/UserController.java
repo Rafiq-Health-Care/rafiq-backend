@@ -14,7 +14,8 @@ import com.nexaworks.rafiq.dto.request.user.UserRegistrationRequest;
 import com.nexaworks.rafiq.dto.request.user.VerificationRequest;
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.mapper.UserMapper;
-import com.nexaworks.rafiq.service.UserService;
+import com.nexaworks.rafiq.service.user.TokenService;
+import com.nexaworks.rafiq.service.user.UserService;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -26,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
     private final UserService userService;
     private final UserMapper userMapper;
+    private final TokenService tokenService;
 
     @PostMapping("/register/patient")
     public ResponseEntity<Void> registerPatient(
@@ -54,7 +56,7 @@ public class UserController {
 
     @PostMapping("/new-otp")
     public ResponseEntity<Void> newOtp(@RequestBody ForgetPasswordRequest forgetPasswordRequest) {
-        userService.getNewOtp(forgetPasswordRequest.email());
+        tokenService.getNewOtp(forgetPasswordRequest.email());
         return ResponseEntity.ok().build();
     }
 }

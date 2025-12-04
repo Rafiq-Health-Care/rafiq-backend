@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service;
+package com.nexaworks.rafiq.service.user;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -14,7 +14,6 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public interface UserService {
-    Optional<User> findByEmail(String email);
 
     void registerPatient(User user);
 
@@ -24,11 +23,9 @@ public interface UserService {
     LoginResponse verifyUserEmail(@NotBlank @Email String email, @NotBlank String otp,
             HttpServletResponse response);
 
-    void getNewOtp(String email);
-
     User addUser(String email, String firstName, String lastName);
 
-    String getNotificationToken();
+
     UUID getUserId();
 
     Optional<User> getUser(String email, String firstName, String lastName);

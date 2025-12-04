@@ -25,7 +25,7 @@ import com.nexaworks.rafiq.repository.ReminderLogRepository;
 import com.nexaworks.rafiq.repository.ReminderRepository;
 import com.nexaworks.rafiq.service.PatientService;
 import com.nexaworks.rafiq.service.ReminderService;
-import com.nexaworks.rafiq.service.UserService;
+import com.nexaworks.rafiq.service.user.UserService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

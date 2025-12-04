@@ -37,6 +37,7 @@ import com.nexaworks.rafiq.repository.ReminderLogRepository;
 import com.nexaworks.rafiq.repository.ReminderRepository;
 import com.nexaworks.rafiq.service.PatientService;
 import com.nexaworks.rafiq.service.ServiceImpl.ReminderServiceImpl;
+import com.nexaworks.rafiq.service.user.UserService;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Reminder Service Unit Tests")
@@ -52,7 +53,7 @@ public class ReminderServiceTest {
     private ReminderLogRepository reminderLogRepository;
 
     @Mock
-    private com.nexaworks.rafiq.service.UserService userService;
+    private UserService userService;
 
     @InjectMocks
     private ReminderServiceImpl reminderService;

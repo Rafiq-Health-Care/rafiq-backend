@@ -1,8 +1,5 @@
 package com.nexaworks.rafiq.service.ServiceImpl;
 
-import java.util.UUID;
-
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +8,7 @@ import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.repository.PatientRepository;
 import com.nexaworks.rafiq.service.PatientService;
 import com.nexaworks.rafiq.service.WeightHistoryService;
+import com.nexaworks.rafiq.service.authentication.AuthService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,17 +19,12 @@ import lombok.extern.slf4j.Slf4j;
 public class PatientServiceImpl implements PatientService {
     private final PatientRepository patientRepository;
     private final WeightHistoryService weightHistoryService;
-
-    @Override
-    public Patient getPatientProfile() {
-        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return patientRepository.findById(userId).orElseThrow();
-    }
+    private final AuthService authService;
 
     @Override
     @Transactional
     public Patient completePatientProfile(CreateBasicMedicalProfileRequest request) {
-        Patient patient = getPatientProfile();
+        Patient patient = (Patient) authService.getAuthenticateUser();
         if (patient.getWeight() != request.weightInKg()) {
             weightHistoryService.logNewWeight(request.weightInKg(), patient);
         }
@@ -50,5 +43,12 @@ public class PatientServiceImpl implements PatientService {
         patient.setWeight(request.weightInKg());
 
         return patientRepository.save(patient);
+    }
+
+    @Override
+    @Transactional
+    public void register(Patient patient) {
+        patientRepository.save(patient);
+        log.info("Patient registered successfully");
     }
 }

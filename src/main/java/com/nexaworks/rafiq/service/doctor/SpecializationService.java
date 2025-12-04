@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service;
+package com.nexaworks.rafiq.service.doctor;
 
 import java.util.List;
 import java.util.UUID;

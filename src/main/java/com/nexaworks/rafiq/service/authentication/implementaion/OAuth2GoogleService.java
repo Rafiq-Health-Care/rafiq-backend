@@ -13,8 +13,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.custom.GoogleAuthException;
-import com.nexaworks.rafiq.service.UserService;
 import com.nexaworks.rafiq.service.authentication.OAuth2Service;
+import com.nexaworks.rafiq.service.user.UserService;
 import com.nexaworks.rafiq.utils.AuthSessionManager;
 
 import jakarta.servlet.http.HttpServletResponse;

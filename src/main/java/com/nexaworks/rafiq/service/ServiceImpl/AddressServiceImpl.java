@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.nexaworks.rafiq.entities.Address;
 import com.nexaworks.rafiq.repository.AddressRepository;
-import com.nexaworks.rafiq.service.AddressService;
+import com.nexaworks.rafiq.service.user.AddressService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

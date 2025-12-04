@@ -32,6 +32,7 @@ import com.nexaworks.rafiq.service.PatientService;
 import com.nexaworks.rafiq.service.ServiceImpl.DrugServiceImpl;
 import com.nexaworks.rafiq.service.ServiceImpl.GroupServiceImpl;
 import com.nexaworks.rafiq.service.ServiceImpl.MedicineServiceImpl;
+import com.nexaworks.rafiq.service.user.UserService;
 
 import jakarta.validation.ValidationException;
 
@@ -48,7 +49,7 @@ public class MedicineServiceImplTest {
     @Mock
     QuartzSchedulerService quartzSchedulerService;
     @Mock
-    com.nexaworks.rafiq.service.UserService userService;
+    UserService userService;
     @InjectMocks
     MedicineServiceImpl medicineService;
     static Patient patient;

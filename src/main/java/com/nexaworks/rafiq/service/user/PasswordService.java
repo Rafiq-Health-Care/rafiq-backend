@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service;
+package com.nexaworks.rafiq.service.user;
 
 import com.nexaworks.rafiq.dto.request.user.ChangePasswordRequest;
 import com.nexaworks.rafiq.dto.request.user.ForgetPasswordRequest;

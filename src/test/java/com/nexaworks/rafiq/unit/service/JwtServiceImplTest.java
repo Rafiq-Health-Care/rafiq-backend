@@ -21,7 +21,7 @@ import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.custom.UserException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.ServiceImpl.JwtServiceImpl;
-import com.nexaworks.rafiq.service.ServiceImpl.TokenServiceImpl;
+import com.nexaworks.rafiq.service.user.implementation.TokenServiceImpl;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

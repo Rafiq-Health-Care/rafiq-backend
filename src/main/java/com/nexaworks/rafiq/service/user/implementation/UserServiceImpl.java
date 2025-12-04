@@ -1,12 +1,15 @@
-package com.nexaworks.rafiq.service.ServiceImpl;
+package com.nexaworks.rafiq.service.user.implementation;
 
 import static com.nexaworks.rafiq.entities.enums.Roles.*;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.nexaworks.rafiq.service.doctor.DoctorService;
+import com.nexaworks.rafiq.service.user.RoleService;
+import com.nexaworks.rafiq.service.user.TokenService;
+import com.nexaworks.rafiq.service.user.UserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,11 +20,9 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.multipart.MultipartFile;
 
 import com.nexaworks.rafiq.dto.event.DoctorRegisterEvent;
-import com.nexaworks.rafiq.dto.event.NewOtpEvent;
 import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.*;
-import com.nexaworks.rafiq.entities.enums.TokenType;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.*;
@@ -38,30 +39,20 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleService roleService;
-    private final SpecializationService specializationService;
     private final TokenService tokenService;
     private final ApplicationEventPublisher eventPublisher;
     private final AuthSessionManager authSessionManager;
-
-    @Override
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
+    private final PatientService patientService;
+    private final DoctorService doctorService;
 
     @Override
     @Transactional
     public void registerPatient(User user) {
-        if (userRepository.existsUserByEmail(user.getEmail())) {
-            throw new RegistrationException(
-                    "User with email " + user.getEmail() + " already exists");
-        }
-        Patient patient = (Patient) extracted(user);
-        patient.getRoles().add(roleService.getRole(ROLE_PATIENT));
-        userRepository.save(patient);
-
-        log.info("User registered {}", user.getEmail());
-
-        String otp = tokenService.generateOtpToken(patient);
+        verifyEmailAvailability(user);
+        user.getRoles().add(roleService.getRole(ROLE_PATIENT));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        patientService.register((Patient) user);
+        String otp = tokenService.generateOtpToken(user);
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
@@ -71,40 +62,26 @@ public class UserServiceImpl implements UserService {
                         new UserRegistrationEvent(user.getEmail(), otp, user.getFirstName()));
             }
         });
-
-    }
-
-    private User extracted(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return user;
     }
 
     @Override
     @Transactional
     public void registerDoctor(User user, MultipartFile nationalId, UUID specialization,
             String description) throws IOException {
-        if (userRepository.existsUserByEmail(user.getEmail())) {
-            throw new RegistrationException(
-                    "User with email " + user.getEmail() + " already exists");
-        }
 
-        Doctor doctor = (Doctor) extracted(user);
-        doctor.getRoles().add(roleService.getRole(ROLE_DOCTOR));
-        doctor.setDescription(description);
-        Specialization specializationEntity = specializationService
-                .getSpecialization(specialization);
-        doctor.setSpecialization(specializationEntity);
+        verifyEmailAvailability(user);
+        user.getRoles().add(roleService.getRole(ROLE_DOCTOR));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        doctorService.register((Doctor)user, specialization,description);
 
-        userRepository.save(doctor);
-        log.info("Doctor registered {}", user.getEmail());
-        String otp = tokenService.generateOtpToken(doctor);
+        String otp = tokenService.generateOtpToken(user);
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
                 eventPublisher.publishEvent(new DoctorRegisterEvent(
                         new UserRegistrationEvent(user.getEmail(), otp, user.getFirstName()),
-                        doctor.getId(), nationalId));
+                        user.getId(), nationalId));
             }
         });
     }
@@ -116,39 +93,6 @@ public class UserServiceImpl implements UserService {
         user.setEnabled(true);
         userRepository.save(user);
         return authSessionManager.createLoginSession(response, user);
-    }
-
-    @Override
-    @Transactional
-    public void getNewOtp(String email) {
-        Optional<User> user = userRepository.findByEmail(email);
-        if (user.isEmpty()) {
-            return;
-        }
-
-        Optional<Token> otpToken = user.get().getTokens().stream()
-                .filter(token -> token.getTokenType().equals(TokenType.OTP)
-                        && token.getExpiryDate().isAfter(Instant.now()))
-                .findFirst();
-        otpToken.ifPresent(token -> token.setExpiryDate(Instant.now()));
-        String otp = tokenService.generateOtpToken(user.get());
-        log.info("New OTP generated {}", otp);
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                log.info("New OTP sent to {}", user.get().getEmail());
-                eventPublisher.publishEvent(
-                        new NewOtpEvent(user.get().getEmail(), otp, user.get().getFirstName()));
-
-            }
-        });
-    }
-
-    public User getUser() {
-
-        return userRepository.findById(
-                (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-                .orElseThrow();
     }
 
     @Override
@@ -165,11 +109,6 @@ public class UserServiceImpl implements UserService {
         return oAuthUser;
     }
 
-    @Override
-    public String getNotificationToken() {
-        User user = getUser();
-        return user.getNotificationToken();
-    }
     public UUID getUserId() {
         return (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
@@ -184,4 +123,11 @@ public class UserServiceImpl implements UserService {
         }
         return user;
     }
+    private void verifyEmailAvailability(User user) {
+        if (userRepository.existsUserByEmail(user.getEmail())) {
+            throw new RegistrationException(
+                    "User with email " + user.getEmail() + " already exists");
+        }
+    }
+
 }

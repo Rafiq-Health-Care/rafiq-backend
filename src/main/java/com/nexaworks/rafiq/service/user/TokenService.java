@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service;
+package com.nexaworks.rafiq.service.user;
 
 import java.util.Optional;
 
@@ -19,4 +19,5 @@ public interface TokenService {
     void invalidateRefreshToken(Token token);
 
     void saveToken(Token token);
+    void getNewOtp(String email);
 }

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.nexaworks.rafiq.dto.request.user.ChangePasswordRequest;
 import com.nexaworks.rafiq.dto.request.user.ForgetPasswordRequest;
 import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
-import com.nexaworks.rafiq.service.PasswordService;
+import com.nexaworks.rafiq.service.user.PasswordService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

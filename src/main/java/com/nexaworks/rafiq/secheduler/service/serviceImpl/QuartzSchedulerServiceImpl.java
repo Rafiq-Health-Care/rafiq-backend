@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.secheduler.service.QuartzSchedulerService;
-import com.nexaworks.rafiq.service.UserService;
+import com.nexaworks.rafiq.service.user.UserService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

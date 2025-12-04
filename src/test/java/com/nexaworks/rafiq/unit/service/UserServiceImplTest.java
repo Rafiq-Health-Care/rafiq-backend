@@ -36,6 +36,11 @@ import com.nexaworks.rafiq.exception.custom.TokenNotFoundException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.ImageService;
 import com.nexaworks.rafiq.service.ServiceImpl.*;
+import com.nexaworks.rafiq.service.doctor.implementation.DoctorServiceImpl;
+import com.nexaworks.rafiq.service.doctor.implementation.SpecializationServiceImpl;
+import com.nexaworks.rafiq.service.user.implementation.RoleServiceImpl;
+import com.nexaworks.rafiq.service.user.implementation.TokenServiceImpl;
+import com.nexaworks.rafiq.service.user.implementation.UserServiceImpl;
 import com.nexaworks.rafiq.utils.AuthSessionManager;
 
 import jakarta.servlet.http.HttpServletResponse;

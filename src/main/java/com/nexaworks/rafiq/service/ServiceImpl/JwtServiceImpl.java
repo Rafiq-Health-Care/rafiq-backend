@@ -22,7 +22,7 @@ import com.nexaworks.rafiq.exception.custom.UserException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.JwtService;
-import com.nexaworks.rafiq.service.TokenService;
+import com.nexaworks.rafiq.service.user.TokenService;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

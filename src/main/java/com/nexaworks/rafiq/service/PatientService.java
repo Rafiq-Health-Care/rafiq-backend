@@ -7,8 +7,7 @@ import jakarta.validation.Valid;
 
 public interface PatientService {
 
-    Patient getPatientProfile();
-
     Patient completePatientProfile(@Valid CreateBasicMedicalProfileRequest request);
+    void register(Patient patient);
 
 }
