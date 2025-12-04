@@ -12,6 +12,7 @@ import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.mapper.MedicineMapper;
 import com.nexaworks.rafiq.mapper.PatientMapper;
 import com.nexaworks.rafiq.mapper.TestMapper;
+import com.nexaworks.rafiq.service.PatientProfileService;
 import com.nexaworks.rafiq.service.PatientService;
 
 import jakarta.validation.Valid;
@@ -21,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/patients/medical-profile")
 @RequiredArgsConstructor
 public class PatientProfileController {
+
+    private final PatientProfileService patientProfileService;
     private final PatientService patientService;
     private final PatientMapper patientMapper;
     private final MedicineMapper medicineMapper;
@@ -29,7 +32,7 @@ public class PatientProfileController {
     @PostMapping
     public ResponseEntity<AddResponse<PatientProfileResponse>> addPatientProfile(
             @Valid @RequestBody CreateBasicMedicalProfileRequest request) {
-        Patient patient = patientService.completePatientProfile(request);
+        Patient patient = patientProfileService.completePatientProfile(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(new AddResponse<>(true,
                 "Patient profile created successfully", patientMapper.toResponse(patient)));
     }
@@ -42,7 +45,7 @@ public class PatientProfileController {
     @PutMapping
     public ResponseEntity<AddResponse<PatientProfileResponse>> updatePatientProfile(
             @Valid @RequestBody CreateBasicMedicalProfileRequest request) {
-        Patient patient = patientService.completePatientProfile(request);
+        Patient patient = patientProfileService.completePatientProfile(request);
         return ResponseEntity.ok().body(new AddResponse<>(true,
                 "Patient profile updated successfully", patientMapper.toResponse(patient)));
     }
