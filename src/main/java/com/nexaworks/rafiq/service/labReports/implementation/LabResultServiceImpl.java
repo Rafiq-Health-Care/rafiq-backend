@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service.ServiceImpl;
+package com.nexaworks.rafiq.service.labReports.implementation;
 
 import java.util.List;
 
@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.nexaworks.rafiq.entities.LabResult;
 import com.nexaworks.rafiq.repository.LabResultRepository;
-import com.nexaworks.rafiq.service.LabResultService;
+import com.nexaworks.rafiq.service.labReports.LabResultService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

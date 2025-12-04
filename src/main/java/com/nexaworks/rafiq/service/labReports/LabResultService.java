@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service;
+package com.nexaworks.rafiq.service.labReports;
 
 import java.util.List;
 

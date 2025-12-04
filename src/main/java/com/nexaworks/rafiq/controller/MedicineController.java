@@ -21,7 +21,7 @@ import com.nexaworks.rafiq.entities.Medicine;
 import com.nexaworks.rafiq.mapper.MedicineMapper;
 import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.mapper.ReminderMapper;
-import com.nexaworks.rafiq.service.MedicineService;
+import com.nexaworks.rafiq.service.medicine.MedicineService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

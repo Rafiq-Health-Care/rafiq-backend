@@ -1,5 +1,7 @@
 package com.nexaworks.rafiq.service.authentication;
 
+import java.util.UUID;
+
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.User;
 
@@ -16,4 +18,6 @@ public interface AuthService {
     LoginResponse refresh(HttpServletResponse response, HttpServletRequest request);
 
     void logout(HttpServletRequest request, HttpServletResponse response);
+
+    UUID getAuthenticateUserId();
 }

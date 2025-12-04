@@ -14,7 +14,7 @@ import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.lab.LabResponse;
 import com.nexaworks.rafiq.mapper.AddressMapper;
 import com.nexaworks.rafiq.mapper.PageMapper;
-import com.nexaworks.rafiq.service.LabService;
+import com.nexaworks.rafiq.service.lab.LabService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

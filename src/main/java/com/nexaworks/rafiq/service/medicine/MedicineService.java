@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service;
+package com.nexaworks.rafiq.service.medicine;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.controller;
+package com.nexaworks.rafiq.controller.authencation;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

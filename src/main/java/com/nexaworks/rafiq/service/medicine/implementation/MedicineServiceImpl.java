@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service.ServiceImpl;
+package com.nexaworks.rafiq.service.medicine.implementation;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.nexaworks.rafiq.service.medicine.DrugService;
+import com.nexaworks.rafiq.service.medicine.GroupService;
+import com.nexaworks.rafiq.service.medicine.MedicineService;
 import org.jetbrains.annotations.NotNull;
 import org.quartz.SchedulerException;
 import org.springframework.data.domain.Page;
@@ -28,8 +31,6 @@ import com.nexaworks.rafiq.exception.custom.MedicineLimit;
 import com.nexaworks.rafiq.exception.custom.MedicineNotFound;
 import com.nexaworks.rafiq.repository.MedicineRepository;
 import com.nexaworks.rafiq.repository.specification.MedicineSpecification;
-import com.nexaworks.rafiq.service.*;
-import com.nexaworks.rafiq.service.medicine.DrugService;
 import com.nexaworks.rafiq.service.patient.PatientService;
 import com.nexaworks.rafiq.service.user.UserService;
 

@@ -1,8 +1,10 @@
-package com.nexaworks.rafiq.service.ServiceImpl;
+package com.nexaworks.rafiq.service.medicine.implementation;
 
 import java.util.Optional;
 import java.util.UUID;
 
+import com.nexaworks.rafiq.entities.Patient;
+import com.nexaworks.rafiq.service.authentication.AuthService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +19,7 @@ import com.nexaworks.rafiq.exception.custom.GroupIsAlreadyExistsException;
 import com.nexaworks.rafiq.exception.custom.GroupNotFoundException;
 import com.nexaworks.rafiq.exception.custom.MedicineNotFound;
 import com.nexaworks.rafiq.repository.GroupRepository;
-import com.nexaworks.rafiq.service.GroupService;
+import com.nexaworks.rafiq.service.medicine.GroupService;
 import com.nexaworks.rafiq.service.patient.PatientService;
 
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 public class GroupServiceImpl implements GroupService {
     private final GroupRepository groupRepository;
     private final PatientService patientService;
+    private final AuthService authService;
 
     @Override
     public Group getGroupById(UUID groupId) {
@@ -44,11 +47,12 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     public Group addGroup(Group group) {
-        if (groupRepository.existsGroupByName(group.getName())) {
+        Patient patient = (Patient) authService.getAuthenticateUser();
+        if (groupRepository.existsGroupByName_AndPatient(group.getName(), patient)) {
             throw new GroupIsAlreadyExistsException(
                     "Group with name " + group.getName() + " already exists");
         }
-        group.setPatient(patientService.getPatientProfile());
+        group.setPatient(patient);
         return groupRepository.save(group);
     }
 
@@ -58,7 +62,7 @@ public class GroupServiceImpl implements GroupService {
                 ? Sort.by(sort).ascending()
                 : Sort.by(sort).descending();
         Pageable pageable = PageRequest.of(page, size, sortOrder);
-        UUID patientId = patientService.getPatientProfile().getId();
+        UUID patientId = authService.getAuthenticateUserId();
         return groupRepository.findByPatientId(patientId, pageable);
     }
 

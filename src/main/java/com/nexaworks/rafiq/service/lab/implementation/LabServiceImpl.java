@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service.ServiceImpl;
+package com.nexaworks.rafiq.service.lab.implementation;
 
 import java.io.IOException;
 import java.util.List;
@@ -19,7 +19,7 @@ import com.nexaworks.rafiq.entities.LabTest;
 import com.nexaworks.rafiq.entities.enums.UploadType;
 import com.nexaworks.rafiq.exception.custom.LabException;
 import com.nexaworks.rafiq.repository.LabRepository;
-import com.nexaworks.rafiq.service.LabService;
+import com.nexaworks.rafiq.service.lab.LabService;
 import com.nexaworks.rafiq.service.file.ImageService;
 import com.nexaworks.rafiq.service.user.AddressService;
 

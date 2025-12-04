@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.controller;
+package com.nexaworks.rafiq.controller.labReports;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -17,8 +17,8 @@ import com.nexaworks.rafiq.dto.response.labTest.TestResultsResponse;
 import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.mapper.ResultMapper;
 import com.nexaworks.rafiq.mapper.TestMapper;
-import com.nexaworks.rafiq.service.LabTestService;
-import com.nexaworks.rafiq.service.PdfExtractorService;
+import com.nexaworks.rafiq.service.labReports.LabTestService;
+import com.nexaworks.rafiq.service.file.PdfExtractorService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

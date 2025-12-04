@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.controller;
+package com.nexaworks.rafiq.controller.medicine;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,8 +22,8 @@ import com.nexaworks.rafiq.entities.Group;
 import com.nexaworks.rafiq.mapper.GroupMapper;
 import com.nexaworks.rafiq.mapper.MedicineMapper;
 import com.nexaworks.rafiq.mapper.PageMapper;
-import com.nexaworks.rafiq.service.GroupService;
-import com.nexaworks.rafiq.service.MedicineService;
+import com.nexaworks.rafiq.service.medicine.GroupService;
+import com.nexaworks.rafiq.service.medicine.MedicineService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -9,7 +9,7 @@ import com.nexaworks.rafiq.dto.response.reminder.AddReminderResponse;
 import com.nexaworks.rafiq.dto.response.reminder.GetReminderByIdResponse;
 import com.nexaworks.rafiq.dto.response.reminder.ReminderResponse;
 import com.nexaworks.rafiq.entities.Reminder;
-import com.nexaworks.rafiq.service.MedicineService;
+import com.nexaworks.rafiq.service.medicine.MedicineService;
 
 @Mapper(componentModel = "spring", uses = MedicineService.class)
 public interface ReminderMapper {

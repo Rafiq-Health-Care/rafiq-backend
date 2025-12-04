@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service;
+package com.nexaworks.rafiq.service.file;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;

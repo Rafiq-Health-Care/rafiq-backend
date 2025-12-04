@@ -3,7 +3,7 @@ package com.nexaworks.rafiq.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.nexaworks.rafiq.service.WeightHistoryService;
+import com.nexaworks.rafiq.service.patient.WeightHistoryService;
 
 import lombok.RequiredArgsConstructor;
 

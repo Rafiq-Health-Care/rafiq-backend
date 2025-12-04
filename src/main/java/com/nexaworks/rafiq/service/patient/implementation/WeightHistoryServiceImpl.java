@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service.ServiceImpl;
+package com.nexaworks.rafiq.service.patient.implementation;
 
 import java.time.LocalDate;
 
@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.WeightHistory;
 import com.nexaworks.rafiq.repository.WeightHistoryRepository;
-import com.nexaworks.rafiq.service.WeightHistoryService;
+import com.nexaworks.rafiq.service.patient.WeightHistoryService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

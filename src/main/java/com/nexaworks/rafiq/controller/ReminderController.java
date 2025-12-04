@@ -22,8 +22,8 @@ import com.nexaworks.rafiq.dto.response.reminder.GetReminderByIdResponse;
 import com.nexaworks.rafiq.entities.Reminder;
 import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 import com.nexaworks.rafiq.mapper.ReminderMapper;
-import com.nexaworks.rafiq.service.MedicineService;
-import com.nexaworks.rafiq.service.ReminderService;
+import com.nexaworks.rafiq.service.medicine.MedicineService;
+import com.nexaworks.rafiq.service.medicine.ReminderService;
 
 import lombok.RequiredArgsConstructor;
 

@@ -33,7 +33,7 @@ import com.nexaworks.rafiq.exception.custom.GroupIsAlreadyExistsException;
 import com.nexaworks.rafiq.exception.custom.GroupNotFoundException;
 import com.nexaworks.rafiq.exception.custom.MedicineNotFound;
 import com.nexaworks.rafiq.repository.GroupRepository;
-import com.nexaworks.rafiq.service.ServiceImpl.GroupServiceImpl;
+import com.nexaworks.rafiq.service.medicine.implementation.GroupServiceImpl;
 import com.nexaworks.rafiq.service.patient.PatientService;
 
 @DisplayName("GroupService Unit Tests")

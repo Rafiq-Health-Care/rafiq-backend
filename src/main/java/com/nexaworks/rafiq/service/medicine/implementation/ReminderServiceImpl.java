@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service.ServiceImpl;
+package com.nexaworks.rafiq.service.medicine.implementation;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -23,7 +23,7 @@ import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 import com.nexaworks.rafiq.exception.custom.ReminderNotFound;
 import com.nexaworks.rafiq.repository.ReminderLogRepository;
 import com.nexaworks.rafiq.repository.ReminderRepository;
-import com.nexaworks.rafiq.service.ReminderService;
+import com.nexaworks.rafiq.service.medicine.ReminderService;
 import com.nexaworks.rafiq.service.patient.PatientService;
 import com.nexaworks.rafiq.service.user.UserService;
 

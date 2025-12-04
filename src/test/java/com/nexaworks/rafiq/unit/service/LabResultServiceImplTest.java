@@ -14,7 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.nexaworks.rafiq.entities.LabResult;
 import com.nexaworks.rafiq.repository.LabResultRepository;
-import com.nexaworks.rafiq.service.ServiceImpl.LabResultServiceImpl;
+import com.nexaworks.rafiq.service.labReports.implementation.LabResultServiceImpl;
 
 @DisplayName("LabResultService Test Cases")
 @ExtendWith(MockitoExtension.class)

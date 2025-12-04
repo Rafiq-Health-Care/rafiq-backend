@@ -76,4 +76,9 @@ public class AuthServiceImpl implements AuthService {
         authSessionManager.invalidateSession(response);
     }
 
+    @Override
+    public UUID getAuthenticateUserId() {
+        return (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
+
 }

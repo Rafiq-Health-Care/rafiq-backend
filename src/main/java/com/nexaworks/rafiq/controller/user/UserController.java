@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.controller;
+package com.nexaworks.rafiq.controller.user;
 
 import java.io.IOException;
 

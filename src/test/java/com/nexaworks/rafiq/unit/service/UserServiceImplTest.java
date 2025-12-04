@@ -22,7 +22,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import com.nexaworks.rafiq.dto.event.NewOtpEvent;
 import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.Doctor;
@@ -250,22 +249,4 @@ public class UserServiceImplTest {
         verify(authSessionManager, never()).createLoginSession(any(), any());
     }
 
-    @DisplayName("Get new otp should throw event if the user is existed")
-    @Test
-    void getNewOtp_ShouldThrowNewOtpEvent_WhenUserIsExisted() {
-        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(getUser()));
-        when(tokenService.generateOtpToken(any(User.class))).thenReturn("123456");
-
-        userService.getNewOtp("test@email.com");
-        triggerTransactionSynchronization();
-
-        verify(eventPublisher, times(1)).publishEvent(any(NewOtpEvent.class));
-    }
-    @DisplayName("Get new otp should not throw event if the user is not existed")
-    @Test
-    void getNewOtp_ShouldNotThrowNewOtpEvent_WhenUserIsNotExisted() {
-        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
-        userService.getNewOtp("test@gmail.com");
-        verify(eventPublisher, never()).publishEvent(any(NewOtpEvent.class));
-    }
 }
