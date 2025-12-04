@@ -26,7 +26,11 @@ spring:
    # JPA config
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
     defer-datasource-initialization: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   # Flyway config - must run before JPA validation
@@ -133,3 +137,6 @@ server:
       max: 10
       min-spare: 2
     accept-count: 5
+logging:
+  level:
+    root: ERROR

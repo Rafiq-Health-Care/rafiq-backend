@@ -10,7 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
-import com.nexaworks.rafiq.entities.DoctorProfile;
+import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.entities.Specialization;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.Status;
@@ -40,6 +40,9 @@ class DoctorServiceImplTest {
 
         doctor = new User();
         doctor.setId(UUID.randomUUID());
+        doctor.setEmail("doctor@test.com");
+        doctor.setFirstName("Jane");
+        doctor.setLastName("Smith");
 
         specializationId = UUID.randomUUID();
         specialization = new Specialization();
@@ -56,22 +59,24 @@ class DoctorServiceImplTest {
 
         when(specializationService.getSpecialization(specializationId)).thenReturn(specialization);
 
-        DoctorProfile savedProfile = new DoctorProfile();
+        Doctor savedProfile = new Doctor();
         savedProfile.setId(UUID.randomUUID());
-        when(doctorRepository.save(any(DoctorProfile.class)))
+        when(doctorRepository.save(any(Doctor.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        DoctorProfile result = doctorService.createProfile(doctor, description, specializationId);
+        Doctor result = doctorService.createProfile(doctor, description, specializationId);
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getUser()).isEqualTo(doctor);
+        // Doctor now extends User, so it should have the same ID and properties
+        assertThat(result.getId()).isEqualTo(doctor.getId());
+        assertThat(result.getEmail()).isEqualTo(doctor.getEmail());
         assertThat(result.getDescription()).isEqualTo(description);
         assertThat(result.getSpecialization()).isEqualTo(specialization);
         assertThat(result.getStatus()).isEqualTo(Status.IN_REVIEW);
 
         verify(specializationService, times(1)).getSpecialization(specializationId);
-        verify(doctorRepository, times(1)).save(any(DoctorProfile.class));
+        verify(doctorRepository, times(1)).save(any(Doctor.class));
     }
 }

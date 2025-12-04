@@ -3,6 +3,7 @@ package com.nexaworks.rafiq.integration.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.*;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexaworks.rafiq.dto.request.labTest.TestRequest;
 import com.nexaworks.rafiq.dto.request.labTest.TestResultRequest;
 import com.nexaworks.rafiq.entities.LabTest;
-import com.nexaworks.rafiq.entities.PatientProfile;
+import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.Gender;
@@ -101,26 +102,18 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
             patientRole = roleRepository.save(patientRole);
         }
 
-        // Create patient profile (don't save yet)
-        PatientProfile patientProfile = PatientProfile.builder().description("Test patient")
-                .build();
+        // Create Patient directly (Patient extends User with is-a relationship)
+        Patient patient = Patient.builder().email(email).password(passwordEncoder.encode(password))
+                .firstName(firstName).lastName(lastName).phone("+12345678901")
+                .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE).roles(Set.of(patientRole))
+                .enabled(true).description("Test patient").build();
 
-        // Create user with patient profile
-        User user = User.builder().email(email).password(passwordEncoder.encode(password))
-                .firstName(firstName).lastName(lastName).phone("+12345678901").age(30)
-                .gender(Gender.MALE).roles(Set.of(patientRole)).enabled(true)
-                .patientProfile(patientProfile).build();
-
-        // Set bidirectional relationship
-        patientProfile.setUser(user);
-
-        // Save user (will cascade to patientProfile)
-        return userRepository.save(user);
+        return patientRepository.save(patient);
     }
 
     private LabTest createLabTest(String name, User user) {
         LabTest labTest = LabTest.builder().name(name).description("Test description")
-                .patient(user.getPatientProfile()).date(Instant.now()).build();
+                .patient((Patient) user).date(Instant.now()).build();
         return labTestRepository.save(labTest);
     }
 
@@ -144,8 +137,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 // Act & Assert - Upload PDF with authentication
                 // The mock AI service will return predictable results
                 mockMvc.perform(MockMvcRequestBuilders.multipart(UPLOAD_ENDPOINT).file(pdfFile)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk())
                         .andExpect(MockMvcResultMatchers.content()
                                 .contentType(MediaType.APPLICATION_JSON))
@@ -168,8 +160,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 // Act & Assert - Upload image with authentication
                 // The mock AI service will return predictable results
                 mockMvc.perform(MockMvcRequestBuilders.multipart(UPLOAD_ENDPOINT).file(imageFile)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk())
                         .andExpect(MockMvcResultMatchers.content()
                                 .contentType(MediaType.APPLICATION_JSON))
@@ -220,8 +211,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert - Upload empty file with authentication
                 mockMvc.perform(MockMvcRequestBuilders.multipart(UPLOAD_ENDPOINT).file(emptyFile)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
                 // Verify no lab test was saved
@@ -233,9 +223,8 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
             @DisplayName("Should return 400 Bad Request when file parameter is missing")
             void shouldReturnBadRequestWhenFileParameterMissing() throws Exception {
                 // Act & Assert - Upload without file parameter
-                mockMvc.perform(MockMvcRequestBuilders.multipart(UPLOAD_ENDPOINT).with(
-                        org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                mockMvc.perform(MockMvcRequestBuilders.multipart(UPLOAD_ENDPOINT)
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
                 // Verify no lab test was saved
@@ -272,8 +261,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 // Act & Assert - Save test results with authentication
                 mockMvc.perform(MockMvcRequestBuilders.post(TEST_RESULTS_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk());
 
                 // Verify lab results were saved
@@ -304,8 +292,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 // Act & Assert
                 mockMvc.perform(MockMvcRequestBuilders.post(TEST_RESULTS_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk());
 
                 // Verify
@@ -328,8 +315,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 // Act & Assert - Should still save successfully
                 mockMvc.perform(MockMvcRequestBuilders.post(TEST_RESULTS_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk());
 
                 // Verify no lab results created but test was updated
@@ -377,8 +363,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 // Act & Assert - Should return 400 for validation error
                 mockMvc.perform(MockMvcRequestBuilders.post(TEST_RESULTS_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
                 // Verify no results were saved
@@ -399,8 +384,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 // Act & Assert
                 mockMvc.perform(MockMvcRequestBuilders.post(TEST_RESULTS_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
             }
 
@@ -418,8 +402,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 // Act & Assert
                 mockMvc.perform(MockMvcRequestBuilders.post(TEST_RESULTS_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
             }
 
@@ -438,8 +421,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 // Act & Assert
                 mockMvc.perform(MockMvcRequestBuilders.post(TEST_RESULTS_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
             }
 
@@ -457,8 +439,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 // Act & Assert
                 mockMvc.perform(MockMvcRequestBuilders.post(TEST_RESULTS_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
             }
         }
@@ -482,9 +463,8 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 createLabTest("Urine Test", testUser);
 
                 // Act & Assert - Get all tests with default pagination
-                mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_ENDPOINT).with(
-                        org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                mockMvc.perform(
+                        MockMvcRequestBuilders.get(GET_ALL_ENDPOINT).with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(3))
@@ -497,9 +477,8 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
             @DisplayName("Should return empty list when user has no tests")
             void shouldReturnEmptyListWhenUserHasNoTests() throws Exception {
                 // Act & Assert - Get all tests when user has none
-                mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_ENDPOINT).with(
-                        org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                mockMvc.perform(
+                        MockMvcRequestBuilders.get(GET_ALL_ENDPOINT).with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(0))
@@ -516,9 +495,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert - Get tests with page size 2
                 mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_ENDPOINT).param("page", "0")
-                        .param("size", "2")
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .param("size", "2").with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(2))
                         .andExpect(MockMvcResultMatchers.jsonPath("$.size").value(2))
@@ -536,9 +513,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert - Get tests sorted by name ascending
                 mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_ENDPOINT).param("sort", "name")
-                        .param("direction", "asc")
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .param("direction", "asc").with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].name")
                                 .value("Alpha Test"))
@@ -589,14 +564,12 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
 
                 mockMvc.perform(MockMvcRequestBuilders.post("/lab-test/test-results")
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk());
 
                 // Act & Assert - Get test by ID
-                mockMvc.perform(MockMvcRequestBuilders.get(GET_BY_ID_ENDPOINT, testId).with(
-                        org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                mockMvc.perform(MockMvcRequestBuilders.get(GET_BY_ID_ENDPOINT, testId)
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.name")
                                 .value("Complete Blood Count"))
@@ -614,9 +587,8 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 UUID testId = labTest.getId();
 
                 // Act & Assert
-                mockMvc.perform(MockMvcRequestBuilders.get(GET_BY_ID_ENDPOINT, testId).with(
-                        org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                mockMvc.perform(MockMvcRequestBuilders.get(GET_BY_ID_ENDPOINT, testId)
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Empty Test"))
                         .andExpect(MockMvcResultMatchers.jsonPath("$.testId")
@@ -647,9 +619,8 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 UUID nonExistentId = UUID.randomUUID();
 
                 // Act & Assert
-                mockMvc.perform(MockMvcRequestBuilders.get(GET_BY_ID_ENDPOINT, nonExistentId).with(
-                        org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                mockMvc.perform(MockMvcRequestBuilders.get(GET_BY_ID_ENDPOINT, nonExistentId)
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
             }
 
@@ -664,8 +635,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert - Try to access other user's test
                 mockMvc.perform(MockMvcRequestBuilders.get(GET_BY_ID_ENDPOINT, otherUserTestId)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
             }
         }
@@ -691,9 +661,8 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 assertThat(labTestRepository.findById(testId)).isPresent();
 
                 // Act & Assert - Delete test
-                mockMvc.perform(MockMvcRequestBuilders.delete(DELETE_BY_ID_ENDPOINT, testId).with(
-                        org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                mockMvc.perform(MockMvcRequestBuilders.delete(DELETE_BY_ID_ENDPOINT, testId)
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk());
 
                 // Verify test was deleted
@@ -717,17 +686,15 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
 
                 mockMvc.perform(MockMvcRequestBuilders.post("/lab-test/test-results")
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk());
 
                 // Verify results exist
                 assertThat(labResultRepository.count()).isEqualTo(1);
 
                 // Act - Delete test
-                mockMvc.perform(MockMvcRequestBuilders.delete(DELETE_BY_ID_ENDPOINT, testId).with(
-                        org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                mockMvc.perform(MockMvcRequestBuilders.delete(DELETE_BY_ID_ENDPOINT, testId)
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk());
 
                 // Verify test and results were deleted (cascade)
@@ -763,8 +730,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert
                 mockMvc.perform(MockMvcRequestBuilders.delete(DELETE_BY_ID_ENDPOINT, nonExistentId)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
             }
 
@@ -779,9 +745,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert
                 mockMvc.perform(MockMvcRequestBuilders
-                        .delete(DELETE_BY_ID_ENDPOINT, otherUserTestId)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .delete(DELETE_BY_ID_ENDPOINT, otherUserTestId).with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
                 // Verify other user's test still exists
@@ -811,9 +775,8 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 assertThat(labTestRepository.count()).isEqualTo(3);
 
                 // Act & Assert - Delete all tests
-                mockMvc.perform(MockMvcRequestBuilders.delete(DELETE_ALL_ENDPOINT).with(
-                        org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                mockMvc.perform(MockMvcRequestBuilders.delete(DELETE_ALL_ENDPOINT)
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk())
                         .andExpect(MockMvcResultMatchers.jsonPath("$").value(3));
 
@@ -823,9 +786,8 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
             @DisplayName("Should return 0 when user has no tests")
             void shouldReturnZeroWhenUserHasNoTests() throws Exception {
                 // Act & Assert
-                mockMvc.perform(MockMvcRequestBuilders.delete(DELETE_ALL_ENDPOINT).with(
-                        org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                mockMvc.perform(MockMvcRequestBuilders.delete(DELETE_ALL_ENDPOINT)
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk())
                         .andExpect(MockMvcResultMatchers.jsonPath("$").value(0));
             }
@@ -844,9 +806,8 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 assertThat(labTestRepository.count()).isEqualTo(3);
 
                 // Act - Delete all current user's tests
-                mockMvc.perform(MockMvcRequestBuilders.delete(DELETE_ALL_ENDPOINT).with(
-                        org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                mockMvc.perform(MockMvcRequestBuilders.delete(DELETE_ALL_ENDPOINT)
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk())
                         .andExpect(MockMvcResultMatchers.jsonPath("$").value(2));
 
@@ -898,8 +859,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
 
                 mockMvc.perform(MockMvcRequestBuilders.post("/lab-test/test-results")
                         .contentType(MediaType.APPLICATION_JSON).content(initialPayload)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk());
 
                 // Prepare update request
@@ -914,8 +874,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 // Act & Assert - Update test
                 mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_ENDPOINT, testId)
                         .contentType(MediaType.APPLICATION_JSON).content(updatePayload)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk());
 
                 // Verify test was updated
@@ -942,8 +901,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
 
                 mockMvc.perform(MockMvcRequestBuilders.post("/lab-test/test-results")
                         .contentType(MediaType.APPLICATION_JSON).content(initialPayload)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk());
 
                 // Prepare update with empty results
@@ -955,8 +913,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 // Act & Assert
                 mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_ENDPOINT, testId)
                         .contentType(MediaType.APPLICATION_JSON).content(updatePayload)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk());
 
                 // Verify results were cleared
@@ -1000,8 +957,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 // Act & Assert
                 mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_ENDPOINT, nonExistentId)
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
             }
 
@@ -1023,8 +979,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 // Act & Assert
                 mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_ENDPOINT, otherUserTestId)
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
             }
 
@@ -1042,8 +997,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 // Act & Assert
                 mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_ENDPOINT, testId)
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                                .user(testUser)))
+                        .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
             }
         }

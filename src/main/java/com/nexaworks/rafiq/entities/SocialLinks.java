@@ -24,7 +24,7 @@ public class SocialLinks extends BaseEntity {
     private String website;
 
     @OneToOne(mappedBy = "socialLinks")
-    private DoctorProfile doctorProfile;
+    private Doctor doctor;
 
     @OneToOne(mappedBy = "socialLinks")
     private Lab lab;

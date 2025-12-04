@@ -29,5 +29,5 @@ public interface LabTestService {
 
     void update(UUID testId, @Valid TestResultRequest testResultRequest, List<LabResult> entity);
 
-    public CompletableFuture<UUID> saveTestPdf(MultipartFile file, User user) throws IOException;
+    CompletableFuture<UUID> saveTestPdf(MultipartFile file, User user) throws IOException;
 }

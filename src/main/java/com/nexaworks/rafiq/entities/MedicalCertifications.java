@@ -22,5 +22,5 @@ public class MedicalCertifications extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "doctor_id", nullable = false)
-    private DoctorProfile doctor;
+    private Doctor doctor;
 }

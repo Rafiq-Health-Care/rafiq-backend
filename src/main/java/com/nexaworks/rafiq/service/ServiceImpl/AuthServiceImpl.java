@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
@@ -101,7 +102,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public User getAuthenticateUser() {
-        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userRepository.findById(userId).orElseThrow();
     }
 
     @Override

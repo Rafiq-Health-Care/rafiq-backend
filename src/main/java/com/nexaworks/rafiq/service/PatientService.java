@@ -1,10 +1,16 @@
 package com.nexaworks.rafiq.service;
 
-import com.nexaworks.rafiq.entities.PatientProfile;
+import com.nexaworks.rafiq.dto.request.basicMedicalProfile.CreateBasicMedicalProfileRequest;
+import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.User;
 
-public interface PatientService {
-    PatientProfile createPatientProfile(User patient);
+import jakarta.validation.Valid;
 
-    PatientProfile getPatientProfile();
+public interface PatientService {
+    Patient createPatientProfile(User patient);
+
+    Patient getPatientProfile();
+
+    Patient completePatientProfile(@Valid CreateBasicMedicalProfileRequest request);
+
 }

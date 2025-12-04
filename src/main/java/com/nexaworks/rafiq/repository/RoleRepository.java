@@ -8,4 +8,5 @@ import com.nexaworks.rafiq.entities.Role;
 
 public interface RoleRepository extends JpaRepository<Role, UUID> {
     Role findByName(String string);
+
 }

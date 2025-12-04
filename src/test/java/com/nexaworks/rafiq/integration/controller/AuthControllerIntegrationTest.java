@@ -1,9 +1,9 @@
 package com.nexaworks.rafiq.integration.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Set;
 
@@ -77,8 +77,9 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
         }
 
         User user = User.builder().email(email).password(passwordEncoder.encode(password))
-                .firstName(firstName).lastName(lastName).phone("+12345678901").age(30)
-                .gender(Gender.MALE).roles(Set.of(patientRole)).enabled(true).build();
+                .firstName(firstName).lastName(lastName).phone("+12345678901")
+                .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE).roles(Set.of(patientRole))
+                .enabled(true).build();
         return userRepository.save(user);
     }
 
@@ -387,7 +388,8 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert - Reset password with authentication
                 mockMvc.perform(MockMvcRequestBuilders.post(RESET_PASSWORD_ENDPOINT)
-                        .contentType(MediaType.APPLICATION_JSON).content(payload).with(user(user))) // Authenticate
+                        .contentType(MediaType.APPLICATION_JSON).content(payload)
+                        .with(withUserId(user))) // Authenticate
                         // as
                         // this
                         // user
@@ -438,7 +440,8 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert - Should return 400 for incorrect old password
                 mockMvc.perform(MockMvcRequestBuilders.post(RESET_PASSWORD_ENDPOINT)
-                        .contentType(MediaType.APPLICATION_JSON).content(payload).with(user(user))) // Authenticate
+                        .contentType(MediaType.APPLICATION_JSON).content(payload)
+                        .with(withUserId(user))) // Authenticate
                         // as
                         // this
                         // user
@@ -465,7 +468,8 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert - Should return 400 for validation error
                 mockMvc.perform(MockMvcRequestBuilders.post(RESET_PASSWORD_ENDPOINT)
-                        .contentType(MediaType.APPLICATION_JSON).content(payload).with(user(user))) // Authenticate
+                        .contentType(MediaType.APPLICATION_JSON).content(payload)
+                        .with(withUserId(user))) // Authenticate
                         // as
                         // this
                         // user

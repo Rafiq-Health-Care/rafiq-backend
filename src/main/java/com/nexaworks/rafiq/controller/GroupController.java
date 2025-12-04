@@ -53,13 +53,13 @@ public class GroupController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "direction", defaultValue = "asc") String direction) {
         Page<Group> groups = groupService.getGroups(page, size, direction, sort);
-        return ResponseEntity.ok().body(pageMapper.mapToGroupPage(groups));
+        return ResponseEntity.ok().body(pageMapper.mapToGroupPage(groups, groupMapper));
     }
     @GetMapping("/{id}")
     public ResponseEntity<Response<GroupDetailsResponse>> getGroup(@PathVariable UUID id) {
         Group group = groupService.getGroupById(id);
-        Response<GroupDetailsResponse> response = groupMapper.toResponse(group, medicineMapper);
-        return ResponseEntity.ok().body(response);
+        GroupDetailsResponse response = groupMapper.toResponse(group, medicineMapper);
+        return ResponseEntity.ok().body(new Response<>(true, response));
     }
     @PatchMapping("/{id}")
     public ResponseEntity<AddResponse<AddGroupResponse>> updateGroup(

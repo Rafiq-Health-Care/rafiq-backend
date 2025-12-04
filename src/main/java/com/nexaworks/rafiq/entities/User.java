@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.entities;
 
 import java.security.Principal;
+import java.time.LocalDate;
 import java.util.*;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -12,20 +13,19 @@ import com.nexaworks.rafiq.entities.enums.Gender;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@ToString(exclude = {"password", "addresses", "tokens", "doctorProfile", "patientProfile", "roles"})
+@ToString(exclude = {"password", "addresses", "tokens", "roles"})
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
 @Entity
 @Table(name = "users", indexes = {@Index(columnList = "email", unique = true)})
+@Inheritance(strategy = InheritanceType.JOINED)
 public class User extends BaseEntity implements UserDetails, Principal {
 
     @Email
@@ -41,9 +41,7 @@ public class User extends BaseEntity implements UserDetails, Principal {
     private String lastName;
     private String phone;
 
-    @Min(0)
-    @Max(120)
-    private int age;
+    private LocalDate birthDate;
 
     @Builder.Default
     private boolean active = true;
@@ -63,14 +61,6 @@ public class User extends BaseEntity implements UserDetails, Principal {
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     @Builder.Default
     private Set<Role> roles = new HashSet<>();
-
-    @OneToOne(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.EAGER)
-    private DoctorProfile doctorProfile;
-
-    @OneToOne(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.EAGER)
-    private PatientProfile patientProfile;
 
     @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
             CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -112,12 +102,6 @@ public class User extends BaseEntity implements UserDetails, Principal {
         return this.enabled;
     }
 
-    public boolean isDoctor() {
-        return this.doctorProfile != null;
-    }
-    public boolean isPatient() {
-        return this.patientProfile != null;
-    }
     public void addRole(Role role) {
         this.roles.add(role);
     }

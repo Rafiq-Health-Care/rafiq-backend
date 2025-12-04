@@ -37,4 +37,5 @@ public interface UserService {
     User addUser(String email, String firstName, String lastName);
 
     String getNotificationToken();
+    UUID getUserId();
 }

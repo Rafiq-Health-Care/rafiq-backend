@@ -20,17 +20,14 @@ import com.nexaworks.rafiq.dto.request.medicine.UpdateMedicinePatchRequest;
 import com.nexaworks.rafiq.entities.Drug;
 import com.nexaworks.rafiq.entities.Group;
 import com.nexaworks.rafiq.entities.Medicine;
-import com.nexaworks.rafiq.entities.PatientProfile;
+import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.enums.MedicineStatus;
 import com.nexaworks.rafiq.exception.custom.GroupNotFoundException;
 import com.nexaworks.rafiq.exception.custom.MedicineAlreadyExist;
 import com.nexaworks.rafiq.exception.custom.MedicineLimit;
 import com.nexaworks.rafiq.exception.custom.MedicineNotFound;
 import com.nexaworks.rafiq.repository.MedicineRepository;
-import com.nexaworks.rafiq.service.DrugService;
-import com.nexaworks.rafiq.service.GroupService;
-import com.nexaworks.rafiq.service.MedicineService;
-import com.nexaworks.rafiq.service.PatientService;
+import com.nexaworks.rafiq.service.*;
 import com.nexaworks.rafiq.specification.MedicineSpecification;
 
 import jakarta.validation.ValidationException;
@@ -45,12 +42,13 @@ public class MedicineServiceImpl implements MedicineService {
     private final DrugService drugService;
     private final PatientService patientService;
     private final GroupService groupService;
+    private final UserService userService;
 
     @Override
     @Transactional
     public Medicine addMedicine(Medicine entity, UUID drugId) {
 
-        PatientProfile patient = patientService.getPatientProfile();
+        Patient patient = patientService.getPatientProfile();
         entity.setPatient(patient);
         if (medicineRepository.existsByPatientIdAndDrugId(patient.getId(), drugId)) {
             throw new MedicineAlreadyExist("Medicine already exist");
@@ -68,30 +66,30 @@ public class MedicineServiceImpl implements MedicineService {
 
     @Override
     public Page<Medicine> getAllMedicines(Pageable pageable, MedicineFilter filter) {
-        PatientProfile patient = patientService.getPatientProfile();
-        return medicineRepository.findAll(MedicineSpecification.filter(filter, patient.getId()),
+        UUID patientId = userService.getUserId();
+        return medicineRepository.findAll(MedicineSpecification.filter(filter, patientId),
                 pageable);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Medicine getMedicineById(UUID medicineId) {
-        PatientProfile patient = patientService.getPatientProfile();
+        UUID patientId = userService.getUserId();
 
-        return getMedicine(medicineId, patient);
+        return getMedicine(medicineId, patientId);
     }
 
     @Override
     @Transactional
     public void deleteMedicine(UUID medicineId) {
-        Medicine medicine = getMedicine(medicineId, patientService.getPatientProfile());
+        Medicine medicine = getMedicine(medicineId, userService.getUserId());
         medicineRepository.delete(medicine);
     }
 
     @Override
     @Transactional
     public Medicine updateMedicine(Medicine entity, UUID medicineId) {
-        Medicine medicine = getMedicine(medicineId, patientService.getPatientProfile());
+        Medicine medicine = getMedicine(medicineId, userService.getUserId());
         medicine.setDosage(entity.getDosage());
         medicine.setFrequency(entity.getFrequency());
         medicine.setStartDate(entity.getStartDate());
@@ -109,7 +107,7 @@ public class MedicineServiceImpl implements MedicineService {
     @Transactional
     public Medicine updateSpecific(UUID medicineId, UpdateMedicinePatchRequest request)
             throws SchedulerException {
-        Medicine medicine = getMedicine(medicineId, patientService.getPatientProfile());
+        Medicine medicine = getMedicine(medicineId, userService.getUserId());
         request.dosage().ifPresent(medicine::setDosage);
         request.frequency().ifPresent(medicine::setFrequency);
         request.startDate().ifPresent(medicine::setStartDate);
@@ -124,10 +122,10 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     @NotNull
-    private Medicine getMedicine(UUID medicineId, PatientProfile patientService) {
+    private Medicine getMedicine(UUID medicineId, UUID patientId) {
         Medicine medicine = medicineRepository.findById(medicineId).orElseThrow(
                 () -> new MedicineNotFound("Medicine not found with id: " + medicineId));
-        if (!medicine.getPatient().getId().equals(patientService.getId())) {
+        if (!medicine.getPatient().getId().equals(patientId)) {
             throw new MedicineNotFound("Medicine not found with id: " + medicineId);
         }
         return medicine;
@@ -162,13 +160,13 @@ public class MedicineServiceImpl implements MedicineService {
     public void moveToGroup(List<UUID> ids, Optional<UUID> groupId, List<UUID> failedIds) {
         groupId.orElseThrow(() -> new GroupNotFoundException("Group id is required"));
         Group group = groupService.getGroupById(groupId.get());
-        PatientProfile patient = patientService.getPatientProfile();
-        if (!group.getPatient().getId().equals(patient.getId())) {
+        UUID patientId = userService.getUserId();
+        if (!group.getPatient().getId().equals(patientId)) {
             throw new GroupNotFoundException("Medicine not found with id: " + ids);
         }
         ids.forEach(medicineId -> {
             try {
-                Medicine medicine = getMedicine(medicineId, patient);
+                Medicine medicine = getMedicine(medicineId, patientId);
                 medicine.setGroup(group);
                 medicineRepository.save(medicine);
             } catch (Exception e) {
@@ -178,10 +176,9 @@ public class MedicineServiceImpl implements MedicineService {
     }
     @Transactional
     public void markActive(List<UUID> ids, Optional<UUID> groupId, List<UUID> failedIds) {
-        PatientProfile patient = patientService.getPatientProfile();
         ids.forEach(medicineId -> {
             try {
-                Medicine medicine = getMedicine(medicineId, patient);
+                Medicine medicine = getMedicine(medicineId, userService.getUserId());
                 medicine.setStatus(MedicineStatus.ACTIVE);
                 medicineRepository.save(medicine);
             } catch (Exception e) {
@@ -192,10 +189,10 @@ public class MedicineServiceImpl implements MedicineService {
     }
     @Transactional
     public void markInActive(List<UUID> ids, Optional<UUID> groupId, List<UUID> failedIds) {
-        PatientProfile patient = patientService.getPatientProfile();
+        Patient patient = patientService.getPatientProfile();
         ids.forEach(medicineId -> {
             try {
-                Medicine medicine = getMedicine(medicineId, patient);
+                Medicine medicine = getMedicine(medicineId, userService.getUserId());
                 medicine.setStatus(MedicineStatus.INACTIVE);
                 medicineRepository.save(medicine);
             } catch (Exception e) {

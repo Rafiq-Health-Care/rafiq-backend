@@ -83,6 +83,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
+    @Transactional
     public User verifyOtp(String email, String otp) {
         Token token = tokenRepository.findByToken(otp)
                 .orElseThrow(() -> new TokenNotFoundException("Invalid Token"));

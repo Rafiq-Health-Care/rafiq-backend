@@ -3,10 +3,8 @@ package com.nexaworks.rafiq.integration.controller;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.time.LocalDate;
+import java.util.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -80,12 +77,12 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             patientRole = roleRepository.save(patientRole);
         }
 
-        PatientProfile patientProfile = PatientProfile.builder().build();
-        User user = User.builder().email(email).password(passwordEncoder.encode("Valid@1234"))
-                .firstName(firstName).lastName(lastName).phone(phone).age(30).gender(gender)
-                .roles(Set.of(patientRole)).enabled(true).patientProfile(patientProfile).build();
-        patientProfile.setUser(user);
-        return userRepository.save(user);
+        // Create Patient directly (Patient extends User with is-a relationship)
+        Patient patient = Patient.builder().email(email)
+                .password(passwordEncoder.encode("Valid@1234")).firstName(firstName)
+                .lastName(lastName).phone(phone).birthDate(LocalDate.of(1990, 1, 1)).gender(gender)
+                .roles(Set.of(patientRole)).enabled(true).build();
+        return patientRepository.save(patient);
     }
 
     private Drug createDrug() {
@@ -115,12 +112,11 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isCreated())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isCreated())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.patientId")
-                            .value(user.getPatientProfile().getId().toString()))
+                            .value(user.getId().toString()))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.name").value("Aspirin"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.dosage").value("100mg"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.frequency").value("TWICE"))
@@ -151,13 +147,11 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isCreated());
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isCreated());
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isConflict());
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isConflict());
         }
 
         @Test
@@ -177,8 +171,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                         .price(5.0).build();
                 drugRepository.save(tempDrug);
 
-                Medicine medicine = Medicine.builder().patient(user.getPatientProfile())
-                        .drug(tempDrug).name(tempDrug.getTradeName()).dosage("100mg")
+                Medicine medicine = Medicine.builder().patient((Patient) user).drug(tempDrug)
+                        .name(tempDrug.getTradeName()).dosage("100mg")
                         .frequency(MedicineFrequency.ONCE).status(MedicineStatus.ACTIVE)
                         .startDate(Instant.now()).build();
                 medicineRepository.save(medicine);
@@ -186,7 +180,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isUnprocessableEntity());
         }
 
@@ -203,7 +197,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isBadRequest());
         }
 
@@ -224,8 +218,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isCreated())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isCreated())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.reminderFrequency")
                             .value("CUSTOM"))
@@ -257,20 +250,20 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .build();
             drugRepository.save(drug2);
 
-            Medicine medicine1 = Medicine.builder().patient(user.getPatientProfile()).drug(drug1)
+            Medicine medicine1 = Medicine.builder().patient((Patient) user).drug(drug1)
                     .name(drug1.getTradeName()).dosage("100mg").frequency(MedicineFrequency.TWICE)
                     .status(MedicineStatus.ACTIVE).startDate(Instant.now()).build();
             medicineRepository.save(medicine1);
 
-            Medicine medicine2 = Medicine.builder().patient(user.getPatientProfile()).drug(drug2)
+            Medicine medicine2 = Medicine.builder().patient((Patient) user).drug(drug2)
                     .name(drug2.getTradeName()).dosage("200mg")
                     .frequency(MedicineFrequency.THIRD_TIMES).status(MedicineStatus.ACTIVE)
                     .startDate(Instant.now()).build();
             medicineRepository.save(medicine2);
 
             // Act & Assert
-            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(
+                    MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(2))
@@ -285,8 +278,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
 
             // Act & Assert
-            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(
+                    MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(0))
@@ -303,20 +296,20 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Drug drug = createDrug();
 
             // Add medicine for user1
-            Medicine medicine1 = Medicine.builder().patient(user1.getPatientProfile()).drug(drug)
+            Medicine medicine1 = Medicine.builder().patient((Patient) user1).drug(drug)
                     .name(drug.getTradeName()).dosage("100mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).startDate(Instant.now()).build();
             medicineRepository.save(medicine1);
 
             // Add medicine for user2
-            Medicine medicine2 = Medicine.builder().patient(user2.getPatientProfile()).drug(drug)
+            Medicine medicine2 = Medicine.builder().patient((Patient) user2).drug(drug)
                     .name(drug.getTradeName()).dosage("200mg").frequency(MedicineFrequency.TWICE)
                     .status(MedicineStatus.ACTIVE).startDate(Instant.now()).build();
             medicineRepository.save(medicine2);
 
             // Act & Assert - user1 should only see their own medicine
-            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user1)))
+            mockMvc.perform(
+                    MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT).with(withUserId(user1)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(1))
                     .andExpect(
@@ -332,7 +325,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             // Create 5 medicines
             for (int i = 0; i < 5; i++) {
-                Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+                Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                         .name(drug.getTradeName()).dosage((i + 1) * 100 + "mg")
                         .frequency(MedicineFrequency.ONCE).status(MedicineStatus.ACTIVE)
                         .startDate(Instant.now()).build();
@@ -341,8 +334,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             // Act & Assert - Request page 0 with size 2
             mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
-                    .param("page", "0").param("size", "2")
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .param("page", "0").param("size", "2").with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(2))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(5))
@@ -357,22 +349,19 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
             Drug drug = createDrug();
 
-            Medicine activeMedicine = Medicine.builder().patient(user.getPatientProfile())
-                    .drug(drug).name(drug.getTradeName()).dosage("100mg")
-                    .frequency(MedicineFrequency.ONCE).status(MedicineStatus.ACTIVE)
-                    .startDate(Instant.now()).build();
+            Medicine activeMedicine = Medicine.builder().patient((Patient) user).drug(drug)
+                    .name(drug.getTradeName()).dosage("100mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).startDate(Instant.now()).build();
             medicineRepository.save(activeMedicine);
 
-            Medicine inactiveMedicine = Medicine.builder().patient(user.getPatientProfile())
-                    .drug(drug).name(drug.getTradeName()).dosage("200mg")
-                    .frequency(MedicineFrequency.TWICE).status(MedicineStatus.INACTIVE)
-                    .startDate(Instant.now()).build();
+            Medicine inactiveMedicine = Medicine.builder().patient((Patient) user).drug(drug)
+                    .name(drug.getTradeName()).dosage("200mg").frequency(MedicineFrequency.TWICE)
+                    .status(MedicineStatus.INACTIVE).startDate(Instant.now()).build();
             medicineRepository.save(inactiveMedicine);
 
             // Act & Assert - Filter by ACTIVE status
-            mockMvc.perform(
-                    MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT).param("status", "ACTIVE")
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_MEDICINES_ENDPOINT)
+                    .param("status", "ACTIVE").with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(1))
                     .andExpect(
@@ -389,19 +378,18 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         void shouldReturnMedicine_WhenMedicineExists() throws Exception {
             User user = createTestUser();
             Drug drug = createDrug();
-            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+            Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Test Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
                     .build();
             medicineRepository.save(medicine);
 
-            mockMvc.perform(
-                    MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.patientId")
-                            .value(user.getPatientProfile().getId().toString()))
+                            .value(user.getId().toString()))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Test Medicine"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.dosage").value("10mg"));
         }
@@ -412,15 +400,14 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             UUID nonExistentId = UUID.randomUUID();
 
             mockMvc.perform(MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, nonExistentId)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound());
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
         @Test
         void shouldReturnForbidden_WhenAccessingOtherUserMedicine() throws Exception {
             User owner = createTestUser();
             Drug drug = createDrug();
-            Medicine medicine = Medicine.builder().patient(owner.getPatientProfile()).drug(drug)
+            Medicine medicine = Medicine.builder().patient((Patient) owner).drug(drug)
                     .name("Owner Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
@@ -428,17 +415,15 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             medicineRepository.save(medicine);
 
             Role patientRole = roleRepository.findByName("ROLE_PATIENT");
-            PatientProfile otherPatient = PatientProfile.builder().build();
-            User otherUser = User.builder().email("other@example.com")
+            // Create Patient directly (Patient extends User with is-a relationship)
+            Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).enabled(true).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).patientProfile(otherPatient)
-                    .build();
-            otherPatient.setUser(otherUser);
-            userRepository.save(otherUser);
+                    .lastName("User").roles(Set.of(patientRole)).build();
+            patientRepository.save(otherPatient);
 
             mockMvc.perform(
                     MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(otherUser)))
+                            .with(withUserId(otherPatient)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -446,20 +431,18 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         void shouldReturnMedicineWithGroup_WhenMedicineHasGroup() throws Exception {
             User user = createTestUser();
             Drug drug = createDrug();
-            Group group = Group.builder().name("Morning Pills").patient(user.getPatientProfile())
-                    .build();
+            Group group = Group.builder().name("Morning Pills").patient((Patient) user).build();
             groupRepository.save(group);
 
-            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+            Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Test Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION).group(group)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
                     .build();
             medicineRepository.save(medicine);
 
-            mockMvc.perform(
-                    MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.groupId")
                             .value(group.getId().toString()))
@@ -477,16 +460,15 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         void shouldDeleteMedicine_WhenMedicineExists() throws Exception {
             User user = createTestUser();
             Drug drug = createDrug();
-            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+            Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Test Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
                     .build();
             medicineRepository.save(medicine);
 
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_MEDICINE_ENDPOINT, medicine.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .delete(DELETE_MEDICINE_ENDPOINT, medicine.getId()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNoContent());
 
             assertThat(medicineRepository.findById(medicine.getId())).isEmpty();
@@ -498,15 +480,14 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             UUID nonExistentId = UUID.randomUUID();
 
             mockMvc.perform(MockMvcRequestBuilders.delete(DELETE_MEDICINE_ENDPOINT, nonExistentId)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound());
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
         @Test
         void shouldReturnForbidden_WhenDeletingOtherUserMedicine() throws Exception {
             User owner = createTestUser();
             Drug drug = createDrug();
-            Medicine medicine = Medicine.builder().patient(owner.getPatientProfile()).drug(drug)
+            Medicine medicine = Medicine.builder().patient((Patient) owner).drug(drug)
                     .name("Owner Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
@@ -514,17 +495,15 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             medicineRepository.save(medicine);
 
             Role patientRole = roleRepository.findByName("ROLE_PATIENT");
-            PatientProfile otherPatient = PatientProfile.builder().build();
-            User otherUser = User.builder().email("other@example.com")
+            // Create Patient directly (Patient extends User with is-a relationship)
+            Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).enabled(true).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).patientProfile(otherPatient)
-                    .build();
-            otherPatient.setUser(otherUser);
-            userRepository.save(otherUser);
+                    .lastName("User").roles(Set.of(patientRole)).build();
+            patientRepository.save(otherPatient);
 
             mockMvc.perform(
                     MockMvcRequestBuilders.delete(DELETE_MEDICINE_ENDPOINT, medicine.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(otherUser)))
+                            .with(withUserId(otherPatient)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -532,16 +511,15 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         void shouldDeleteMedicineAndReminders_WhenMedicineHasReminders() throws Exception {
             User user = createTestUser();
             Drug drug = createDrug();
-            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+            Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Test Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
                     .build();
             medicineRepository.save(medicine);
 
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_MEDICINE_ENDPOINT, medicine.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .delete(DELETE_MEDICINE_ENDPOINT, medicine.getId()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNoContent());
 
             assertThat(medicineRepository.findById(medicine.getId())).isEmpty();
@@ -557,7 +535,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         void shouldUpdateMedicine_WhenAllFieldsAreValid() throws Exception {
             User user = createTestUser();
             Drug drug = createDrug();
-            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+            Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Old Name").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
@@ -571,8 +549,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.name").value("New Name"))
@@ -591,8 +568,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, nonExistentId)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -600,7 +576,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         void shouldReturnForbidden_WhenUpdatingOtherUserMedicine() throws Exception {
             User owner = createTestUser();
             Drug drug = createDrug();
-            Medicine medicine = Medicine.builder().patient(owner.getPatientProfile()).drug(drug)
+            Medicine medicine = Medicine.builder().patient((Patient) owner).drug(drug)
                     .name("Owner Medicine").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
@@ -608,13 +584,11 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             medicineRepository.save(medicine);
 
             Role patientRole = roleRepository.findByName("ROLE_PATIENT");
-            PatientProfile otherPatient = PatientProfile.builder().build();
-            User otherUser = User.builder().email("other@example.com")
+            // Create Patient directly (Patient extends User with is-a relationship)
+            Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).enabled(true).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).patientProfile(otherPatient)
-                    .build();
-            otherPatient.setUser(otherUser);
-            userRepository.save(otherUser);
+                    .lastName("User").roles(Set.of(patientRole)).build();
+            patientRepository.save(otherPatient);
 
             UpdateMedicineRequest request = new UpdateMedicineRequest("New Name", "10mg",
                     "New notes", MedicineFrequency.ONCE, Instant.now(),
@@ -624,7 +598,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(otherUser)))
+                    .with(withUserId(otherPatient)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -632,7 +606,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         void shouldReturnBadRequest_WhenRequestBodyIsInvalid() throws Exception {
             User user = createTestUser();
             Drug drug = createDrug();
-            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+            Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Test Medicine").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
@@ -640,8 +614,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             medicineRepository.save(medicine);
 
             mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
-                    .contentType(MediaType.APPLICATION_JSON).content("{}")
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .contentType(MediaType.APPLICATION_JSON).content("{}").with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isBadRequest());
         }
 
@@ -649,7 +622,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         void shouldUpdateMedicine_WithCustomDaysWhenReminderFrequencyIsCustom() throws Exception {
             User user = createTestUser();
             Drug drug = createDrug();
-            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+            Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Test Medicine").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
@@ -664,8 +637,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true)).andExpect(
                             MockMvcResultMatchers.jsonPath("$.data.customDays.length()").value(3));
@@ -681,7 +653,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         void shouldPartiallyUpdateMedicine_WhenUpdatingOnlyName() throws Exception {
             User user = createTestUser();
             Drug drug = createDrug();
-            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+            Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Old Name").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
@@ -695,8 +667,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, medicine.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.name").value("New Name"))
@@ -707,7 +678,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         void shouldPartiallyUpdateMedicine_WhenUpdatingMultipleFields() throws Exception {
             User user = createTestUser();
             Drug drug = createDrug();
-            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+            Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Old Name").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
@@ -721,8 +692,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, medicine.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.name").value("New Name"))
@@ -741,8 +711,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, nonExistentId)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -750,7 +719,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         void shouldReturnForbidden_WhenPatchingOtherUserMedicine() throws Exception {
             User owner = createTestUser();
             Drug drug = createDrug();
-            Medicine medicine = Medicine.builder().patient(owner.getPatientProfile()).drug(drug)
+            Medicine medicine = Medicine.builder().patient((Patient) owner).drug(drug)
                     .name("Owner Medicine").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
@@ -758,13 +727,11 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             medicineRepository.save(medicine);
 
             Role patientRole = roleRepository.findByName("ROLE_PATIENT");
-            PatientProfile otherPatient = PatientProfile.builder().build();
-            User otherUser = User.builder().email("other@example.com")
+            // Create Patient directly (Patient extends User with is-a relationship)
+            Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).enabled(true).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).patientProfile(otherPatient)
-                    .build();
-            otherPatient.setUser(otherUser);
-            userRepository.save(otherUser);
+                    .lastName("User").roles(Set.of(patientRole)).build();
+            patientRepository.save(otherPatient);
 
             UpdateMedicinePatchRequest request = new UpdateMedicinePatchRequest(
                     Optional.of("New Name"), Optional.empty(), Optional.empty(), Optional.empty(),
@@ -774,7 +741,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, medicine.getId())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(otherUser)))
+                    .with(withUserId(otherPatient)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -782,7 +749,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         void shouldPartiallyUpdateStatus_WhenUpdatingOnlyStatus() throws Exception {
             User user = createTestUser();
             Drug drug = createDrug();
-            Medicine medicine = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+            Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Test Medicine").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
@@ -796,8 +763,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, medicine.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true));
         }
@@ -813,13 +779,13 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
             Drug drug = createDrug();
 
-            Medicine medicine1 = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+            Medicine medicine1 = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Medicine 1").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
                     .build();
 
-            Medicine medicine2 = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+            Medicine medicine2 = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Medicine 2").dosage("10mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
@@ -832,8 +798,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.successCount").value(2))
@@ -846,13 +811,13 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
             Drug drug = createDrug();
 
-            Medicine medicine1 = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+            Medicine medicine1 = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Medicine 1").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.INACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
                     .build();
 
-            Medicine medicine2 = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+            Medicine medicine2 = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Medicine 2").dosage("10mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.INACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
@@ -866,8 +831,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.successCount").value(2));
@@ -878,17 +842,17 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
             Drug drug = createDrug();
 
-            Group targetGroup = Group.builder().name("Evening Pills")
-                    .patient(user.getPatientProfile()).build();
+            Group targetGroup = Group.builder().name("Evening Pills").patient((Patient) user)
+                    .build();
             groupRepository.save(targetGroup);
 
-            Medicine medicine1 = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+            Medicine medicine1 = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Medicine 1").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
                     .build();
 
-            Medicine medicine2 = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+            Medicine medicine2 = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Medicine 2").dosage("10mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
@@ -902,8 +866,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.successCount").value(2));
@@ -914,7 +877,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
             Drug drug = createDrug();
 
-            Medicine medicine1 = Medicine.builder().patient(user.getPatientProfile()).drug(drug)
+            Medicine medicine1 = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Medicine 1").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
                     .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
@@ -928,8 +891,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.failedIds.length()").value(1))
@@ -946,8 +908,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isBadRequest());
         }
     }

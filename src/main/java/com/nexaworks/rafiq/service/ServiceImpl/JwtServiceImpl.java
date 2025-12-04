@@ -3,6 +3,7 @@ package com.nexaworks.rafiq.service.ServiceImpl;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -48,10 +49,10 @@ public class JwtServiceImpl implements JwtService {
         if (user == null) {
             throw new UserException("User cannot be null");
         }
-        String email = user.getEmail();
+        UUID id = user.getId();
         var authorities = user.getAuthorities().stream().map(GrantedAuthority::getAuthority)
                 .toList();
-        return buildToken(email, authorities);
+        return buildToken(id, authorities);
     }
 
     @Override
@@ -65,8 +66,8 @@ public class JwtServiceImpl implements JwtService {
     private User getUser(String s) {
         Claims claims = Jwts.parser().verifyWith(getKey()).build().parseSignedClaims(s)
                 .getPayload();
-        String email = claims.getSubject();
-        return userRepository.findByEmail(email)
+        UUID userId = UUID.fromString(claims.getSubject());
+        return userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
@@ -88,24 +89,20 @@ public class JwtServiceImpl implements JwtService {
             if (claims.get("authorities") == null) {
                 throw new BadCredentialsException("Token has no authorities");
             }
-            var username = claims.getSubject();
-            log.info("Validated token for user {}", username);
-            User user = userRepository.findByEmail(username)
-                    .orElseThrow(() -> new UserNotFoundException("User not found"));
-            log.info("User found {}", user.getEmail());
+            UUID userId = UUID.fromString(claims.getSubject());
             List<String> authorities = claims.get("authorities", List.class);
             List<SimpleGrantedAuthority> authorityList = authorities.stream()
                     .map(SimpleGrantedAuthority::new).toList();
-            return new UsernamePasswordAuthenticationToken(user, null, authorityList);
+            return new UsernamePasswordAuthenticationToken(userId, null, authorityList);
 
         } catch (Exception e) {
             return null;
         }
     }
 
-    private String buildToken(String email, List<String> authorities) {
-        return Jwts.builder().subject(email).claim("authorities", authorities).issuer("Rafiq")
-                .issuedAt(new Date(System.currentTimeMillis()))
+    private String buildToken(UUID userId, List<String> authorities) {
+        return Jwts.builder().subject(String.valueOf(userId)).claim("authorities", authorities)
+                .issuer("Rafiq").issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION))
                 .signWith(getKey()).compact();
     }

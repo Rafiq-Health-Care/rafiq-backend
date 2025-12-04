@@ -3,6 +3,7 @@ package com.nexaworks.rafiq.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import com.nexaworks.rafiq.dto.response.labTest.TestResponse;
 import com.nexaworks.rafiq.dto.response.labTest.TestResultsResponse;
 import com.nexaworks.rafiq.entities.LabTest;
 
@@ -11,4 +12,7 @@ public interface TestMapper {
     @Mapping(source = "id", target = "testId")
     @Mapping(source = "labResults", target = "tests")
     TestResultsResponse mapToTestResponse(LabTest test);
+    @Mapping(source = "id", target = "testId")
+    @Mapping(source = "pdf", target = "fileUrl")
+    TestResponse toResponse(LabTest test);
 }

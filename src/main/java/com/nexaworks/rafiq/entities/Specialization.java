@@ -19,5 +19,5 @@ public class Specialization extends BaseEntity {
     private String code;
 
     @OneToMany(mappedBy = "specialization")
-    private List<DoctorProfile> doctorProfiles;
+    private List<Doctor> doctors;
 }

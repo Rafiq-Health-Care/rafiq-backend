@@ -32,7 +32,7 @@ public class Reminder extends BaseEntity {
     private Medicine medicine;
     @ManyToOne
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
-    private PatientProfile patient;
+    private Patient patient;
     @ManyToOne
     @JoinColumn(name = "group_id", referencedColumnName = "id")
     private Group group;

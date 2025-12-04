@@ -30,6 +30,6 @@ public class Group extends BaseEntity {
     private List<Medicine> medicines;
     @ManyToOne
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
-    private PatientProfile patient;
+    private Patient patient;
 
 }

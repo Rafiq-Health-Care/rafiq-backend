@@ -2,6 +2,7 @@ package com.nexaworks.rafiq.integration.controller;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
@@ -13,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -22,11 +22,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexaworks.rafiq.dto.request.group.AddGroupRequest;
 import com.nexaworks.rafiq.dto.request.group.AddMedicinesToGroup;
 import com.nexaworks.rafiq.dto.request.group.UpdateGroupRequest;
-import com.nexaworks.rafiq.entities.Drug;
-import com.nexaworks.rafiq.entities.Medicine;
-import com.nexaworks.rafiq.entities.PatientProfile;
-import com.nexaworks.rafiq.entities.Role;
-import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.entities.*;
+import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.enums.Color;
 import com.nexaworks.rafiq.entities.enums.Gender;
 import com.nexaworks.rafiq.entities.enums.MedicineFrequency;
@@ -83,12 +80,12 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             patientRole = roleRepository.save(patientRole);
         }
 
-        User user = User.builder().email(email).password(passwordEncoder.encode("Valid@1234"))
-                .firstName(firstName).lastName(lastName).phone(phone).age(30).gender(gender)
+        // Create Patient directly (Patient extends User with is-a relationship)
+        Patient patient = Patient.builder().email(email)
+                .password(passwordEncoder.encode("Valid@1234")).firstName(firstName)
+                .lastName(lastName).phone(phone).birthDate(LocalDate.of(1990, 1, 1)).gender(gender)
                 .roles(Set.of(patientRole)).enabled(true).build();
-        PatientProfile patientProfile = PatientProfile.builder().user(user).build();
-        user.setPatientProfile(patientProfile);
-        return userRepository.save(user);
+        return patientRepository.save(patient);
     }
 
     @Nested
@@ -108,8 +105,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_GROUP_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isCreated())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isCreated())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Group added successfully"))
@@ -119,7 +115,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.color").value("BLUE"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.groupId").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.patientId")
-                            .value(user.getPatientProfile().getId().toString()))
+                            .value(user.getId().toString()))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.createdAt").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.updatedAt").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicineCount").value(0));
@@ -141,7 +137,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_GROUP_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
             // Verify no group was saved
@@ -160,8 +156,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Add first group
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_GROUP_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isCreated());
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isCreated());
 
             // Try to add group with same name
             AddGroupRequest duplicateRequest = new AddGroupRequest("Vitamins",
@@ -171,8 +166,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_GROUP_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(duplicatePayload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isConflict())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isConflict())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Group with name Vitamins already exists"));
 
@@ -195,15 +189,15 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Create multiple groups for the user
             com.nexaworks.rafiq.entities.Group group1 = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Antibiotics").description("Antibiotic medications").color(Color.RED)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group group2 = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Vitamins").description("Daily vitamins").color(Color.GREEN)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group group3 = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Pain Relief").description("Pain medications").color(Color.BLUE)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             groupRepository.save(group1);
             groupRepository.save(group2);
@@ -211,7 +205,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_GROUPS_ENDPOINT).param("page", "0")
-                    .param("size", "10").with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .param("size", "10").with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(3))
@@ -229,7 +223,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_GROUPS_ENDPOINT).param("page", "0")
-                    .param("size", "10").with(SecurityMockMvcRequestPostProcessors.user(user)))
+                    .param("size", "10").with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(0))
@@ -248,15 +242,15 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Create groups with different names
             com.nexaworks.rafiq.entities.Group group1 = com.nexaworks.rafiq.entities.Group.builder()
                     .name("A-Group").description("First alphabetically").color(Color.RED)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group group2 = com.nexaworks.rafiq.entities.Group.builder()
                     .name("C-Group").description("Third alphabetically").color(Color.GREEN)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group group3 = com.nexaworks.rafiq.entities.Group.builder()
                     .name("B-Group").description("Second alphabetically").color(Color.BLUE)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             groupRepository.save(group1);
             groupRepository.save(group2);
@@ -265,8 +259,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.get(GET_ALL_GROUPS_ENDPOINT).param("page", "0")
                     .param("size", "10").param("sort", "name").param("direction", "desc")
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(3))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].name").value("C-Group"))
@@ -289,14 +282,13 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             com.nexaworks.rafiq.entities.Group group = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Heart Medications").description("Medications for heart health")
-                    .color(Color.RED).patient(user.getPatientProfile()).build();
+                    .color(Color.RED).patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
 
             // Act & Assert
-            mockMvc.perform(
-                    MockMvcRequestBuilders.get(GET_GROUP_BY_ID_ENDPOINT + savedGroup.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .get(GET_GROUP_BY_ID_ENDPOINT + savedGroup.getId()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.name")
@@ -306,7 +298,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.color").value("RED"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicines").isArray())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.userId")
-                            .value(user.getPatientProfile().getId().toString()))
+                            .value(user.getId().toString()))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicineCount").value(0))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.createdAt").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.updatedAt").exists());
@@ -320,9 +312,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             java.util.UUID nonExistentGroupId = java.util.UUID.randomUUID();
 
             // Act & Assert
-            mockMvc.perform(
-                    MockMvcRequestBuilders.get(GET_GROUP_BY_ID_ENDPOINT + nonExistentGroupId)
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .get(GET_GROUP_BY_ID_ENDPOINT + nonExistentGroupId).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Group not found with id: " + nonExistentGroupId));
@@ -340,15 +331,14 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Create group for user1
             com.nexaworks.rafiq.entities.Group group = com.nexaworks.rafiq.entities.Group.builder()
                     .name("User1 Group").description("Group belonging to user1").color(Color.BLUE)
-                    .patient(user1.getPatientProfile()).build();
+                    .patient((Patient) user1).build();
 
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
 
             // Try to access with user2
             // Act & Assert
-            mockMvc.perform(
-                    MockMvcRequestBuilders.get(GET_GROUP_BY_ID_ENDPOINT + savedGroup.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user2)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .get(GET_GROUP_BY_ID_ENDPOINT + savedGroup.getId()).with(withUserId(user2)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Group not found with id: " + savedGroup.getId()));
@@ -368,7 +358,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             com.nexaworks.rafiq.entities.Group group = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Old Name").description("Old Description").color(Color.RED)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
 
@@ -379,8 +369,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.patch(UPDATE_GROUP_ENDPOINT + savedGroup.getId())
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Group updated successfully"))
@@ -389,7 +378,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
                             .value("New Description"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.color").value("BLUE"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.patientId")
-                            .value(user.getPatientProfile().getId().toString()))
+                            .value(user.getId().toString()))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.createdAt").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.updatedAt").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicineCount").value(0));
@@ -415,8 +404,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.patch(UPDATE_GROUP_ENDPOINT + nonExistentGroupId)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isNotFound())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Group not found with id: " + nonExistentGroupId));
         }
@@ -429,11 +417,11 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             com.nexaworks.rafiq.entities.Group group1 = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Existing Group").description("Description").color(Color.RED)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group group2 = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Group to Update").description("Description").color(Color.BLUE)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             groupRepository.save(group1);
             com.nexaworks.rafiq.entities.Group savedGroup2 = groupRepository.save(group2);
@@ -446,7 +434,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             mockMvc.perform(
                     MockMvcRequestBuilders.patch(UPDATE_GROUP_ENDPOINT + savedGroup2.getId())
                             .contentType(MediaType.APPLICATION_JSON).content(payload)
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+                            .with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isConflict())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Group with name Existing Group already exists"));
@@ -466,15 +454,14 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             com.nexaworks.rafiq.entities.Group group = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Group to Delete").description("Will be deleted").color(Color.RED)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
             assertThat(groupRepository.count()).isEqualTo(1);
 
             // Act & Assert
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_GROUP_ENDPOINT + savedGroup.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .delete(DELETE_GROUP_ENDPOINT + savedGroup.getId()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNoContent());
 
             // Verify deletion
@@ -489,9 +476,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             UUID nonExistentGroupId = UUID.randomUUID();
 
             // Act & Assert
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_GROUP_ENDPOINT + nonExistentGroupId)
-                            .with(SecurityMockMvcRequestPostProcessors.user(user)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .delete(DELETE_GROUP_ENDPOINT + nonExistentGroupId).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Group not found with id: " + nonExistentGroupId));
@@ -508,14 +494,13 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             com.nexaworks.rafiq.entities.Group group = com.nexaworks.rafiq.entities.Group.builder()
                     .name("User1 Group").description("Belongs to user1").color(Color.RED)
-                    .patient(user1.getPatientProfile()).build();
+                    .patient((Patient) user1).build();
 
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
 
             // Act & Assert
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_GROUP_ENDPOINT + savedGroup.getId())
-                            .with(SecurityMockMvcRequestPostProcessors.user(user2)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .delete(DELETE_GROUP_ENDPOINT + savedGroup.getId()).with(withUserId(user2)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
 
             // Verify group was not deleted
@@ -536,7 +521,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             com.nexaworks.rafiq.entities.Group group = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Test Group").description("Group for medicines").color(Color.BLUE)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
 
@@ -547,10 +532,10 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             drugRepository.save(drug2);
 
             Medicine medicine1 = Medicine.builder().name("Aspirin").drug(drug1).dosage("100mg")
-                    .frequency(MedicineFrequency.ONCE).patient(user.getPatientProfile()).build();
+                    .frequency(MedicineFrequency.ONCE).patient((Patient) user).build();
 
             Medicine medicine2 = Medicine.builder().name("Ibuprofen").drug(drug2).dosage("200mg")
-                    .frequency(MedicineFrequency.TWICE).patient(user.getPatientProfile()).build();
+                    .frequency(MedicineFrequency.TWICE).patient((Patient) user).build();
 
             Medicine savedMedicine1 = medicineRepository.save(medicine1);
             Medicine savedMedicine2 = medicineRepository.save(medicine2);
@@ -562,8 +547,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINES_ENDPOINT + savedGroup.getId())
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Medicines added to group successfully"))
@@ -586,8 +570,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINES_ENDPOINT + nonExistentGroupId)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound());
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
         @Test
@@ -598,7 +581,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             com.nexaworks.rafiq.entities.Group group = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Test Group").description("Group for medicines").color(Color.BLUE)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
 
@@ -606,7 +589,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             drugRepository.save(drug);
 
             Medicine medicine = Medicine.builder().name("Aspirin").drug(drug).dosage("100mg")
-                    .frequency(MedicineFrequency.ONCE).patient(user.getPatientProfile()).build();
+                    .frequency(MedicineFrequency.ONCE).patient((Patient) user).build();
 
             Medicine savedMedicine = medicineRepository.save(medicine);
 
@@ -618,8 +601,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINES_ENDPOINT + savedGroup.getId())
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.addedCount").value(1));
         }
     }
@@ -637,7 +619,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             com.nexaworks.rafiq.entities.Group group = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Test Group").description("Group for medicines").color(Color.BLUE)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
 
@@ -645,17 +627,15 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             drugRepository.save(drug);
 
             Medicine medicine = Medicine.builder().name("Aspirin").drug(drug).dosage("100mg")
-                    .frequency(MedicineFrequency.ONCE).patient(user.getPatientProfile())
-                    .group(savedGroup).build();
+                    .frequency(MedicineFrequency.ONCE).patient((Patient) user).group(savedGroup)
+                    .build();
 
             Medicine savedMedicine = medicineRepository.save(medicine);
 
             // Act & Assert
-            mockMvc.perform(MockMvcRequestBuilders
-                    .post(REMOVE_MEDICINE_ENDPOINT + savedGroup.getId() + "/"
-                            + savedMedicine.getId())
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
+            mockMvc.perform(MockMvcRequestBuilders.post(
+                    REMOVE_MEDICINE_ENDPOINT + savedGroup.getId() + "/" + savedMedicine.getId())
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.content().json(
                             "{\"success\":true,\"message\":\"Medicine removed from group\"}"));
 
@@ -675,8 +655,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Act & Assert
             mockMvc.perform(MockMvcRequestBuilders
                     .post(REMOVE_MEDICINE_ENDPOINT + nonExistentGroupId + "/" + medicineId)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound());
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
         @Test
@@ -687,17 +666,15 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
 
             com.nexaworks.rafiq.entities.Group group = com.nexaworks.rafiq.entities.Group.builder()
                     .name("Test Group").description("Group for medicines").color(Color.BLUE)
-                    .patient(user.getPatientProfile()).build();
+                    .patient((Patient) user).build();
 
             com.nexaworks.rafiq.entities.Group savedGroup = groupRepository.save(group);
             UUID nonExistentMedicineId = UUID.randomUUID();
 
             // Act & Assert
-            mockMvc.perform(MockMvcRequestBuilders
-                    .post(REMOVE_MEDICINE_ENDPOINT + savedGroup.getId() + "/"
-                            + nonExistentMedicineId)
-                    .with(SecurityMockMvcRequestPostProcessors.user(user)))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound())
+            mockMvc.perform(MockMvcRequestBuilders.post(
+                    REMOVE_MEDICINE_ENDPOINT + savedGroup.getId() + "/" + nonExistentMedicineId)
+                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isNotFound())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Medicine with id "
                             + nonExistentMedicineId + " not found in group Test Group"));
         }
