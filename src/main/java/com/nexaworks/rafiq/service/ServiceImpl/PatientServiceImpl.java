@@ -8,9 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.dto.request.basicMedicalProfile.CreateBasicMedicalProfileRequest;
 import com.nexaworks.rafiq.entities.Patient;
-import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.repository.PatientRepository;
 import com.nexaworks.rafiq.service.PatientService;
+import com.nexaworks.rafiq.service.WeightHistoryService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,29 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PatientServiceImpl implements PatientService {
     private final PatientRepository patientRepository;
-
-    @Override
-    @Transactional
-    public Patient createPatientProfile(User user) {
-        Patient patient = new Patient();
-        // Copy User properties to Patient (since Patient extends User)
-        patient.setId(user.getId());
-        patient.setEmail(user.getEmail());
-        patient.setPassword(user.getPassword());
-        patient.setFirstName(user.getFirstName());
-        patient.setLastName(user.getLastName());
-        patient.setPhone(user.getPhone());
-        patient.setBirthDate(user.getBirthDate());
-        patient.setActive(user.isActive());
-        patient.setLocked(user.isLocked());
-        patient.setEnabled(user.isEnabled());
-        patient.setNotificationToken(user.getNotificationToken());
-        patient.setGender(user.getGender());
-        patient.setRoles(user.getRoles());
-        // Audit fields are inherited from BaseEntity and handled automatically
-
-        return patientRepository.save(patient);
-    }
+    private final WeightHistoryService weightHistoryService;
 
     @Override
     public Patient getPatientProfile() {
@@ -54,6 +32,9 @@ public class PatientServiceImpl implements PatientService {
     @Transactional
     public Patient completePatientProfile(CreateBasicMedicalProfileRequest request) {
         Patient patient = getPatientProfile();
+        if (patient.getWeight() != request.weightInKg()) {
+            weightHistoryService.logNewWeight(request.weightInKg(), patient);
+        }
 
         patient.setHeight(request.heightInCm());
         patient.setAlcoholism(request.alcoholism());
@@ -66,7 +47,7 @@ public class PatientServiceImpl implements PatientService {
         patient.setOccupation(request.occupation());
         patient.setPregnant(request.pregnant());
         patient.setSmokeStatus(request.smokeStatus());
-        patient.setWeight((int) Math.round(request.weightInKg()));
+        patient.setWeight(request.weightInKg());
 
         return patientRepository.save(patient);
     }

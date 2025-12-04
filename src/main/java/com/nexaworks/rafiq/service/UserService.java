@@ -32,10 +32,10 @@ public interface UserService {
 
     void getNewOtp(String email);
 
-    User getUser();
-
     User addUser(String email, String firstName, String lastName);
 
     String getNotificationToken();
     UUID getUserId();
+
+    Optional<User> getUser(String email, String firstName, String lastName);
 }

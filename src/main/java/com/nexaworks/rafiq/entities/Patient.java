@@ -28,7 +28,7 @@ public class Patient extends User {
     private int height;
 
     @PositiveOrZero
-    private int weight;
+    private double weight;
 
     @Enumerated(EnumType.STRING)
     private BloodType bloodType;
@@ -58,4 +58,7 @@ public class Patient extends User {
     @OneToMany(mappedBy = "patient", cascade = {CascadeType.REMOVE,
             CascadeType.MERGE}, fetch = FetchType.LAZY)
     private List<ReminderLog> reminderLogs;
+    @OneToMany(mappedBy = "patient", cascade = {CascadeType.REMOVE,
+            CascadeType.MERGE}, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<WeightHistory> weightHistory;
 }

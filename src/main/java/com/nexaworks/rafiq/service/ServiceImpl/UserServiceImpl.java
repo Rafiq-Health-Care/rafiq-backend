@@ -164,7 +164,6 @@ public class UserServiceImpl implements UserService {
         });
     }
 
-    @Override
     public User getUser() {
 
         return userRepository.findById(
@@ -179,7 +178,7 @@ public class UserServiceImpl implements UserService {
         user.setEmail(email);
         user.setFirstName(firstName);
         user.setLastName(lastName);
-        user.setEnabled(false);
+        user.setEnabled(true);
         user.getRoles().add(roleService.getRole(ROLE_USER));
         User oAuthUser = userRepository.save(user);
         log.info("User created {}", user.getEmail());
@@ -193,5 +192,16 @@ public class UserServiceImpl implements UserService {
     }
     public UUID getUserId() {
         return (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
+
+    @Override
+    @Transactional
+    public Optional<User> getUser(String email, String firstName, String lastName) {
+        Optional<User> user = userRepository.findByEmail(email);
+        user.ifPresent(value -> value.setEnabled(true));
+        if (user.isEmpty()) {
+            user = Optional.ofNullable(addUser(email, firstName, lastName));
+        }
+        return user;
     }
 }

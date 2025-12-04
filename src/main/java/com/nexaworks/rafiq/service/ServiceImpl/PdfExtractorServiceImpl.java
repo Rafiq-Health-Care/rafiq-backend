@@ -16,10 +16,8 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.nexaworks.rafiq.exception.custom.EmptyFileException;
-import com.nexaworks.rafiq.service.AiService;
-import com.nexaworks.rafiq.service.LabTestService;
-import com.nexaworks.rafiq.service.PdfExtractorService;
-import com.nexaworks.rafiq.service.UserService;
+import com.nexaworks.rafiq.service.*;
+import com.nexaworks.rafiq.service.authentication.AuthService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +29,7 @@ public class PdfExtractorServiceImpl implements PdfExtractorService {
 
     private final LabTestService labTestService;
     private final AiService aiService;
-    private final UserService userService;
+    private final AuthService authService;
 
     @Override
     public String extractPdf(MultipartFile pdfFile)
@@ -40,7 +38,8 @@ public class PdfExtractorServiceImpl implements PdfExtractorService {
             throw new EmptyFileException(
                     "The provided PDF file is empty. Please upload a valid file.");
         }
-        CompletableFuture<UUID> testId = labTestService.saveTestPdf(pdfFile, userService.getUser());
+        CompletableFuture<UUID> testId = labTestService.saveTestPdf(pdfFile,
+                authService.getAuthenticateUser());
         byte[] pdfBytes = pdfFile.getBytes();
         if (pdfFile.getContentType() != null && pdfFile.getContentType().startsWith("image/")) {
             pdfBytes = convertImage(pdfBytes);
