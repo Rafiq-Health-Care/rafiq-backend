@@ -1,0 +1,10 @@
+### Request a new OTP for email verification or password reset
+POST http://localhost:8030/user/new-otp
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "john.doe@example.com"
+}
+
+###

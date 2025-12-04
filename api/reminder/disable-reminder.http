@@ -1,0 +1,10 @@
+### Disable Reminder
+PATCH http://localhost:8030/reminder/disable/{{reminder-id}}/true
+Authorization: Bearer {{access_token}}
+
+###
+
+### Enable Reminder
+PATCH http://localhost:8030/reminder/disable/{{reminder-id}}/false
+Authorization: Bearer {{access_token}}
+

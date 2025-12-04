@@ -1,0 +1,11 @@
+### Logout user (invalidates tokens) (204 No Content)
+POST http://localhost:8030/auth/logout
+Content-Type: application/json
+Accept: application/json
+
+{
+  "refreshToken": "<paste_refresh_token_here>",
+  "jwtToken": "<paste_jwt_access_token_here>"
+}
+
+###

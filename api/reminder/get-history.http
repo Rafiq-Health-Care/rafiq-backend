@@ -1,0 +1,35 @@
+### Get reminder history with pagination
+GET http://localhost:8030/reminder/history?page=0&size=10
+Content-Type: application/json
+Accept: application/json
+
+{
+  "status": "TAKEN",
+  "startDate": "2025-11-01T00:00:00Z",
+  "endDate": "2025-11-30T23:59:59Z"
+}
+
+###
+
+### Get all reminders (no filters)
+GET http://localhost:8030/reminder/history?page=0&size=20
+Content-Type: application/json
+Accept: application/json
+
+{}
+
+###
+
+### Get missed reminders only
+GET http://localhost:8030/reminder/history?page=0&size=10
+Content-Type: application/json
+Accept: application/json
+
+{
+  "status": "MISSED",
+  "startDate": "2025-11-01T00:00:00Z",
+  "endDate": "2025-11-28T23:59:59Z"
+}
+
+###
+

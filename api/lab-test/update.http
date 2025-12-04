@@ -1,0 +1,26 @@
+### Update an existing lab test by ID
+PUT http://localhost:8030/lab-test/update/11111111-1111-1111-1111-111111111111
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Complete Blood Count - Updated",
+  "date": "2025-02-01T09:30:00Z",
+  "tests": [
+    {
+      "testName": "Hemoglobin",
+      "result": 14.1,
+      "unit": "g/dL",
+      "status": "NORMAL"
+    },
+    {
+      "testName": "WBC",
+      "result": 10.2,
+      "unit": "10^9/L",
+      "status": "HIGH"
+    }
+  ],
+  "testId": "11111111-1111-1111-1111-111111111111"
+}
+
+###

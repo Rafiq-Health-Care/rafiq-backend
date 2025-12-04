@@ -1,0 +1,10 @@
+### Login with Google OAuth (returns LoginResponse)
+POST http://localhost:8030/auth/google
+Content-Type: application/json
+Accept: application/json
+
+{
+  "idToken": "<paste_google_id_token_here>"
+}
+
+###

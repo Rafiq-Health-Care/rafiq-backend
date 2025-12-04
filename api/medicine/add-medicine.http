@@ -1,0 +1,52 @@
+### Add a medicine to the current patient
+POST http://localhost:8030/medicines/add
+Content-Type: application/json
+Accept: application/json
+
+{
+  "medicineId": "cd86ee1d-4145-48f9-ad42-1d67e9930cd8",
+  "dosage": "500mg",
+  "frequency": "TWICE",
+  "reminderFrequency": "DAILY",
+  "customDays": null,
+  "startDate": "2025-11-25T14:30:00Z",
+  "endDate": "2025-12-10T14:30:00Z",
+  "notes": "Take after meals",
+  "type": "TABLET"
+}
+
+### Add a medicine with weekly reminder
+POST http://localhost:8030/medicines/add
+Content-Type: application/json
+Accept: application/json
+
+{
+  "medicineId": "86c86b48-9b9c-46c2-83b3-2979b06ab9ea",
+  "dosage": "500mg",
+  "frequency": "ONCE",
+  "reminderFrequency": "WEEKLY",
+  "customDays": null,
+  "startDate": "2025-11-25T14:30:00Z",
+  "endDate": "2025-12-10T14:30:00Z",
+  "notes": "Take after meals",
+  "type": "TABLET"
+}
+
+### Add a medicine with custom days reminder
+POST http://localhost:8030/medicines/add
+Content-Type: application/json
+Accept: application/json
+
+{
+  "medicineId": "75d0c68d-39f2-483f-9246-85fcd5d4187a",
+  "dosage": "500mg",
+  "frequency": "THIRD_TIMES",
+  "reminderFrequency": "CUSTOM",
+  "customDays": ["MONDAY", "WEDNESDAY", "FRIDAY"],
+  "startDate": "2025-11-25T14:30:00Z",
+  "endDate": "2025-12-10T14:30:00Z",
+  "notes": "Take after meals",
+  "type": "TABLET"
+}
+
+###
