@@ -12,9 +12,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.nexaworks.rafiq.dto.request.lab.AddLabRequest;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.lab.LabResponse;
-import com.nexaworks.rafiq.mapper.AddressMapper;
 import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.service.lab.LabService;
+import com.nexaworks.rafiq.user.mapper.AddressMapper;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

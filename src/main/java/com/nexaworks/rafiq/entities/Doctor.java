@@ -5,6 +5,7 @@ import java.util.List;
 import org.hibernate.annotations.BatchSize;
 
 import com.nexaworks.rafiq.entities.enums.Status;
+import com.nexaworks.rafiq.user.entity.model.User;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

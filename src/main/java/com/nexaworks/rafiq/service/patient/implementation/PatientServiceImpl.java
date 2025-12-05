@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.repository.PatientRepository;
 import com.nexaworks.rafiq.service.patient.PatientService;
-import com.nexaworks.rafiq.service.authentication.AuthService;
+import com.nexaworks.rafiq.user.service.AuthService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

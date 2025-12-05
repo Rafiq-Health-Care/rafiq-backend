@@ -21,12 +21,12 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.mock.web.MockMultipartFile;
 
 import com.itextpdf.text.DocumentException;
-import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.custom.EmptyFileException;
 import com.nexaworks.rafiq.service.ai.implementation.GeminiService;
-import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.service.file.implementation.PdfExtractorServiceImpl;
 import com.nexaworks.rafiq.service.labReports.implementation.LabTestServiceImpl;
+import com.nexaworks.rafiq.user.entity.model.User;
+import com.nexaworks.rafiq.user.service.AuthService;
 
 public class PdfExtractorServiceImplTest {
     @Mock

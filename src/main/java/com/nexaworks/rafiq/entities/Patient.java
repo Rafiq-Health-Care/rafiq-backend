@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.nexaworks.rafiq.entities.enums.BloodType;
 import com.nexaworks.rafiq.entities.enums.SmokeStatus;
+import com.nexaworks.rafiq.user.entity.model.User;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.PositiveOrZero;

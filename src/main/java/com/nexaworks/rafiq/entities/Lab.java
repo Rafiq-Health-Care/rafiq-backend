@@ -2,6 +2,8 @@ package com.nexaworks.rafiq.entities;
 
 import java.util.List;
 
+import com.nexaworks.rafiq.user.entity.model.Address;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

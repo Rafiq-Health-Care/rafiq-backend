@@ -20,8 +20,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.integration.config.TestDataSeeder;
+import com.nexaworks.rafiq.user.entity.model.User;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc

@@ -13,15 +13,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.nexaworks.rafiq.entities.Token;
-import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.entities.enums.TokenType;
 import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
 import com.nexaworks.rafiq.exception.custom.TokenNotFoundException;
 import com.nexaworks.rafiq.exception.custom.UserException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
-import com.nexaworks.rafiq.repository.TokenRepository;
-import com.nexaworks.rafiq.service.user.implementation.TokenServiceImpl;
+import com.nexaworks.rafiq.user.entity.enums.TokenType;
+import com.nexaworks.rafiq.user.entity.model.Token;
+import com.nexaworks.rafiq.user.entity.model.User;
+import com.nexaworks.rafiq.user.repository.TokenRepository;
+import com.nexaworks.rafiq.user.service.implementation.TokenServiceImpl;
 
 @DisplayName("TokenService Test Cases")
 public class TokenServiceTest {

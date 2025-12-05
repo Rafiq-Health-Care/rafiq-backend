@@ -8,15 +8,15 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.nexaworks.rafiq.dto.client.cloundinary.UploadResults;
-import com.nexaworks.rafiq.dto.event.DoctorRegisterEvent;
-import com.nexaworks.rafiq.dto.event.ForgetPasswordEvent;
-import com.nexaworks.rafiq.dto.event.NewOtpEvent;
-import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.entities.enums.UploadType;
 import com.nexaworks.rafiq.service.doctor.DoctorService;
 import com.nexaworks.rafiq.service.file.ImageService;
 import com.nexaworks.rafiq.service.notification.EmailContentService;
 import com.nexaworks.rafiq.service.notification.EmailSenderService;
+import com.nexaworks.rafiq.user.event.DoctorRegisterEvent;
+import com.nexaworks.rafiq.user.event.ForgetPasswordEvent;
+import com.nexaworks.rafiq.user.event.NewOtpEvent;
+import com.nexaworks.rafiq.user.event.PatientRegistrationEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,7 @@ public class NotificationListener {
 
     @Async
     @EventListener
-    public void handleUserRegistrationEvent(UserRegistrationEvent event) {
+    public void handleUserRegistrationEvent(PatientRegistrationEvent event) {
         Map<String, Object> model = emailContentService.createOtpEmail(event.otp(), event.name(),
                 "url");
         emailSenderService.sendEmail(model, event.email(), "Verify your email address",
@@ -64,11 +64,11 @@ public class NotificationListener {
         log.info("uploaded national ID for doctor with ID: {}", event.doctorId());
         doctorService.updateNationalId(uploadResults, event.doctorId());
         log.info("Updated national ID for doctor with ID: {}", event.doctorId());
-        UserRegistrationEvent userRegistrationEvent = event.event();
-        Map<String, Object> model = emailContentService.createOtpEmail(userRegistrationEvent.otp(),
-                userRegistrationEvent.name(), "url");
-        log.info("Sending email to {}", userRegistrationEvent.email());
-        emailSenderService.sendEmail(model, userRegistrationEvent.email(),
+        PatientRegistrationEvent patientRegistrationEvent = event.event();
+        Map<String, Object> model = emailContentService.createOtpEmail(
+                patientRegistrationEvent.otp(), patientRegistrationEvent.name(), "url");
+        log.info("Sending email to {}", patientRegistrationEvent.email());
+        emailSenderService.sendEmail(model, patientRegistrationEvent.email(),
                 "Verify your email address", "OTP_TEMPLATE.html");
     }
 }

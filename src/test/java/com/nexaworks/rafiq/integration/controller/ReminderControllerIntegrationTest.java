@@ -23,13 +23,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexaworks.rafiq.dto.request.reminder.AddReminderRequest;
 import com.nexaworks.rafiq.dto.request.reminder.ReminderFilters;
 import com.nexaworks.rafiq.entities.*;
-import com.nexaworks.rafiq.entities.enums.Gender;
 import com.nexaworks.rafiq.entities.enums.MedicineFrequency;
 import com.nexaworks.rafiq.entities.enums.MedicineStatus;
 import com.nexaworks.rafiq.entities.enums.MedicineType;
 import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 import com.nexaworks.rafiq.integration.BaseIntegrationTest;
 import com.nexaworks.rafiq.repository.*;
+import com.nexaworks.rafiq.user.entity.enums.Gender;
+import com.nexaworks.rafiq.user.entity.model.Role;
+import com.nexaworks.rafiq.user.entity.model.User;
+import com.nexaworks.rafiq.user.repository.RoleRepository;
+import com.nexaworks.rafiq.user.repository.UserRepository;
 
 import jakarta.persistence.EntityManager;
 

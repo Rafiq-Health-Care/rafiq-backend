@@ -25,7 +25,7 @@ import com.nexaworks.rafiq.service.file.ImageService;
 import com.nexaworks.rafiq.service.labReports.implementation.LabResultServiceImpl;
 import com.nexaworks.rafiq.service.labReports.implementation.LabTestServiceImpl;
 import com.nexaworks.rafiq.service.patient.implementation.PatientServiceImpl;
-import com.nexaworks.rafiq.service.user.implementation.UserServiceImpl;
+import com.nexaworks.rafiq.user.service.implementation.UserServiceImpl;
 
 public class LabTestServiceImplTest {
     @Mock

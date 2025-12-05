@@ -22,25 +22,26 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
-import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.entities.Patient;
-import com.nexaworks.rafiq.entities.Role;
-import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.entities.enums.Roles;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
 import com.nexaworks.rafiq.exception.custom.TokenNotFoundException;
-import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.doctor.implementation.DoctorServiceImpl;
 import com.nexaworks.rafiq.service.doctor.implementation.SpecializationServiceImpl;
 import com.nexaworks.rafiq.service.file.ImageService;
 import com.nexaworks.rafiq.service.patient.implementation.PatientServiceImpl;
-import com.nexaworks.rafiq.service.user.implementation.RoleServiceImpl;
-import com.nexaworks.rafiq.service.user.implementation.TokenServiceImpl;
-import com.nexaworks.rafiq.service.user.implementation.UserServiceImpl;
-import com.nexaworks.rafiq.utils.AuthSessionManager;
+import com.nexaworks.rafiq.user.api.dto.response.LoginResponse;
+import com.nexaworks.rafiq.user.entity.enums.Roles;
+import com.nexaworks.rafiq.user.entity.model.Role;
+import com.nexaworks.rafiq.user.entity.model.User;
+import com.nexaworks.rafiq.user.event.DoctorRegisterEvent;
+import com.nexaworks.rafiq.user.event.PatientRegistrationEvent;
+import com.nexaworks.rafiq.user.repository.UserRepository;
+import com.nexaworks.rafiq.user.service.implementation.RoleServiceImpl;
+import com.nexaworks.rafiq.user.service.implementation.TokenServiceImpl;
+import com.nexaworks.rafiq.user.service.implementation.UserServiceImpl;
+import com.nexaworks.rafiq.user.utils.AuthSessionManager;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -128,7 +129,7 @@ public class UserServiceImplTest {
         verify(roleService, times(1)).getRole(Roles.ROLE_PATIENT);
         verify(userRepository, times(1)).save(any(Patient.class));
         verify(tokenService, times(1)).generateOtpToken(any(Patient.class));
-        verify(eventPublisher, times(1)).publishEvent(any(UserRegistrationEvent.class));
+        verify(eventPublisher, times(1)).publishEvent(any(PatientRegistrationEvent.class));
     }
 
     private static User getUser() {
@@ -148,7 +149,7 @@ public class UserServiceImplTest {
         assertThrows(com.nexaworks.rafiq.exception.custom.RegistrationException.class,
                 () -> userService.registerPatient(patient));
         verify(userRepository, never()).save(any(User.class));
-        verify(eventPublisher, never()).publishEvent(any(UserRegistrationEvent.class));
+        verify(eventPublisher, never()).publishEvent(any(PatientRegistrationEvent.class));
     }
 
     @DisplayName("Register doctor should add user and publish event to send the activation email")
@@ -184,8 +185,7 @@ public class UserServiceImplTest {
         verify(specializationService, times(1)).getSpecialization(specializationId);
         verify(userRepository, times(1)).save(any(Doctor.class));
         verify(tokenService, times(1)).generateOtpToken(any(Doctor.class));
-        verify(eventPublisher, times(1))
-                .publishEvent(any(com.nexaworks.rafiq.dto.event.DoctorRegisterEvent.class));
+        verify(eventPublisher, times(1)).publishEvent(any(DoctorRegisterEvent.class));
 
         // Verify that Doctor object has the correct properties set
         verify(userRepository).save(argThat(savedDoctor -> savedDoctor instanceof Doctor
@@ -203,7 +203,7 @@ public class UserServiceImplTest {
         assertThrows(RegistrationException.class,
                 () -> userService.registerDoctor(doctor, null, null, null));
         verify(userRepository, never()).save(any(User.class));
-        verify(eventPublisher, never()).publishEvent(any(UserRegistrationEvent.class));
+        verify(eventPublisher, never()).publishEvent(any(PatientRegistrationEvent.class));
     }
 
     @DisplayName("Verify user email should create login tokens")

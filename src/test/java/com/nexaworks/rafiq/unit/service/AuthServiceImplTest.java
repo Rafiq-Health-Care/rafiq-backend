@@ -24,15 +24,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
-import com.nexaworks.rafiq.entities.Token;
-import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
-import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.authentication.JwtService;
-import com.nexaworks.rafiq.service.authentication.implementaion.AuthServiceImpl;
-import com.nexaworks.rafiq.service.user.TokenService;
-import com.nexaworks.rafiq.utils.AuthSessionManager;
+import com.nexaworks.rafiq.user.api.dto.response.LoginResponse;
+import com.nexaworks.rafiq.user.entity.model.Token;
+import com.nexaworks.rafiq.user.entity.model.User;
+import com.nexaworks.rafiq.user.repository.UserRepository;
+import com.nexaworks.rafiq.user.service.JwtService;
+import com.nexaworks.rafiq.user.service.TokenService;
+import com.nexaworks.rafiq.user.service.implementation.AuthServiceImpl;
+import com.nexaworks.rafiq.user.utils.AuthSessionManager;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

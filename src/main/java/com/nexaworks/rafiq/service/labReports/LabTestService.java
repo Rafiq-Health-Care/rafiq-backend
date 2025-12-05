@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.nexaworks.rafiq.dto.request.labTest.TestResultRequest;
 import com.nexaworks.rafiq.entities.LabResult;
 import com.nexaworks.rafiq.entities.LabTest;
-import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.user.entity.model.User;
 
 import jakarta.validation.Valid;
 

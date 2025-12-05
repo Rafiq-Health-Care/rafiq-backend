@@ -17,11 +17,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.custom.UserException;
-import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.authentication.implementaion.JwtServiceImpl;
-import com.nexaworks.rafiq.service.user.implementation.TokenServiceImpl;
+import com.nexaworks.rafiq.user.entity.model.User;
+import com.nexaworks.rafiq.user.repository.UserRepository;
+import com.nexaworks.rafiq.user.service.implementation.JwtServiceImpl;
+import com.nexaworks.rafiq.user.service.implementation.TokenServiceImpl;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

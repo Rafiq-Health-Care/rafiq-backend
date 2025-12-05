@@ -20,17 +20,17 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nexaworks.rafiq.dto.request.auth.LoginRequest;
-import com.nexaworks.rafiq.entities.Role;
-import com.nexaworks.rafiq.entities.Token;
-import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.entities.enums.Gender;
-import com.nexaworks.rafiq.entities.enums.TokenType;
 import com.nexaworks.rafiq.integration.BaseIntegrationTest;
-import com.nexaworks.rafiq.repository.RoleRepository;
-import com.nexaworks.rafiq.repository.TokenRepository;
-import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.authentication.JwtService;
+import com.nexaworks.rafiq.user.api.dto.request.LoginRequest;
+import com.nexaworks.rafiq.user.entity.enums.Gender;
+import com.nexaworks.rafiq.user.entity.enums.TokenType;
+import com.nexaworks.rafiq.user.entity.model.Role;
+import com.nexaworks.rafiq.user.entity.model.Token;
+import com.nexaworks.rafiq.user.entity.model.User;
+import com.nexaworks.rafiq.user.repository.RoleRepository;
+import com.nexaworks.rafiq.user.repository.TokenRepository;
+import com.nexaworks.rafiq.user.repository.UserRepository;
+import com.nexaworks.rafiq.user.service.JwtService;
 
 import jakarta.servlet.http.Cookie;
 

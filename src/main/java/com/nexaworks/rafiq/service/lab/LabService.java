@@ -8,8 +8,8 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.nexaworks.rafiq.entities.Address;
 import com.nexaworks.rafiq.entities.Lab;
+import com.nexaworks.rafiq.user.entity.model.Address;
 
 import jakarta.validation.constraints.NotBlank;
 

@@ -27,16 +27,16 @@ import com.nexaworks.rafiq.dto.request.labTest.TestRequest;
 import com.nexaworks.rafiq.dto.request.labTest.TestResultRequest;
 import com.nexaworks.rafiq.entities.LabTest;
 import com.nexaworks.rafiq.entities.Patient;
-import com.nexaworks.rafiq.entities.Role;
-import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.entities.enums.Gender;
 import com.nexaworks.rafiq.integration.BaseIntegrationTest;
 import com.nexaworks.rafiq.repository.LabResultRepository;
 import com.nexaworks.rafiq.repository.LabTestRepository;
 import com.nexaworks.rafiq.repository.PatientRepository;
-import com.nexaworks.rafiq.repository.RoleRepository;
-import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.ai.AiService;
+import com.nexaworks.rafiq.user.entity.enums.Gender;
+import com.nexaworks.rafiq.user.entity.model.Role;
+import com.nexaworks.rafiq.user.entity.model.User;
+import com.nexaworks.rafiq.user.repository.RoleRepository;
+import com.nexaworks.rafiq.user.repository.UserRepository;
 
 @DisplayName("Lab Test Controller Integration Test")
 public class LabTestControllerIntegrationTest extends BaseIntegrationTest {

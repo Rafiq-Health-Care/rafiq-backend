@@ -22,17 +22,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.nexaworks.rafiq.dto.event.ForgetPasswordEvent;
-import com.nexaworks.rafiq.dto.request.user.ChangePasswordRequest;
-import com.nexaworks.rafiq.dto.request.user.ForgetPasswordRequest;
-import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
-import com.nexaworks.rafiq.entities.Token;
-import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
-import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.authentication.AuthService;
-import com.nexaworks.rafiq.service.user.TokenService;
-import com.nexaworks.rafiq.service.user.implementation.PasswordServiceImpl;
+import com.nexaworks.rafiq.user.api.dto.request.ChangePasswordRequest;
+import com.nexaworks.rafiq.user.api.dto.request.ForgetPasswordRequest;
+import com.nexaworks.rafiq.user.api.dto.request.ResetPasswordRequest;
+import com.nexaworks.rafiq.user.entity.model.Token;
+import com.nexaworks.rafiq.user.entity.model.User;
+import com.nexaworks.rafiq.user.event.ForgetPasswordEvent;
+import com.nexaworks.rafiq.user.repository.UserRepository;
+import com.nexaworks.rafiq.user.service.AuthService;
+import com.nexaworks.rafiq.user.service.TokenService;
+import com.nexaworks.rafiq.user.service.implementation.PasswordServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PasswordServiceImpl Unit Tests")

@@ -25,10 +25,14 @@ import com.nexaworks.rafiq.dto.request.group.UpdateGroupRequest;
 import com.nexaworks.rafiq.entities.*;
 import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.enums.Color;
-import com.nexaworks.rafiq.entities.enums.Gender;
 import com.nexaworks.rafiq.entities.enums.MedicineFrequency;
 import com.nexaworks.rafiq.integration.BaseIntegrationTest;
 import com.nexaworks.rafiq.repository.*;
+import com.nexaworks.rafiq.user.entity.enums.Gender;
+import com.nexaworks.rafiq.user.entity.model.Role;
+import com.nexaworks.rafiq.user.entity.model.User;
+import com.nexaworks.rafiq.user.repository.RoleRepository;
+import com.nexaworks.rafiq.user.repository.UserRepository;
 
 @DisplayName("Group Controller Integration Test Cases")
 public class GroupControllerIntegrationTest extends BaseIntegrationTest {

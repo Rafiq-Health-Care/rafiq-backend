@@ -32,7 +32,7 @@ import com.nexaworks.rafiq.service.medicine.implementation.DrugServiceImpl;
 import com.nexaworks.rafiq.service.medicine.implementation.GroupServiceImpl;
 import com.nexaworks.rafiq.service.medicine.implementation.MedicineServiceImpl;
 import com.nexaworks.rafiq.service.patient.PatientService;
-import com.nexaworks.rafiq.service.user.UserService;
+import com.nexaworks.rafiq.user.service.UserService;
 
 import jakarta.validation.ValidationException;
 

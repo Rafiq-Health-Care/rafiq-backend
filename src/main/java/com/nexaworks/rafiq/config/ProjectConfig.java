@@ -20,7 +20,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-import com.nexaworks.rafiq.repository.UserRepository;
+import com.nexaworks.rafiq.user.repository.UserRepository;
 
 @Configuration
 public class ProjectConfig {

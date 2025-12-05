@@ -8,8 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import com.nexaworks.rafiq.service.labReports.LabResultService;
-import com.nexaworks.rafiq.service.labReports.LabTestService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,8 +25,11 @@ import com.nexaworks.rafiq.exception.custom.LabTestException;
 import com.nexaworks.rafiq.repository.LabTestRepository;
 import com.nexaworks.rafiq.repository.PatientRepository;
 import com.nexaworks.rafiq.service.file.ImageService;
+import com.nexaworks.rafiq.service.labReports.LabResultService;
+import com.nexaworks.rafiq.service.labReports.LabTestService;
 import com.nexaworks.rafiq.service.patient.PatientService;
-import com.nexaworks.rafiq.service.user.UserService;
+import com.nexaworks.rafiq.user.entity.model.User;
+import com.nexaworks.rafiq.user.service.UserService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

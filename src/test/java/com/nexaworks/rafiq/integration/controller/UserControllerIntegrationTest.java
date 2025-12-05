@@ -18,17 +18,17 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nexaworks.rafiq.dto.request.user.DoctorRegistrationRequest;
-import com.nexaworks.rafiq.dto.request.user.ForgetPasswordRequest;
-import com.nexaworks.rafiq.dto.request.user.UserRegistrationRequest;
-import com.nexaworks.rafiq.dto.request.user.VerificationRequest;
-import com.nexaworks.rafiq.entities.Token;
-import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.entities.enums.TokenType;
 import com.nexaworks.rafiq.integration.BaseIntegrationTest;
 import com.nexaworks.rafiq.repository.SpecializationRepository;
-import com.nexaworks.rafiq.repository.TokenRepository;
-import com.nexaworks.rafiq.repository.UserRepository;
+import com.nexaworks.rafiq.user.api.dto.request.DoctorRegistrationRequest;
+import com.nexaworks.rafiq.user.api.dto.request.ForgetPasswordRequest;
+import com.nexaworks.rafiq.user.api.dto.request.PatientRegistrationRequest;
+import com.nexaworks.rafiq.user.api.dto.request.VerificationRequest;
+import com.nexaworks.rafiq.user.entity.enums.TokenType;
+import com.nexaworks.rafiq.user.entity.model.Token;
+import com.nexaworks.rafiq.user.entity.model.User;
+import com.nexaworks.rafiq.user.repository.TokenRepository;
+import com.nexaworks.rafiq.user.repository.UserRepository;
 
 @DisplayName("User Controller Integration Test Cases")
 public class UserControllerIntegrationTest extends BaseIntegrationTest {
@@ -68,8 +68,9 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             void shouldRegisterPatientWithValidRequiredFields() throws Exception {
                 // Arrange
                 String email = "john.doe.integration@example.com";
-                UserRegistrationRequest request = new UserRegistrationRequest(email, "Valid@1234",
-                        "John", "Doe", "+12345678901", "male", LocalDate.of(1999, 1, 1));
+                PatientRegistrationRequest request = new PatientRegistrationRequest(email,
+                        "Valid@1234", "John", "Doe", "+12345678901", "male",
+                        LocalDate.of(1999, 1, 1));
 
                 String payload = objectMapper.writeValueAsString(request);
 
@@ -92,7 +93,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             @DisplayName("Should return 400 Bad Request when email format is invalid")
             void shouldReturnBadRequestForInvalidEmail() throws Exception {
                 String email = "not-an-email";
-                UserRegistrationRequest invalidRequest = new UserRegistrationRequest(email,
+                PatientRegistrationRequest invalidRequest = new PatientRegistrationRequest(email,
                         "Valid@1234", "John", "Doe", "+12345678901", "male",
                         LocalDate.of(1999, 1, 1));
 
@@ -112,7 +113,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             @DisplayName("Should return 400 Bad Request when password contains spaces")
             void shouldReturnBadRequestForInvalidPassword() throws Exception {
                 String email = "valid.email@example.com";
-                UserRegistrationRequest invalidRequest = new UserRegistrationRequest(email,
+                PatientRegistrationRequest invalidRequest = new PatientRegistrationRequest(email,
                         "Val id@1234", // Password with space
                         "John", "Doe", "+12345678901", "male", LocalDate.of(1994, 1, 1));
 
@@ -132,7 +133,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             @DisplayName("Should return 400 Bad Request when phone number format is invalid")
             void shouldReturnBadRequestForInvalidPhone() throws Exception {
                 String email = "test.phone@example.com";
-                UserRegistrationRequest invalidRequest = new UserRegistrationRequest(email,
+                PatientRegistrationRequest invalidRequest = new PatientRegistrationRequest(email,
                         "Valid@1234", "John", "Doe", "01234567890", // Invalid phone - starts with 0
                         "male", LocalDate.of(1994, 1, 1));
 
@@ -152,7 +153,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             @DisplayName("Should return 400 Bad Request when age is invalid")
             void shouldReturnBadRequestForInvalidAge() throws Exception {
                 String email = "test.age@example.com";
-                UserRegistrationRequest invalidRequest = new UserRegistrationRequest(email,
+                PatientRegistrationRequest invalidRequest = new PatientRegistrationRequest(email,
                         "Valid@1234", "John", "Doe", "+12345678901", "male",
                         LocalDate.now().plusDays(1)); // Invalid age - future
                                                       // date
@@ -173,7 +174,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             @DisplayName("Should return 400 Bad Request when gender is invalid")
             void shouldReturnBadRequestForInvalidGender() throws Exception {
                 String email = "test.gender@example.com";
-                UserRegistrationRequest invalidRequest = new UserRegistrationRequest(email,
+                PatientRegistrationRequest invalidRequest = new PatientRegistrationRequest(email,
                         "Valid@1234", "John", "Doe", "+12345678901", "other",
                         LocalDate.of(1994, 1, 1)); // Invalid
                 // gender
@@ -194,7 +195,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             @DisplayName("Should return 400 Bad Request when first name is blank")
             void shouldReturnBadRequestForBlankFirstName() throws Exception {
                 String email = "test.firstname@example.com";
-                UserRegistrationRequest invalidRequest = new UserRegistrationRequest(email,
+                PatientRegistrationRequest invalidRequest = new PatientRegistrationRequest(email,
                         "Valid@1234", "", // Blank first name
                         "Doe", "+12345678901", "male", LocalDate.of(1994, 1, 1));
 
@@ -215,7 +216,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             void shouldReturnConflictWhenEmailAlreadyExists() throws Exception {
                 // Arrange - First register a patient
                 String email = "duplicate@example.com";
-                UserRegistrationRequest firstRequest = new UserRegistrationRequest(email,
+                PatientRegistrationRequest firstRequest = new PatientRegistrationRequest(email,
                         "Valid@1234", "John", "Doe", "+12345678901", "male",
                         LocalDate.of(1994, 1, 1));
 
@@ -231,7 +232,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         "First user should be created");
 
                 // Arrange - Try to register again with same email
-                UserRegistrationRequest duplicateRequest = new UserRegistrationRequest(email,
+                PatientRegistrationRequest duplicateRequest = new PatientRegistrationRequest(email,
                         "AnotherValid@1234", "Jane", "Smith", "+19876543210", "female",
                         LocalDate.of(1999, 1, 1));
 
@@ -263,7 +264,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             void shouldRegisterDoctorWithValidRequiredFields() throws Exception {
                 // Arrange
                 String email = "dr.john.doe@example.com";
-                UserRegistrationRequest userRequest = new UserRegistrationRequest(email,
+                PatientRegistrationRequest userRequest = new PatientRegistrationRequest(email,
                         "Valid@1234", "John", "Doe", "+12345678901", "male",
                         LocalDate.of(1994, 1, 1));
 
@@ -302,7 +303,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             void shouldReturnBadRequestForInvalidEmail() throws Exception {
                 // Arrange
                 String email = "not-an-email";
-                UserRegistrationRequest userRequest = new UserRegistrationRequest(email,
+                PatientRegistrationRequest userRequest = new PatientRegistrationRequest(email,
                         "Valid@1234", "John", "Doe", "+12345678901", "male",
                         LocalDate.of(1994, 1, 1));
 
@@ -336,7 +337,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             void shouldReturnBadRequestForInvalidPassword() throws Exception {
                 // Arrange
                 String email = "dr.valid.email@example.com";
-                UserRegistrationRequest userRequest = new UserRegistrationRequest(email,
+                PatientRegistrationRequest userRequest = new PatientRegistrationRequest(email,
                         "Val id@1234", // Password with space
                         "John", "Doe", "+12345678901", "male", LocalDate.of(1994, 1, 1));
 
@@ -370,7 +371,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             void shouldReturnBadRequestForInvalidPhone() throws Exception {
                 // Arrange
                 String email = "dr.test.phone@example.com";
-                UserRegistrationRequest userRequest = new UserRegistrationRequest(email,
+                PatientRegistrationRequest userRequest = new PatientRegistrationRequest(email,
                         "Valid@1234", "John", "Doe", "01234567890", // Invalid phone - starts with 0
                         "male", LocalDate.of(1994, 1, 1));
 
@@ -404,7 +405,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             void shouldReturnBadRequestForInvalidAge() throws Exception {
                 // Arrange
                 String email = "dr.test.age@example.com";
-                UserRegistrationRequest userRequest = new UserRegistrationRequest(email,
+                PatientRegistrationRequest userRequest = new PatientRegistrationRequest(email,
                         "Valid@1234", "John", "Doe", "+12345678901", "male",
                         LocalDate.now().plusDays(1));
                 UUID specializationId = specializationRepository.findAll().stream().findFirst()
@@ -437,7 +438,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             void shouldReturnBadRequestForInvalidGender() throws Exception {
                 // Arrange
                 String email = "dr.test.gender@example.com";
-                UserRegistrationRequest userRequest = new UserRegistrationRequest(email,
+                PatientRegistrationRequest userRequest = new PatientRegistrationRequest(email,
                         "Valid@1234", "John", "Doe", "+12345678901", "other",
                         LocalDate.of(1994, 1, 1)); // Invalid
                 // gender
@@ -472,7 +473,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             void shouldReturnBadRequestForBlankFirstName() throws Exception {
                 // Arrange
                 String email = "dr.test.firstname@example.com";
-                UserRegistrationRequest userRequest = new UserRegistrationRequest(email,
+                PatientRegistrationRequest userRequest = new PatientRegistrationRequest(email,
                         "Valid@1234", "", // Blank first name
                         "Doe", "+12345678901", "male", LocalDate.of(1994, 1, 1));
 
@@ -506,7 +507,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             void shouldReturnConflictWhenEmailAlreadyExists() throws Exception {
                 // Arrange - First register a doctor
                 String email = "dr.duplicate@example.com";
-                UserRegistrationRequest firstUserRequest = new UserRegistrationRequest(email,
+                PatientRegistrationRequest firstUserRequest = new PatientRegistrationRequest(email,
                         "Valid@1234", "John", "Doe", "+12345678901", "male",
                         LocalDate.of(1994, 1, 1));
 
@@ -535,8 +536,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         "First doctor should be created");
 
                 // Arrange - Try to register again with same email
-                UserRegistrationRequest duplicateUserRequest = new UserRegistrationRequest(email,
-                        "AnotherValid@1234", "Jane", "Smith", "+19876543210", "female",
+                PatientRegistrationRequest duplicateUserRequest = new PatientRegistrationRequest(
+                        email, "AnotherValid@1234", "Jane", "Smith", "+19876543210", "female",
                         LocalDate.of(1999, 1, 1));
 
                 DoctorRegistrationRequest duplicateRequest = new DoctorRegistrationRequest(
@@ -582,7 +583,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
         void shouldVerifyUserWithValidEmailAndOtp() throws Exception {
             // Arrange - Register a patient first
             String email = "verify.user@example.com";
-            UserRegistrationRequest request = new UserRegistrationRequest(email, "Valid@1234",
+            PatientRegistrationRequest request = new PatientRegistrationRequest(email, "Valid@1234",
                     "John", "Doe", "+12345678901", "male", LocalDate.of(1994, 1, 1));
 
             String payload = objectMapper.writeValueAsString(request);
@@ -643,7 +644,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
         void shouldGenerateNewOtpForExistingUser() throws Exception {
             // Arrange - Register a patient first
             String email = "newotp@example.com";
-            UserRegistrationRequest request = new UserRegistrationRequest(email, "Valid@1234",
+            PatientRegistrationRequest request = new PatientRegistrationRequest(email, "Valid@1234",
                     "John", "Doe", "+12345678901", "male", LocalDate.of(1994, 1, 1));
 
             String payload = objectMapper.writeValueAsString(request);

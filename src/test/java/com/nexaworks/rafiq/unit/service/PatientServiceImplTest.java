@@ -8,9 +8,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.repository.PatientRepository;
 import com.nexaworks.rafiq.service.patient.implementation.PatientServiceImpl;
+import com.nexaworks.rafiq.user.entity.model.User;
 
 @DisplayName("PatientService Test Cases")
 public class PatientServiceImplTest {

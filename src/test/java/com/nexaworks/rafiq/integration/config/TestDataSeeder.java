@@ -5,10 +5,10 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 
-import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.Specialization;
-import com.nexaworks.rafiq.repository.RoleRepository;
 import com.nexaworks.rafiq.repository.SpecializationRepository;
+import com.nexaworks.rafiq.user.entity.model.Role;
+import com.nexaworks.rafiq.user.repository.RoleRepository;
 
 @TestConfiguration
 @Profile("test")

@@ -6,9 +6,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.nexaworks.rafiq.dto.request.basicMedicalProfile.CreateBasicMedicalProfileRequest;
 import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.repository.PatientRepository;
-import com.nexaworks.rafiq.service.authentication.implementaion.AuthServiceImpl;
 import com.nexaworks.rafiq.service.patient.PatientProfileService;
 import com.nexaworks.rafiq.service.patient.WeightHistoryService;
+import com.nexaworks.rafiq.user.service.implementation.AuthServiceImpl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
