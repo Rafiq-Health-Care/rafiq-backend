@@ -20,7 +20,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "patient_profile")
+@Table(name = "patient")
 public class Patient extends User {
 
     private String description;

@@ -5,7 +5,7 @@ Accept: application/json
 
 {
   "email": "john.doe@example.com",
-  "otp": "579909"
+  "otp": "225122"
 }
 
 ###

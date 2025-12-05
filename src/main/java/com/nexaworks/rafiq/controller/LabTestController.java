@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.controller.labReports;
+package com.nexaworks.rafiq.controller;
 
 import java.io.IOException;
 import java.util.UUID;

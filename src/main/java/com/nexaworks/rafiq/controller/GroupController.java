@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.controller.medicine;
+package com.nexaworks.rafiq.controller;
 
 import java.util.ArrayList;
 import java.util.List;
