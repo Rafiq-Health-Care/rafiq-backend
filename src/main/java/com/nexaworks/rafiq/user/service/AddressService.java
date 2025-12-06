@@ -2,7 +2,7 @@ package com.nexaworks.rafiq.user.service;
 
 import java.util.List;
 
-import com.nexaworks.rafiq.user.entity.model.Address;
+import com.nexaworks.rafiq.shared.entity.Address;
 
 public interface AddressService {
     List<Address> saveAll(List<Address> entity);

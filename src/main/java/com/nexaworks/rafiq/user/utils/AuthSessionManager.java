@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import com.nexaworks.rafiq.user.api.dto.response.LoginResponse;
 import com.nexaworks.rafiq.user.entity.model.Role;
 import com.nexaworks.rafiq.user.entity.model.User;
-import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
+import com.nexaworks.rafiq.user.exception.TokenInvalidException;
 import com.nexaworks.rafiq.user.service.JwtService;
 import com.nexaworks.rafiq.user.service.TokenService;
 

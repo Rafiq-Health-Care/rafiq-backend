@@ -2,7 +2,7 @@ package com.nexaworks.rafiq.user.entity.model;
 
 import java.time.Instant;
 
-import com.nexaworks.rafiq.entities.BaseEntity;
+import com.nexaworks.rafiq.shared.entity.BaseEntity;
 import com.nexaworks.rafiq.user.entity.enums.TokenType;
 
 import jakarta.persistence.*;

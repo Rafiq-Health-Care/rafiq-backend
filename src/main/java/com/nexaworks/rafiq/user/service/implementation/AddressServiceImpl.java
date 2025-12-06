@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.nexaworks.rafiq.user.entity.model.Address;
-import com.nexaworks.rafiq.user.repository.AddressRepository;
+import com.nexaworks.rafiq.shared.entity.Address;
+import com.nexaworks.rafiq.shared.repository.AddressRepository;
 import com.nexaworks.rafiq.user.service.AddressService;
 
 import jakarta.transaction.Transactional;

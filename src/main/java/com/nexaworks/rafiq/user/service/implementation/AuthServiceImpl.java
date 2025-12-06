@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.nexaworks.rafiq.user.api.dto.response.LoginResponse;
 import com.nexaworks.rafiq.user.entity.model.Token;
 import com.nexaworks.rafiq.user.entity.model.User;
-import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
+import com.nexaworks.rafiq.user.exception.TokenInvalidException;
 import com.nexaworks.rafiq.user.repository.UserRepository;
 import com.nexaworks.rafiq.user.service.AuthService;
 import com.nexaworks.rafiq.user.service.JwtService;

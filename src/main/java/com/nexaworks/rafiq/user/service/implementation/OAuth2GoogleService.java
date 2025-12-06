@@ -12,7 +12,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.nexaworks.rafiq.user.api.dto.response.LoginResponse;
 import com.nexaworks.rafiq.user.entity.model.User;
-import com.nexaworks.rafiq.exception.custom.GoogleAuthException;
+import com.nexaworks.rafiq.user.exception.GoogleAuthException;
 import com.nexaworks.rafiq.user.service.OAuth2Service;
 import com.nexaworks.rafiq.user.service.UserService;
 import com.nexaworks.rafiq.user.utils.AuthSessionManager;

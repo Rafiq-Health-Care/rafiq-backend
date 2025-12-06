@@ -3,9 +3,9 @@ package com.nexaworks.rafiq.user.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import com.nexaworks.rafiq.doctor.entity.model.Doctor;
+import com.nexaworks.rafiq.patient.entity.model.Patient;
 import com.nexaworks.rafiq.user.api.dto.request.PatientRegistrationRequest;
-import com.nexaworks.rafiq.entities.Doctor;
-import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.user.entity.enums.Gender;
 
 import jakarta.validation.Valid;

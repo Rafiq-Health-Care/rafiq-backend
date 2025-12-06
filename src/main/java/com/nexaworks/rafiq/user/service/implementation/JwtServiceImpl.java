@@ -14,12 +14,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
+import com.nexaworks.rafiq.user.entity.enums.TokenType;
 import com.nexaworks.rafiq.user.entity.model.Token;
 import com.nexaworks.rafiq.user.entity.model.User;
-import com.nexaworks.rafiq.user.entity.enums.TokenType;
-import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
-import com.nexaworks.rafiq.exception.custom.UserException;
-import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
+import com.nexaworks.rafiq.user.exception.TokenInvalidException;
+import com.nexaworks.rafiq.user.exception.UserException;
+import com.nexaworks.rafiq.user.exception.UserNotFoundException;
 import com.nexaworks.rafiq.user.repository.UserRepository;
 import com.nexaworks.rafiq.user.service.JwtService;
 import com.nexaworks.rafiq.user.service.TokenService;

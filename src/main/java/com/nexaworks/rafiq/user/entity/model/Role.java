@@ -2,7 +2,8 @@ package com.nexaworks.rafiq.user.entity.model;
 
 import java.util.List;
 
-import com.nexaworks.rafiq.entities.BaseEntity;
+import com.nexaworks.rafiq.shared.entity.BaseEntity;
+
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;

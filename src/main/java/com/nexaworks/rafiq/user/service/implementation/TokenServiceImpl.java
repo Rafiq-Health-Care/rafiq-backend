@@ -5,27 +5,27 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.nexaworks.rafiq.user.event.NewOtpEvent;
-import com.nexaworks.rafiq.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import com.nexaworks.rafiq.shared.event.user.NewOtpEvent;
+import com.nexaworks.rafiq.user.entity.enums.TokenType;
 import com.nexaworks.rafiq.user.entity.model.Token;
 import com.nexaworks.rafiq.user.entity.model.User;
-import com.nexaworks.rafiq.user.entity.enums.TokenType;
-import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
-import com.nexaworks.rafiq.exception.custom.TokenNotFoundException;
-import com.nexaworks.rafiq.exception.custom.UserException;
-import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
+import com.nexaworks.rafiq.user.exception.TokenInvalidException;
+import com.nexaworks.rafiq.user.exception.TokenNotFoundException;
+import com.nexaworks.rafiq.user.exception.UserException;
+import com.nexaworks.rafiq.user.exception.UserNotFoundException;
 import com.nexaworks.rafiq.user.repository.TokenRepository;
+import com.nexaworks.rafiq.user.repository.UserRepository;
 import com.nexaworks.rafiq.user.service.TokenService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @RequiredArgsConstructor
@@ -121,8 +121,9 @@ public class TokenServiceImpl implements TokenService {
             return;
         }
         List<Token> tokens = tokenRepository.findByTokenTypeAndUser(TokenType.OTP, user.get());
-        if (tokens.size() > 5){
-            throw new UserException("You have reached the maximum number of OTPs allowed. Please try again later.");
+        if (tokens.size() > 5) {
+            throw new UserException(
+                    "You have reached the maximum number of OTPs allowed. Please try again later.");
         }
         tokens.stream().filter(token -> token.getExpiryDate().isAfter(Instant.now()))
                 .forEach(token -> token.setExpiryDate(Instant.now()));

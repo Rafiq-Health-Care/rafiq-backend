@@ -4,12 +4,13 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.util.*;
 
-import com.nexaworks.rafiq.entities.BaseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.nexaworks.rafiq.shared.entity.Address;
+import com.nexaworks.rafiq.shared.entity.BaseEntity;
 import com.nexaworks.rafiq.user.entity.enums.Gender;
 
 import jakarta.persistence.*;
