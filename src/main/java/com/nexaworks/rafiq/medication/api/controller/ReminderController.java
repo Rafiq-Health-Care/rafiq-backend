@@ -55,6 +55,8 @@ public class ReminderController {
             @RequestBody AddReminderRequest request, Authentication authentication)
             throws SchedulerException {
         Reminder reminder = reminderMapper.toEntity(request);
+        reminder.setMedicine(
+                medicineService.getMedicineById(request.medicineId(), getUserId(authentication)));
         Reminder savedReminder = reminderService.createReminder(reminder,
                 getUserId(authentication));
         AddReminderResponse response = reminderMapper.toAddReminderResponse(savedReminder);

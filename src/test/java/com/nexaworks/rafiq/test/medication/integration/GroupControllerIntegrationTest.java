@@ -307,7 +307,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
                             .value("Medications for heart health"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.color").value("RED"))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicines").isArray())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.userId")
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.data.patientId")
                             .value(user.getId().toString()))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicineCount").value(0))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.createdAt").exists())

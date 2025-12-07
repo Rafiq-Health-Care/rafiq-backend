@@ -26,7 +26,7 @@ public class MedicineSpecification {
                 predicates.add(cb.equal(root.get("groupId"), groupId));
             });
             Optional.ofNullable(patientId).ifPresent(patientId1 -> {
-                predicates.add(cb.equal(root.get("patient").get("id"), patientId1));
+                predicates.add(cb.equal(root.get("patientId"), patientId1));
             });
             Optional.ofNullable(filter.search()).ifPresent(search -> {
                 Predicate fullTextSearch = cb.isTrue(cb.function("ts_match", Boolean.class,

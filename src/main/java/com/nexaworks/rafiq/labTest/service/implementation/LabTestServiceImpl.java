@@ -50,7 +50,8 @@ public class LabTestServiceImpl implements LabTestService {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                eventPublisher.publishEvent(new LabTestCreatedEvent(labTest.getId(), labTestId));
+                eventPublisher
+                        .publishEvent(new LabTestCreatedEvent(labTest.getFileId(), labTestId));
             }
         });
 
@@ -113,7 +114,7 @@ public class LabTestServiceImpl implements LabTestService {
     private LabTest validateOwnership(UUID testId, UUID patientId) {
         LabTest test = labTestRepository.findById(testId)
                 .orElseThrow(() -> new LabTestException("Invalid Test Id"));
-        if (!test.getId().equals(patientId)) {
+        if (!test.getPatientId().equals(patientId)) {
             throw new LabTestException("Invalid Test Id");
         }
         return test;

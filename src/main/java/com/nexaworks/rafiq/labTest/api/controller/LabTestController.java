@@ -31,7 +31,7 @@ public class LabTestController {
     public ResponseEntity<Void> testResults(@RequestBody @Valid TestResultRequest testResultRequest,
             Authentication authentication) {
 
-        labTestService.addTest(testResultRequest.testId(), testResultRequest.name(),
+        labTestService.addTest(testResultRequest.fileId(), testResultRequest.name(),
                 testResultRequest.date(), resultMapper.toEntity(testResultRequest.tests()),
                 (UUID) authentication.getPrincipal());
         return ResponseEntity.ok().build();

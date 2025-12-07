@@ -137,6 +137,4 @@ server:
       max: 10
       min-spare: 2
     accept-count: 5
-logging:
-  level:
-    root: ERROR
+

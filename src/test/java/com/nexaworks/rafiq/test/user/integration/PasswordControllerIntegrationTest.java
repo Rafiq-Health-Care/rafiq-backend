@@ -379,7 +379,7 @@ class PasswordControllerIntegrationTest extends BaseIntegrationTest {
                 mockMvc.perform(MockMvcRequestBuilders.post(RESET_PASSWORD_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
                         .with(withUserId(user)))
-                        .andExpect(MockMvcResultMatchers.status().isNoContent());
+                        .andExpect(MockMvcResultMatchers.status().isUnauthorized());
 
                 User unchangedUser = userRepository.findByEmail(email).orElseThrow();
                 assertThat(passwordEncoder.matches(correctOldPassword, unchangedUser.getPassword()))

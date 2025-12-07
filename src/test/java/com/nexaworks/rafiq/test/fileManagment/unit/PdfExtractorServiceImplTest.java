@@ -1,10 +1,11 @@
 package com.nexaworks.rafiq.test.fileManagment.unit;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,90 +15,257 @@ import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.DocumentException;
-import com.nexaworks.rafiq.ai.service.AiService;
+import com.nexaworks.rafiq.ai.service.AiFacade;
 import com.nexaworks.rafiq.fileManagment.exception.EmptyFileException;
 import com.nexaworks.rafiq.fileManagment.service.FileMetaDataService;
 import com.nexaworks.rafiq.fileManagment.service.implementation.PdfExtractorServiceImpl;
+import com.nexaworks.rafiq.shared.entity.FileCategory;
 
-@DisplayName("PdfExtractorService Test Cases")
+@ExtendWith(MockitoExtension.class)
+@DisplayName("PdfExtractorService Unit Tests")
 class PdfExtractorServiceImplTest {
-    @Mock
-    FileMetaDataService fileMetaDataService;
 
     @Mock
-    AiService aiService;
+    private FileMetaDataService fileMetaDataService;
+
+    @Mock
+    private AiFacade aiFacade;
 
     @InjectMocks
-    PdfExtractorServiceImpl pdfExtractorService;
+    private PdfExtractorServiceImpl pdfExtractorService;
 
     private UUID patientId;
     private UUID fileId;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         patientId = UUID.randomUUID();
         fileId = UUID.randomUUID();
     }
 
-    @DisplayName("Extract pdf should throw empty file exception when file is empty")
-    @Test
-    void extractPdf_ShouldThrowEmptyFileException_WhenFileIsEmpty() {
-        MockMultipartFile emptyFile = new MockMultipartFile("file", new byte[0]);
-        assertThrows(EmptyFileException.class,
-                () -> pdfExtractorService.extractPdf(emptyFile, patientId));
+    @Nested
+    @DisplayName("Extract PDF Tests")
+    class ExtractPdfTests {
+
+        @Test
+        @DisplayName("Should throw EmptyFileException when file is empty")
+        void shouldThrowEmptyFileExceptionWhenFileIsEmpty() {
+            // Arrange
+            MockMultipartFile emptyFile = new MockMultipartFile("file", new byte[0]);
+
+            // Act & Assert
+            assertThatThrownBy(() -> pdfExtractorService.extractPdf(emptyFile, patientId))
+                    .isInstanceOf(EmptyFileException.class)
+                    .hasMessageContaining("The provided PDF file is empty");
+        }
+
+        @Test
+        @DisplayName("Should process PDF file directly without conversion")
+        void shouldProcessPdfDirectlyWhenFileIsPdf()
+                throws IOException, DocumentException, ExecutionException, InterruptedException {
+            // Arrange
+            byte[] pdfBytes = createMinimalPdfBytes();
+            MockMultipartFile pdfFile = new MockMultipartFile("file", "test.pdf", "application/pdf",
+                    pdfBytes);
+
+            String aiResponse = "{\"name\":\"Blood Test\",\"date\":\"2024-01-15\",\"tests\":[]}";
+
+            when(fileMetaDataService.saveFile(any(MultipartFile.class), isNull(),
+                    eq(FileCategory.LAB_TEST), eq(patientId))).thenReturn(fileId);
+            when(aiFacade.extractLabResultsFromPdf(pdfBytes)).thenReturn(aiResponse);
+
+            // Act
+            String result = pdfExtractorService.extractPdf(pdfFile, patientId);
+
+            // Assert
+            ObjectMapper mapper = new ObjectMapper();
+            String expectedResult = mapper.readTree(
+                    "{\"name\":\"Blood Test\",\"date\":\"2024-01-15\",\"tests\":[],\"fileId\":\""
+                            + fileId + "\"}")
+                    .toString();
+
+            assertThat(result).isEqualTo(expectedResult);
+
+            // Verify interactions
+            verify(fileMetaDataService).saveFile(pdfFile, null, FileCategory.LAB_TEST, patientId);
+            verify(aiFacade).extractLabResultsFromPdf(pdfBytes);
+        }
+
+        @Test
+        @DisplayName("Should convert image to PDF before processing")
+        void shouldConvertImageToPdfWhenFileIsImage()
+                throws IOException, DocumentException, ExecutionException, InterruptedException {
+            // Arrange
+            byte[] imageBytes = createMinimalPngImage();
+            MockMultipartFile imageFile = new MockMultipartFile("file", "test.png", "image/png",
+                    imageBytes);
+
+            String aiResponse = "{\"name\":\"Lab Result\",\"tests\":[]}";
+
+            when(fileMetaDataService.saveFile(any(MultipartFile.class), isNull(),
+                    eq(FileCategory.LAB_TEST), eq(patientId))).thenReturn(fileId);
+            when(aiFacade.extractLabResultsFromPdf(any(byte[].class))).thenReturn(aiResponse);
+
+            // Act
+            String result = pdfExtractorService.extractPdf(imageFile, patientId);
+
+            // Assert
+            assertThat(result).contains("\"fileId\":\"" + fileId + "\"");
+            assertThat(result).contains("\"name\":\"Lab Result\"");
+            assertThat(result).contains("\"tests\":[]");
+
+            // Verify file was saved
+            verify(fileMetaDataService).saveFile(imageFile, null, FileCategory.LAB_TEST, patientId);
+
+            // Verify AI was called with converted PDF bytes (not original image bytes)
+            verify(aiFacade).extractLabResultsFromPdf(
+                    argThat(bytes -> bytes != null && !java.util.Arrays.equals(bytes, imageBytes)
+                            && bytes.length > imageBytes.length)); // PDF will be larger
+        }
+
+        // @Test
+        // @DisplayName("Should convert JPEG image to PDF before processing")
+        // void shouldConvertJpegImageToPdfWhenFileIsJpeg()
+        // throws IOException, DocumentException, ExecutionException,
+        // InterruptedException {
+        // // Arrange
+        // byte[] jpegBytes = "fake-jpeg-content".getBytes();
+        // MockMultipartFile jpegFile = new MockMultipartFile("file", "test.jpg",
+        // "image/jpeg",
+        // jpegBytes);
+        //
+        // String aiResponse = "{\"name\":\"X-Ray Result\",\"tests\":[]}";
+        //
+        // when(fileMetaDataService.saveFile(any(MultipartFile.class), isNull(),
+        // eq(FileCategory.LAB_TEST), eq(patientId))).thenReturn(fileId);
+        // when(aiFacade.extractLabResultsFromPdf(any(byte[].class))).thenReturn(aiResponse);
+        //
+        // // Act
+        // String result = pdfExtractorService.extractPdf(jpegFile, patientId);
+        //
+        // // Assert
+        // assertThat(result).contains("\"fileId\":\"" + fileId + "\"");
+        // assertThat(result).contains("\"name\":\"X-Ray Result\"");
+        //
+        // verify(fileMetaDataService).saveFile(jpegFile, null, FileCategory.LAB_TEST,
+        // patientId);
+        // verify(aiFacade).extractLabResultsFromPdf(any(byte[].class));
+        // }
+
+        @Test
+        @DisplayName("Should save file asynchronously while processing")
+        void shouldSaveFileAsynchronouslyWhileProcessing()
+                throws IOException, DocumentException, ExecutionException, InterruptedException {
+            // Arrange
+            byte[] pdfBytes = createMinimalPdfBytes();
+            MockMultipartFile pdfFile = new MockMultipartFile("file", "test.pdf", "application/pdf",
+                    pdfBytes);
+
+            String aiResponse = "{\"test\":\"result\"}";
+
+            when(fileMetaDataService.saveFile(any(MultipartFile.class), isNull(),
+                    eq(FileCategory.LAB_TEST), eq(patientId))).thenReturn(fileId);
+            when(aiFacade.extractLabResultsFromPdf(pdfBytes)).thenReturn(aiResponse);
+
+            // Act
+            String result = pdfExtractorService.extractPdf(pdfFile, patientId);
+
+            // Assert - fileId should be added to the result
+            assertThat(result).contains("\"fileId\":\"" + fileId + "\"");
+
+            // Verify both operations completed
+            verify(fileMetaDataService).saveFile(pdfFile, null, FileCategory.LAB_TEST, patientId);
+            verify(aiFacade).extractLabResultsFromPdf(pdfBytes);
+        }
+
+        @Test
+        @DisplayName("Should add fileId to AI extraction result JSON")
+        void shouldAddFileIdToAiExtractionResultJson()
+                throws IOException, DocumentException, ExecutionException, InterruptedException {
+            // Arrange
+            byte[] pdfBytes = createMinimalPdfBytes();
+            MockMultipartFile pdfFile = new MockMultipartFile("file", "test.pdf", "application/pdf",
+                    pdfBytes);
+
+            String aiResponse = "{\"name\":\"Complete Blood Count\",\"date\":\"2024-01-15\",\"tests\":[{\"testName\":\"Hemoglobin\",\"result\":14.5}]}";
+            UUID expectedFileId = UUID.randomUUID();
+
+            when(fileMetaDataService.saveFile(any(MultipartFile.class), isNull(),
+                    eq(FileCategory.LAB_TEST), eq(patientId))).thenReturn(expectedFileId);
+            when(aiFacade.extractLabResultsFromPdf(pdfBytes)).thenReturn(aiResponse);
+
+            // Act
+            String result = pdfExtractorService.extractPdf(pdfFile, patientId);
+
+            // Assert - Parse result and verify structure
+            ObjectMapper mapper = new ObjectMapper();
+            var jsonNode = mapper.readTree(result);
+
+            assertThat(jsonNode.has("name")).isTrue();
+            assertThat(jsonNode.has("date")).isTrue();
+            assertThat(jsonNode.has("tests")).isTrue();
+            assertThat(jsonNode.has("fileId")).isTrue();
+            assertThat(jsonNode.get("fileId").asText()).isEqualTo(expectedFileId.toString());
+            assertThat(jsonNode.get("name").asText()).isEqualTo("Complete Blood Count");
+        }
+
+        @Test
+        @DisplayName("Should pass null as ownerId when saving file")
+        void shouldPassNullAsOwnerIdWhenSavingFile()
+                throws IOException, DocumentException, ExecutionException, InterruptedException {
+            // Arrange
+            byte[] pdfBytes = createMinimalPdfBytes();
+            MockMultipartFile pdfFile = new MockMultipartFile("file", "test.pdf", "application/pdf",
+                    pdfBytes);
+
+            when(fileMetaDataService.saveFile(any(MultipartFile.class), isNull(),
+                    eq(FileCategory.LAB_TEST), eq(patientId))).thenReturn(fileId);
+            when(aiFacade.extractLabResultsFromPdf(any(byte[].class)))
+                    .thenReturn("{\"test\":\"result\"}");
+
+            // Act
+            pdfExtractorService.extractPdf(pdfFile, patientId);
+
+            // Assert - Verify ownerId is null (second parameter)
+            verify(fileMetaDataService).saveFile(eq(pdfFile), isNull(), eq(FileCategory.LAB_TEST),
+                    eq(patientId));
+        }
+
+        @Test
+        @DisplayName("Should use LAB_TEST category when saving file")
+        void shouldUseLabTestCategoryWhenSavingFile()
+                throws IOException, DocumentException, ExecutionException, InterruptedException {
+            // Arrange
+            byte[] pdfBytes = createMinimalPdfBytes();
+            MockMultipartFile pdfFile = new MockMultipartFile("file", "test.pdf", "application/pdf",
+                    pdfBytes);
+
+            when(fileMetaDataService.saveFile(any(MultipartFile.class), isNull(),
+                    eq(FileCategory.LAB_TEST), eq(patientId))).thenReturn(fileId);
+            when(aiFacade.extractLabResultsFromPdf(any(byte[].class)))
+                    .thenReturn("{\"test\":\"result\"}");
+
+            // Act
+            pdfExtractorService.extractPdf(pdfFile, patientId);
+
+            // Assert - Verify LAB_TEST category is used
+            verify(fileMetaDataService).saveFile(any(MultipartFile.class), isNull(),
+                    eq(FileCategory.LAB_TEST), eq(patientId));
+        }
     }
 
-    @DisplayName("Extract pdf should convert to pdf if the file is an image")
-    @Test
-    void extractPdf_ShouldConvertImageToPdf_WhenFileIsImage()
-            throws IOException, DocumentException, ExecutionException, InterruptedException {
-        MockMultipartFile imageFile = new MockMultipartFile("file", "test.png", "image/png",
-                createMinimalPngImage());
-
-        when(fileMetaDataService.saveFile(any(), any(), any(), eq(patientId))).thenReturn(fileId);
-        when(aiService.extractLabResultsFromPdf(any())).thenReturn("{\"test\":\"result\"}");
-
-        String result = pdfExtractorService.extractPdf(imageFile, patientId);
-
-        ObjectMapper mapper = new ObjectMapper();
-        String expectedResult = mapper
-                .readTree("{\"test\":\"result\",\"fileId\":\"" + fileId + "\"}").toString();
-
-        assertEquals(expectedResult, result);
-        verify(aiService).extractLabResultsFromPdf(argThat(bytes -> bytes != null
-                && !java.util.Arrays.equals(bytes, createMinimalPngImage())));
-    }
-
-    @DisplayName("Extract pdf should process PDF file directly without conversion")
-    @Test
-    void extractPdf_ShouldProcessPdfDirectly_WhenFileIsPdf()
-            throws IOException, DocumentException, ExecutionException, InterruptedException {
-        byte[] pdfBytes = createMinimalPdfBytes();
-        MockMultipartFile pdfFile = new MockMultipartFile("file", "test.pdf", "application/pdf",
-                pdfBytes);
-
-        when(fileMetaDataService.saveFile(any(), any(), any(), eq(patientId))).thenReturn(fileId);
-        when(aiService.extractLabResultsFromPdf(any())).thenReturn("{\"test\":\"result\"}");
-
-        String result = pdfExtractorService.extractPdf(pdfFile, patientId);
-
-        ObjectMapper mapper = new ObjectMapper();
-        String expectedResult = mapper
-                .readTree("{\"test\":\"result\",\"fileId\":\"" + fileId + "\"}").toString();
-
-        assertEquals(expectedResult, result);
-        verify(aiService).extractLabResultsFromPdf(pdfBytes);
-    }
-
+    // Helper methods
     private byte[] createMinimalPngImage() {
         return new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
                 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk

@@ -8,5 +8,5 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 
 public record TestResultRequest(@NotBlank String name, Date date, @Valid List<TestRequest> tests,
-        UUID testId) {
+        UUID fileId) {
 }

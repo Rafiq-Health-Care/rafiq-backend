@@ -2,6 +2,7 @@ package com.nexaworks.rafiq.fileManagment.service.implementation;
 
 import java.util.UUID;
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,6 +49,7 @@ public class FileMetaDataServiceImpl implements FileMetaDataService {
 
     @Override
     @Transactional
+    @Async
     public void updateFileOwner(UUID fileId, UUID newOwnerId) {
         FileMetaData fileMetaData = fileMetaDataRepository.findById(fileId)
                 .orElseThrow(() -> new FileException("File not found"));
