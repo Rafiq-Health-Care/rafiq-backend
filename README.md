@@ -66,7 +66,7 @@ Download and install from: https://github.com/UB-Mannheim/tesseract/wiki
 
 ### Step 3: Configure Environment Variables
 
-Create a `.env.properties` file in the project root with the following variables:
+Create a `.env.properties` fileMetaData in the project root with the following variables:
 
 ```properties
 # Database Configuration
@@ -197,7 +197,7 @@ The generated files will be in the `openapi/` directory:
 
 ### View Documentation
 
-You can view the OpenAPI YAML file at:
+You can view the OpenAPI YAML fileMetaData at:
 https://editor.swagger.io/
 
 ### API Endpoints
@@ -295,7 +295,7 @@ rafiq-backend/
 │   │       └── templates/        # Email templates
 │   └── test/                     # Test classes
 ├── pom.xml                       # Maven configuration
-└── README.md                     # This file
+└── README.md                     # This fileMetaData
 ```
 
 ## Development Tips

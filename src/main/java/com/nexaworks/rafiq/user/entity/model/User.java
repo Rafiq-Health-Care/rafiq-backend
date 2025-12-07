@@ -9,7 +9,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.nexaworks.rafiq.shared.entity.Address;
 import com.nexaworks.rafiq.shared.entity.BaseEntity;
 import com.nexaworks.rafiq.user.entity.enums.Gender;
 
@@ -63,11 +62,6 @@ public class User extends BaseEntity implements UserDetails, Principal {
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     @Builder.Default
     private Set<Role> roles = new HashSet<>();
-
-    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
-    @Builder.Default
-    private List<Address> addresses = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
             CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)

@@ -35,8 +35,8 @@ public class EmailEventListener {
     @Async
     @EventListener
     public void handlePatientRegistrationEvent(PatientRegistrationEvent event) {
-        Map<String, Object> model = emailContentService.createOtpEmail(event.otp(), event.name(),
-                "url");
+        Map<String, Object> model = emailContentService.createOtpEmail(event.otp(),
+                event.firstName(), "url");
         emailSenderService.sendEmail(model, event.email(), SUBJECT_USER_REGISTRATION,
                 USER_REGISTRATION_EMAIL_TEMPLATE);
     }
@@ -60,9 +60,9 @@ public class EmailEventListener {
     @EventListener
     public void handleDoctorRegistrationEvent(DoctorRegisterEvent event) throws IOException {
 
-        PatientRegistrationEvent patientRegistrationEvent = event.event();
+        PatientRegistrationEvent patientRegistrationEvent = event.basicInfo();
         Map<String, Object> model = emailContentService.createOtpEmail(
-                patientRegistrationEvent.otp(), patientRegistrationEvent.name(), "url");
+                patientRegistrationEvent.otp(), patientRegistrationEvent.firstName(), "url");
         emailSenderService.sendEmail(model, patientRegistrationEvent.email(),
                 SUBJECT_USER_REGISTRATION, EMAIL_TEMPLATE_DOCTOR_REGISTER);
     }

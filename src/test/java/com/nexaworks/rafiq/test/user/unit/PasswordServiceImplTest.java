@@ -25,12 +25,12 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.nexaworks.rafiq.shared.event.user.ForgetPasswordEvent;
-import com.nexaworks.rafiq.user.exception.InvalidPasswordException;
 import com.nexaworks.rafiq.user.api.dto.request.ChangePasswordRequest;
 import com.nexaworks.rafiq.user.api.dto.request.ForgetPasswordRequest;
 import com.nexaworks.rafiq.user.api.dto.request.ResetPasswordRequest;
 import com.nexaworks.rafiq.user.entity.model.Token;
 import com.nexaworks.rafiq.user.entity.model.User;
+import com.nexaworks.rafiq.user.exception.InvalidPasswordException;
 import com.nexaworks.rafiq.user.exception.TokenInvalidException;
 import com.nexaworks.rafiq.user.repository.UserRepository;
 import com.nexaworks.rafiq.user.service.AuthService;
@@ -85,7 +85,7 @@ class PasswordServiceImplTest {
     class ForgetPasswordTests {
 
         @Test
-        @DisplayName("Should generate access token and publish event when user exists")
+        @DisplayName("Should generate access token and publish basicInfo when user exists")
         void shouldGenerateAccessTokenAndPublishEventWhenUserExists() {
             // Arrange
             ForgetPasswordRequest request = new ForgetPasswordRequest("test@example.com");
@@ -161,8 +161,7 @@ class PasswordServiceImplTest {
 
             // Act & Assert
             assertThatThrownBy(() -> passwordService.changePassword(request))
-                    .isInstanceOf(TokenInvalidException.class)
-                    .hasMessage("Invalid Access Token");
+                    .isInstanceOf(TokenInvalidException.class).hasMessage("Invalid Access Token");
 
             verify(passwordEncoder, never()).encode(anyString());
             verify(userRepository, never()).save(any(User.class));
@@ -175,7 +174,8 @@ class PasswordServiceImplTest {
             ChangePasswordRequest request = new ChangePasswordRequest("invalid-token",
                     "newPassword123");
             when(tokenService.getToken(request.accessToken()))
-                    .thenThrow(new com.nexaworks.rafiq.user.exception.TokenNotFoundException("Token not found"));
+                    .thenThrow(new com.nexaworks.rafiq.user.exception.TokenNotFoundException(
+                            "Token not found"));
 
             // Act & Assert
             assertThatThrownBy(() -> passwordService.changePassword(request))
@@ -198,7 +198,7 @@ class PasswordServiceImplTest {
             UUID userId = UUID.randomUUID();
 
             testUser.setPassword("encoded-old");
-            when(authService.getAuthenticateUser()).thenReturn(testUser);
+            when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
             when(passwordEncoder.matches(request.oldPassword(), testUser.getPassword()))
                     .thenReturn(true);
             when(passwordEncoder.encode(request.newPassword())).thenReturn("encoded-new");
@@ -208,7 +208,7 @@ class PasswordServiceImplTest {
             passwordService.resetPassword(request, userId);
 
             // Assert
-            verify(authService).getAuthenticateUser();
+
             verify(passwordEncoder).matches(request.oldPassword(), "encoded-old");
             verify(passwordEncoder).encode(request.newPassword());
             verify(userRepository).save(testUser);
@@ -223,19 +223,17 @@ class PasswordServiceImplTest {
             UUID userId = UUID.randomUUID();
 
             testUser.setPassword("encoded-old");
-            when(authService.getAuthenticateUser()).thenReturn(testUser);
             when(passwordEncoder.matches(request.oldPassword(), testUser.getPassword()))
                     .thenReturn(false);
+            when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
 
             // Act & Assert
             assertThatThrownBy(() -> passwordService.resetPassword(request, userId))
                     .isInstanceOf(InvalidPasswordException.class);
 
-            verify(authService).getAuthenticateUser();
             verify(passwordEncoder).matches(request.oldPassword(), "encoded-old");
             verify(passwordEncoder, never()).encode(anyString());
             verify(userRepository, never()).save(any(User.class));
         }
     }
 }
-

@@ -4,12 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -24,13 +24,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.DocumentException;
 import com.nexaworks.rafiq.ai.service.AiService;
 import com.nexaworks.rafiq.fileManagment.exception.EmptyFileException;
-import com.nexaworks.rafiq.fileManagment.service.FileService;
+import com.nexaworks.rafiq.fileManagment.service.FileMetaDataService;
 import com.nexaworks.rafiq.fileManagment.service.implementation.PdfExtractorServiceImpl;
 
 @DisplayName("PdfExtractorService Test Cases")
 class PdfExtractorServiceImplTest {
     @Mock
-    FileService fileService;
+    FileMetaDataService fileMetaDataService;
 
     @Mock
     AiService aiService;
@@ -63,8 +63,7 @@ class PdfExtractorServiceImplTest {
         MockMultipartFile imageFile = new MockMultipartFile("file", "test.png", "image/png",
                 createMinimalPngImage());
 
-        when(fileService.saveFileAsync(imageFile, patientId))
-                .thenReturn(CompletableFuture.completedFuture(fileId));
+        when(fileMetaDataService.saveFile(any(), any(), any(), eq(patientId))).thenReturn(fileId);
         when(aiService.extractLabResultsFromPdf(any())).thenReturn("{\"test\":\"result\"}");
 
         String result = pdfExtractorService.extractPdf(imageFile, patientId);
@@ -86,8 +85,7 @@ class PdfExtractorServiceImplTest {
         MockMultipartFile pdfFile = new MockMultipartFile("file", "test.pdf", "application/pdf",
                 pdfBytes);
 
-        when(fileService.saveFileAsync(pdfFile, patientId))
-                .thenReturn(CompletableFuture.completedFuture(fileId));
+        when(fileMetaDataService.saveFile(any(), any(), any(), eq(patientId))).thenReturn(fileId);
         when(aiService.extractLabResultsFromPdf(any())).thenReturn("{\"test\":\"result\"}");
 
         String result = pdfExtractorService.extractPdf(pdfFile, patientId);

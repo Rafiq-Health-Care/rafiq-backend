@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.test.user.integration.controller;
+package com.nexaworks.rafiq.test.user.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

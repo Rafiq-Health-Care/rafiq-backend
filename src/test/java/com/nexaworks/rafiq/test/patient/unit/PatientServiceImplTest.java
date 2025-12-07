@@ -53,11 +53,21 @@ class PatientServiceImplTest {
         @Test
         @DisplayName("Should register patient successfully")
         void register_ShouldRegisterPatientSuccessfully() {
-            when(patientRepository.save(any(Patient.class))).thenReturn(patient);
+            String email = "patient@example.com";
+            String firstName = "John";
+            String lastName = "Doe";
+            UUID userId = UUID.randomUUID();
 
-            patientService.register(patient);
+            when(patientRepository.save(any(Patient.class))).thenAnswer(invocation -> {
+                Patient saved = invocation.getArgument(0);
+                return saved;
+            });
 
-            verify(patientRepository, times(1)).save(patient);
+            patientService.register(email, firstName, lastName, userId);
+
+            verify(patientRepository, times(1)).save(argThat(p -> p.getId().equals(userId)
+                    && p.getEmail().equals(email) && p.getFirstName().equals(firstName)
+                    && p.getLastName().equals(lastName)));
         }
     }
 

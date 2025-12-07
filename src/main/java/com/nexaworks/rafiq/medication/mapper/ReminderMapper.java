@@ -1,6 +1,5 @@
 package com.nexaworks.rafiq.medication.mapper;
 
-import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -16,8 +15,9 @@ public interface ReminderMapper {
 
     ReminderResponse toResponse(Reminder reminder);
 
-    @Mapping(target = "medicine", expression = "java(medicineService.getMedicineById(request.medicineId()))")
-    Reminder toEntity(AddReminderRequest request, @Context MedicineService medicineService);
+    // @Mapping(target = "medicine", expression =
+    // "java(medicineService.getMedicineById(request.medicineId()))")
+    Reminder toEntity(AddReminderRequest request);
 
     @Mapping(target = "medicineId", source = "medicine.id")
     AddReminderResponse toAddReminderResponse(Reminder savedReminder);

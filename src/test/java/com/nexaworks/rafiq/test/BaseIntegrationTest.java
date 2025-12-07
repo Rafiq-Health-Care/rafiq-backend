@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import com.nexaworks.rafiq.test.config.TestDataSeeder;
 import com.nexaworks.rafiq.user.entity.model.User;
@@ -31,15 +32,18 @@ import com.nexaworks.rafiq.user.entity.model.User;
 public abstract class BaseIntegrationTest {
     @SuppressWarnings("resource")
     @Container
-    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:15")
+    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>(
+            DockerImageName.parse("postgres:15").asCompatibleSubstituteFor("postgres"))
             .withDatabaseName("testdb").withUsername("testuser").withPassword("testpass")
             .withReuse(true);
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
-        registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+        if (postgreSQLContainer.isRunning()) {
+            registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
+            registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
+            registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+        }
     }
 
     /**

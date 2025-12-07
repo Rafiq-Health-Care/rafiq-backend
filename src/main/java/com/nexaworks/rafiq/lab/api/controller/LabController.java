@@ -10,11 +10,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.nexaworks.rafiq.lab.api.dto.AddLabRequest;
-import com.nexaworks.rafiq.shared.dto.PageResponse;
 import com.nexaworks.rafiq.lab.api.dto.LabResponse;
-import com.nexaworks.rafiq.shared.mapper.PageMapper;
 import com.nexaworks.rafiq.lab.service.LabService;
+import com.nexaworks.rafiq.shared.dto.PageResponse;
 import com.nexaworks.rafiq.shared.mapper.AddressMapper;
+import com.nexaworks.rafiq.shared.mapper.PageMapper;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,8 +40,10 @@ public class LabController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "sort", defaultValue = "name") String sort,
             @RequestParam(value = "direction", defaultValue = "asc") String direction) {
-        return ResponseEntity.ok()
-                .body(pageMapper.mapToLabPage(labService.getAll(page, size, sort, direction)));
+        // return ResponseEntity.ok()
+        // .body(pageMapper.mapToLabPage(labService.getAll(page, size, sort,
+        // direction)));
+        return null;
     }
 
     @PutMapping("/{lab-id}")

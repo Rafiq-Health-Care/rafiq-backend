@@ -15,6 +15,7 @@ import com.nexaworks.rafiq.user.api.dto.request.ForgetPasswordRequest;
 import com.nexaworks.rafiq.user.api.dto.request.ResetPasswordRequest;
 import com.nexaworks.rafiq.user.entity.model.Token;
 import com.nexaworks.rafiq.user.entity.model.User;
+import com.nexaworks.rafiq.user.exception.InvalidPasswordException;
 import com.nexaworks.rafiq.user.exception.TokenInvalidException;
 import com.nexaworks.rafiq.user.exception.UserNotFoundException;
 import com.nexaworks.rafiq.user.repository.UserRepository;
@@ -55,6 +56,7 @@ public class PasswordServiceImpl implements PasswordService {
         }
         User user = token.getUser();
         user.setPassword(passwordEncoder.encode(changePasswordRequest.newPassword()));
+        userRepository.save(user);
         log.info("Password changed for user {}", user.getEmail());
     }
 
@@ -64,6 +66,8 @@ public class PasswordServiceImpl implements PasswordService {
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: "));
         if (passwordEncoder.matches(resetPasswordRequest.oldPassword(), user.getPassword())) {
             user.setPassword(passwordEncoder.encode(resetPasswordRequest.newPassword()));
+        } else {
+            throw new InvalidPasswordException("Old password is incorrect");
         }
         userRepository.save(user);
     }

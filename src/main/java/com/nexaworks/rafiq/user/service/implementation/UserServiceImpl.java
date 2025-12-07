@@ -15,10 +15,6 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.nexaworks.rafiq.doctor.entity.model.Doctor;
-import com.nexaworks.rafiq.doctor.service.DoctorService;
-import com.nexaworks.rafiq.patient.entity.model.Patient;
-import com.nexaworks.rafiq.patient.service.PatientService;
 import com.nexaworks.rafiq.shared.event.doctor.DoctorRegisterEvent;
 import com.nexaworks.rafiq.shared.event.patient.PatientRegistrationEvent;
 import com.nexaworks.rafiq.user.api.dto.response.LoginResponse;
@@ -44,8 +40,6 @@ public class UserServiceImpl implements UserService {
     private final TokenService tokenService;
     private final ApplicationEventPublisher eventPublisher;
     private final AuthSessionManager authSessionManager;
-    private final PatientService patientService;
-    private final DoctorService doctorService;
 
     @Override
     @Transactional
@@ -53,15 +47,15 @@ public class UserServiceImpl implements UserService {
         verifyEmailAvailability(user);
         user.getRoles().add(roleService.getRole(ROLE_PATIENT));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        patientService.register((Patient) user);
         String otp = tokenService.generateOtpToken(user);
+        UUID userId = userRepository.save(user).getId();
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
                 log.info("OTP sent to {}", user.getEmail());
-                eventPublisher.publishEvent(
-                        new PatientRegistrationEvent(user.getEmail(), otp, user.getFirstName()));
+                eventPublisher.publishEvent(new PatientRegistrationEvent(user.getEmail(), otp,
+                        user.getFirstName(), user.getLastName(), userId));
             }
         });
     }
@@ -74,16 +68,16 @@ public class UserServiceImpl implements UserService {
         verifyEmailAvailability(user);
         user.getRoles().add(roleService.getRole(ROLE_DOCTOR));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        doctorService.register((Doctor) user, specialization, description);
-
         String otp = tokenService.generateOtpToken(user);
+        UUID userId = userRepository.save(user).getId();
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
                 eventPublisher.publishEvent(new DoctorRegisterEvent(
-                        new PatientRegistrationEvent(user.getEmail(), otp, user.getFirstName()),
-                        user.getId(), nationalId));
+                        new PatientRegistrationEvent(user.getEmail(), otp, user.getFirstName(),
+                                user.getLastName(), userId),
+                        user.getId(), nationalId, specialization));
             }
         });
     }

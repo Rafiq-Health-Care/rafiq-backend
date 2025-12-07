@@ -3,19 +3,16 @@ package com.nexaworks.rafiq.user.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.nexaworks.rafiq.doctor.entity.model.Doctor;
-import com.nexaworks.rafiq.patient.entity.model.Patient;
 import com.nexaworks.rafiq.user.api.dto.request.PatientRegistrationRequest;
 import com.nexaworks.rafiq.user.entity.enums.Gender;
-
-import jakarta.validation.Valid;
+import com.nexaworks.rafiq.user.entity.model.User;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "gender", expression = "java(parseGender(request.gender()))")
-    Patient toUser(PatientRegistrationRequest request);
+    User toUser(PatientRegistrationRequest request);
 
     default Gender parseGender(String gender) {
         if (gender == null)
@@ -28,7 +25,4 @@ public interface UserMapper {
         return null;
     }
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "gender", expression = "java(parseGender(user.gender()))")
-    Doctor toDoctor(@Valid PatientRegistrationRequest user);
 }

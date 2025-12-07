@@ -6,6 +6,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.nexaworks.rafiq.shared.event.patient.PatientRegistrationEvent;
 
-public record DoctorRegisterEvent(PatientRegistrationEvent event, UUID doctorId,
-        MultipartFile nationalId) {
+public record DoctorRegisterEvent(PatientRegistrationEvent basicInfo, UUID doctorId,
+        MultipartFile nationalId, UUID specializationId) {
 }

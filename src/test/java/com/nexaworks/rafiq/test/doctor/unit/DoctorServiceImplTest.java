@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.test.doctor.unit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
@@ -10,12 +11,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.nexaworks.rafiq.doctor.entity.model.Doctor;
 import com.nexaworks.rafiq.doctor.entity.model.Specialization;
 import com.nexaworks.rafiq.doctor.repository.DoctorRepository;
 import com.nexaworks.rafiq.doctor.service.SpecializationService;
 import com.nexaworks.rafiq.doctor.service.implementation.DoctorServiceImpl;
+import com.nexaworks.rafiq.shared.entity.FileCategory;
+import com.nexaworks.rafiq.shared.event.doctor.DoctorRegisterEvent;
+import com.nexaworks.rafiq.shared.event.doctor.UploadFile;
+import com.nexaworks.rafiq.shared.event.patient.PatientRegistrationEvent;
 import com.nexaworks.rafiq.user.entity.model.User;
 
 @DisplayName("DoctorService Test Cases")
@@ -26,6 +33,9 @@ class DoctorServiceImplTest {
 
     @Mock
     private SpecializationService specializationService;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private DoctorServiceImpl doctorService;
@@ -53,25 +63,32 @@ class DoctorServiceImplTest {
     @Test
     void shouldRegisterDoctorSuccessfully() {
         // given
-        String description = "Experienced Cardiologist";
-        Doctor doctorEntity = new Doctor();
-        doctorEntity.setId(doctor.getId());
-        doctorEntity.setEmail(doctor.getEmail());
-        doctorEntity.setFirstName(doctor.getFirstName());
-        doctorEntity.setLastName(doctor.getLastName());
+        PatientRegistrationEvent basicInfo = new PatientRegistrationEvent(doctor.getEmail(),
+                "123456", doctor.getFirstName(), doctor.getLastName(), doctor.getId());
+        DoctorRegisterEvent event = new DoctorRegisterEvent(basicInfo, doctor.getId(), null,
+                specializationId);
 
         when(specializationService.getSpecialization(specializationId)).thenReturn(specialization);
         when(doctorRepository.save(any(Doctor.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        doctorService.register(doctorEntity, specializationId, description);
+        doctorService.register(event);
 
         // then
         verify(specializationService, times(1)).getSpecialization(specializationId);
         verify(doctorRepository, times(1))
-                .save(argThat(savedDoctor -> savedDoctor.getDescription().equals(description)
+                .save(argThat(savedDoctor -> savedDoctor.getId().equals(doctor.getId())
+                        && savedDoctor.getEmail().equals(doctor.getEmail())
+                        && savedDoctor.getFirstName().equals(doctor.getFirstName())
+                        && savedDoctor.getLastName().equals(doctor.getLastName())
                         && savedDoctor.getSpecialization().equals(specialization)));
+
+        ArgumentCaptor<UploadFile> eventCaptor = ArgumentCaptor.forClass(UploadFile.class);
+        verify(eventPublisher, times(1)).publishEvent(eventCaptor.capture());
+        UploadFile capturedEvent = eventCaptor.getValue();
+        assertEquals(doctor.getId(), capturedEvent.doctorId());
+        assertEquals(FileCategory.NATIONAL_ID, capturedEvent.category());
+        assertEquals(event.nationalId(), capturedEvent.file());
     }
 }
-

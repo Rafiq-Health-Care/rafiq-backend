@@ -20,7 +20,7 @@ public class FileExceptionHandler {
     private final ExceptionUtils exceptionUtils;
 
     @ExceptionHandler(EmptyFileException.class)
-    @ApiResponse(responseCode = "400", description = "File is empty", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "400", description = "FileMetaData is empty", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public ResponseEntity<ErrorResponse> handleEmptyFile(EmptyFileException ex,
             HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -28,7 +28,7 @@ public class FileExceptionHandler {
     }
 
     @ExceptionHandler(FileUploadException.class)
-    @ApiResponse(responseCode = "400", description = "File upload failed", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "400", description = "FileMetaData upload failed", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public ResponseEntity<ErrorResponse> handleFileUpload(FileUploadException ex,
             HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)

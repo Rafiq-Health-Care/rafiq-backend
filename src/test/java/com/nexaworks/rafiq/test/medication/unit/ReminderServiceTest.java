@@ -12,10 +12,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.nexaworks.rafiq.medication.entity.model.Drug;
-import com.nexaworks.rafiq.medication.entity.model.Medicine;
-import com.nexaworks.rafiq.medication.entity.model.Reminder;
-import com.nexaworks.rafiq.medication.entity.model.ReminderLog;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,6 +31,10 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import com.nexaworks.rafiq.medication.api.dto.request.GetAllRemindersHistoryResponseProjection;
 import com.nexaworks.rafiq.medication.api.dto.request.ReminderFilters;
 import com.nexaworks.rafiq.medication.entity.enums.ReminderStatus;
+import com.nexaworks.rafiq.medication.entity.model.Drug;
+import com.nexaworks.rafiq.medication.entity.model.Medicine;
+import com.nexaworks.rafiq.medication.entity.model.Reminder;
+import com.nexaworks.rafiq.medication.entity.model.ReminderLog;
 import com.nexaworks.rafiq.medication.exception.ReminderNotFound;
 import com.nexaworks.rafiq.medication.repository.ReminderLogRepository;
 import com.nexaworks.rafiq.medication.repository.ReminderRepository;
@@ -122,7 +122,7 @@ class ReminderServiceTest {
         }
 
         @Test
-        @DisplayName("Should publish event after commit")
+        @DisplayName("Should publish basicInfo after commit")
         void shouldPublishEvent_AfterCommit() {
             when(reminderRepository.save(any(Reminder.class))).thenReturn(testReminder);
 
@@ -305,4 +305,3 @@ class ReminderServiceTest {
         }
     }
 }
-

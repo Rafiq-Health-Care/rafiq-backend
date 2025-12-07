@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -13,12 +14,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import com.nexaworks.rafiq.shared.event.user.NewOtpEvent;
 import com.nexaworks.rafiq.user.entity.enums.TokenType;
 import com.nexaworks.rafiq.user.entity.model.Token;
 import com.nexaworks.rafiq.user.entity.model.User;
@@ -27,6 +32,7 @@ import com.nexaworks.rafiq.user.exception.TokenNotFoundException;
 import com.nexaworks.rafiq.user.exception.UserException;
 import com.nexaworks.rafiq.user.exception.UserNotFoundException;
 import com.nexaworks.rafiq.user.repository.TokenRepository;
+import com.nexaworks.rafiq.user.repository.UserRepository;
 import com.nexaworks.rafiq.user.service.implementation.TokenServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,6 +41,12 @@ class TokenServiceTest {
 
     @Mock
     private TokenRepository tokenRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     @Spy
@@ -45,16 +57,29 @@ class TokenServiceTest {
         ReflectionTestUtils.setField(tokenService, "REFRESH_EXPIRATION", 3600L);
         ReflectionTestUtils.setField(tokenService, "OTP_EXPIRATION", 3600L);
         ReflectionTestUtils.setField(tokenService, "ACCESS_TOKEN_EXPIRATION", 3600L);
+        TransactionSynchronizationManager.initSynchronization();
+    }
+
+    @org.junit.jupiter.api.AfterEach
+    void tearDown() {
+        TransactionSynchronizationManager.clearSynchronization();
+    }
+
+    private void triggerTransactionSynchronization() {
+        TransactionSynchronizationManager.getSynchronizations().forEach(sync -> {
+            try {
+                sync.afterCommit();
+            } catch (Exception e) {
+                // Ignore exceptions in test
+            }
+        });
     }
 
     @DisplayName("Generate refresh token should return token and save to repository")
     @Test
     void generateRefreshToken_ShouldReturnTokenAndSaveToRepository() {
         // Arrange
-        User user = User.builder()
-                .id(UUID.randomUUID())
-                .email("test@example.com")
-                .build();
+        User user = User.builder().id(UUID.randomUUID()).email("test@example.com").build();
 
         when(tokenRepository.save(any(Token.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -83,10 +108,7 @@ class TokenServiceTest {
     @Test
     void generateAccessToken_ShouldBuildTheTokenAndReturnIt() {
         // Arrange
-        User user = User.builder()
-                .firstName("John")
-                .lastName("Doe")
-                .build();
+        User user = User.builder().firstName("John").lastName("Doe").build();
         user.setEmail("john@gmail.com");
 
         when(tokenRepository.save(any(Token.class)))
@@ -117,10 +139,7 @@ class TokenServiceTest {
     @Test
     void verifyOtp_ShouldReturnTheUser_WhenOtpIsValid() {
         // Arrange
-        User user = User.builder()
-                .firstName("John")
-                .lastName("Doe")
-                .build();
+        User user = User.builder().firstName("John").lastName("Doe").build();
         user.setEmail("john@gmail.com");
 
         Token token = new Token();
@@ -156,10 +175,7 @@ class TokenServiceTest {
     @Test
     void verifyOtp_shouldThrowException_WhenOtpTokenIsExpired() {
         // Arrange
-        User user = User.builder()
-                .firstName("John")
-                .lastName("Doe")
-                .build();
+        User user = User.builder().firstName("John").lastName("Doe").build();
         user.setEmail("john@gmail.com");
 
         Token token = new Token();
@@ -180,10 +196,7 @@ class TokenServiceTest {
     @Test
     void verifyOtp_shouldThrowException_WhenEmailDoesNotMatch() {
         // Arrange
-        User user = User.builder()
-                .firstName("John")
-                .lastName("Doe")
-                .build();
+        User user = User.builder().firstName("John").lastName("Doe").build();
         user.setEmail("john@gmail.com");
 
         Token token = new Token();
@@ -272,5 +285,73 @@ class TokenServiceTest {
         assertThrows(UserException.class, () -> tokenService.generateOtpToken(null));
         verify(tokenRepository, never()).save(any(Token.class));
     }
-}
 
+    @DisplayName("Get new OTP should generate OTP and publish event when user exists")
+    @Test
+    void getNewOtp_ShouldGenerateOtpAndPublishEvent_WhenUserExists() {
+        // Arrange
+        User user = User.builder().id(UUID.randomUUID()).email("test@example.com").firstName("John")
+                .lastName("Doe").build();
+
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(tokenRepository.findByTokenTypeAndUser(TokenType.OTP, user))
+                .thenReturn(new java.util.ArrayList<>());
+        when(tokenRepository.save(any(Token.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        tokenService.getNewOtp(user.getEmail());
+        triggerTransactionSynchronization();
+
+        // Assert
+        verify(userRepository, times(1)).findByEmail(user.getEmail());
+        verify(tokenRepository, times(1)).save(any(Token.class));
+
+        ArgumentCaptor<NewOtpEvent> eventCaptor = ArgumentCaptor.forClass(NewOtpEvent.class);
+        verify(eventPublisher, times(1)).publishEvent(eventCaptor.capture());
+        NewOtpEvent capturedEvent = eventCaptor.getValue();
+        assertEquals(user.getEmail(), capturedEvent.email());
+        assertEquals(user.getFirstName(), capturedEvent.name());
+        assertNotNull(capturedEvent.otp());
+        assertFalse(capturedEvent.otp().isEmpty());
+    }
+
+    @DisplayName("Get new OTP should return silently when user does not exist")
+    @Test
+    void getNewOtp_ShouldReturnSilently_WhenUserDoesNotExist() {
+        // Arrange
+        String email = "nonexistent@example.com";
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        // Act
+        tokenService.getNewOtp(email);
+        triggerTransactionSynchronization();
+
+        // Assert
+        verify(userRepository, times(1)).findByEmail(email);
+        verify(tokenRepository, never()).save(any(Token.class));
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @DisplayName("Get new OTP should throw exception when maximum OTP limit is reached")
+    @Test
+    void getNewOtp_ShouldThrowException_WhenMaximumOtpLimitReached() {
+        // Arrange
+        User user = User.builder().id(UUID.randomUUID()).email("test@example.com").firstName("John")
+                .build();
+
+        List<Token> tokens = new java.util.ArrayList<>();
+        for (int i = 0; i < 6; i++) {
+            tokens.add(new Token());
+        }
+
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(tokenRepository.findByTokenTypeAndUser(TokenType.OTP, user)).thenReturn(tokens);
+
+        // Act & Assert
+        assertThrows(UserException.class, () -> tokenService.getNewOtp(user.getEmail()));
+        verify(userRepository, times(1)).findByEmail(user.getEmail());
+        verify(tokenRepository, never()).save(any(Token.class));
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+}

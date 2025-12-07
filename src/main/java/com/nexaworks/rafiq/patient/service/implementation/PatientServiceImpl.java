@@ -1,18 +1,18 @@
 package com.nexaworks.rafiq.patient.service.implementation;
 
-import com.nexaworks.rafiq.patient.api.dto.request.CompletePatientDataRequest;
-import com.nexaworks.rafiq.patient.service.WeightHistoryService;
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nexaworks.rafiq.patient.api.dto.request.CompletePatientDataRequest;
 import com.nexaworks.rafiq.patient.entity.model.Patient;
 import com.nexaworks.rafiq.patient.repository.PatientRepository;
 import com.nexaworks.rafiq.patient.service.PatientService;
+import com.nexaworks.rafiq.patient.service.WeightHistoryService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,16 +23,16 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     @Transactional
-    public void register(Patient patient) {
+    public void register(String email, String firstName, String lastName, UUID userId) {
+        Patient patient = Patient.builder().email(email).firstName(firstName).lastName(lastName)
+                .id(userId).build();
         patientRepository.save(patient);
-        log.info("Patient registered successfully");
     }
-
-
 
     @Override
     @Transactional
     public Patient completePatientProfile(CompletePatientDataRequest request, UUID patientId) {
+        // todo handle the failure of the registration patient
         Patient patient = patientRepository.findById(patientId).orElseThrow(
                 () -> new IllegalArgumentException("Patient not found with id: " + patientId));
         if (patient.getWeight() != request.weightInKg()) {
@@ -44,8 +44,7 @@ public class PatientServiceImpl implements PatientService {
         return patientRepository.save(patient);
     }
 
-    private static void fillPatientDetails(CompletePatientDataRequest request,
-                                           Patient patient) {
+    private static void fillPatientDetails(CompletePatientDataRequest request, Patient patient) {
         patient.setHeight(request.heightInCm());
         patient.setAlcoholism(request.alcoholism());
         patient.setBloodType(request.bloodType());

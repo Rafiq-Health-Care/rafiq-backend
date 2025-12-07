@@ -14,4 +14,9 @@ public interface ResultMapper {
     LabResult toEntity(TestRequest request);
 
     List<LabResult> toEntity(List<TestRequest> results);
+
+    @Mapping(source = "name", target = "testName")
+    TestRequest toDto(LabResult labResult);
+
+    List<TestRequest> toDto(List<LabResult> labResults);
 }

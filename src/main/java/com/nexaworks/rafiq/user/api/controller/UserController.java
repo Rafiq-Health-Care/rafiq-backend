@@ -49,7 +49,7 @@ public class UserController {
             @RequestPart("doctorData") @Valid DoctorRegistrationRequest request,
             @RequestPart(value = "nationalId", required = false) MultipartFile nationalId)
             throws IOException {
-        userService.registerDoctor(userMapper.toDoctor(request.user()), nationalId,
+        userService.registerDoctor(userMapper.toUser(request.user()), nationalId,
                 request.specialization(), request.description());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

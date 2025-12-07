@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/file")
 @RequiredArgsConstructor
-@Tag(name = "File Management")
+@Tag(name = "FileMetaData Management")
 public class FileController {
     private final PdfExtractorService pdfExtractorService;
 

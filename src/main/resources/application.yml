@@ -49,7 +49,7 @@ spring:
     validate-on-migrate: true
     # Clean disabled for safety (set to false in production)
     clean-disabled: true
-  # File upload config
+  # FileMetaData upload config
   servlet:
     multipart:
       max-file-size: 10MB

@@ -6,14 +6,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 
-import com.nexaworks.rafiq.medication.entity.model.Drug;
-import com.nexaworks.rafiq.medication.entity.model.Group;
-import com.nexaworks.rafiq.medication.entity.model.Medicine;
-import com.nexaworks.rafiq.medication.repository.DrugRepository;
-import com.nexaworks.rafiq.medication.repository.GroupRepository;
-import com.nexaworks.rafiq.medication.repository.MedicineRepository;
-import com.nexaworks.rafiq.patient.entity.model.Patient;
-import com.nexaworks.rafiq.patient.repository.PatientRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -36,6 +28,14 @@ import com.nexaworks.rafiq.medication.entity.enums.MedicineFrequency;
 import com.nexaworks.rafiq.medication.entity.enums.MedicineStatus;
 import com.nexaworks.rafiq.medication.entity.enums.MedicineType;
 import com.nexaworks.rafiq.medication.entity.enums.ReminderFrequency;
+import com.nexaworks.rafiq.medication.entity.model.Drug;
+import com.nexaworks.rafiq.medication.entity.model.Group;
+import com.nexaworks.rafiq.medication.entity.model.Medicine;
+import com.nexaworks.rafiq.medication.repository.DrugRepository;
+import com.nexaworks.rafiq.medication.repository.GroupRepository;
+import com.nexaworks.rafiq.medication.repository.MedicineRepository;
+import com.nexaworks.rafiq.patient.entity.model.Patient;
+import com.nexaworks.rafiq.patient.repository.PatientRepository;
 import com.nexaworks.rafiq.test.BaseIntegrationTest;
 import com.nexaworks.rafiq.user.entity.enums.Gender;
 import com.nexaworks.rafiq.user.entity.model.Role;
@@ -87,12 +87,42 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             patientRole = roleRepository.save(patientRole);
         }
 
-        // Create Patient directly (Patient extends User with is-a relationship)
-        Patient patient = Patient.builder().email(email)
-                .password(passwordEncoder.encode("Valid@1234")).firstName(firstName)
-                .lastName(lastName).phone(phone).birthDate(LocalDate.of(1990, 1, 1)).gender(gender)
-                .roles(Set.of(patientRole)).enabled(true).build();
-        return patientRepository.save(patient);
+        // Create User first with authentication fields
+        User user = User.builder().email(email).password(passwordEncoder.encode("Valid@1234"))
+                .firstName(firstName).lastName(lastName).phone(phone)
+                .birthDate(LocalDate.of(1990, 1, 1)).gender(gender).roles(Set.of(patientRole))
+                .enabled(true).build();
+        user = userRepository.save(user);
+
+        // Create Patient with same ID
+        Patient patient = Patient.builder().id(user.getId()).email(email).firstName(firstName)
+                .lastName(lastName).phone(phone).build();
+        patientRepository.save(patient);
+
+        return user;
+    }
+
+    private User createOtherTestUser(String email) {
+        Role patientRole = roleRepository.findByName("ROLE_PATIENT");
+        if (patientRole == null) {
+            patientRole = new Role();
+            patientRole.setName("ROLE_PATIENT");
+            patientRole = roleRepository.save(patientRole);
+        }
+
+        // Create User first with authentication fields
+        User user = User.builder().email(email).password(passwordEncoder.encode("Valid@1234"))
+                .firstName("Other").lastName("User").phone("+12345678902")
+                .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE).roles(Set.of(patientRole))
+                .enabled(true).build();
+        user = userRepository.save(user);
+
+        // Create Patient with same ID
+        Patient patient = Patient.builder().id(user.getId()).email(email).firstName("Other")
+                .lastName("User").phone("+12345678902").build();
+        patientRepository.save(patient);
+
+        return user;
     }
 
     private Drug createDrug() {
@@ -424,16 +454,10 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .build();
             medicineRepository.save(medicine);
 
-            Role patientRole = roleRepository.findByName("ROLE_PATIENT");
-            // Create Patient directly (Patient extends User with is-a relationship)
-            Patient otherPatient = Patient.builder().email("other@example.com")
-                    .password(passwordEncoder.encode("password")).enabled(true).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).build();
-            patientRepository.save(otherPatient);
+            User otherUser = createOtherTestUser("other@example.com");
 
-            mockMvc.perform(
-                    MockMvcRequestBuilders.get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId())
-                            .with(withUserId(otherPatient)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .get(GET_MEDICINE_BY_ID_ENDPOINT, medicine.getId()).with(withUserId(otherUser)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -504,16 +528,10 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .build();
             medicineRepository.save(medicine);
 
-            Role patientRole = roleRepository.findByName("ROLE_PATIENT");
-            // Create Patient directly (Patient extends User with is-a relationship)
-            Patient otherPatient = Patient.builder().email("other@example.com")
-                    .password(passwordEncoder.encode("password")).enabled(true).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).build();
-            patientRepository.save(otherPatient);
+            User otherUser = createOtherTestUser("other@example.com");
 
-            mockMvc.perform(
-                    MockMvcRequestBuilders.delete(DELETE_MEDICINE_ENDPOINT, medicine.getId())
-                            .with(withUserId(otherPatient)))
+            mockMvc.perform(MockMvcRequestBuilders
+                    .delete(DELETE_MEDICINE_ENDPOINT, medicine.getId()).with(withUserId(otherUser)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -593,12 +611,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .build();
             medicineRepository.save(medicine);
 
-            Role patientRole = roleRepository.findByName("ROLE_PATIENT");
-            // Create Patient directly (Patient extends User with is-a relationship)
-            Patient otherPatient = Patient.builder().email("other@example.com")
-                    .password(passwordEncoder.encode("password")).enabled(true).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).build();
-            patientRepository.save(otherPatient);
+            User otherUser = createOtherTestUser("other@example.com");
 
             UpdateMedicineRequest request = new UpdateMedicineRequest("New Name", "10mg",
                     "New notes", MedicineFrequency.ONCE, Instant.now(),
@@ -607,8 +620,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(withUserId(otherPatient)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(otherUser)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -736,12 +748,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .build();
             medicineRepository.save(medicine);
 
-            Role patientRole = roleRepository.findByName("ROLE_PATIENT");
-            // Create Patient directly (Patient extends User with is-a relationship)
-            Patient otherPatient = Patient.builder().email("other@example.com")
-                    .password(passwordEncoder.encode("password")).enabled(true).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).build();
-            patientRepository.save(otherPatient);
+            User otherUser = createOtherTestUser("other@example.com");
 
             UpdateMedicinePatchRequest request = new UpdateMedicinePatchRequest(
                     Optional.of("New Name"), Optional.empty(), Optional.empty(), Optional.empty(),
@@ -750,8 +757,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.patch(PATCH_MEDICINE_ENDPOINT, medicine.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(withUserId(otherPatient)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(otherUser)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 

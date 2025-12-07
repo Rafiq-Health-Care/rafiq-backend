@@ -7,7 +7,7 @@ import com.nexaworks.rafiq.patient.entity.model.Patient;
 
 public interface PatientService {
 
-    void register(Patient patient);
+    void register(String email, String firstName, String lastName, UUID userId);
 
     Patient completePatientProfile(CompletePatientDataRequest request, UUID patientId);
 

@@ -40,10 +40,9 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public Group addGroup(Group group,UUID patientId) {
+    public Group addGroup(Group group, UUID patientId) {
 
-        if (groupRepository.existsGroupByPatient_IdAndName(
-                patientId, group.getName())) {
+        if (groupRepository.existsGroupByPatientIdAndName(patientId, group.getName())) {
             throw new GroupIsAlreadyExistsException(
                     "Group with name " + group.getName() + " already exists");
         }
@@ -52,7 +51,8 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public Page<Group> getGroups(int page, int size, String direction, String sort, UUID patientId) {
+    public Page<Group> getGroups(int page, int size, String direction, String sort,
+            UUID patientId) {
         Sort sortOrder = direction.equalsIgnoreCase("asc")
                 ? Sort.by(sort).ascending()
                 : Sort.by(sort).descending();
@@ -62,11 +62,10 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public Group updateGroupById(UpdateGroupRequest request, UUID id,UUID patientId) {
+    public Group updateGroupById(UpdateGroupRequest request, UUID id, UUID patientId) {
         Group existingGroup = getGroupById(id, patientId);
         Optional.ofNullable(request.name()).ifPresent(name -> {
-            if (groupRepository.existsGroupByPatient_IdAndName(
-                    patientId, name)) {
+            if (groupRepository.existsGroupByPatientIdAndName(patientId, name)) {
                 throw new GroupIsAlreadyExistsException(
                         "Group with name " + name + " already exists");
             }
@@ -78,13 +77,13 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public void deleteGroupById(UUID id,UUID patientId) {
+    public void deleteGroupById(UUID id, UUID patientId) {
         Group group = getGroupById(id, patientId);
         groupRepository.delete(group);
     }
 
     @Override
-    public void removeFromGroup(UUID groupId, UUID medicineId,UUID patientId) {
+    public void removeFromGroup(UUID groupId, UUID medicineId, UUID patientId) {
         Group group = getGroupById(groupId, patientId);
         log.info("Removing medicine with id {} from group {}", medicineId, group.getName());
         Medicine medicine = group.getMedicines().stream()

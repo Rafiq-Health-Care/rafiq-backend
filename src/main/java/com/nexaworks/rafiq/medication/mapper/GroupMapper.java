@@ -23,7 +23,6 @@ public interface GroupMapper {
             + "java.util.Collections.emptyList())")
     GroupResponse toGroupDto(Group group, MedicineMapper medicineMapper);
 
-    @Mapping(target = "userId", expression = "java(group.getPatient().getId())")
     @Mapping(target = "medicineCount", expression = "java(group.getMedicines() != null ? group.getMedicines().size() : 0)")
     @Mapping(target = "medicines", expression = "java(group.getMedicines() != null ? "
             + "group.getMedicines().stream().map(medicineMapper::toGroupDto).toList() : "

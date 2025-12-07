@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -25,20 +26,18 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import com.nexaworks.rafiq.doctor.entity.model.Doctor;
 import com.nexaworks.rafiq.doctor.entity.model.Specialization;
 import com.nexaworks.rafiq.doctor.service.implementation.DoctorServiceImpl;
 import com.nexaworks.rafiq.doctor.service.implementation.SpecializationServiceImpl;
-import com.nexaworks.rafiq.fileManagment.service.FileService;
-import com.nexaworks.rafiq.patient.entity.model.Patient;
+import com.nexaworks.rafiq.fileManagment.service.FileMetaDataService;
 import com.nexaworks.rafiq.patient.service.implementation.PatientServiceImpl;
 import com.nexaworks.rafiq.shared.event.doctor.DoctorRegisterEvent;
 import com.nexaworks.rafiq.shared.event.patient.PatientRegistrationEvent;
-import com.nexaworks.rafiq.user.exception.RegistrationException;
 import com.nexaworks.rafiq.user.api.dto.response.LoginResponse;
 import com.nexaworks.rafiq.user.entity.enums.Roles;
 import com.nexaworks.rafiq.user.entity.model.Role;
 import com.nexaworks.rafiq.user.entity.model.User;
+import com.nexaworks.rafiq.user.exception.RegistrationException;
 import com.nexaworks.rafiq.user.exception.TokenInvalidException;
 import com.nexaworks.rafiq.user.exception.TokenNotFoundException;
 import com.nexaworks.rafiq.user.repository.UserRepository;
@@ -66,7 +65,7 @@ class UserServiceImplTest {
     private TokenServiceImpl tokenService;
 
     @Mock
-    private FileService fileService;
+    private FileMetaDataService fileMetaDataService;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -111,17 +110,12 @@ class UserServiceImplTest {
         });
     }
 
-    @DisplayName("Register patient should add user and publish event to send the activation email")
+    @DisplayName("Register patient should add user and publish basicInfo to send the activation email")
     @Test
     void registerPatient_ShouldAddUserAndPublishEventToSendActivationEmail_WhenPatientIsRegistered() {
         // Arrange
-        Patient patient = Patient.builder()
-                .id(UUID.randomUUID())
-                .email("patient@example.com")
-                .firstName("Jane")
-                .lastName("Doe")
-                .password("password123")
-                .build();
+        User user = User.builder().id(UUID.randomUUID()).email("patient@example.com")
+                .firstName("Jane").lastName("Doe").password("password123").build();
 
         String expectedToken = "123456";
         Role patientRole = new Role();
@@ -130,63 +124,61 @@ class UserServiceImplTest {
         when(userRepository.existsUserByEmail(anyString())).thenReturn(false);
         when(roleService.getRole(Roles.ROLE_PATIENT)).thenReturn(patientRole);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
-        when(userRepository.save(any(Patient.class)))
+        when(userRepository.save(any(User.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        when(tokenService.generateOtpToken(any(Patient.class))).thenReturn(expectedToken);
+        when(tokenService.generateOtpToken(any(User.class))).thenReturn(expectedToken);
 
         // Act
-        userService.registerPatient(patient);
+        userService.registerPatient(user);
         triggerTransactionSynchronization();
 
         // Assert
-        verify(userRepository, times(1)).existsUserByEmail(patient.getEmail());
+        verify(userRepository, times(1)).existsUserByEmail(user.getEmail());
         verify(roleService, times(1)).getRole(Roles.ROLE_PATIENT);
-        verify(passwordEncoder, times(1)).encode(patient.getPassword());
-        verify(userRepository, times(1)).save(any(Patient.class));
-        verify(tokenService, times(1)).generateOtpToken(any(Patient.class));
-        verify(eventPublisher, times(1)).publishEvent(any(PatientRegistrationEvent.class));
+        verify(passwordEncoder, times(1)).encode("password123");
+        verify(userRepository, times(1)).save(any(User.class));
+        verify(tokenService, times(1)).generateOtpToken(any(User.class));
+
+        ArgumentCaptor<PatientRegistrationEvent> eventCaptor = ArgumentCaptor
+                .forClass(PatientRegistrationEvent.class);
+        verify(eventPublisher, times(1)).publishEvent(eventCaptor.capture());
+        PatientRegistrationEvent capturedEvent = eventCaptor.getValue();
+        assertEquals(user.getEmail(), capturedEvent.email());
+        assertEquals(expectedToken, capturedEvent.otp());
+        assertEquals(user.getFirstName(), capturedEvent.firstName());
+        assertEquals(user.getLastName(), capturedEvent.lastName());
+        assertEquals(user.getId(), capturedEvent.userId());
     }
 
     @DisplayName("Register patient should throw exception when user with email already exists")
     @Test
     void registerPatient_ShouldThrowException_WhenUserWithEmailAlreadyExists() {
         // Arrange
-        Patient patient = Patient.builder()
-                .email("existing@example.com")
-                .firstName("Jane")
-                .lastName("Doe")
-                .password("password123")
-                .build();
+        User user = User.builder().email("existing@example.com").firstName("Jane").lastName("Doe")
+                .password("password123").build();
 
         when(userRepository.existsUserByEmail(anyString())).thenReturn(true);
 
         // Act & Assert
-        assertThrows(RegistrationException.class, () -> userService.registerPatient(patient));
-        verify(userRepository, times(1)).existsUserByEmail(patient.getEmail());
+        assertThrows(RegistrationException.class, () -> userService.registerPatient(user));
+        verify(userRepository, times(1)).existsUserByEmail(user.getEmail());
         verify(userRepository, never()).save(any(User.class));
         verify(eventPublisher, never()).publishEvent(any(PatientRegistrationEvent.class));
     }
 
-    @DisplayName("Register doctor should add user and publish event to send the activation email")
+    @DisplayName("Register doctor should add user and publish basicInfo to send the activation email")
     @Test
     void registerDoctor_ShouldAddUserAndPublishEventToSendActivationEmail_WhenDoctorIsRegistered()
             throws IOException {
         // Arrange
-        Doctor doctor = Doctor.builder()
-                .id(UUID.randomUUID())
-                .email("doctor@example.com")
-                .firstName("John")
-                .lastName("Doe")
-                .password("password123")
-                .build();
+        User user = User.builder().id(UUID.randomUUID()).email("doctor@example.com")
+                .firstName("John").lastName("Doe").password("password123").build();
 
         Role doctorRole = new Role();
         doctorRole.setName("DOCTOR");
 
-        Specialization specialization = Specialization.builder()
-                .id(UUID.randomUUID())
-                .name("Cardiology")
-                .build();
+        Specialization specialization = Specialization.builder().id(UUID.randomUUID())
+                .name("Cardiology").build();
 
         UUID specializationId = specialization.getId();
         String expectedToken = "123456";
@@ -196,48 +188,49 @@ class UserServiceImplTest {
 
         when(userRepository.existsUserByEmail(anyString())).thenReturn(false);
         when(roleService.getRole(Roles.ROLE_DOCTOR)).thenReturn(doctorRole);
-        when(specializationService.getSpecialization(specializationId)).thenReturn(specialization);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
-        when(userRepository.save(any(Doctor.class)))
+        when(userRepository.save(any(User.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        when(tokenService.generateOtpToken(any(Doctor.class))).thenReturn(expectedToken);
+        when(tokenService.generateOtpToken(any(User.class))).thenReturn(expectedToken);
 
         // Act
-        userService.registerDoctor(doctor, nationalId, specializationId, description);
+        userService.registerDoctor(user, nationalId, specializationId, description);
         triggerTransactionSynchronization();
 
         // Assert
-        verify(userRepository, times(1)).existsUserByEmail(doctor.getEmail());
+        verify(userRepository, times(1)).existsUserByEmail(user.getEmail());
         verify(roleService, times(1)).getRole(Roles.ROLE_DOCTOR);
-        verify(specializationService, times(1)).getSpecialization(specializationId);
-        verify(passwordEncoder, times(1)).encode(doctor.getPassword());
-        verify(userRepository, times(1)).save(any(Doctor.class));
-        verify(tokenService, times(1)).generateOtpToken(any(Doctor.class));
-        verify(eventPublisher, times(1)).publishEvent(any(DoctorRegisterEvent.class));
+        verify(passwordEncoder, times(1)).encode("password123");
+        verify(userRepository, times(1)).save(any(User.class));
+        verify(tokenService, times(1)).generateOtpToken(any(User.class));
 
-        // Verify that Doctor object has the correct properties set
-        verify(userRepository).save(argThat(savedDoctor -> savedDoctor instanceof Doctor
-                && ((Doctor) savedDoctor).getDescription().equals(description)
-                && ((Doctor) savedDoctor).getSpecialization().equals(specialization)));
+        ArgumentCaptor<DoctorRegisterEvent> eventCaptor = ArgumentCaptor
+                .forClass(DoctorRegisterEvent.class);
+        verify(eventPublisher, times(1)).publishEvent(eventCaptor.capture());
+        DoctorRegisterEvent capturedEvent = eventCaptor.getValue();
+        assertEquals(user.getEmail(), capturedEvent.basicInfo().email());
+        assertEquals(expectedToken, capturedEvent.basicInfo().otp());
+        assertEquals(user.getFirstName(), capturedEvent.basicInfo().firstName());
+        assertEquals(user.getLastName(), capturedEvent.basicInfo().lastName());
+        assertEquals(user.getId(), capturedEvent.basicInfo().userId());
+        assertEquals(user.getId(), capturedEvent.doctorId());
+        assertEquals(specializationId, capturedEvent.specializationId());
+        assertEquals(nationalId, capturedEvent.nationalId());
     }
 
     @DisplayName("Register doctor should throw exception when user with email already exists")
     @Test
     void registerDoctor_ShouldThrowException_WhenUserWithEmailAlreadyExists() {
         // Arrange
-        Doctor doctor = Doctor.builder()
-                .email("existing@example.com")
-                .firstName("John")
-                .lastName("Doe")
-                .password("password123")
-                .build();
+        User user = User.builder().email("existing@example.com").firstName("John").lastName("Doe")
+                .password("password123").build();
 
         when(userRepository.existsUserByEmail(anyString())).thenReturn(true);
 
         // Act & Assert
         assertThrows(RegistrationException.class,
-                () -> userService.registerDoctor(doctor, null, null, null));
-        verify(userRepository, times(1)).existsUserByEmail(doctor.getEmail());
+                () -> userService.registerDoctor(user, null, null, null));
+        verify(userRepository, times(1)).existsUserByEmail(user.getEmail());
         verify(userRepository, never()).save(any(User.class));
         verify(eventPublisher, never()).publishEvent(any(DoctorRegisterEvent.class));
     }
@@ -246,14 +239,9 @@ class UserServiceImplTest {
     @Test
     void verifyUserEmail_ShouldCreateLoginTokens_WhenOtpIsValid() {
         // Arrange
-        User user = User.builder()
-                .id(UUID.randomUUID())
-                .email("john.doe@example.com")
-                .firstName("John")
-                .lastName("Doe")
-                .password("encodedPassword123")
-                .tokens(new java.util.ArrayList<>())
-                .build();
+        User user = User.builder().id(UUID.randomUUID()).email("john.doe@example.com")
+                .firstName("John").lastName("Doe").password("encodedPassword123")
+                .tokens(new java.util.ArrayList<>()).build();
 
         LoginResponse expectedResponse = new LoginResponse(Optional.of("ROLE_USER"));
 
@@ -303,4 +291,3 @@ class UserServiceImplTest {
         verify(authSessionManager, never()).createLoginSession(any(), any());
     }
 }
-

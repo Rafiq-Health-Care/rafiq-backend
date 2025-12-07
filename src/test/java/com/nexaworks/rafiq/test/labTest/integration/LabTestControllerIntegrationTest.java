@@ -23,15 +23,15 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nexaworks.rafiq.ai.service.AiService;
 import com.nexaworks.rafiq.labTest.api.dto.TestRequest;
 import com.nexaworks.rafiq.labTest.api.dto.TestResultRequest;
 import com.nexaworks.rafiq.labTest.entity.LabTest;
-import com.nexaworks.rafiq.patient.entity.model.Patient;
-import com.nexaworks.rafiq.test.BaseIntegrationTest;
 import com.nexaworks.rafiq.labTest.repository.LabResultRepository;
 import com.nexaworks.rafiq.labTest.repository.LabTestRepository;
+import com.nexaworks.rafiq.patient.entity.model.Patient;
 import com.nexaworks.rafiq.patient.repository.PatientRepository;
-import com.nexaworks.rafiq.ai.service.AiService;
+import com.nexaworks.rafiq.test.BaseIntegrationTest;
 import com.nexaworks.rafiq.user.entity.enums.Gender;
 import com.nexaworks.rafiq.user.entity.model.Role;
 import com.nexaworks.rafiq.user.entity.model.User;
@@ -102,13 +102,19 @@ class LabTestControllerIntegrationTest extends BaseIntegrationTest {
             patientRole = roleRepository.save(patientRole);
         }
 
-        // Create Patient directly (Patient extends User with is-a relationship)
-        Patient patient = Patient.builder().email(email).password(passwordEncoder.encode(password))
+        // Create User first with authentication fields
+        User user = User.builder().email(email).password(passwordEncoder.encode(password))
                 .firstName(firstName).lastName(lastName).phone("+12345678901")
                 .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE).roles(Set.of(patientRole))
-                .enabled(true).description("Test patient").build();
+                .enabled(true).build();
+        user = userRepository.save(user);
 
-        return patientRepository.save(patient);
+        // Create Patient with same ID
+        Patient patient = Patient.builder().id(user.getId()).email(email).firstName(firstName)
+                .lastName(lastName).phone("+12345678901").description("Test patient").build();
+        patientRepository.save(patient);
+
+        return user;
     }
 
     private LabTest createLabTest(String name, User user) {
@@ -142,7 +148,8 @@ class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                         .andExpect(MockMvcResultMatchers.content()
                                 .contentType(MediaType.APPLICATION_JSON))
                         .andExpect(MockMvcResultMatchers.jsonPath("$.testId").exists())
-                        .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Test Result"));
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Test Result"))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.fileId").exists());
 
                 // Verify lab test was saved in database
                 long labTestCount = labTestRepository.count();
@@ -165,7 +172,8 @@ class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                         .andExpect(MockMvcResultMatchers.content()
                                 .contentType(MediaType.APPLICATION_JSON))
                         .andExpect(MockMvcResultMatchers.jsonPath("$.testId").exists())
-                        .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Test Result"));
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Test Result"))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.fileId").exists());
 
                 // Verify lab test was saved
                 assertThat(labTestRepository.count()).isEqualTo(1);
@@ -468,6 +476,9 @@ class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                         .andExpect(MockMvcResultMatchers.status().isOk())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(3))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].testId").exists())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].name").exists())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].fileId").exists())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(3))
                         .andExpect(MockMvcResultMatchers.jsonPath("$.firstPage").value(true))
                         .andExpect(MockMvcResultMatchers.jsonPath("$.lastPage").value(true));
@@ -482,7 +493,9 @@ class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                         .andExpect(MockMvcResultMatchers.status().isOk())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(0))
-                        .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(0));
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(0))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.firstPage").value(true))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.lastPage").value(true));
             }
 
             @Test
@@ -498,6 +511,9 @@ class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                         .param("size", "2").with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(2))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].testId").exists())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].name").exists())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].fileId").exists())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.size").value(2))
                         .andExpect(MockMvcResultMatchers.jsonPath("$.firstPage").value(true))
                         .andExpect(MockMvcResultMatchers.jsonPath("$.lastPage").value(false));
@@ -517,10 +533,16 @@ class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                         .andExpect(MockMvcResultMatchers.status().isOk())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].name")
                                 .value("Alpha Test"))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].testId").exists())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].fileId").exists())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.content[1].name")
                                 .value("Beta Test"))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.content[1].testId").exists())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.content[1].fileId").exists())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.content[2].name")
-                                .value("Zebra Test"));
+                                .value("Zebra Test"))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.content[2].testId").exists())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.content[2].fileId").exists());
             }
         }
 
@@ -575,6 +597,8 @@ class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                                 .value("Complete Blood Count"))
                         .andExpect(
                                 MockMvcResultMatchers.jsonPath("$.testId").value(testId.toString()))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.fileId").exists())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.date").exists())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.tests").isArray())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.tests.length()").value(2));
             }
@@ -591,8 +615,11 @@ class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                         .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk())
                         .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Empty Test"))
-                        .andExpect(MockMvcResultMatchers.jsonPath("$.testId")
-                                .value(testId.toString()));
+                        .andExpect(
+                                MockMvcResultMatchers.jsonPath("$.testId").value(testId.toString()))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.fileId").exists())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.date").exists())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.tests").isArray());
             }
         }
 

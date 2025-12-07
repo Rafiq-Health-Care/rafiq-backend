@@ -54,6 +54,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public LoginResponse refresh(HttpServletResponse response, HttpServletRequest request) {
+        if (authSessionManager.getCookie(request, "refreshToken") == null) {
+            throw new TokenInvalidException("Invalid Refresh Token");
+        }
         Token token = tokenService.getToken(authSessionManager.getCookie(request, "refreshToken"));
 
         if (token.getExpiryDate().isBefore(Instant.now())) {

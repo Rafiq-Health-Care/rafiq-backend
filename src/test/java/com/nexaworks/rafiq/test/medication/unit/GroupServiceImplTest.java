@@ -24,10 +24,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import com.nexaworks.rafiq.medication.api.dto.request.UpdateGroupRequest;
+import com.nexaworks.rafiq.medication.entity.enums.Color;
 import com.nexaworks.rafiq.medication.entity.model.Drug;
 import com.nexaworks.rafiq.medication.entity.model.Group;
 import com.nexaworks.rafiq.medication.entity.model.Medicine;
-import com.nexaworks.rafiq.medication.entity.enums.Color;
 import com.nexaworks.rafiq.medication.exception.GroupIsAlreadyExistsException;
 import com.nexaworks.rafiq.medication.exception.GroupNotFoundException;
 import com.nexaworks.rafiq.medication.exception.MedicineNotFound;
@@ -126,9 +126,10 @@ class GroupServiceImplTest {
                     .color(Color.BLUE).build();
 
             Group savedGroup = Group.builder().id(groupId).name("Vitamins")
-                    .description("Vitamin supplements").color(Color.BLUE).patientId(patientId).build();
+                    .description("Vitamin supplements").color(Color.BLUE).patientId(patientId)
+                    .build();
 
-            when(groupRepository.existsGroupByPatient_IdAndName(patientId, "Vitamins"))
+            when(groupRepository.existsGroupByPatientIdAndName(patientId, "Vitamins"))
                     .thenReturn(false);
             when(groupRepository.save(any(Group.class))).thenReturn(savedGroup);
 
@@ -140,7 +141,7 @@ class GroupServiceImplTest {
             assertThat(result.getId()).isEqualTo(groupId);
             assertThat(result.getName()).isEqualTo("Vitamins");
             assertThat(result.getPatientId()).isEqualTo(patientId);
-            verify(groupRepository, times(1)).existsGroupByPatient_IdAndName(patientId, "Vitamins");
+            verify(groupRepository, times(1)).existsGroupByPatientIdAndName(patientId, "Vitamins");
             verify(groupRepository, times(1)).save(any(Group.class));
         }
 
@@ -151,7 +152,7 @@ class GroupServiceImplTest {
             Group group = Group.builder().name("Vitamins").description("Vitamin supplements")
                     .build();
 
-            when(groupRepository.existsGroupByPatient_IdAndName(patientId, "Vitamins"))
+            when(groupRepository.existsGroupByPatientIdAndName(patientId, "Vitamins"))
                     .thenReturn(true);
 
             // Act & Assert
@@ -159,7 +160,7 @@ class GroupServiceImplTest {
                     .isThrownBy(() -> groupService.addGroup(group, patientId))
                     .withMessageContaining("Group with name Vitamins already exists");
 
-            verify(groupRepository, times(1)).existsGroupByPatient_IdAndName(patientId, "Vitamins");
+            verify(groupRepository, times(1)).existsGroupByPatientIdAndName(patientId, "Vitamins");
             verify(groupRepository, never()).save(any(Group.class));
         }
     }
@@ -260,7 +261,7 @@ class GroupServiceImplTest {
                     .description("New Description").color(Color.RED).patientId(patientId).build();
 
             when(groupRepository.findById(groupId)).thenReturn(Optional.of(existingGroup));
-            when(groupRepository.existsGroupByPatient_IdAndName(patientId, "New Name"))
+            when(groupRepository.existsGroupByPatientIdAndName(patientId, "New Name"))
                     .thenReturn(false);
             when(groupRepository.save(any(Group.class))).thenReturn(updatedGroup);
 
@@ -286,7 +287,7 @@ class GroupServiceImplTest {
                     Color.RED);
 
             when(groupRepository.findById(groupId)).thenReturn(Optional.of(existingGroup));
-            when(groupRepository.existsGroupByPatient_IdAndName(patientId, "Existing Name"))
+            when(groupRepository.existsGroupByPatientIdAndName(patientId, "Existing Name"))
                     .thenReturn(true);
 
             // Act & Assert
@@ -439,4 +440,3 @@ class GroupServiceImplTest {
         }
     }
 }
-

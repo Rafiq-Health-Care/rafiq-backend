@@ -10,8 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.nexaworks.rafiq.medication.api.dto.request.GetAllRemindersHistoryResponseProjection;
-import com.nexaworks.rafiq.medication.entity.model.ReminderLog;
 import com.nexaworks.rafiq.medication.entity.enums.ReminderStatus;
+import com.nexaworks.rafiq.medication.entity.model.ReminderLog;
 
 public interface ReminderLogRepository extends JpaRepository<ReminderLog, UUID> {
 
@@ -27,7 +27,7 @@ public interface ReminderLogRepository extends JpaRepository<ReminderLog, UUID> 
               AND (CAST(:endDate AS timestamp) IS NULL OR rl.updatedAt <= :endDate)
               AND (CAST(:reminderId AS uuid) IS NULL OR r.id = :reminderId)
               AND (:status IS NULL OR rl.status = :status)
-              AND (CAST(:patientId AS uuid) IS NULL OR r.patient.id = :patientId)
+              AND (CAST(:patientId AS uuid) IS NULL OR r.patientId = :patientId)
             """)
     Page<GetAllRemindersHistoryResponseProjection> findLogsHistory(
             @Param("startDate") Instant startDate, @Param("endDate") Instant endDate,

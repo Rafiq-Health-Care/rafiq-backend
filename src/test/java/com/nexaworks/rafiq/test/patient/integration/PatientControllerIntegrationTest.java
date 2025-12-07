@@ -5,14 +5,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.Date;
 import java.util.Set;
 
-import com.nexaworks.rafiq.labTest.entity.LabTest;
-import com.nexaworks.rafiq.labTest.repository.LabTestRepository;
-import com.nexaworks.rafiq.medication.entity.model.Drug;
-import com.nexaworks.rafiq.medication.entity.model.Medicine;
-import com.nexaworks.rafiq.medication.repository.DrugRepository;
-import com.nexaworks.rafiq.medication.repository.MedicineRepository;
-import com.nexaworks.rafiq.patient.entity.model.Patient;
-import com.nexaworks.rafiq.patient.repository.PatientRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -25,12 +17,20 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nexaworks.rafiq.patient.api.dto.request.CompletePatientDataRequest;
-import com.nexaworks.rafiq.patient.entity.enums.BloodType;
+import com.nexaworks.rafiq.labTest.entity.LabTest;
+import com.nexaworks.rafiq.labTest.repository.LabTestRepository;
 import com.nexaworks.rafiq.medication.entity.enums.MedicineFrequency;
 import com.nexaworks.rafiq.medication.entity.enums.MedicineStatus;
 import com.nexaworks.rafiq.medication.entity.enums.MedicineType;
+import com.nexaworks.rafiq.medication.entity.model.Drug;
+import com.nexaworks.rafiq.medication.entity.model.Medicine;
+import com.nexaworks.rafiq.medication.repository.DrugRepository;
+import com.nexaworks.rafiq.medication.repository.MedicineRepository;
+import com.nexaworks.rafiq.patient.api.dto.request.CompletePatientDataRequest;
+import com.nexaworks.rafiq.patient.entity.enums.BloodType;
 import com.nexaworks.rafiq.patient.entity.enums.SmokeStatus;
+import com.nexaworks.rafiq.patient.entity.model.Patient;
+import com.nexaworks.rafiq.patient.repository.PatientRepository;
 import com.nexaworks.rafiq.test.BaseIntegrationTest;
 import com.nexaworks.rafiq.user.entity.enums.Gender;
 import com.nexaworks.rafiq.user.entity.model.Role;
@@ -70,7 +70,7 @@ public class PatientControllerIntegrationTest extends BaseIntegrationTest {
         userRepository.deleteAll();
     }
 
-    private Patient createTestPatient() {
+    private User createTestPatient() {
         Role patientRole = roleRepository.findByName("ROLE_PATIENT");
         if (patientRole == null) {
             patientRole = new Role();
@@ -78,16 +78,24 @@ public class PatientControllerIntegrationTest extends BaseIntegrationTest {
             patientRole = roleRepository.save(patientRole);
         }
 
-        Patient patient = Patient.builder().email("patient@test.com")
+        // Create User first with authentication fields
+        User user = User.builder().email("patient@test.com")
                 .password(passwordEncoder.encode("Valid@1234")).firstName("John").lastName("Doe")
                 .phone("+12345678901").gender(Gender.MALE).enabled(true).roles(Set.of(patientRole))
                 .build();
-        return patientRepository.save(patient);
+        user = userRepository.save(user);
+
+        // Create Patient with same ID
+        Patient patient = Patient.builder().id(user.getId()).email("patient@test.com")
+                .firstName("John").lastName("Doe").phone("+12345678901").build();
+        patientRepository.save(patient);
+
+        return user;
     }
 
     private CompletePatientDataRequest buildValidProfileRequest() {
-        return new CompletePatientDataRequest(180, 75.0, BloodType.A_POSITIVE, SmokeStatus.NO,
-                0, null, false, 0, false, "Engineer", "Jane Doe", "+10987654321");
+        return new CompletePatientDataRequest(180, 75.0, BloodType.A_POSITIVE, SmokeStatus.NO, 0,
+                null, false, 0, false, "Engineer", "Jane Doe", "+10987654321");
     }
 
     @Nested
@@ -125,9 +133,9 @@ public class PatientControllerIntegrationTest extends BaseIntegrationTest {
         @DisplayName("Should return 400 Bad Request when height is negative")
         void shouldReturnBadRequest_WhenHeightIsNegative() throws Exception {
             User patient = createTestPatient();
-            CompletePatientDataRequest invalidRequest = new CompletePatientDataRequest(
-                    -10, 75.0, BloodType.A_POSITIVE, SmokeStatus.NO, 0, null, false, 0, false,
-                    "Engineer", "Jane Doe", "+10987654321");
+            CompletePatientDataRequest invalidRequest = new CompletePatientDataRequest(-10, 75.0,
+                    BloodType.A_POSITIVE, SmokeStatus.NO, 0, null, false, 0, false, "Engineer",
+                    "Jane Doe", "+10987654321");
 
             mockMvc.perform(MockMvcRequestBuilders.post(PATIENT_PROFILE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -143,7 +151,8 @@ public class PatientControllerIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Should return complete patient profile with tests and medicines")
         void shouldReturnCompletePatientProfile_WithTestsAndMedicines() throws Exception {
-            Patient patient = createTestPatient();
+            User user = createTestPatient();
+            Patient patient = patientRepository.findById(user.getId()).orElseThrow();
 
             // Seed some basic medical profile data
             patient.setHeight(175);
@@ -161,18 +170,19 @@ public class PatientControllerIntegrationTest extends BaseIntegrationTest {
             patientRepository.save(patient);
 
             // Seed a lab test and a medicine to verify nested lists
-            LabTest labTest = LabTest.builder().patientId(patient.getId()).name("Blood Test").build();
+            LabTest labTest = LabTest.builder().patientId(patient.getId()).name("Blood Test")
+                    .build();
             labTestRepository.save(labTest);
             Drug drug = Drug.builder().build();
             drugRepository.save(drug);
 
-            Medicine medicine = Medicine.builder().patientId(patient.getId()).name("Aspirin").dosage("100mg")
-                    .frequency(MedicineFrequency.ONCE).status(MedicineStatus.ACTIVE)
+            Medicine medicine = Medicine.builder().patientId(patient.getId()).name("Aspirin")
+                    .dosage("100mg").frequency(MedicineFrequency.ONCE).status(MedicineStatus.ACTIVE)
                     .type(MedicineType.PRESCRIPTION).drug(drug).build();
             medicineRepository.save(medicine);
 
             mockMvc.perform(
-                    MockMvcRequestBuilders.get(PATIENT_PROFILE_ENDPOINT).with(withUserId(patient)))
+                    MockMvcRequestBuilders.get(PATIENT_PROFILE_ENDPOINT).with(withUserId(user)))
                     .andExpect(status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.patientProfile").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.patientProfile.patientId")
@@ -195,7 +205,8 @@ public class PatientControllerIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Should update patient profile successfully with valid request")
         void shouldUpdatePatientProfile_WhenRequestIsValid() throws Exception {
-            Patient patient = createTestPatient();
+            User user = createTestPatient();
+            Patient patient = patientRepository.findById(user.getId()).orElseThrow();
 
             // Initial profile values
             patient.setHeight(170);
@@ -203,14 +214,14 @@ public class PatientControllerIntegrationTest extends BaseIntegrationTest {
             patient.setBloodType(BloodType.B_POSITIVE);
             patientRepository.save(patient);
 
-            CompletePatientDataRequest updateRequest = new CompletePatientDataRequest(
-                    185, 80.0, BloodType.AB_NEGATIVE, SmokeStatus.YES, 10, new Date(), true, 5,
-                    false, "Doctor", "Bob Smith", "+1122334455");
+            CompletePatientDataRequest updateRequest = new CompletePatientDataRequest(185, 80.0,
+                    BloodType.AB_NEGATIVE, SmokeStatus.YES, 10, new Date(), true, 5, false,
+                    "Doctor", "Bob Smith", "+1122334455");
 
             mockMvc.perform(MockMvcRequestBuilders.put(PATIENT_PROFILE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(updateRequest))
-                    .with(withUserId(patient))).andExpect(status().isOk())
+                    .content(objectMapper.writeValueAsString(updateRequest)).with(withUserId(user)))
+                    .andExpect(status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.message")
                             .value("Patient profile updated successfully"))

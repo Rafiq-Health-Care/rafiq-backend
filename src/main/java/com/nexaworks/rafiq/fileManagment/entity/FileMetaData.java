@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import com.nexaworks.rafiq.shared.entity.BaseEntity;
 
+import com.nexaworks.rafiq.shared.entity.FileCategory;
 import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,11 +18,13 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-public class File extends BaseEntity {
-    private String name;
-    private String publicId;
-    private String url;
-    private String type;
+public class FileMetaData extends BaseEntity {
+    private String originalFileName;
+    private String cloudinaryPublicId;
+    private String cloudinarySecureUrl;
+    private Long fileSize;
+    private String mimeType;
+    private FileCategory category;
+    private UUID ownerId;
     private UUID userId;
-
 }

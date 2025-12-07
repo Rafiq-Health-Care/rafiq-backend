@@ -7,13 +7,6 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
 
-import com.nexaworks.rafiq.medication.entity.model.Drug;
-import com.nexaworks.rafiq.medication.entity.model.Group;
-import com.nexaworks.rafiq.medication.entity.model.Medicine;
-import com.nexaworks.rafiq.medication.repository.DrugRepository;
-import com.nexaworks.rafiq.medication.repository.GroupRepository;
-import com.nexaworks.rafiq.medication.repository.MedicineRepository;
-import com.nexaworks.rafiq.patient.repository.PatientRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -29,9 +22,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexaworks.rafiq.medication.api.dto.request.AddGroupRequest;
 import com.nexaworks.rafiq.medication.api.dto.request.AddMedicinesToGroup;
 import com.nexaworks.rafiq.medication.api.dto.request.UpdateGroupRequest;
-import com.nexaworks.rafiq.patient.entity.model.Patient;
 import com.nexaworks.rafiq.medication.entity.enums.Color;
 import com.nexaworks.rafiq.medication.entity.enums.MedicineFrequency;
+import com.nexaworks.rafiq.medication.entity.model.Drug;
+import com.nexaworks.rafiq.medication.entity.model.Group;
+import com.nexaworks.rafiq.medication.entity.model.Medicine;
+import com.nexaworks.rafiq.medication.repository.DrugRepository;
+import com.nexaworks.rafiq.medication.repository.GroupRepository;
+import com.nexaworks.rafiq.medication.repository.MedicineRepository;
+import com.nexaworks.rafiq.patient.entity.model.Patient;
+import com.nexaworks.rafiq.patient.repository.PatientRepository;
 import com.nexaworks.rafiq.test.BaseIntegrationTest;
 import com.nexaworks.rafiq.user.entity.enums.Gender;
 import com.nexaworks.rafiq.user.entity.model.Role;
@@ -89,12 +89,19 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             patientRole = roleRepository.save(patientRole);
         }
 
-        // Create Patient directly (Patient extends User with is-a relationship)
-        Patient patient = Patient.builder().email(email)
-                .password(passwordEncoder.encode("Valid@1234")).firstName(firstName)
-                .lastName(lastName).phone(phone).birthDate(LocalDate.of(1990, 1, 1)).gender(gender)
-                .roles(Set.of(patientRole)).enabled(true).build();
-        return patientRepository.save(patient);
+        // Create User first with authentication fields
+        User user = User.builder().email(email).password(passwordEncoder.encode("Valid@1234"))
+                .firstName(firstName).lastName(lastName).phone(phone)
+                .birthDate(LocalDate.of(1990, 1, 1)).gender(gender).roles(Set.of(patientRole))
+                .enabled(true).build();
+        user = userRepository.save(user);
+
+        // Create Patient with same ID
+        Patient patient = Patient.builder().id(user.getId()).email(email).firstName(firstName)
+                .lastName(lastName).phone(phone).build();
+        patientRepository.save(patient);
+
+        return user;
     }
 
     @Nested
@@ -196,17 +203,14 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
 
             // Create multiple groups for the user
-            Group group1 = Group.builder()
-                    .name("Antibiotics").description("Antibiotic medications").color(Color.RED)
-                    .patientId(user.getId()).build();
+            Group group1 = Group.builder().name("Antibiotics").description("Antibiotic medications")
+                    .color(Color.RED).patientId(user.getId()).build();
 
-            Group group2 = Group.builder()
-                    .name("Vitamins").description("Daily vitamins").color(Color.GREEN)
-                    .patientId(user.getId()).build();
+            Group group2 = Group.builder().name("Vitamins").description("Daily vitamins")
+                    .color(Color.GREEN).patientId(user.getId()).build();
 
-            Group group3 = Group.builder()
-                    .name("Pain Relief").description("Pain medications").color(Color.BLUE)
-                    .patientId(user.getId()).build();
+            Group group3 = Group.builder().name("Pain Relief").description("Pain medications")
+                    .color(Color.BLUE).patientId(user.getId()).build();
 
             groupRepository.save(group1);
             groupRepository.save(group2);
@@ -249,17 +253,14 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             User user = createTestUser();
 
             // Create groups with different names
-            Group group1 = Group.builder()
-                    .name("A-Group").description("First alphabetically").color(Color.RED)
-                    .patientId(user.getId()).build();
+            Group group1 = Group.builder().name("A-Group").description("First alphabetically")
+                    .color(Color.RED).patientId(user.getId()).build();
 
-            Group group2 = Group.builder()
-                    .name("C-Group").description("Third alphabetically").color(Color.GREEN)
-                    .patientId(user.getId()).build();
+            Group group2 = Group.builder().name("C-Group").description("Third alphabetically")
+                    .color(Color.GREEN).patientId(user.getId()).build();
 
-            Group group3 = Group.builder()
-                    .name("B-Group").description("Second alphabetically").color(Color.BLUE)
-                    .patientId(user.getId()).build();
+            Group group3 = Group.builder().name("B-Group").description("Second alphabetically")
+                    .color(Color.BLUE).patientId(user.getId()).build();
 
             groupRepository.save(group1);
             groupRepository.save(group2);
@@ -289,9 +290,9 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Arrange
             User user = createTestUser();
 
-            Group group = Group.builder()
-                    .name("Heart Medications").description("Medications for heart health")
-                    .color(Color.RED).patientId(user.getId()).build();
+            Group group = Group.builder().name("Heart Medications")
+                    .description("Medications for heart health").color(Color.RED)
+                    .patientId(user.getId()).build();
 
             Group savedGroup = groupRepository.save(group);
 
@@ -338,8 +339,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
                     Gender.FEMALE);
 
             // Create group for user1
-            Group group = Group.builder()
-                    .name("User1 Group").description("Group belonging to user1").color(Color.BLUE)
+            Group group = Group.builder().name("User1 Group")
+                    .description("Group belonging to user1").color(Color.BLUE)
                     .patientId(user1.getId()).build();
 
             Group savedGroup = groupRepository.save(group);
@@ -365,9 +366,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Arrange
             User user = createTestUser();
 
-            Group group = Group.builder()
-                    .name("Old Name").description("Old Description").color(Color.RED)
-                    .patientId(user.getId()).build();
+            Group group = Group.builder().name("Old Name").description("Old Description")
+                    .color(Color.RED).patientId(user.getId()).build();
 
             Group savedGroup = groupRepository.save(group);
 
@@ -393,8 +393,7 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.medicineCount").value(0));
 
             // Verify update in database
-            Group updatedGroup = groupRepository
-                    .findById(savedGroup.getId()).get();
+            Group updatedGroup = groupRepository.findById(savedGroup.getId()).get();
             assertThat(updatedGroup.getName()).isEqualTo("New Name");
             assertThat(updatedGroup.getDescription()).isEqualTo("New Description");
         }
@@ -424,13 +423,11 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Arrange
             User user = createTestUser();
 
-            Group group1 = Group.builder()
-                    .name("Existing Group").description("Description").color(Color.RED)
-                    .patientId(user.getId()).build();
+            Group group1 = Group.builder().name("Existing Group").description("Description")
+                    .color(Color.RED).patientId(user.getId()).build();
 
-            Group group2 = Group.builder()
-                    .name("Group to Update").description("Description").color(Color.BLUE)
-                    .patientId(user.getId()).build();
+            Group group2 = Group.builder().name("Group to Update").description("Description")
+                    .color(Color.BLUE).patientId(user.getId()).build();
 
             groupRepository.save(group1);
             Group savedGroup2 = groupRepository.save(group2);
@@ -461,9 +458,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Arrange
             User user = createTestUser();
 
-            Group group = Group.builder()
-                    .name("Group to Delete").description("Will be deleted").color(Color.RED)
-                    .patientId(user.getId()).build();
+            Group group = Group.builder().name("Group to Delete").description("Will be deleted")
+                    .color(Color.RED).patientId(user.getId()).build();
 
             Group savedGroup = groupRepository.save(group);
             assertThat(groupRepository.count()).isEqualTo(1);
@@ -501,9 +497,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             User user2 = createTestUser("user2@test.com", "User", "Two", "+22222222222",
                     Gender.FEMALE);
 
-            Group group = Group.builder()
-                    .name("User1 Group").description("Belongs to user1").color(Color.RED)
-                    .patientId(user1.getId()).build();
+            Group group = Group.builder().name("User1 Group").description("Belongs to user1")
+                    .color(Color.RED).patientId(user1.getId()).build();
 
             Group savedGroup = groupRepository.save(group);
 
@@ -528,9 +523,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Arrange
             User user = createTestUser();
 
-            Group group = Group.builder()
-                    .name("Test Group").description("Group for medicines").color(Color.BLUE)
-                    .patientId(user.getId()).build();
+            Group group = Group.builder().name("Test Group").description("Group for medicines")
+                    .color(Color.BLUE).patientId(user.getId()).build();
 
             Group savedGroup = groupRepository.save(group);
 
@@ -588,9 +582,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Arrange
             User user = createTestUser();
 
-            Group group = Group.builder()
-                    .name("Test Group").description("Group for medicines").color(Color.BLUE)
-                    .patientId(user.getId()).build();
+            Group group = Group.builder().name("Test Group").description("Group for medicines")
+                    .color(Color.BLUE).patientId(user.getId()).build();
 
             Group savedGroup = groupRepository.save(group);
 
@@ -626,9 +619,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Arrange
             User user = createTestUser();
 
-            Group group = Group.builder()
-                    .name("Test Group").description("Group for medicines").color(Color.BLUE)
-                    .patientId(user.getId()).build();
+            Group group = Group.builder().name("Test Group").description("Group for medicines")
+                    .color(Color.BLUE).patientId(user.getId()).build();
 
             Group savedGroup = groupRepository.save(group);
 
@@ -673,9 +665,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
             // Arrange
             User user = createTestUser();
 
-            Group group = Group.builder()
-                    .name("Test Group").description("Group for medicines").color(Color.BLUE)
-                    .patientId(user.getId()).build();
+            Group group = Group.builder().name("Test Group").description("Group for medicines")
+                    .color(Color.BLUE).patientId(user.getId()).build();
 
             Group savedGroup = groupRepository.save(group);
             UUID nonExistentMedicineId = UUID.randomUUID();

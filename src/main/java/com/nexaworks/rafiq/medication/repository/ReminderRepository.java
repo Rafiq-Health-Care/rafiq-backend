@@ -20,7 +20,7 @@ public interface ReminderRepository extends JpaRepository<Reminder, UUID> {
                    r.id AS reminderId,
                    r.nextReminder AS time
             FROM  Reminder r JOIN r.medicine m
-            WHERE r.patient.id = :id
+            WHERE r.patientId = :id
 
             """)
     Page<GetAllRemindersResponse> findAll(UUID id, Pageable pageable);

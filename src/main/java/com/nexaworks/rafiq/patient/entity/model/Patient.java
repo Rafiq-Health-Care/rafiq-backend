@@ -2,31 +2,26 @@ package com.nexaworks.rafiq.patient.entity.model;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
-import com.nexaworks.rafiq.labTest.entity.LabTest;
 import com.nexaworks.rafiq.patient.entity.enums.BloodType;
-import com.nexaworks.rafiq.medication.entity.model.Group;
-import com.nexaworks.rafiq.medication.entity.model.Medicine;
-import com.nexaworks.rafiq.medication.entity.model.ReminderLog;
 import com.nexaworks.rafiq.patient.entity.enums.SmokeStatus;
-import com.nexaworks.rafiq.user.entity.model.User;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.PositiveOrZero;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.SuperBuilder;
+import lombok.*;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@SuperBuilder
+@Builder
 @Entity
 @Table(name = "patient")
-public class Patient extends User {
+public class Patient {
+
+    @Id
+    private UUID id;
 
     private String description;
     @PositiveOrZero
@@ -51,6 +46,10 @@ public class Patient extends User {
     private String emergencyContactName;
     private String emergencyContactPhone;
 
+    private String firstName;
+    private String lastName;
+    private String phone;
+    private String email;
     @OneToMany(mappedBy = "patient", cascade = {CascadeType.REMOVE,
             CascadeType.MERGE}, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<WeightHistory> weightHistory;
