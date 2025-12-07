@@ -15,8 +15,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.nexaworks.rafiq.lab.entity.Lab;
 import com.nexaworks.rafiq.lab.repository.LabRepository;
-import com.nexaworks.rafiq.shared.entity.Address;
 import com.nexaworks.rafiq.shared.exception.custom.LabException;
+import com.nexaworks.rafiq.user.entity.model.Address;
 import com.nexaworks.rafiq.user.service.AddressService;
 
 import jakarta.transaction.Transactional;

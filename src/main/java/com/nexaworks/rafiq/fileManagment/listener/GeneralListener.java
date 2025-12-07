@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.fileManagment.listener;
 
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.nexaworks.rafiq.fileManagment.service.FileMetaDataService;
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GeneralListener {
     private final FileMetaDataService fileMetaDataService;
+    @Async
     @EventListener(LabTestCreatedEvent.class)
     public void handleLabTestCreatedEvent(LabTestCreatedEvent event) {
         log.info("Lab Test Created Event Received:");

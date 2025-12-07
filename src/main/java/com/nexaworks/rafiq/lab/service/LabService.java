@@ -9,7 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.nexaworks.rafiq.lab.entity.Lab;
-import com.nexaworks.rafiq.shared.entity.Address;
+import com.nexaworks.rafiq.user.entity.model.Address;
 
 import jakarta.validation.constraints.NotBlank;
 
