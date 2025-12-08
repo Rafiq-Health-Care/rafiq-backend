@@ -129,9 +129,8 @@ public class GroupController {
     @PostMapping("/removeMedicines/{groupId}/{medicineId}")
     @Operation(summary = "Remove medicine from group", description = "Removes a medicine from a group, returning it to ungrouped status. Useful when medication no longer fits the group category.")
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<String> removeMedicineFromGroup(
-            @PathVariable(name = "groupId") UUID groupId,
-            @PathVariable(name = "medicineId") UUID medicineId, Authentication authentication) {
+    public ResponseEntity<String> removeMedicineFromGroup(@PathVariable UUID groupId,
+            @PathVariable UUID medicineId, Authentication authentication) {
         groupService.removeFromGroup(groupId, medicineId, getUserId(authentication));
         return ResponseEntity.status(200).body("""
                 {

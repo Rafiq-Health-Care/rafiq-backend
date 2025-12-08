@@ -131,7 +131,7 @@ public class ReminderController {
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = AddResponse.class)))
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<AddResponse<AddReminderResponse>> updateVibration(
-            @PathVariable("vibrate") Boolean vibrate, @PathVariable("reminder-id") UUID reminderId,
+            @PathVariable Boolean vibrate, @PathVariable("reminder-id") UUID reminderId,
             Authentication authentication) {
         return ResponseEntity.ok()
                 .body(new AddResponse<>(true, "Reminder vibration updated successfully",
@@ -152,7 +152,7 @@ public class ReminderController {
     @Operation(summary = "Disable or enable reminder", description = "Temporarily disables or re-enables a reminder without deleting it. Useful for pausing reminders during travel or temporary medication breaks.")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> disableReminder(@PathVariable("reminder-id") UUID reminderId,
-            @PathVariable("disable") Boolean disable, Authentication authentication) {
+            @PathVariable Boolean disable, Authentication authentication) {
         reminderService.disableReminder(reminderId, disable, getUserId(authentication));
         return ResponseEntity.noContent().build();
     }
