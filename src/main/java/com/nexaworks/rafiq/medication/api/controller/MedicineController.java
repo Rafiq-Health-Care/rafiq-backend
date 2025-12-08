@@ -65,9 +65,9 @@ public class MedicineController {
     public ResponseEntity<PageResponse<MedicineGroupResponse>> getAllMedicines(
             @ParameterObject Pageable pageable, @ParameterObject MedicineFilter filter,
             Authentication authentication) {
-        return ResponseEntity.ok().body(pageMapper.mapToMedicinePage(
+        return ResponseEntity.ok().body(pageMapper.map(
                 medicineService.getAllMedicines(pageable, filter, getUserId(authentication)),
-                medicineMapper));
+                medicineMapper::toGroupDto));
     }
 
     @GetMapping("/{id}")

@@ -64,8 +64,8 @@ class FileMetaDataServiceImplTest {
             MockMultipartFile pdfFile = new MockMultipartFile("file", "test.pdf", "application/pdf",
                     "PDF content".getBytes());
 
-            UploadResults uploadResults = new UploadResults("cloudinary-public-id",
-                    "https://cloudinary.com/test.pdf");
+            UploadResults uploadResults = new UploadResults("https://cloudinary.com/test.pdf",
+                    "cloudinary-public-id");
 
             UUID expectedFileId = UUID.randomUUID();
             FileMetaData savedFileMetaData = FileMetaData.builder().id(expectedFileId)

@@ -75,7 +75,7 @@ public class GroupController {
             Authentication authentication) {
         Page<Group> groups = groupService.getGroups(page, size, direction, sort,
                 getUserId(authentication));
-        return ResponseEntity.ok().body(pageMapper.mapToGroupPage(groups, groupMapper));
+        return ResponseEntity.ok().body(pageMapper.map(groups, groupMapper::toDto));
     }
 
     @GetMapping("/{id}")

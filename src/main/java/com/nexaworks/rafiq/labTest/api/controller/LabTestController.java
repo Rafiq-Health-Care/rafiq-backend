@@ -44,8 +44,8 @@ public class LabTestController {
             @RequestParam(value = "sort", defaultValue = "name") String sort,
             @RequestParam(value = "direction", defaultValue = "asc") String direction,
             Authentication authentication) {
-        return ResponseEntity.ok().body(pageMapper.mapToTestResponse(labTestService.getAll(page,
-                size, sort, direction, (UUID) authentication.getPrincipal()), testMapper));
+        return ResponseEntity.ok().body(pageMapper.map(labTestService.getAll(page, size, sort,
+                direction, (UUID) authentication.getPrincipal()), testMapper::toResponse));
     }
 
     @GetMapping("/{test-id}")
