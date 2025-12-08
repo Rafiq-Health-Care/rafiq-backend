@@ -69,14 +69,23 @@ class PasswordControllerIntegrationTest extends BaseIntegrationTest {
 
         User user = User.builder().email(email).password(passwordEncoder.encode(password))
                 .firstName(firstName).lastName(lastName).phone("+12345678901")
-                .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE).roles(Set.of(patientRole))
+                .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE)
+                .roles(new java.util.HashSet<>(Set.of(patientRole))) // Use mutable HashSet
                 .enabled(true).build();
         return userRepository.save(user);
     }
 
     private Token createAccessToken(User user, String tokenValue, Instant expiryDate) {
-        Token token = Token.builder().token(tokenValue).user(user).tokenType(TokenType.ACCESS_TOKEN)
-                .expiryDate(expiryDate).build();
+        // Fetch managed user from database to avoid detached entity issues
+        User managedUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Token token = new Token();
+        token.setToken(tokenValue);
+        token.setUser(managedUser);
+        token.setTokenType(TokenType.ACCESS_TOKEN);
+        token.setExpiryDate(expiryDate);
+
         return tokenRepository.save(token);
     }
 

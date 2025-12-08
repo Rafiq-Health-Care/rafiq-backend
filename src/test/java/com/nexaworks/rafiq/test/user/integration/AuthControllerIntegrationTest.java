@@ -73,27 +73,25 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
             patientRole = roleRepository.save(patientRole);
         }
 
-        User user = User.builder()
-                .email(email)
-                .password(passwordEncoder.encode(password))
-                .firstName(firstName)
-                .lastName(lastName)
-                .phone("+12345678901")
-                .birthDate(LocalDate.of(1990, 1, 1))
-                .gender(Gender.MALE)
-                .roles(Set.of(patientRole))
-                .enabled(true)
-                .build();
+        User user = User.builder().email(email).password(passwordEncoder.encode(password))
+                .firstName(firstName).lastName(lastName).phone("+12345678901")
+                .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE)
+                .roles(new java.util.HashSet<>(Set.of(patientRole))) // Use mutable HashSet
+                .enabled(true).build();
         return userRepository.save(user);
     }
 
     private Token createRefreshToken(User user, String tokenValue, Instant expiryDate) {
-        Token token = Token.builder()
-                .token(tokenValue)
-                .user(user)
-                .tokenType(TokenType.REFRESH)
-                .expiryDate(expiryDate)
-                .build();
+        // Fetch managed user from database to avoid detached entity issues
+        User managedUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Token token = new Token();
+        token.setToken(tokenValue);
+        token.setUser(managedUser);
+        token.setTokenType(TokenType.REFRESH);
+        token.setExpiryDate(expiryDate);
+
         return tokenRepository.save(token);
     }
 
@@ -234,24 +232,21 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
                 Cookie refreshTokenCookie = new Cookie("refreshToken", refreshTokenValue);
 
                 // Act & Assert - Logout with valid cookies
-                mockMvc.perform(MockMvcRequestBuilders.post(LOGOUT_ENDPOINT)
-                        .cookie(jwtCookie, refreshTokenCookie))
-                        .andExpect(MockMvcResultMatchers.status().isNoContent())
+                mockMvc.perform(MockMvcRequestBuilders.post(LOGOUT_ENDPOINT).cookie(jwtCookie,
+                        refreshTokenCookie)).andExpect(MockMvcResultMatchers.status().isNoContent())
                         .andExpect(MockMvcResultMatchers.cookie().maxAge("jwt", 0))
                         .andExpect(MockMvcResultMatchers.cookie().maxAge("refreshToken", 0));
 
                 // Verify refresh token was invalidated in database
                 Token refreshToken = tokenRepository.findAll().stream()
-                        .filter(t -> t.getToken().equals(refreshTokenValue))
-                        .findFirst()
+                        .filter(t -> t.getToken().equals(refreshTokenValue)).findFirst()
                         .orElse(null);
                 assertThat(refreshToken).isNull();
 
                 // Verify JWT token was blacklisted in database
                 Token blacklistedJwt = tokenRepository.findAll().stream()
                         .filter(t -> t.getToken().equals(jwtTokenValue))
-                        .filter(t -> t.getTokenType().equals(TokenType.JWT_BLACKLIST))
-                        .findFirst()
+                        .filter(t -> t.getTokenType().equals(TokenType.JWT_BLACKLIST)).findFirst()
                         .orElseThrow(() -> new AssertionError(
                                 "JWT token should be saved in token table with type JWT_BLACKLIST"));
                 assertThat(blacklistedJwt.getTokenType()).isEqualTo(TokenType.JWT_BLACKLIST)
@@ -276,7 +271,8 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
             void shouldReturnUnauthorizedWhenRefreshTokenCookieMissing() throws Exception {
                 // Arrange - No cookies provided
 
-                // Act & Assert - Should return 401 for missing cookies (authentication required)
+                // Act & Assert - Should return 401 for missing cookies (authentication
+                // required)
                 mockMvc.perform(MockMvcRequestBuilders.post(LOGOUT_ENDPOINT))
                         .andExpect(MockMvcResultMatchers.status().isUnauthorized());
             }
@@ -288,7 +284,8 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
                 String fakeRefreshToken = "fake-refresh-token-99999";
                 Cookie refreshTokenCookie = new Cookie("refreshToken", fakeRefreshToken);
 
-                // Act & Assert - Should return 401 (authentication fails before reaching service logic)
+                // Act & Assert - Should return 401 (authentication fails before reaching
+                // service logic)
                 mockMvc.perform(
                         MockMvcRequestBuilders.post(LOGOUT_ENDPOINT).cookie(refreshTokenCookie))
                         .andExpect(MockMvcResultMatchers.status().isUnauthorized());
@@ -329,7 +326,8 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
                         .andExpect(MockMvcResultMatchers.cookie().exists("jwt"))
                         .andExpect(MockMvcResultMatchers.cookie().exists("refreshToken"));
 
-                // Verify old refresh token still exists (new one created, old one should be invalidated)
+                // Verify old refresh token still exists (new one created, old one should be
+                // invalidated)
                 long refreshTokenCount = tokenRepository.findAll().stream()
                         .filter(t -> t.getTokenType().equals(TokenType.REFRESH)).count();
                 assertThat(refreshTokenCount).isGreaterThan(0)
@@ -405,4 +403,3 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
         }
     }
 }
-

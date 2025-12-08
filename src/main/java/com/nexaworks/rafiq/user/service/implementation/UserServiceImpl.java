@@ -47,8 +47,8 @@ public class UserServiceImpl implements UserService {
         verifyEmailAvailability(user);
         user.getRoles().add(roleService.getRole(ROLE_PATIENT));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        String otp = tokenService.generateOtpToken(user);
         UUID userId = userRepository.save(user).getId();
+        String otp = tokenService.generateOtpToken(user);
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
@@ -68,8 +68,8 @@ public class UserServiceImpl implements UserService {
         verifyEmailAvailability(user);
         user.getRoles().add(roleService.getRole(ROLE_DOCTOR));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        String otp = tokenService.generateOtpToken(user);
         UUID userId = userRepository.save(user).getId();
+        String otp = tokenService.generateOtpToken(user);
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override

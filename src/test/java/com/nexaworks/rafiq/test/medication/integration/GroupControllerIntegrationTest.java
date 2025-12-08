@@ -92,7 +92,8 @@ public class GroupControllerIntegrationTest extends BaseIntegrationTest {
         // Create User first with authentication fields
         User user = User.builder().email(email).password(passwordEncoder.encode("Valid@1234"))
                 .firstName(firstName).lastName(lastName).phone(phone)
-                .birthDate(LocalDate.of(1990, 1, 1)).gender(gender).roles(Set.of(patientRole))
+                .birthDate(LocalDate.of(1990, 1, 1)).gender(gender)
+                .roles(new java.util.HashSet<>(Set.of(patientRole))) // Use mutable HashSet
                 .enabled(true).build();
         user = userRepository.save(user);
 

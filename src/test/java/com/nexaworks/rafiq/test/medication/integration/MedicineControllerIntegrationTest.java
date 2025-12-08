@@ -90,7 +90,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         // Create User first with authentication fields
         User user = User.builder().email(email).password(passwordEncoder.encode("Valid@1234"))
                 .firstName(firstName).lastName(lastName).phone(phone)
-                .birthDate(LocalDate.of(1990, 1, 1)).gender(gender).roles(Set.of(patientRole))
+                .birthDate(LocalDate.of(1990, 1, 1)).gender(gender)
+                .roles(new java.util.HashSet<>(Set.of(patientRole))) // Use mutable HashSet
                 .enabled(true).build();
         user = userRepository.save(user);
 
@@ -113,7 +114,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         // Create User first with authentication fields
         User user = User.builder().email(email).password(passwordEncoder.encode("Valid@1234"))
                 .firstName("Other").lastName("User").phone("+12345678902")
-                .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE).roles(Set.of(patientRole))
+                .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE)
+                .roles(new java.util.HashSet<>(Set.of(patientRole))) // Use mutable HashSet
                 .enabled(true).build();
         user = userRepository.save(user);
 

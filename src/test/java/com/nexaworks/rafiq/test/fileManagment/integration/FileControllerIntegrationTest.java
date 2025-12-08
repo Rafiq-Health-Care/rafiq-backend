@@ -91,7 +91,8 @@ class FileControllerIntegrationTest extends BaseIntegrationTest {
         // Create User
         User user = User.builder().email(email).password(passwordEncoder.encode(password))
                 .firstName(firstName).lastName(lastName).phone("+12345678901")
-                .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE).roles(Set.of(patientRole))
+                .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE)
+                .roles(new java.util.HashSet<>(Set.of(patientRole))) // Use mutable HashSet
                 .enabled(true).build();
         user = userRepository.save(user);
 

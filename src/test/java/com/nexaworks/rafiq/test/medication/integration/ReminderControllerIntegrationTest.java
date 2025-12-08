@@ -92,7 +92,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
         User user = User.builder().email("test@example.com")
                 .password(passwordEncoder.encode("Valid@1234")).firstName("John").lastName("Doe")
                 .phone("+12345678901").birthDate(LocalDate.of(1999, 1, 1)).gender(Gender.MALE)
-                .roles(Set.of(patientRole)).enabled(true).build();
+                .roles(new java.util.HashSet<>(Set.of(patientRole))) // Use mutable HashSet
+                .enabled(true).build();
         user = userRepository.save(user);
 
         // Create Patient with same ID
@@ -114,7 +115,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
         // Create User first with authentication fields
         User user = User.builder().email(email).password(passwordEncoder.encode("Valid@1234"))
                 .firstName("Other").lastName("User").phone("+12345678902")
-                .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE).roles(Set.of(patientRole))
+                .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE)
+                .roles(new java.util.HashSet<>(Set.of(patientRole))) // Use mutable HashSet
                 .enabled(true).build();
         user = userRepository.save(user);
 

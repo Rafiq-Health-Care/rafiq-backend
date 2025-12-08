@@ -4,7 +4,7 @@ Content-Type: application/json
 Accept: application/json
 
 {
-  "email": "john.doke@example.com",
+  "email": "oke@example.com",
   "password": "Str0ng@Pass1!",
   "firstName": "John",
   "lastName": "Doe",
