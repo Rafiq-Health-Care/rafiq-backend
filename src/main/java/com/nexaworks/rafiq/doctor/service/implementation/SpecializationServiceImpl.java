@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.nexaworks.rafiq.doctor.api.dto.SpecializationResponse;
 import com.nexaworks.rafiq.doctor.entity.model.Specialization;
-import com.nexaworks.rafiq.shared.exception.custom.SpecializationNotFoundException;
+import com.nexaworks.rafiq.doctor.exception.SpecializationNotFoundException;
 import com.nexaworks.rafiq.doctor.repository.SpecializationRepository;
 import com.nexaworks.rafiq.doctor.service.SpecializationService;
 

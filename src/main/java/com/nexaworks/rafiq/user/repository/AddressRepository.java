@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.shared.repository;
+package com.nexaworks.rafiq.user.repository;
 
 import java.util.UUID;
 

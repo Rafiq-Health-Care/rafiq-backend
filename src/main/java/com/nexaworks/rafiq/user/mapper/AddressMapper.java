@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.shared.mapper;
+package com.nexaworks.rafiq.user.mapper;
 
 import java.util.List;
 

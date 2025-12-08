@@ -21,8 +21,6 @@ public class Lab extends BaseEntity {
 
     private String logoUrl;
     private String logoId;
-
-    @OneToOne(cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "social_links_id", referencedColumnName = "id")
+    @Embedded
     private SocialLinks socialLinks;
 }

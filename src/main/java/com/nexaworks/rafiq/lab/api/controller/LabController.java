@@ -13,8 +13,8 @@ import com.nexaworks.rafiq.lab.api.dto.AddLabRequest;
 import com.nexaworks.rafiq.lab.api.dto.LabResponse;
 import com.nexaworks.rafiq.lab.service.LabService;
 import com.nexaworks.rafiq.shared.dto.PageResponse;
-import com.nexaworks.rafiq.shared.mapper.AddressMapper;
 import com.nexaworks.rafiq.shared.mapper.PageMapper;
+import com.nexaworks.rafiq.user.mapper.AddressMapper;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

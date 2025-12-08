@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.shared.exception.handler;
+package com.nexaworks.rafiq.doctor.listener;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.nexaworks.rafiq.shared.exception.ExceptionUtils;
-import com.nexaworks.rafiq.shared.exception.custom.LabException;
+import com.nexaworks.rafiq.lab.exception.LabException;
 import com.nexaworks.rafiq.shared.exception.model.ErrorResponse;
 
 import jakarta.servlet.http.HttpServletRequest;

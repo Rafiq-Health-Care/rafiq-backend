@@ -38,11 +38,8 @@ public class Doctor {
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     @BatchSize(size = 10)
     private List<MedicalCertifications> medicalCertifications;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "social_links_id", referencedColumnName = "id")
+    @Embedded
     private SocialLinks socialLinks;
-
     private String publicId;
 
     @Enumerated(EnumType.STRING)

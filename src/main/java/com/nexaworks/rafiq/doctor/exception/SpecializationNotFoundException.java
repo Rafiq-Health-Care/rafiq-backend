@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.shared.exception.custom;
+package com.nexaworks.rafiq.doctor.exception;
 
 import java.util.UUID;
 
