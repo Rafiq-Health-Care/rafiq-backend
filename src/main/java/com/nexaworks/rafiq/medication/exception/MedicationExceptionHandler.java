@@ -8,9 +8,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.nexaworks.rafiq.shared.exception.ExceptionUtils;
 import com.nexaworks.rafiq.shared.exception.model.ErrorResponse;
 
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +17,6 @@ public class MedicationExceptionHandler {
     private final ExceptionUtils exceptionUtils;
 
     @ExceptionHandler(MedicineAlreadyExist.class)
-    @ApiResponse(responseCode = "409", description = "Medicine already exists", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public ResponseEntity<ErrorResponse> handleMedicineAlreadyExist(MedicineAlreadyExist ex,
             HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -28,7 +24,6 @@ public class MedicationExceptionHandler {
     }
 
     @ExceptionHandler(MedicineLimit.class)
-    @ApiResponse(responseCode = "422", description = "Medicine limit exceeded", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public ResponseEntity<ErrorResponse> handleMedicineLimit(MedicineLimit ex,
             HttpServletRequest request) {
         return ResponseEntity.status(422).body(
@@ -36,7 +31,6 @@ public class MedicationExceptionHandler {
     }
 
     @ExceptionHandler(MedicineNotFound.class)
-    @ApiResponse(responseCode = "404", description = "Medicine not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public ResponseEntity<ErrorResponse> handleMedicineNotFound(MedicineNotFound ex,
             HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -44,7 +38,6 @@ public class MedicationExceptionHandler {
     }
 
     @ExceptionHandler(ReminderNotFound.class)
-    @ApiResponse(responseCode = "404", description = "Reminder not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public ResponseEntity<ErrorResponse> handleReminderNotFoundException(ReminderNotFound ex,
             HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -52,7 +45,6 @@ public class MedicationExceptionHandler {
     }
 
     @ExceptionHandler(GroupNotFoundException.class)
-    @ApiResponse(responseCode = "404", description = "Group not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public ResponseEntity<ErrorResponse> handleGroupNotFoundException(
             GroupNotFoundException exception, HttpServletRequest request) {
 
@@ -62,7 +54,6 @@ public class MedicationExceptionHandler {
     }
 
     @ExceptionHandler(GroupIsAlreadyExistsException.class)
-    @ApiResponse(responseCode = "409", description = "Group already exists", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public ResponseEntity<ErrorResponse> handleGroupIsAlreadyExistsException(
             GroupIsAlreadyExistsException exception, HttpServletRequest request) {
 

@@ -8,9 +8,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.nexaworks.rafiq.shared.exception.ExceptionUtils;
 import com.nexaworks.rafiq.shared.exception.model.ErrorResponse;
 
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +17,6 @@ public class FileExceptionHandler {
     private final ExceptionUtils exceptionUtils;
 
     @ExceptionHandler(EmptyFileException.class)
-    @ApiResponse(responseCode = "400", description = "FileMetaData is empty", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public ResponseEntity<ErrorResponse> handleEmptyFile(EmptyFileException ex,
             HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -28,7 +24,6 @@ public class FileExceptionHandler {
     }
 
     @ExceptionHandler(FileUploadException.class)
-    @ApiResponse(responseCode = "400", description = "FileMetaData upload failed", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public ResponseEntity<ErrorResponse> handleFileUpload(FileUploadException ex,
             HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -36,7 +31,6 @@ public class FileExceptionHandler {
     }
 
     @ExceptionHandler(FileException.class)
-    @ApiResponse(responseCode = "400", description = "Unsupported file type or file operation failed", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public ResponseEntity<ErrorResponse> handleFileException(FileException ex,
             HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
