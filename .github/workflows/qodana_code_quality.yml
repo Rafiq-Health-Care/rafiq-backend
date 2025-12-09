@@ -9,7 +9,6 @@ on:
   push:
     branches:
       - dev
-      - refactor/migrate-to-modular-monolith
 
 jobs:
   qodana:
