@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.config;
+package com.nexaworks.rafiq.shared.config;
 
 import java.util.Optional;
 import java.util.UUID;
