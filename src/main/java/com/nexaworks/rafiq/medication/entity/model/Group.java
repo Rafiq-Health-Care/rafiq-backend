@@ -3,8 +3,8 @@ package com.nexaworks.rafiq.medication.entity.model;
 import java.util.List;
 import java.util.UUID;
 
-import com.nexaworks.rafiq.shared.entity.BaseEntity;
 import com.nexaworks.rafiq.medication.entity.enums.Color;
+import com.nexaworks.rafiq.shared.entity.BaseEntity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -19,7 +19,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "groups")
+@Table(name = "groups", schema = "medication_schema")
 public class Group extends BaseEntity {
     private String name;
     private String description;

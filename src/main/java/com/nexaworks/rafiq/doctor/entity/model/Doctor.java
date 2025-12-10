@@ -17,7 +17,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "doctor", indexes = {
+@Table(name = "doctor", schema = "doctor_schema", indexes = {
         @Index(name = "specialization_idx", columnList = "specialization_id")})
 public class Doctor {
     @Id

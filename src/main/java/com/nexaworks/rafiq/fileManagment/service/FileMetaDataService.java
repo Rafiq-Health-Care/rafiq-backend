@@ -11,4 +11,6 @@ public interface FileMetaDataService {
     UUID saveFile(MultipartFile pdfFile, UUID ownerId, FileCategory category, UUID userId);
 
     void updateFileOwner(UUID uuid, UUID uuid1);
+
+    void deleteFile(UUID uuid);
 }

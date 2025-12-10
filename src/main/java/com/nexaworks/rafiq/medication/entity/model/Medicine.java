@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import com.nexaworks.rafiq.medication.entity.enums.*;
 import com.nexaworks.rafiq.shared.entity.BaseEntity;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -17,7 +18,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "medicine", indexes = {
+@Table(name = "medicine", schema = "medication_schema", indexes = {
         @Index(columnList = "search_vector", name = "medicine_search_vector_idx"),
         @Index(columnList = "patient_id", name = "patient_medicine_idx"),
         @Index(columnList = "doctor_id", name = "doctor_medicine_idx")})
@@ -36,7 +37,7 @@ public class Medicine extends BaseEntity {
     private ReminderFrequency reminderFrequency;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "custom_days", joinColumns = @JoinColumn(name = "reminder_id"))
+    @CollectionTable(name = "custom_days", schema = "medication_schema", joinColumns = @JoinColumn(name = "reminder_id"))
     @Column(name = "day")
     @Enumerated(EnumType.STRING)
     private List<Day> customDays;

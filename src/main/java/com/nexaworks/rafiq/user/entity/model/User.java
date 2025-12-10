@@ -25,8 +25,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "users", indexes = {@Index(columnList = "email", unique = true)})
-@Inheritance(strategy = InheritanceType.JOINED)
+@Table(name = "users", schema = "user_schema", indexes = {
+        @Index(columnList = "email", unique = true)})
 public class User extends BaseEntity implements UserDetails, Principal {
 
     @Email
@@ -48,7 +48,7 @@ public class User extends BaseEntity implements UserDetails, Principal {
     private boolean active = true;
 
     @Builder.Default
-    private boolean locked = false; // for softly delete
+    private boolean locked = false;
 
     @Builder.Default
     private boolean enabled = false;
@@ -57,9 +57,11 @@ public class User extends BaseEntity implements UserDetails, Principal {
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Address> addresses;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @JoinTable(name = "user_roles", schema = "user_schema", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     @Builder.Default
     private Set<Role> roles = new HashSet<>();
 

@@ -90,7 +90,8 @@ public class JwtServiceImpl implements JwtService {
                 throw new BadCredentialsException("Token has no authorities");
             }
             UUID userId = UUID.fromString(claims.getSubject());
-            List<String> authorities = claims.get("authorities", List.class);
+            @SuppressWarnings("unchecked")
+            List<String> authorities = (List<String>) claims.get("authorities", List.class);
             List<SimpleGrantedAuthority> authorityList = authorities.stream()
                     .map(SimpleGrantedAuthority::new).toList();
             return new UsernamePasswordAuthenticationToken(userId, null, authorityList);

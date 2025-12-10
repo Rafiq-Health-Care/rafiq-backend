@@ -29,6 +29,7 @@ public class AnalysisServiceImpl implements AnalysisService {
         JsonNode jsonNode = objectMapper.readTree(cleanedAiResponse);
         String report = jsonNode.get("report").asText();
         // todo throw event to update the test report in the database
+        log.info("Report: {}", report);
         return report;
     }
 }

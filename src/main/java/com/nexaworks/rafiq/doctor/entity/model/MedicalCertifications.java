@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.doctor.entity.model;
 
 import com.nexaworks.rafiq.shared.entity.BaseEntity;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,6 +15,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@Table(name = "medical_certifications", schema = "doctor_schema")
 public class MedicalCertifications extends BaseEntity {
 
     private String name;

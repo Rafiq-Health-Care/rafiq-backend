@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.nexaworks.rafiq.shared.entity.BaseEntity;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,6 +19,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@Table(name = "lab_test", schema = "lab_test_schema")
 public class LabTest extends BaseEntity {
     private String name;
     private String description;

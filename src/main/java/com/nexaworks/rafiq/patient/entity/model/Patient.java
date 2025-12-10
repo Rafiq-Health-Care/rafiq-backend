@@ -17,7 +17,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "patient")
+@Table(name = "patient", schema = "patient_schema")
 public class Patient {
 
     @Id

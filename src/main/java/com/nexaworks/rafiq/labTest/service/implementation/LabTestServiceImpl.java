@@ -24,6 +24,7 @@ import com.nexaworks.rafiq.labTest.repository.LabTestRepository;
 import com.nexaworks.rafiq.labTest.service.LabResultService;
 import com.nexaworks.rafiq.labTest.service.LabTestService;
 import com.nexaworks.rafiq.shared.event.labTest.LabTestCreatedEvent;
+import com.nexaworks.rafiq.shared.event.labTest.LabTestDeleted;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -83,7 +84,14 @@ public class LabTestServiceImpl implements LabTestService {
     @Override
     public void deleteTest(UUID testId, UUID patientId) {
         LabTest test = validateOwnership(testId, patientId);
+        UUID fileId = test.getFileId();
         labTestRepository.delete(test);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                eventPublisher.publishEvent(new LabTestDeleted(fileId));
+            }
+        });
     }
 
     @Override

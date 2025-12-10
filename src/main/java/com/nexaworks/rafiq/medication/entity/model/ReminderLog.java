@@ -3,8 +3,8 @@ package com.nexaworks.rafiq.medication.entity.model;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.nexaworks.rafiq.shared.entity.BaseEntity;
 import com.nexaworks.rafiq.medication.entity.enums.ReminderStatus;
+import com.nexaworks.rafiq.shared.entity.BaseEntity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -19,6 +19,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@Table(name = "reminder_log", schema = "medication_schema")
 public class ReminderLog extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ReminderStatus status;

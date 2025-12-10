@@ -16,6 +16,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@Table(name = "lab", schema = "lab_schema")
 public class Lab extends BaseEntity {
     private String name;
 

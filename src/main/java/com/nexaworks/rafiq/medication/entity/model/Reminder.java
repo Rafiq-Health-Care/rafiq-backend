@@ -4,10 +4,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import com.nexaworks.rafiq.shared.entity.BaseEntity;
 import org.hibernate.annotations.BatchSize;
 
 import com.nexaworks.rafiq.medication.entity.enums.ReminderStatus;
+import com.nexaworks.rafiq.shared.entity.BaseEntity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,7 +19,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "reminder", indexes = {@Index(name = "patient_idx", columnList = "patient_id"),
+@Table(name = "reminder", schema = "medication_schema", indexes = {
+        @Index(name = "patient_idx", columnList = "patient_id"),
         @Index(name = "medicine_idx", columnList = "medicine_id")})
 public class Reminder extends BaseEntity {
 

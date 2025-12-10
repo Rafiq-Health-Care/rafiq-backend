@@ -54,4 +54,13 @@ public class FileMetaDataServiceImpl implements FileMetaDataService {
                 .orElseThrow(() -> new FileException("File not found"));
         fileMetaData.setOwnerId(newOwnerId);
     }
+
+    @Override
+    @Transactional
+    public void deleteFile(UUID fileId) {
+        FileMetaData fileMetaData = fileMetaDataRepository.findById(fileId)
+                .orElseThrow(() -> new FileException("File not found"));
+        cloudinaryService.delete(fileMetaData.getCloudinaryPublicId());
+        fileMetaDataRepository.delete(fileMetaData);
+    }
 }

@@ -3,6 +3,7 @@ package com.nexaworks.rafiq.medication.entity.model;
 import java.util.List;
 
 import com.nexaworks.rafiq.shared.entity.BaseEntity;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,6 +17,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@Table(name = "drug", schema = "medication_schema")
 public class Drug extends BaseEntity {
     String tradeName;
     String drugGroup;
@@ -29,10 +31,10 @@ public class Drug extends BaseEntity {
     private String searchVector;
 
     @ManyToMany
-    @JoinTable(name = "drug_active_ingredient", joinColumns = @JoinColumn(name = "drug_id"), inverseJoinColumns = @JoinColumn(name = "active_ingredient_id"))
+    @JoinTable(name = "drug_active_ingredient", schema = "medication_schema", joinColumns = @JoinColumn(name = "drug_id"), inverseJoinColumns = @JoinColumn(name = "active_ingredient_id"))
     List<ActiveIngredient> activeIngredients;
     @ManyToMany
-    @JoinTable(name = "drug_company", joinColumns = @JoinColumn(name = "drug_id"), inverseJoinColumns = @JoinColumn(name = "company_id"))
+    @JoinTable(name = "drug_company", schema = "medication_schema", joinColumns = @JoinColumn(name = "drug_id"), inverseJoinColumns = @JoinColumn(name = "company_id"))
     List<Company> companies;
     @Override
     public boolean equals(Object obj) {

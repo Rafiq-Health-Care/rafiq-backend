@@ -14,6 +14,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@Table(name = "role", schema = "user_schema")
 public class Role extends BaseEntity {
 
     private String name;

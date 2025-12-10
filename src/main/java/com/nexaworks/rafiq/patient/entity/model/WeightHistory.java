@@ -12,6 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @Entity
+@Table(name = "weight_history", schema = "patient_schema")
 public class WeightHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

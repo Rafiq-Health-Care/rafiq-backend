@@ -17,7 +17,7 @@ import org.flywaydb.core.api.migration.Context;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class V2__Import_drugs_from_csv extends BaseJavaMigration {
+public class V10__Import_drugs_from_csv extends BaseJavaMigration {
 
     private static final UUID SYSTEM_USER_ID = UUID
             .fromString("00000000-0000-0000-0000-000000000001");
@@ -198,7 +198,7 @@ public class V2__Import_drugs_from_csv extends BaseJavaMigration {
     private UUID getOrCreateDrug(Connection connection, String tradeName, String drugGroup,
             String form, String route, String p, String pharmacology, Timestamp now)
             throws SQLException {
-        String selectSql = "SELECT id FROM drug WHERE trade_name = ?";
+        String selectSql = "SELECT id FROM medication_schema.drug WHERE trade_name = ?";
         double price;
         try {
             price = Double.parseDouble(p);
@@ -216,7 +216,7 @@ public class V2__Import_drugs_from_csv extends BaseJavaMigration {
 
         UUID drugId = UUID.randomUUID();
         String insertSql = """
-                INSERT INTO drug (id, trade_name, drug_group, dosage_form, route, price, pharmacology,
+                INSERT INTO medication_schema.drug (id, trade_name, drug_group, dosage_form, route, price, pharmacology,
                                 created_at, created_by)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
@@ -238,7 +238,7 @@ public class V2__Import_drugs_from_csv extends BaseJavaMigration {
 
     private UUID getOrCreateCompany(Connection connection, String name, Timestamp now)
             throws SQLException {
-        String selectSql = "SELECT id FROM company WHERE name = ?";
+        String selectSql = "SELECT id FROM medication_schema.company WHERE name = ?";
         try (PreparedStatement stmt = connection.prepareStatement(selectSql)) {
             stmt.setString(1, truncate(name, 255));
             ResultSet rs = stmt.executeQuery();
@@ -248,7 +248,7 @@ public class V2__Import_drugs_from_csv extends BaseJavaMigration {
         }
 
         UUID companyId = UUID.randomUUID();
-        String insertSql = "INSERT INTO company (id, name, created_at, created_by) VALUES (?, ?, ?, ?)";
+        String insertSql = "INSERT INTO medication_schema.company (id, name, created_at, created_by) VALUES (?, ?, ?, ?)";
         return getUuid(connection, name, now, companyId, insertSql);
     }
 
@@ -267,7 +267,7 @@ public class V2__Import_drugs_from_csv extends BaseJavaMigration {
 
     private UUID getOrCreateActiveIngredient(Connection connection, String name, Timestamp now)
             throws SQLException {
-        String selectSql = "SELECT id FROM active_ingredient WHERE name = ?";
+        String selectSql = "SELECT id FROM medication_schema.active_ingredient WHERE name = ?";
         try (PreparedStatement stmt = connection.prepareStatement(selectSql)) {
             stmt.setString(1, truncate(name, 255));
             ResultSet rs = stmt.executeQuery();
@@ -277,13 +277,13 @@ public class V2__Import_drugs_from_csv extends BaseJavaMigration {
         }
 
         UUID ingredientId = UUID.randomUUID();
-        String insertSql = "INSERT INTO active_ingredient (id, name, created_at, created_by) VALUES (?, ?, ?, ?)";
+        String insertSql = "INSERT INTO medication_schema.active_ingredient (id, name, created_at, created_by) VALUES (?, ?, ?, ?)";
         return getUuid(connection, name, now, ingredientId, insertSql);
     }
 
     private void linkDrugToCompany(Connection connection, UUID drugId, UUID companyId)
             throws SQLException {
-        String checkSql = "SELECT 1 FROM drug_company WHERE drug_id = ? AND company_id = ?";
+        String checkSql = "SELECT 1 FROM medication_schema.drug_company WHERE drug_id = ? AND company_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(checkSql)) {
             stmt.setObject(1, drugId);
             stmt.setObject(2, companyId);
@@ -293,7 +293,7 @@ public class V2__Import_drugs_from_csv extends BaseJavaMigration {
             }
         }
 
-        String insertSql = "INSERT INTO drug_company (drug_id, company_id) VALUES (?, ?)";
+        String insertSql = "INSERT INTO medication_schema.drug_company (drug_id, company_id) VALUES (?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(insertSql)) {
             stmt.setObject(1, drugId);
             stmt.setObject(2, companyId);
@@ -303,7 +303,7 @@ public class V2__Import_drugs_from_csv extends BaseJavaMigration {
 
     private void linkDrugToActiveIngredient(Connection connection, UUID drugId, UUID ingredientId)
             throws SQLException {
-        String checkSql = "SELECT 1 FROM drug_active_ingredient WHERE drug_id = ? AND active_ingredient_id = ?";
+        String checkSql = "SELECT 1 FROM medication_schema.drug_active_ingredient WHERE drug_id = ? AND active_ingredient_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(checkSql)) {
             stmt.setObject(1, drugId);
             stmt.setObject(2, ingredientId);
@@ -313,7 +313,7 @@ public class V2__Import_drugs_from_csv extends BaseJavaMigration {
             }
         }
 
-        String insertSql = "INSERT INTO drug_active_ingredient (drug_id, active_ingredient_id) VALUES (?, ?)";
+        String insertSql = "INSERT INTO medication_schema.drug_active_ingredient (drug_id, active_ingredient_id) VALUES (?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(insertSql)) {
             stmt.setObject(1, drugId);
             stmt.setObject(2, ingredientId);

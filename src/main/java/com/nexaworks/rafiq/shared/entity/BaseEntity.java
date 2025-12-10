@@ -3,6 +3,8 @@ package com.nexaworks.rafiq.shared.entity;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -23,7 +25,10 @@ import lombok.experimental.SuperBuilder;
 @MappedSuperclass
 @SuperBuilder
 @EntityListeners(AuditingEntityListener.class)
+@SQLDelete(sql = "UPDATE {h-schema}{h-table} SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@Where(clause = "deleted_at IS NULL")
 public abstract class BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -41,4 +46,7 @@ public abstract class BaseEntity {
 
     @LastModifiedBy
     private UUID updatedBy;
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
 }

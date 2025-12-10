@@ -1,11 +1,10 @@
 package com.nexaworks.rafiq.user.entity.model;
 
 import com.nexaworks.rafiq.shared.entity.BaseEntity;
+
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -13,6 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@Table(name = "address", schema = "user_schema")
 public class Address extends BaseEntity {
     private String street;
     private String city;
@@ -21,6 +21,8 @@ public class Address extends BaseEntity {
     private String postalCode;
     private Boolean isPrimary;
 
-    private UUID entityId;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
 }

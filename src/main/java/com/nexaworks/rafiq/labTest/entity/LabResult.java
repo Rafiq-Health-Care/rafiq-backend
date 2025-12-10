@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.labTest.entity;
 
 import com.nexaworks.rafiq.shared.entity.BaseEntity;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,6 +15,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@Table(name = "lab_result", schema = "lab_test_schema")
 public class LabResult extends BaseEntity {
 
     private String name;
