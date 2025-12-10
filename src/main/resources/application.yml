@@ -26,7 +26,7 @@ spring:
    # JPA config
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
@@ -110,7 +110,11 @@ spring:
     google:
       genai:
         api-key: ${GOOGLE_GENAI_API_KEY}
-  # Cloudinary config
+        # Cloudinary config
+        chat:
+          options:
+            model: gemini-2.5-flash
+
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME}
   api-key: ${CLOUDINARY_API_KEY}

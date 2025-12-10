@@ -1,10 +1,12 @@
-package com.nexaworks.rafiq.ai.service;
+package com.nexaworks.rafiq.ai.service.implementation;
 
 import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 
+import com.nexaworks.rafiq.ai.service.AiService;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -16,7 +18,7 @@ import com.nexaworks.rafiq.ai.client.dto.ContentPart;
 import com.nexaworks.rafiq.ai.client.dto.InlineDataPart;
 import com.nexaworks.rafiq.ai.client.dto.Part;
 import com.nexaworks.rafiq.ai.client.dto.RequestBodyDTO;
-import com.nexaworks.rafiq.shared.utils.Prompt;
+import com.nexaworks.rafiq.ai.utils.Prompt;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GeminiService implements AiService {
     private final Gemini gemini;
+    private final ChatClient chatClient;
+    private final ObjectMapper objectMapper;
 
     @Override
     public String extractLabResultsFromPdf(byte[] pdfBytes) throws IOException, DocumentException {
@@ -34,6 +38,15 @@ public class GeminiService implements AiService {
         RequestBodyDTO requestBody = prepareGeminiRequest(encodedPdf);
 
         return handleGeminiResponse(requestBody);
+    }
+
+    @Override
+    public String analysisData(String prompt, List<?> data) throws JsonProcessingException {
+        String preparedPrompt = prompt + objectMapper.writeValueAsString(data);
+        return chatClient.prompt()
+                .user(preparedPrompt)
+                .call()
+                .content();
     }
 
     @NotNull

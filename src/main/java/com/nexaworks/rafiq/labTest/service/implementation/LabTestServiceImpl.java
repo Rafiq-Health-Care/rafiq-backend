@@ -19,6 +19,7 @@ import com.nexaworks.rafiq.labTest.api.dto.TestResultRequest;
 import com.nexaworks.rafiq.labTest.entity.LabResult;
 import com.nexaworks.rafiq.labTest.entity.LabTest;
 import com.nexaworks.rafiq.labTest.exception.LabTestException;
+import com.nexaworks.rafiq.labTest.mapper.ResultMapper;
 import com.nexaworks.rafiq.labTest.repository.LabTestRepository;
 import com.nexaworks.rafiq.labTest.service.LabResultService;
 import com.nexaworks.rafiq.labTest.service.LabTestService;
@@ -35,6 +36,7 @@ public class LabTestServiceImpl implements LabTestService {
     private final LabResultService labResultService;
     private final LabTestRepository labTestRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final ResultMapper resultMapper;
 
     @Override
     @Transactional
@@ -50,8 +52,8 @@ public class LabTestServiceImpl implements LabTestService {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                eventPublisher
-                        .publishEvent(new LabTestCreatedEvent(labTest.getFileId(), labTestId));
+                eventPublisher.publishEvent(new LabTestCreatedEvent(labTest.getFileId(), labTestId,
+                        entity.stream().map(resultMapper::toDto).toList()));
             }
         });
 

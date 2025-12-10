@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.labTest.api.dto;
+package com.nexaworks.rafiq.shared.dto;
 
 import jakarta.validation.constraints.NotBlank;
 

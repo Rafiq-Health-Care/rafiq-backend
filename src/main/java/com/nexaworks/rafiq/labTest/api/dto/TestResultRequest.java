@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import com.nexaworks.rafiq.shared.dto.TestRequest;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 

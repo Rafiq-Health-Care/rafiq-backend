@@ -1,7 +1,9 @@
-package com.nexaworks.rafiq.ai.service;
+package com.nexaworks.rafiq.ai.service.implementation;
 
 import java.io.IOException;
 
+import com.nexaworks.rafiq.ai.service.AiFacade;
+import com.nexaworks.rafiq.ai.service.AiService;
 import org.springframework.stereotype.Component;
 
 import com.itextpdf.text.DocumentException;

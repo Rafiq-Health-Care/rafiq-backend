@@ -22,13 +22,13 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexaworks.rafiq.ai.service.AiService;
-import com.nexaworks.rafiq.labTest.api.dto.TestRequest;
 import com.nexaworks.rafiq.labTest.api.dto.TestResultRequest;
 import com.nexaworks.rafiq.labTest.entity.LabTest;
 import com.nexaworks.rafiq.labTest.repository.LabResultRepository;
 import com.nexaworks.rafiq.labTest.repository.LabTestRepository;
 import com.nexaworks.rafiq.patient.entity.model.Patient;
 import com.nexaworks.rafiq.patient.repository.PatientRepository;
+import com.nexaworks.rafiq.shared.dto.TestRequest;
 import com.nexaworks.rafiq.test.BaseIntegrationTest;
 import com.nexaworks.rafiq.user.entity.enums.Gender;
 import com.nexaworks.rafiq.user.entity.model.Role;
