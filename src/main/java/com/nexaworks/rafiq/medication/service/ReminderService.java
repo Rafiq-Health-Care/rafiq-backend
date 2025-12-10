@@ -3,7 +3,6 @@ package com.nexaworks.rafiq.medication.service;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import org.quartz.SchedulerException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -14,7 +13,7 @@ import com.nexaworks.rafiq.medication.entity.enums.ReminderStatus;
 import com.nexaworks.rafiq.medication.entity.model.Reminder;
 
 public interface ReminderService {
-    Reminder createReminder(Reminder reminder, UUID patientId) throws SchedulerException;
+    Reminder createReminder(Reminder reminder, UUID patientId);
 
     Page<GetAllRemindersHistoryResponseProjection> getHistory(Pageable pageable,
             ReminderFilters filters, UUID patientId);

@@ -61,4 +61,10 @@ public class MedicationExceptionHandler {
                 HttpStatus.CONFLICT);
         return ResponseEntity.status(409).body(errorResponse);
     }
+    @ExceptionHandler(CannotDeleteMedicine.class)
+    public ResponseEntity<ErrorResponse> handleCannotDeleteMedicine(CannotDeleteMedicine ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.BAD_REQUEST));
+    }
 }

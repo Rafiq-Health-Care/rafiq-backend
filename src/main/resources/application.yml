@@ -67,27 +67,27 @@ spring:
             client-id: ${FACEBOOK_CLIENT_ID}
             client-secret: ${FACEBOOK_CLIENT_SECRET}
   # Quartz scheduler config
-  quartz:
-    job-store-type: jdbc
-    jdbc:
-      initialize-schema: always
-    properties:
-      org:
-        quartz:
-          jobStore:
-            dataSource: quartzDataSource
-            driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
-          dataSource:
-            quartzDataSource:
-              provider: hikaricp
-              driver: org.postgresql.Driver
-              URL: ${spring.datasource.url}
-              user: ${spring.datasource.username}
-              password: ${spring.datasource.password}
-          scheduler:
-            instanceName: RafiqScheduler
-          threadPool:
-            threadCount: 1
+#  quartz:
+#    job-store-type: jdbc
+#    jdbc:
+#      initialize-schema: always
+#    properties:
+#      org:
+#        quartz:
+#          jobStore:
+#            dataSource: quartzDataSource
+#            driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+#          dataSource:
+#            quartzDataSource:
+#              provider: hikaricp
+#              driver: org.postgresql.Driver
+#              URL: ${spring.datasource.url}
+#              user: ${spring.datasource.username}
+#              password: ${spring.datasource.password}
+#          scheduler:
+#            instanceName: RafiqScheduler
+#          threadPool:
+#            threadCount: 1
   # Mail config
   mail:
     host: ${MAIL_HOST}

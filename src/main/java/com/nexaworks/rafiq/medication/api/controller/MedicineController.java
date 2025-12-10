@@ -4,7 +4,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.UUID;
 
-import org.quartz.SchedulerException;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -109,7 +108,7 @@ public class MedicineController {
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<AddResponse<MedicineResponse>> updateSpecific(
             @PathVariable("id") UUID medicineId, @RequestBody UpdateMedicinePatchRequest request,
-            Authentication authentication) throws SchedulerException {
+            Authentication authentication) {
         Medicine medicine = medicineService.updateSpecific(medicineId, request,
                 getUserId(authentication));
         return ResponseEntity.ok().body(new AddResponse<>(true, "Medicine updated successfully",

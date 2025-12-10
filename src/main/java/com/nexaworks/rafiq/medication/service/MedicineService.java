@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.quartz.SchedulerException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -27,8 +26,7 @@ public interface MedicineService {
 
     Medicine updateMedicine(Medicine entity, UUID medicineId, UUID patientId);
 
-    Medicine updateSpecific(UUID medicineId, UpdateMedicinePatchRequest request, UUID patientId)
-            throws SchedulerException;
+    Medicine updateSpecific(UUID medicineId, UpdateMedicinePatchRequest request, UUID patientId);
 
     List<UUID> bulkMedicineOperation(@Valid BulkMedicineOperationRequest request, UUID patientId)
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException;

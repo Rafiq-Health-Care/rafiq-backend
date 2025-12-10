@@ -1,6 +1,9 @@
 package com.nexaworks.rafiq.test.labTest.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -43,12 +46,15 @@ class LabTestControllerIntegrationTest extends BaseIntegrationTest {
     static class TestConfig {
         @Bean
         @Primary
-        public AiService mockAiService() {
-            // Return a mock implementation that returns predictable results
-            return pdfFile -> {
-                // Return a default mock response
-                return "{\"name\":\"Test Result\",\"date\":\"2024-01-15\",\"tests\":[]}";
-            };
+        public AiService mockAiService() throws Exception {
+            AiService mockService = mock(AiService.class);
+            // Mock extractLabResultsFromPdf method
+            when(mockService.extractLabResultsFromPdf(any(byte[].class)))
+                    .thenReturn("{\"name\":\"Test Result\",\"date\":\"2024-01-15\",\"tests\":[]}");
+            // Mock analysisData method
+            when(mockService.analysisData(any(String.class), any(List.class)))
+                    .thenReturn("{\"analysis\":\"Mock analysis result\"}");
+            return mockService;
         }
     }
 

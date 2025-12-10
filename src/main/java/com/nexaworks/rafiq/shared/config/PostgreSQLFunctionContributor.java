@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.config;
+package com.nexaworks.rafiq.shared.config;
 
 import org.hibernate.boot.model.FunctionContributions;
 import org.hibernate.boot.model.FunctionContributor;

@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.config;
+package com.nexaworks.rafiq.shared.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

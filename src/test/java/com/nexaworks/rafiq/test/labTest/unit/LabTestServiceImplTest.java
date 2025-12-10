@@ -6,10 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +20,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import com.nexaworks.rafiq.labTest.entity.LabTest;
 import com.nexaworks.rafiq.labTest.exception.LabTestException;
+import com.nexaworks.rafiq.labTest.mapper.ResultMapper;
 import com.nexaworks.rafiq.labTest.repository.LabTestRepository;
 import com.nexaworks.rafiq.labTest.service.implementation.LabResultServiceImpl;
 import com.nexaworks.rafiq.labTest.service.implementation.LabTestServiceImpl;
@@ -38,6 +36,9 @@ class LabTestServiceImplTest {
 
     @Mock
     ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    ResultMapper resultMapper;
 
     @InjectMocks
     LabTestServiceImpl labTestService;
@@ -74,6 +75,7 @@ class LabTestServiceImplTest {
 
         when(labTestRepository.save(any(LabTest.class))).thenReturn(savedLabTest);
         when(labResultService.saveAll(anyList())).thenReturn(new ArrayList<>());
+        when(resultMapper.toDto(Collections.singletonList(any()))).thenReturn(null);
 
         labTestService.addTest(fileId, "test", new Date(), new ArrayList<>(), patientId);
         triggerTransactionSynchronization();
@@ -105,6 +107,7 @@ class LabTestServiceImplTest {
             return test;
         });
         when(labResultService.saveAll(anyList())).thenReturn(new ArrayList<>());
+        when(resultMapper.toDto(Collections.singletonList(any()))).thenReturn(null);
 
         labTestService.addTest(fileId, "test", new Date(), new ArrayList<>(), patientId);
         triggerTransactionSynchronization();

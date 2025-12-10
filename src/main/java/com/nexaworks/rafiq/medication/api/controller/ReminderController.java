@@ -3,7 +3,6 @@ package com.nexaworks.rafiq.medication.api.controller;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import org.quartz.SchedulerException;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -52,8 +51,7 @@ public class ReminderController {
     @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = AddResponse.class)))
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<AddResponse<AddReminderResponse>> createReminder(
-            @RequestBody AddReminderRequest request, Authentication authentication)
-            throws SchedulerException {
+            @RequestBody AddReminderRequest request, Authentication authentication) {
         Reminder reminder = reminderMapper.toEntity(request);
         reminder.setMedicine(
                 medicineService.getMedicineById(request.medicineId(), getUserId(authentication)));
