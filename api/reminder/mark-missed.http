@@ -1,0 +1,17 @@
+### Mark reminder as missed
+POST http://localhost:8030/reminder/missed/1f22e174-77f3-44b4-8658-e399f5a5cb3f?taken-time=2025-11-28T08:00:00
+Accept: application/json
+
+###
+
+### Mark reminder as missed (example with UUID)
+POST http://localhost:8030/reminder/missed/dbda58e3-5641-4441-b98f-d0f0ae3b0162?taken-time=2025-11-28T14:00:00
+Accept: application/json
+
+###
+
+### Mark reminder as missed (late evening)
+POST http://localhost:8030/reminder/missed/2a8d3f5a-add7-42ca-9c40-4dbf62519486?taken-time=2025-11-28T23:59:00
+Accept: application/json
+
+###

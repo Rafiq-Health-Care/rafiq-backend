@@ -1,23 +1,47 @@
 # Rafiq Backend - Healthcare Application
 
-A Spring Boot-based healthcare application that provides medical services including lab test management, doctor registration, patient management, and AI-powered medical document analysis.
+A Spring Boot-based healthcare application built with a **modular monolith architecture** that provides comprehensive medical services including medication management with reminders, lab test analysis, doctor and patient management, and AI-powered medical document analysis.
 
 ## Table of Contents
+- [Architecture](#architecture)
 - [Prerequisites](#prerequisites)
 - [Tech Stack](#tech-stack)
 - [Getting Started](#getting-started)
 - [Environment Variables](#environment-variables)
 - [Database Setup](#database-setup)
 - [API Documentation](#api-documentation)
+- [Project Structure](#project-structure)
 - [Testing](#testing)
 - [Code Formatting](#code-formatting)
+
+## Architecture
+
+Rafiq Backend follows a **Modular Monolith Architecture** pattern, organizing code into focused, domain-driven modules with clear boundaries:
+
+- **Medication Module**: Medicine inventory, drug search, medication groups, and reminders
+- **Lab & Lab Test Modules**: Lab test management and AI-powered result analysis
+- **Doctor Module**: Doctor profiles, specializations, and event listeners
+- **Patient Module**: Patient profiles and medical history
+- **User Module**: User authentication, registration, and verification
+- **Notification Module**: Email notifications and alerts
+- **File Management Module**: File upload, storage, and retrieval
+- **Security Module**: JWT authentication, OAuth2, and security configurations
+- **AI Module**: Google Gemini AI integration for medical analysis
+- **Shared Module**: Common utilities, DTOs, and cross-cutting concerns
+
+Each module is self-contained with its own:
+- API layer (controllers)
+- Service layer (business logic)
+- Repository layer (data access)
+- Entity models
+- DTOs and mappers (where applicable)
+- Module-specific exceptions
 
 ## Prerequisites
 
 - Java 17 or higher
 - Maven 3.6+
 - PostgreSQL 15
-- Tesseract OCR 5.x (for document processing)
 
 ## Tech Stack
 
@@ -27,36 +51,22 @@ A Spring Boot-based healthcare application that provides medical services includ
 - **ORM**: Spring Data JPA with Hibernate
 - **Migration**: Flyway
 - **Security**: Spring Security with JWT & OAuth2
-- **AI**: Google Gemini AI (GenAI)
+- **AI**: Google Gemini AI (Spring AI)
 - **Storage**: Cloudinary
-- **OCR**: Tesseract & Tess4j
 - **PDF Processing**: Apache PDFBox, iTextPDF
 - **Email**: Spring Mail with Thymeleaf templates
 - **API Documentation**: SpringDoc OpenAPI
-- **Testing**: JUnit 5
+- **Testing**: JUnit 5, Testcontainers
+- **Job Scheduling**: Spring Quartz
 - **Rate Limiting**: Bucket4j
 - **HTTP Client**: OpenFeign
+- **Mapper**: MapStruct
+- **Code Quality**: Spotless, JaCoCo
 - **Build Tool**: Maven
 
 ## Getting Started
 
-### Step 1: Install Tesseract OCR
-
-**On Ubuntu/Debian:**
-```bash
-sudo apt-get update
-sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
-```
-
-**On macOS:**
-```bash
-brew install tesseract
-```
-
-**On Windows:**
-Download and install from: https://github.com/UB-Mannheim/tesseract/wiki
-
-### Step 2: Setup PostgreSQL Database
+### Step 1: Setup PostgreSQL Database
 
 1. Install PostgreSQL 15
 2. Create a database:
@@ -64,7 +74,7 @@ Download and install from: https://github.com/UB-Mannheim/tesseract/wiki
    CREATE DATABASE rafiq;
    ```
 
-### Step 3: Configure Environment Variables
+### Step 2: Configure Environment Variables
 
 Create a `.env.properties` file in the project root with the following variables:
 
@@ -111,7 +121,7 @@ MAIL_PASSWORD=your_password
 MAIL_PROTOCOL=smtp
 ```
 
-### Step 4: Build and Run
+### Step 3: Build and Run
 
 1. **Clean and build the project**
    ```bash
@@ -188,7 +198,7 @@ Access interactive API documentation at:
 To generate OpenAPI documentation files:
 
 ```bash
-mvn spring-boot:run -Dspring-boot.run.arguments=generate-openapi
+./mvnw spring-boot:run -Dspring-boot.run.arguments=generate-openapi
 ```
 
 The generated files will be in the `openapi/` directory:
@@ -202,22 +212,38 @@ https://editor.swagger.io/
 
 ### API Endpoints
 
-The application provides the following API endpoints:
+The application provides the following API endpoints organized by module:
 
-- **Authentication**: `/auth/*`
-  - Login, Register, OAuth2 (Google/Facebook)
-  - Password reset, Email verification
-  
-- **User Management**: `/users/*`
-  - Doctor and Patient registration
-  - Profile management
-  
-- **Lab Tests**: `/lab-tests/*`
-  - Upload, retrieve, update, delete lab tests
-  - AI-powered test result analysis
-  
-- **Specializations**: `/specializations/*`
-  - Medical specializations management
+#### Authentication (`/auth/*`)
+- Login, Logout, Token Refresh
+- OAuth2 (Google/Facebook)
+- Password reset and change
+- Email verification
+
+#### User Management (`/users/*`)
+- Doctor and Patient registration
+- Profile management
+- OTP verification
+
+#### Medication (`/medicines/*`, `/groups/*`, `/reminders/*`)
+- Medicine inventory management
+- Drug search and information
+- Medication groups and categorization
+- Medication reminders and tracking
+- Dose scheduling and history
+
+#### Lab Tests (`/lab-tests/*`)
+- Upload and manage lab test documents
+- AI-powered test result analysis
+- Test history and retrieval
+
+#### Doctor (`/doctors/*`, `/specializations/*`)
+- Doctor profiles and specializations
+- Medical specializations directory
+
+#### Asset Management (`/assets/*`)
+- File upload and retrieval
+- Image and document management
 
 Sample HTTP requests are available in the `api/` directory.
 
@@ -271,44 +297,113 @@ A pre-commit hook is configured to automatically run Spotless before commits.
 rafiq-backend/
 ├── api/                          # HTTP request samples
 │   ├── auth/                     # Authentication endpoints
+│   ├── drug/                     # Drug search endpoints
+│   ├── group/                    # Medication group endpoints
 │   ├── lab-test/                 # Lab test endpoints
+│   ├── medicine/                 # Medicine management endpoints
+│   ├── reminder/                 # Medication reminder endpoints
 │   ├── specialization/           # Specialization endpoints
-│   └── user/                     # User management endpoints
+│   ├── user/                     # User management endpoints
+│   └── asset/                    # Asset management endpoints
 ├── openapi/                      # OpenAPI documentation files
 ├── src/
 │   ├── main/
 │   │   ├── java/com/nexaworks/rafiq/
-│   │   │   ├── config/           # Configuration classes
-│   │   │   ├── controller/       # REST controllers
-│   │   │   ├── dto/              # Data Transfer Objects
-│   │   │   ├── entities/         # JPA entities
-│   │   │   ├── enums/            # Enumerations
-│   │   │   ├── eventListener/    # Event listeners
-│   │   │   ├── exception/        # Custom exceptions
-│   │   │   ├── mapper/           # MapStruct mappers
-│   │   │   ├── security/         # Security configuration
-│   │   │   ├── service/          # Business logic
-│   │   │   └── utils/            # Utility classes
+│   │   │   ├── RafiqApplication.java    # Main application entry point
+│   │   │   ├── medication/              # Medication module
+│   │   │   │   ├── api/                 # Controllers
+│   │   │   │   ├── service/             # Business logic
+│   │   │   │   ├── repository/          # Data access
+│   │   │   │   ├── entity/              # Domain models
+│   │   │   │   ├── mapper/              # DTO mappers
+│   │   │   │   └── exception/           # Module exceptions
+│   │   │   ├── labTest/                 # Lab Test module
+│   │   │   │   ├── api/
+│   │   │   │   ├── service/
+│   │   │   │   ├── repository/
+│   │   │   │   ├── entity/
+│   │   │   │   ├── mapper/
+│   │   │   │   └── exception/
+│   │   │   ├── lab/                     # Lab module
+│   │   │   │   ├── api/
+│   │   │   │   ├── service/
+│   │   │   │   ├── repository/
+│   │   │   │   ├── entity/
+│   │   │   │   └── exception/
+│   │   │   ├── doctor/                  # Doctor module
+│   │   │   │   ├── api/
+│   │   │   │   ├── service/
+│   │   │   │   ├── repository/
+│   │   │   │   ├── entity/
+│   │   │   │   ├── listener/
+│   │   │   │   └── exception/
+│   │   │   ├── patient/                 # Patient module
+│   │   │   │   ├── api/
+│   │   │   │   ├── service/
+│   │   │   │   ├── repository/
+│   │   │   │   ├── entity/
+│   │   │   │   └── exception/
+│   │   │   ├── user/                    # User management module
+│   │   │   │   ├── api/
+│   │   │   │   ├── service/
+│   │   │   │   ├── repository/
+│   │   │   │   ├── entity/
+│   │   │   │   └── exception/
+│   │   │   ├── notification/            # Notification module
+│   │   │   │   ├── service/
+│   │   │   │   └── entity/
+│   │   │   ├── fileManagment/           # File management module
+│   │   │   │   ├── api/
+│   │   │   │   ├── service/
+│   │   │   │   └── entity/
+│   │   │   ├── security/                # Security module
+│   │   │   │   ├── config/              # Security configuration
+│   │   │   │   ├── jwt/                 # JWT handling
+│   │   │   │   ├── oauth2/              # OAuth2 configuration
+│   │   │   │   └── filter/              # Security filters
+│   │   │   ├── shared/                  # Shared module
+│   │   │   │   ├── dto/                 # Common DTOs
+│   │   │   │   ├── exception/           # Global exceptions
+│   │   │   │   ├── utils/               # Utility classes
+│   │   │   │   └── config/              # Shared configurations
+│   │   │   ├── ai/                      # AI integration module
+│   │   │   │   └── service/             # AI services (Gemini)
+│   │   │   ├── config/                  # Application configurations
+│   │   │   └── db/                      # Database configurations
 │   │   └── resources/
-│   │       ├── application.yml   # Application configuration
-│   │       ├── db/migration/     # Flyway migrations
-│   │       └── templates/        # Email templates
-│   └── test/                     # Test classes
-├── pom.xml                       # Maven configuration
-└── README.md                     # This file
+│   │       ├── application.yml          # Application configuration
+│   │       ├── db/migration/            # Flyway migrations
+│   │       ├── templates/               # Email templates
+│   │       └── static/                  # Static resources
+│   └── test/
+│       ├── java/                        # Test classes
+│       └── resources/                   # Test resources
+├── target/                              # Build output
+├── docker-compose.yml                   # Docker compose configuration
+├── Dockerfile                           # Docker image definition
+├── pom.xml                              # Maven configuration
+├── eclipse-formatter.xml                # Code formatter config
+└── README.md                            # This file
 ```
 
 ## Development Tips
 
 1. **Hot Reload**: The project includes Spring Boot DevTools for automatic restart during development.
 
-2. **Database Migrations**: Use Flyway for production deployments. Keep migration scripts versioned.
+2. **Modular Architecture**: Each module is independent with clear boundaries. When adding features:
+   - Keep module dependencies minimal
+   - Use the shared module for cross-cutting concerns
+   - Follow the existing package structure within modules
 
-3. **API Testing**: Use the provided `.http` files in the `api/` directory with IntelliJ HTTP Client or VS Code REST Client.
+3. **Database Migrations**: Use Flyway for production deployments. Keep migration scripts versioned.
 
-4. **Logging**: Check application logs for debugging. Adjust log levels in `application.yml`.
+4. **API Testing**: Use the provided `.http` files in the `api/` directory with IntelliJ HTTP Client or VS Code REST Client extension.
 
-5. **Rate Limiting**: The application uses Bucket4j for API rate limiting. Configure in the application properties.
+5. **Logging**: Check application logs for debugging. Adjust log levels in `application.yml`.
+
+6. **Rate Limiting**: The application uses Bucket4j for API rate limiting. Configure in the application properties.
+
+7. **Docker Support**: Use the provided `docker-compose.yml` for containerized development and deployment.
 
 ## Troubleshooting
 
@@ -324,29 +419,9 @@ server:
 - Verify database credentials
 - Check if port 5432 is accessible
 
-### Tesseract Not Found
-Set the `TESSDATA_PREFIX` environment variable:
-```bash
-export TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata
-```
-
 ### Maven Build Issues
 Clear Maven cache and rebuild:
 ```bash
 ./mvnw clean install -U
 ```
 
-## Contributing
-
-1. Follow the existing code style (enforced by Spotless)
-2. Write tests for new features
-3. Update API documentation
-4. Ensure all tests pass before submitting PR
-
-## License
-
-[Add your license information here]
-
-## Support
-
-For issues and questions, please contact the development team or create an issue in the repository.

@@ -1,0 +1,11 @@
+### Verify user email (returns LoginResponse)
+POST http://localhost:8030/user/verification
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "ok1e@example.com",
+  "otp": "187772"
+}
+
+###

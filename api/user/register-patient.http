@@ -1,0 +1,16 @@
+### Register patient
+POST http://localhost:8030/user/register/patient
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "ok1e@example.com",
+  "password": "Str0ng@Pass1!",
+  "firstName": "John",
+  "lastName": "Doe",
+  "phone": "+15551234567",
+  "birthDate": "1985-06-15",
+  "gender": "male"
+}
+
+###

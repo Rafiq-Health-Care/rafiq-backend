@@ -1,103 +1,262 @@
 <!DOCTYPE html>
-<html lang="en"
-      xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Email Verification - OTP</title>
+    <!--[if mso]>
+    <style type="text/css">
+        body, table, td {font-family: Arial, sans-serif !important;}
+    </style>
+    <![endif]-->
     <style>
+        /* Reset styles */
+        body, table, td, p, a, li, blockquote {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        table, td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+        img {
+            -ms-interpolation-mode: bicubic;
+            border: 0;
+            outline: none;
+            text-decoration: none;
+        }
+
+        /* Base styles */
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: #f5f7fa;
             margin: 0;
             padding: 0;
-            color: #333;
+            width: 100% !important;
+            height: 100% !important;
+            background-color: #f5f7fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
         }
 
         .email-wrapper {
-            max-width: 600px;
-            margin: 40px auto;
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            overflow: hidden;
+            width: 100%;
+            background-color: #f5f7fa;
+            padding: 20px 0;
         }
 
+        /* Header */
         .header {
-            background-color: #0d6efd;
-            padding: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
             text-align: center;
-            color: #ffffff;
         }
 
         .header h1 {
             margin: 0;
-            font-size: 22px;
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 600;
+            line-height: 1.3;
         }
 
+        /* Content */
         .content {
-            padding: 30px;
-            text-align: center;
+            padding: 40px 30px;
         }
 
         .content h2 {
-            color: #0d6efd;
-            font-size: 20px;
-            margin-bottom: 16px;
+            color: #1a202c;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0 0 20px 0;
+            text-align: center;
         }
 
         .content p {
+            color: #4a5568;
             font-size: 16px;
             line-height: 1.6;
-            margin-bottom: 20px;
+            margin: 0 0 20px 0;
+            text-align: center;
+        }
+
+        .content p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* OTP Box */
+        .otp-container {
+            text-align: center;
+            margin: 30px 0;
         }
 
         .otp-box {
             display: inline-block;
-            background-color: #0d6efd;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #ffffff;
-            font-size: 24px;
-            letter-spacing: 6px;
-            padding: 14px 28px;
-            border-radius: 10px;
-            font-weight: bold;
-            margin-top: 20px;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 8px;
+            padding: 20px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            margin: 0 auto;
         }
 
-        .footer {
-            background-color: #f0f2f5;
+        .otp-label {
+            color: #718096;
+            font-size: 14px;
+            margin-top: 15px;
             text-align: center;
-            font-size: 13px;
-            color: #777;
-            padding: 16px;
+        }
+
+        /* Security notice */
+        .security-notice {
+            background-color: #fef5e7;
+            border-left: 4px solid #f6ad55;
+            padding: 15px 20px;
+            margin: 30px 0;
+            border-radius: 6px;
+        }
+
+        .security-notice p {
+            color: #744210;
+            font-size: 14px;
+            margin: 0;
+            text-align: left;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #f7fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
         }
 
         .footer p {
-            margin: 6px 0;
+            color: #718096;
+            font-size: 13px;
+            line-height: 1.6;
+            margin: 5px 0;
+        }
+
+        .footer p:first-child {
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        /* Responsive styles */
+        @media only screen and (max-width: 600px) {
+            .email-wrapper {
+                padding: 10px 0;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .content h2 {
+                font-size: 22px;
+            }
+
+            .content p {
+                font-size: 15px;
+            }
+
+            .otp-box {
+                font-size: 28px;
+                letter-spacing: 6px;
+                padding: 18px 30px;
+            }
+
+            .footer {
+                padding: 20px;
+            }
+        }
+
+        @media only screen and (max-width: 480px) {
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .content h2 {
+                font-size: 20px;
+            }
+
+            .otp-box {
+                font-size: 24px;
+                letter-spacing: 4px;
+                padding: 16px 24px;
+            }
         }
     </style>
 </head>
 <body>
-<div class="email-wrapper">
-    <div class="header">
-        <h1>Verify Your Email Address</h1>
+    <div class="email-wrapper">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="email-container">
+            <tr>
+                <td>
+                    <!-- Header -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                        <tr>
+                            <td class="header">
+                                <h1>Verify Your Email Address</h1>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- Content -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                        <tr>
+                            <td class="content">
+                                <h2>Hello <span th:text="${name}">User</span>!</h2>
+                                <p>Thank you for signing up with <strong>Rafiq</strong>! We're excited to have you on board.</p>
+                                <p>To complete your registration and secure your account, please verify your email address using the one-time password (OTP) below.</p>
+
+                                <div class="otp-container">
+                                    <div class="otp-box" th:text="${otp}">123456</div>
+                                    <p class="otp-label">Enter this code to verify your email</p>
+                                </div>
+
+                                <div class="security-notice">
+                                    <p><strong>⏱️ Valid for 5 minutes</strong><br>
+                                    This OTP will expire in 5 minutes. Please do not share this code with anyone for your account's security.</p>
+                                </div>
+
+                                <p>If you didn't create an account with Rafiq, you can safely ignore this email.</p>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- Footer -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                        <tr>
+                            <td class="footer">
+                                <p><strong>Rafiq Healthcare Platform</strong></p>
+                                <p>&copy; <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2025</span> Rafiq. All rights reserved.</p>
+                                <p>This is an automated message — please do not reply to this email.</p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
     </div>
-
-    <div class="content">
-        <h2>Hello <span th:text="${name}">User</span>,</h2>
-        <p>Thank you for signing up with <strong>Rafiq</strong>!
-            To complete your registration, please verify your email address using the one-time password (OTP) below.</p>
-
-        <div class="otp-box" th:text="${otp}">123456</div>
-
-        <p>This OTP is valid for <strong>5 minutes</strong>.
-            Please do not share it with anyone for your account’s security.</p>
-    </div>
-
-    <div class="footer">
-        <p>&copy; <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2025</span> Rafiq. All rights reserved.</p>
-        <p>This is an automated message — please do not reply.</p>
-    </div>
-</div>
 </body>
 </html>

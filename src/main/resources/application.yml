@@ -26,7 +26,7 @@ spring:
    # JPA config
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
@@ -49,7 +49,7 @@ spring:
     validate-on-migrate: true
     # Clean disabled for safety (set to false in production)
     clean-disabled: true
-  # File upload config
+  # FileMetaData upload config
   servlet:
     multipart:
       max-file-size: 10MB
@@ -67,27 +67,27 @@ spring:
             client-id: ${FACEBOOK_CLIENT_ID}
             client-secret: ${FACEBOOK_CLIENT_SECRET}
   # Quartz scheduler config
-  quartz:
-    job-store-type: jdbc
-    jdbc:
-      initialize-schema: always
-    properties:
-      org:
-        quartz:
-          jobStore:
-            dataSource: quartzDataSource
-            driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
-          dataSource:
-            quartzDataSource:
-              provider: hikaricp
-              driver: org.postgresql.Driver
-              URL: ${spring.datasource.url}
-              user: ${spring.datasource.username}
-              password: ${spring.datasource.password}
-          scheduler:
-            instanceName: RafiqScheduler
-          threadPool:
-            threadCount: 1
+#  quartz:
+#    job-store-type: jdbc
+#    jdbc:
+#      initialize-schema: always
+#    properties:
+#      org:
+#        quartz:
+#          jobStore:
+#            dataSource: quartzDataSource
+#            driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+#          dataSource:
+#            quartzDataSource:
+#              provider: hikaricp
+#              driver: org.postgresql.Driver
+#              URL: ${spring.datasource.url}
+#              user: ${spring.datasource.username}
+#              password: ${spring.datasource.password}
+#          scheduler:
+#            instanceName: RafiqScheduler
+#          threadPool:
+#            threadCount: 1
   # Mail config
   mail:
     host: ${MAIL_HOST}
@@ -110,7 +110,11 @@ spring:
     google:
       genai:
         api-key: ${GOOGLE_GENAI_API_KEY}
-  # Cloudinary config
+        # Cloudinary config
+        chat:
+          options:
+            model: gemini-2.5-flash-lite
+
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME}
   api-key: ${CLOUDINARY_API_KEY}
@@ -137,6 +141,4 @@ server:
       max: 10
       min-spare: 2
     accept-count: 5
-logging:
-  level:
-    root: ERROR
+

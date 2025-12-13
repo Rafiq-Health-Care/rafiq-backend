@@ -1,0 +1,5 @@
+### Get all specializations (returns List<SpecializationResponse>)
+GET http://localhost:8030/specialization
+Accept: application/json
+
+###

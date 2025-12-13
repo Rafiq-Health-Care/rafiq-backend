@@ -1,0 +1,4 @@
+### Get Reminder by ID
+GET http://localhost:8030/reminder/{{reminder-id}}
+Authorization: Bearer {{access_token}}
+

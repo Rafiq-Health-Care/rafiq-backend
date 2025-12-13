@@ -1,0 +1,5 @@
+### Get a specific lab test by ID (returns TestResultsResponse)
+GET http://localhost:8030/lab-test/aea94f68-fa3a-4b28-b9c2-e70e231b8c6e
+Accept: application/json
+
+###

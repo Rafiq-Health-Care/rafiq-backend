@@ -1,0 +1,5 @@
+### Search drugs (returns PageResponse<DrugSearchResponse>)
+GET http://localhost:8030/drugs?drug=dol&page=0&size=20
+Accept: application/json
+
+###

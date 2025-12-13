@@ -1,0 +1,5 @@
+### Delete group by ID
+DELETE http://localhost:8030/group/c7842867-f029-426f-b533-543e1e35ae21
+Accept: application/json
+
+###

@@ -1,0 +1,16 @@
+### Get a specific medicine by ID (returns GetMedicineResponse with medicine and reminders)
+GET http://localhost:8030/medicines/2635fb1f-de26-410b-bd46-2835655dd917
+Accept: application/json
+
+###
+
+
+
+
+
+
+
+
+
+
+

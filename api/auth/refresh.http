@@ -1,0 +1,7 @@
+### Refresh access token (returns LoginResponse)
+POST http://localhost:8030/auth/refresh
+Accept: application/json
+# If your server expects the refresh token in a cookie, uncomment and set it below:
+# Cookie: refreshToken=<paste_refresh_token_cookie_here>
+
+###

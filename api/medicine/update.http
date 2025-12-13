@@ -1,0 +1,28 @@
+### Update an existing medicine by ID
+PUT http://localhost:8030/medicines/6b1ed5b8-e91b-41aa-ab74-9fd296c673ad
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Updated Medicine Name",
+  "dosage": "250mg",
+  "notes": "Take with food",
+  "frequency": "THRICE_DAILY",
+  "startDate": "2025-01-01T08:00:00Z",
+  "endDate": "2025-01-15T08:00:00Z",
+  "type": "CAPSULE",
+  "status": "ACTIVE"
+}
+
+###
+
+
+
+
+
+
+
+
+
+
+

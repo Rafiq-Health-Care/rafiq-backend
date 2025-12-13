@@ -1,0 +1,36 @@
+package com.nexaworks.rafiq.medication.repository;
+
+import java.time.Instant;
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.nexaworks.rafiq.medication.api.dto.request.GetAllRemindersHistoryResponseProjection;
+import com.nexaworks.rafiq.medication.entity.enums.ReminderStatus;
+import com.nexaworks.rafiq.medication.entity.model.ReminderLog;
+
+public interface ReminderLogRepository extends JpaRepository<ReminderLog, UUID> {
+
+    @Query("""
+            SELECT m.id AS medicineId,
+                   m.name AS medicineName,
+                   m.dosage AS dosage,
+                   rl.timestamp AS time
+            FROM ReminderLog rl
+            JOIN Reminder r ON rl.reminder = r
+            JOIN Medicine m ON r.medicine = m
+            WHERE (CAST(:startDate AS timestamp) IS NULL OR rl.updatedAt >= :startDate)
+              AND (CAST(:endDate AS timestamp) IS NULL OR rl.updatedAt <= :endDate)
+              AND (CAST(:reminderId AS uuid) IS NULL OR r.id = :reminderId)
+              AND (:status IS NULL OR rl.status = :status)
+              AND (CAST(:patientId AS uuid) IS NULL OR r.patientId = :patientId)
+            """)
+    Page<GetAllRemindersHistoryResponseProjection> findLogsHistory(
+            @Param("startDate") Instant startDate, @Param("endDate") Instant endDate,
+            @Param("reminderId") UUID reminderId, @Param("status") ReminderStatus status,
+            @Param("patientId") UUID patientId, Pageable pageable);
+}

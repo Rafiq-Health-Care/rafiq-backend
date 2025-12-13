@@ -1,0 +1,17 @@
+### Mark reminder as taken
+POST http://localhost:8030/reminder/taken/0d087ca6-c7d4-470d-b44e-2b83424c5f38?taken-time=2025-11-28T08:15:00
+Accept: application/json
+
+###
+
+### Mark reminder as taken (example with UUID)
+POST http://localhost:8030/reminder/taken/dbda58e3-5641-4441-b98f-d0f0ae3b0162?taken-time=2025-11-28T14:30:00
+Accept: application/json
+
+###
+
+### Mark reminder as taken (current time example)
+POST http://localhost:8030/reminder/taken/2a8d3f5a-add7-42ca-9c40-4dbf62519486?taken-time=2025-11-28T09:00:00
+Accept: application/json
+
+###

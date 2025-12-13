@@ -1,0 +1,11 @@
+### Add a new group
+POST http://localhost:8030/group/add
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Pain Relief Medications",
+  "description": "Group for all pain relief and analgesic medications"
+}
+
+###

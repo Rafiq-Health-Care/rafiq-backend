@@ -1,0 +1,14 @@
+### Upload lab test PDF and extract results (multipart/form-data)
+POST http://localhost:8030/lab-test/upload
+Content-Type: multipart/form-data; boundary=Boundary_ABC123
+Accept: application/json
+
+--Boundary_ABC123
+Content-Disposition: form-data; name="fileMetaData"; filename="lab-result.pdf"
+Content-Type: application/pdf
+
+< /home/bialy/rafiq-backend/api/asset/lab-result.pdf
+
+--Boundary_ABC123--
+
+###

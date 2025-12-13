@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Doctor Registration - Account Under Review</title>
+    <!--[if mso]>
+    <style type="text/css">
+        body, table, td {font-family: Arial, sans-serif !important;}
+    </style>
+    <![endif]-->
+    <style>
+        /* Reset styles */
+        body, table, td, p, a, li, blockquote {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        table, td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+        img {
+            -ms-interpolation-mode: bicubic;
+            border: 0;
+            outline: none;
+            text-decoration: none;
+        }
+
+        /* Base styles */
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100% !important;
+            height: 100% !important;
+            background-color: #f5f7fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+
+        .email-wrapper {
+            width: 100%;
+            background-color: #f5f7fa;
+            padding: 20px 0;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        /* Review Notice */
+        .review-notice {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 30px;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .review-notice h2 {
+            margin: 0 0 15px 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .review-notice p {
+            margin: 0;
+            font-size: 16px;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+
+        /* Content */
+        .content {
+            padding: 40px 30px;
+        }
+
+        .content h2 {
+            color: #1a202c;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0 0 20px 0;
+            text-align: center;
+        }
+
+        .content p {
+            color: #4a5568;
+            font-size: 16px;
+            line-height: 1.6;
+            margin: 0 0 20px 0;
+            text-align: center;
+        }
+
+        .content p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* OTP Box */
+        .otp-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .otp-box {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 8px;
+            padding: 20px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            margin: 0 auto;
+        }
+
+        .otp-label {
+            color: #718096;
+            font-size: 14px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        /* Info Box */
+        .info-box {
+            background-color: #ebf8ff;
+            border-left: 4px solid #3182ce;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 6px;
+        }
+
+        .info-box h3 {
+            color: #2c5282;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 10px 0;
+            text-align: left;
+        }
+
+        .info-box p {
+            color: #2c5282;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0;
+            text-align: left;
+        }
+
+        .info-box ul {
+            color: #2c5282;
+            font-size: 14px;
+            line-height: 1.8;
+            margin: 10px 0 0 0;
+            padding-left: 20px;
+            text-align: left;
+        }
+
+        /* Security notice */
+        .security-notice {
+            background-color: #fef5e7;
+            border-left: 4px solid #f6ad55;
+            padding: 15px 20px;
+            margin: 30px 0;
+            border-radius: 6px;
+        }
+
+        .security-notice p {
+            color: #744210;
+            font-size: 14px;
+            margin: 0;
+            text-align: left;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #f7fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .footer p {
+            color: #718096;
+            font-size: 13px;
+            line-height: 1.6;
+            margin: 5px 0;
+        }
+
+        .footer p:first-child {
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        /* Responsive styles */
+        @media only screen and (max-width: 600px) {
+            .email-wrapper {
+                padding: 10px 0;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .review-notice {
+                padding: 25px 20px;
+            }
+
+            .review-notice h2 {
+                font-size: 20px;
+            }
+
+            .review-notice p {
+                font-size: 15px;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .content h2 {
+                font-size: 22px;
+            }
+
+            .content p {
+                font-size: 15px;
+            }
+
+            .otp-box {
+                font-size: 28px;
+                letter-spacing: 6px;
+                padding: 18px 30px;
+            }
+
+            .info-box {
+                padding: 15px;
+            }
+
+            .footer {
+                padding: 20px;
+            }
+        }
+
+        @media only screen and (max-width: 480px) {
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .review-notice h2 {
+                font-size: 18px;
+            }
+
+            .content h2 {
+                font-size: 20px;
+            }
+
+            .otp-box {
+                font-size: 24px;
+                letter-spacing: 4px;
+                padding: 16px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="email-container">
+            <tr>
+                <td>
+                    <!-- Header -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                        <tr>
+                            <td class="header">
+                                <h1>Welcome to Rafiq, Doctor!</h1>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- Review Notice -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                        <tr>
+                            <td class="review-notice">
+                                <h2>🔍 Your Account is Under Review</h2>
+                                <p>We're currently reviewing your registration and credentials. You'll receive an email notification once your account is approved.</p>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- Content -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                        <tr>
+                            <td class="content">
+                                <h2>Hello <span th:text="${name}">Doctor</span>!</h2>
+                                <p>Thank you for registering with <strong>Rafiq</strong> as a healthcare provider. We're excited to have you join our medical community.</p>
+                                <p>To complete your registration, please verify your email address using the one-time password (OTP) below.</p>
+
+                                <div class="otp-container">
+                                    <div class="otp-box" th:text="${otp}">123456</div>
+                                    <p class="otp-label">Enter this code to verify your email</p>
+                                </div>
+
+                                <div class="info-box">
+                                    <h3>📋 What Happens Next?</h3>
+                                    <p>After email verification, our team will review your application, including:</p>
+                                    <ul>
+                                        <li>Your professional credentials and specialization</li>
+                                        <li>Your uploaded national ID (if provided)</li>
+                                        <li>Your professional description</li>
+                                    </ul>
+                                    <p style="margin-top: 10px;">This process typically takes 24-48 hours. You'll receive an email once your account is approved and activated.</p>
+                                </div>
+
+                                <div class="security-notice">
+                                    <p><strong>⏱️ Valid for 5 minutes</strong><br>
+                                    This OTP will expire in 5 minutes. Please do not share this code with anyone for your account's security.</p>
+                                </div>
+
+                                <p>If you didn't register with Rafiq, you can safely ignore this email.</p>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- Footer -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                        <tr>
+                            <td class="footer">
+                                <p><strong>Rafiq Healthcare Platform</strong></p>
+                                <p>&copy; <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2025</span> Rafiq. All rights reserved.</p>
+                                <p>This is an automated message — please do not reply to this email.</p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
