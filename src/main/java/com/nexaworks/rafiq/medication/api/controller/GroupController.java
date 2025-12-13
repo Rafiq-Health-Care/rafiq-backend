@@ -67,7 +67,7 @@ public class GroupController {
     @Operation(summary = "Get all groups", description = "Retrieves paginated list of user's medicine groups with sorting options. Helps users navigate and manage their organized medication collections.")
     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = PageResponse.class)))
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<PageResponse<AddGroupResponse>> getGroups(
+    public ResponseEntity<PageResponse<GroupDetailsResponse>> getGroups(
             @RequestParam(value = "sort", defaultValue = "name") String sort,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
@@ -75,7 +75,8 @@ public class GroupController {
             Authentication authentication) {
         Page<Group> groups = groupService.getGroups(page, size, direction, sort,
                 getUserId(authentication));
-        return ResponseEntity.ok().body(pageMapper.map(groups, groupMapper::toDto));
+        return ResponseEntity.ok()
+                .body(pageMapper.map(groups, g -> groupMapper.toResponse(g, medicineMapper)));
     }
 
     @GetMapping("/{id}")

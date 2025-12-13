@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import com.nexaworks.rafiq.labTest.api.dto.TestResponse;
 import com.nexaworks.rafiq.labTest.api.dto.TestResultRequest;
 import com.nexaworks.rafiq.labTest.api.dto.TestResultsResponse;
+import com.nexaworks.rafiq.labTest.entity.LabTest;
 import com.nexaworks.rafiq.labTest.mapper.ResultMapper;
 import com.nexaworks.rafiq.labTest.mapper.TestMapper;
 import com.nexaworks.rafiq.labTest.service.LabTestService;
@@ -28,13 +29,15 @@ public class LabTestController {
     private final TestMapper testMapper;
 
     @PostMapping(value = "/test-results")
-    public ResponseEntity<Void> testResults(@RequestBody @Valid TestResultRequest testResultRequest,
+    public ResponseEntity<TestResultsResponse> testResults(
+            @RequestBody @Valid TestResultRequest testResultRequest,
             Authentication authentication) {
 
-        labTestService.addTest(testResultRequest.fileId(), testResultRequest.name(),
-                testResultRequest.date(), resultMapper.toEntity(testResultRequest.tests()),
+        LabTest addedLabTest = labTestService.addTest(testResultRequest.fileId(),
+                testResultRequest.name(), testResultRequest.date(),
+                resultMapper.toEntity(testResultRequest.tests()),
                 (UUID) authentication.getPrincipal());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(testMapper.mapToTestResponse(addedLabTest));
     }
 
     @GetMapping
@@ -69,11 +72,12 @@ public class LabTestController {
     }
 
     @PutMapping("/update/{test-id}")
-    public ResponseEntity<Void> updateTest(@RequestBody @Valid TestResultRequest testResultRequest,
+    public ResponseEntity<TestResultsResponse> updateTest(
+            @RequestBody @Valid TestResultRequest testResultRequest,
             @PathVariable("test-id") UUID testId, Authentication authentication) {
-        labTestService.update(testId, testResultRequest,
+        LabTest updatedLabTest = labTestService.update(testId, testResultRequest,
                 resultMapper.toEntity(testResultRequest.tests()),
                 (UUID) authentication.getPrincipal());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(testMapper.mapToTestResponse(updatedLabTest));
     }
 }

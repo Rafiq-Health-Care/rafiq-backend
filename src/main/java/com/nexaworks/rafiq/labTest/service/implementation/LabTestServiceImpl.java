@@ -41,7 +41,7 @@ public class LabTestServiceImpl implements LabTestService {
 
     @Override
     @Transactional
-    public void addTest(UUID fileId, String testName, Date testDate, List<LabResult> entity,
+    public LabTest addTest(UUID fileId, String testName, Date testDate, List<LabResult> entity,
             UUID patientId) {
         LabTest labTest = new LabTest();
         labTest.setFileId(fileId);
@@ -57,7 +57,7 @@ public class LabTestServiceImpl implements LabTestService {
                         entity.stream().map(resultMapper::toDto).toList()));
             }
         });
-
+        return labTest;
     }
 
     private static void setTestFields(LabTest labTest, String testName, Date testDate) {
@@ -105,12 +105,12 @@ public class LabTestServiceImpl implements LabTestService {
 
     @Override
     @Transactional
-    public void update(UUID testId, TestResultRequest testResultRequest, List<LabResult> entity,
+    public LabTest update(UUID testId, TestResultRequest testResultRequest, List<LabResult> entity,
             UUID patientId) {
         LabTest test = validateOwnership(testId, patientId);
         setTestFields(test, testResultRequest.name(), testResultRequest.date());
         updateLabResults(entity, test);
-        labTestRepository.save(test);
+        return labTestRepository.save(test);
     }
 
     @Transactional

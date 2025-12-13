@@ -23,6 +23,9 @@ public interface MedicineMapper {
 
     MedicinePreview toPreviewDto(Medicine entity);
     @Mapping(target = "nextReminder", expression = "java(entity.getReminder() != null ? entity.getReminder().getNextReminder() : null)")
+    @Mapping(target = "groupId", expression = "java(entity.getGroup() != null ? entity.getGroup().getId() : null)")
+    @Mapping(target = "groupName", expression = "java(entity.getGroup() != null ? entity.getGroup().getName() : null)")
+    @Mapping(target = "groupColor", expression = "java(entity.getGroup() != null ? entity.getGroup().getColor() : null)")
     MedicineGroupResponse toGroupDto(Medicine entity);
 
 }

@@ -13,7 +13,7 @@ import com.nexaworks.rafiq.labTest.entity.LabTest;
 import jakarta.validation.Valid;
 
 public interface LabTestService {
-    void addTest(UUID testId, String testName, Date testDate, List<LabResult> entity,
+    LabTest addTest(UUID testId, String testName, Date testDate, List<LabResult> entity,
             UUID patientId);
 
     Page<LabTest> getAll(int page, int size, String sort, String direction, UUID patientId);
@@ -24,6 +24,6 @@ public interface LabTestService {
 
     Integer deleteAll(UUID patientId);
 
-    void update(UUID testId, @Valid TestResultRequest testResultRequest, List<LabResult> entity,
+    LabTest update(UUID testId, @Valid TestResultRequest testResultRequest, List<LabResult> entity,
             UUID patientId);
 }
