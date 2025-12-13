@@ -17,12 +17,13 @@ spring:
     enabled: false
   batch:
     jdbc:
-      initialize-schema: never
+      initialize-schema: always
     job:
       enabled: false
   sql:
     init:
-      mode: never
+      mode: always
+      schema-locations: classpath:schema-test.sql
   lifecycle:
    timeout-per-shutdown-phase: 20s
   test:

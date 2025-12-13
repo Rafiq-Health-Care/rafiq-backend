@@ -4,6 +4,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -28,12 +29,17 @@ import com.nexaworks.rafiq.medication.entity.enums.MedicineFrequency;
 import com.nexaworks.rafiq.medication.entity.enums.MedicineStatus;
 import com.nexaworks.rafiq.medication.entity.enums.MedicineType;
 import com.nexaworks.rafiq.medication.entity.enums.ReminderFrequency;
+import com.nexaworks.rafiq.medication.entity.enums.ReminderStatus;
 import com.nexaworks.rafiq.medication.entity.model.Drug;
 import com.nexaworks.rafiq.medication.entity.model.Group;
 import com.nexaworks.rafiq.medication.entity.model.Medicine;
+import com.nexaworks.rafiq.medication.entity.model.Reminder;
+import com.nexaworks.rafiq.medication.entity.model.ReminderLog;
 import com.nexaworks.rafiq.medication.repository.DrugRepository;
 import com.nexaworks.rafiq.medication.repository.GroupRepository;
 import com.nexaworks.rafiq.medication.repository.MedicineRepository;
+import com.nexaworks.rafiq.medication.repository.ReminderLogRepository;
+import com.nexaworks.rafiq.medication.repository.ReminderRepository;
 import com.nexaworks.rafiq.patient.entity.model.Patient;
 import com.nexaworks.rafiq.patient.repository.PatientRepository;
 import com.nexaworks.rafiq.test.BaseIntegrationTest;
@@ -63,9 +69,15 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
     PasswordEncoder passwordEncoder;
     @Autowired
     GroupRepository groupRepository;
+    @Autowired
+    ReminderRepository reminderRepository;
+    @Autowired
+    ReminderLogRepository reminderLogRepository;
 
     @BeforeEach
     void setUp() {
+        reminderLogRepository.deleteAll();
+        reminderRepository.deleteAll();
         medicineRepository.deleteAll();
         patientRepository.deleteAll();
         drugRepository.deleteAll();
@@ -538,7 +550,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
-        void shouldDeleteMedicineAndReminders_WhenMedicineHasReminders() throws Exception {
+        void shouldDeleteMedicine_WhenMedicineHasReminderWithoutLogs() throws Exception {
             User user = createTestUser();
             Drug drug = createDrug();
             Medicine medicine = Medicine.builder().patientId(user.getId()).drug(drug)
@@ -548,11 +560,53 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .build();
             medicineRepository.save(medicine);
 
+            // Create reminder without logs
+            Reminder reminder = Reminder.builder().medicine(medicine).patientId(user.getId())
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
+                    .nextReminder(LocalDateTime.now().plusHours(1)).disable(false).build();
+            reminderRepository.save(reminder);
+
             mockMvc.perform(MockMvcRequestBuilders
                     .delete(DELETE_MEDICINE_ENDPOINT, medicine.getId()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNoContent());
 
             assertThat(medicineRepository.findById(medicine.getId())).isEmpty();
+            assertThat(reminderRepository.findById(reminder.getId())).isEmpty();
+        }
+
+        @Test
+        void shouldNotDeleteMedicine_WhenMedicineHasReminderWithLogs() throws Exception {
+            User user = createTestUser();
+            Drug drug = createDrug();
+            Medicine medicine = Medicine.builder().patientId(user.getId()).drug(drug)
+                    .name("Test Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
+                    .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
+                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
+                    .build();
+            medicineRepository.save(medicine);
+
+            // Create reminder with logs
+            Reminder reminder = Reminder.builder().medicine(medicine).patientId(user.getId())
+                    .vibrate(true).status(ReminderStatus.UPCOMING)
+                    .nextReminder(LocalDateTime.now().plusHours(1)).disable(false).build();
+            reminderRepository.save(reminder);
+
+            // Create reminder log
+            ReminderLog reminderLog = ReminderLog.builder().reminder(reminder)
+                    .status(ReminderStatus.TAKEN).timestamp(LocalDateTime.now()).build();
+            reminderLogRepository.save(reminderLog);
+
+            mockMvc.perform(MockMvcRequestBuilders
+                    .delete(DELETE_MEDICINE_ENDPOINT, medicine.getId()).with(withUserId(user)))
+                    .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(
+                            "Medicine has reminder logs associated with it and cannot be deleted"));
+
+            // Verify medicine still exists but is set to INACTIVE
+            Medicine updatedMedicine = medicineRepository.findById(medicine.getId()).orElseThrow();
+            assertThat(updatedMedicine.getStatus()).isEqualTo(MedicineStatus.INACTIVE);
+            assertThat(reminderRepository.findById(reminder.getId())).isPresent();
+            assertThat(reminderLogRepository.findById(reminderLog.getId())).isPresent();
         }
     }
 

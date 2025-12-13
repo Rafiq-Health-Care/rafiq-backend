@@ -73,10 +73,10 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     @Override
-    @Transactional
+    @Transactional(noRollbackFor = {CannotDeleteMedicine.class})
     public void deleteMedicine(UUID medicineId, UUID patientId) {
         Medicine medicine = getMedicine(medicineId, patientId);
-        if (!medicine.getReminder().getReminderLogs().isEmpty()) {
+        if (medicine.getReminder() != null && !medicine.getReminder().getReminderLogs().isEmpty()) {
             medicine.setStatus(MedicineStatus.INACTIVE);
             medicineRepository.save(medicine);
             throw new CannotDeleteMedicine(

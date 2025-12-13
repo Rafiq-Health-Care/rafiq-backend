@@ -4,17 +4,22 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 
 import com.nexaworks.rafiq.doctor.entity.model.Specialization;
 import com.nexaworks.rafiq.doctor.repository.SpecializationRepository;
 import com.nexaworks.rafiq.user.entity.model.Role;
 import com.nexaworks.rafiq.user.repository.RoleRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
 @TestConfiguration
 @Profile("test")
+@Slf4j
 public class TestDataSeeder {
 
     @Bean
+    @Order(1)
     public ApplicationRunner initializeTestData(RoleRepository roleRepository,
             SpecializationRepository specializationRepository) {
         return args -> {
