@@ -4,8 +4,8 @@ Content-Type: application/json
 Accept: application/json
 
 {
-  "email": "oke@example.com",
-  "otp": "941171"
+  "email": "ok1e@example.com",
+  "otp": "187772"
 }
 
 ###

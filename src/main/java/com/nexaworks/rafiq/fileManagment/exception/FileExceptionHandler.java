@@ -36,4 +36,10 @@ public class FileExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.BAD_REQUEST));
     }
+    @ExceptionHandler(FileNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleFileNotFound(FileNotFoundException ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.NOT_FOUND));
+    }
 }

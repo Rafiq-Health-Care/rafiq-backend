@@ -82,6 +82,7 @@ public class LabTestServiceImpl implements LabTestService {
     }
 
     @Override
+    @Transactional
     public void deleteTest(UUID testId, UUID patientId) {
         LabTest test = validateOwnership(testId, patientId);
         UUID fileId = test.getFileId();

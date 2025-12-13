@@ -37,7 +37,7 @@ public class SecurityConfig {
                     var corsConfiguration = new org.springframework.web.cors.CorsConfiguration();
                     corsConfiguration.setAllowedOrigins(java.util.List.of("*"));
                     corsConfiguration.setAllowedMethods(
-                            java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                            java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
                     corsConfiguration.setAllowedHeaders(java.util.List.of("*"));
                     corsConfiguration.setAllowCredentials(false);
                     corsConfiguration.setMaxAge(3600L);

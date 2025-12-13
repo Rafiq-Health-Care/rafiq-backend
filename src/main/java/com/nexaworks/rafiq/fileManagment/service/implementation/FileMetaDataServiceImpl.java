@@ -10,6 +10,7 @@ import com.nexaworks.rafiq.fileManagment.api.dto.UploadResults;
 import com.nexaworks.rafiq.fileManagment.entity.FileMetaData;
 import com.nexaworks.rafiq.fileManagment.entity.UploadType;
 import com.nexaworks.rafiq.fileManagment.exception.FileException;
+import com.nexaworks.rafiq.fileManagment.exception.FileNotFoundException;
 import com.nexaworks.rafiq.fileManagment.repository.FileMetaDataRepository;
 import com.nexaworks.rafiq.fileManagment.service.FileMetaDataService;
 import com.nexaworks.rafiq.shared.entity.FileCategory;
@@ -62,5 +63,11 @@ public class FileMetaDataServiceImpl implements FileMetaDataService {
                 .orElseThrow(() -> new FileException("File not found"));
         cloudinaryService.delete(fileMetaData.getCloudinaryPublicId());
         fileMetaDataRepository.delete(fileMetaData);
+    }
+
+    @Override
+    public FileMetaData getFile(UUID fileId, UUID principal) {
+        return fileMetaDataRepository.findByIdAndUserId(fileId, principal)
+                .orElseThrow(() -> new FileNotFoundException("File not found"));
     }
 }

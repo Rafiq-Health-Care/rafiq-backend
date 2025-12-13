@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.nexaworks.rafiq.fileManagment.entity.FileMetaData;
 import com.nexaworks.rafiq.shared.entity.FileCategory;
 
 public interface FileMetaDataService {
@@ -13,4 +14,6 @@ public interface FileMetaDataService {
     void updateFileOwner(UUID uuid, UUID uuid1);
 
     void deleteFile(UUID uuid);
+
+    FileMetaData getFile(UUID fileId, UUID principal);
 }

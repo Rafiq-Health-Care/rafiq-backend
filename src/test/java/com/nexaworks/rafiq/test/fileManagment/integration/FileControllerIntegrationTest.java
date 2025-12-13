@@ -114,7 +114,7 @@ class FileControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("Upload File")
     class UploadFile {
-        private final String UPLOAD_ENDPOINT = "/file/upload";
+        private final String UPLOAD_ENDPOINT = "/file/extract-lab-test";
 
         @Nested
         @DisplayName("Should Upload Successfully")
@@ -289,6 +289,148 @@ class FileControllerIntegrationTest extends BaseIntegrationTest {
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
                 assertThat(fileMetaDataRepository.count()).isZero();
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Get File By ID")
+    class GetFileById {
+        private final String GET_FILE_ENDPOINT = "/file/{file-id}";
+
+        @Nested
+        @DisplayName("Should Get File Successfully")
+        class ShouldGetFileSuccessfully {
+
+            @Test
+            @DisplayName("Should retrieve file metadata by ID for authenticated user")
+            void shouldRetrieveFileMetadataByIdForAuthenticatedUser() throws Exception {
+                // Arrange - Upload a file first
+                MockMultipartFile pdfFile = new MockMultipartFile("file", "test-lab-result.pdf",
+                        "application/pdf", "PDF content here".getBytes());
+
+                String uploadResponse = mockMvc
+                        .perform(MockMvcRequestBuilders.multipart("/file/extract-lab-test")
+                                .file(pdfFile).with(withUserId(testUser)))
+                        .andExpect(MockMvcResultMatchers.status().isOk()).andReturn().getResponse()
+                        .getContentAsString();
+
+                // Extract fileId from upload response
+                String fileIdString = uploadResponse.substring(
+                        uploadResponse.indexOf("\"fileId\":\"") + "\"fileId\":\"".length());
+                fileIdString = fileIdString.substring(0, fileIdString.indexOf("\""));
+
+                // Act & Assert - Get file by ID
+                mockMvc.perform(MockMvcRequestBuilders.get(GET_FILE_ENDPOINT, fileIdString)
+                        .with(withUserId(testUser)))
+                        .andExpect(MockMvcResultMatchers.status().isOk())
+                        .andExpect(MockMvcResultMatchers.content()
+                                .contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.fileName").exists())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.fileType").exists())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.size").exists())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.fileUrl").exists());
+            }
+
+            @Test
+            @DisplayName("Should retrieve PNG file metadata successfully")
+            void shouldRetrievePngFileMetadataSuccessfully() throws Exception {
+                // Arrange - Upload PNG file
+                MockMultipartFile pngFile = new MockMultipartFile("file", "lab-result.png",
+                        "image/png", createMinimalPngImage());
+
+                String uploadResponse = mockMvc
+                        .perform(MockMvcRequestBuilders.multipart("/file/extract-lab-test")
+                                .file(pngFile).with(withUserId(testUser)))
+                        .andExpect(MockMvcResultMatchers.status().isOk()).andReturn().getResponse()
+                        .getContentAsString();
+
+                String fileIdString = uploadResponse.substring(
+                        uploadResponse.indexOf("\"fileId\":\"") + "\"fileId\":\"".length());
+                fileIdString = fileIdString.substring(0, fileIdString.indexOf("\""));
+
+                // Act & Assert
+                mockMvc.perform(MockMvcRequestBuilders.get(GET_FILE_ENDPOINT, fileIdString)
+                        .with(withUserId(testUser)))
+                        .andExpect(MockMvcResultMatchers.status().isOk())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.fileType").value("image/png"));
+            }
+
+            private byte[] createMinimalPngImage() {
+                return new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00,
+                        0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00,
+                        0x00, 0x01, 0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, (byte) 0xC4,
+                        (byte) 0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41, 0x54, 0x78,
+                        (byte) 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00, 0x05, 0x00, 0x01, 0x0D, 0x0A,
+                        0x2D, (byte) 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44,
+                        (byte) 0xAE, 0x42, 0x60, (byte) 0x82};
+            }
+        }
+
+        @Nested
+        @DisplayName("Should Fail To Get File")
+        class ShouldFailToGetFile {
+
+            @Test
+            @DisplayName("Should return 401 Unauthorized when user is not authenticated")
+            void shouldReturnUnauthorizedWhenUserNotAuthenticated() throws Exception {
+                // Arrange - Create a random UUID
+                String randomFileId = java.util.UUID.randomUUID().toString();
+
+                // Act & Assert - Get file without authentication
+                mockMvc.perform(MockMvcRequestBuilders.get(GET_FILE_ENDPOINT, randomFileId))
+                        .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+            }
+
+            @Test
+            @DisplayName("Should return 404 Not Found when file ID does not exist")
+            void shouldReturnNotFoundWhenFileIdDoesNotExist() throws Exception {
+                // Arrange - Create a random UUID that doesn't exist
+                String randomFileId = java.util.UUID.randomUUID().toString();
+
+                // Act & Assert - Get non-existent file
+                mockMvc.perform(MockMvcRequestBuilders.get(GET_FILE_ENDPOINT, randomFileId)
+                        .with(withUserId(testUser)))
+                        .andExpect(MockMvcResultMatchers.status().isNotFound());
+            }
+
+            @Test
+            @DisplayName("Should return 404 Not Found when file belongs to another user")
+            void shouldReturnNotFoundWhenFileBelongsToAnotherUser() throws Exception {
+                // Arrange - Create another user
+                User anotherUser = createTestPatient("another@example.com", "AnotherPass@123",
+                        "Jane", "Smith");
+
+                // Upload file as first user
+                MockMultipartFile pdfFile = new MockMultipartFile("file", "test.pdf",
+                        "application/pdf", "PDF content".getBytes());
+
+                String uploadResponse = mockMvc
+                        .perform(MockMvcRequestBuilders.multipart("/file/extract-lab-test")
+                                .file(pdfFile).with(withUserId(testUser)))
+                        .andExpect(MockMvcResultMatchers.status().isOk()).andReturn().getResponse()
+                        .getContentAsString();
+
+                String fileIdString = uploadResponse.substring(
+                        uploadResponse.indexOf("\"fileId\":\"") + "\"fileId\":\"".length());
+                fileIdString = fileIdString.substring(0, fileIdString.indexOf("\""));
+
+                // Act & Assert - Try to get file as another user
+                mockMvc.perform(MockMvcRequestBuilders.get(GET_FILE_ENDPOINT, fileIdString)
+                        .with(withUserId(anotherUser)))
+                        .andExpect(MockMvcResultMatchers.status().isNotFound());
+            }
+
+            @Test
+            @DisplayName("Should return 400 Bad Request when file ID format is invalid")
+            void shouldReturnBadRequestWhenFileIdFormatIsInvalid() throws Exception {
+                // Arrange - Create invalid UUID
+                String invalidFileId = "not-a-valid-uuid";
+
+                // Act & Assert - Get file with invalid UUID
+                mockMvc.perform(MockMvcRequestBuilders.get(GET_FILE_ENDPOINT, invalidFileId)
+                        .with(withUserId(testUser)))
+                        .andExpect(MockMvcResultMatchers.status().isBadRequest());
             }
         }
     }
