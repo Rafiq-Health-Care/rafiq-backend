@@ -21,7 +21,7 @@ import com.nexaworks.rafiq.exception.custom.TokenNotFoundException;
 import com.nexaworks.rafiq.exception.custom.UserException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.TokenRepository;
-import com.nexaworks.rafiq.service.user.implementation.TokenServiceImpl;
+import com.nexaworks.rafiq.service.user.TokenServiceImpl;
 
 @DisplayName("TokenService Test Cases")
 public class TokenServiceTest {

@@ -7,7 +7,7 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.nexaworks.rafiq.service.notification.implementation.EmailContentServiceImpl;
+import com.nexaworks.rafiq.service.notification.EmailContentServiceImpl;
 
 @DisplayName("EmailContentService Test Cases")
 public class EmailContentServiceImplTest {

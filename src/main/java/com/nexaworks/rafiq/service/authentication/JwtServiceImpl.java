@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service.authentication.implementaion;
+package com.nexaworks.rafiq.service.authentication;
 
 import java.time.Instant;
 import java.util.Date;
@@ -21,7 +21,6 @@ import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
 import com.nexaworks.rafiq.exception.custom.UserException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.authentication.JwtService;
 import com.nexaworks.rafiq.service.user.TokenService;
 
 import io.jsonwebtoken.Claims;

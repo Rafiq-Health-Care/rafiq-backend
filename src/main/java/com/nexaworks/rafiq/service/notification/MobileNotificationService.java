@@ -1,16 +1,14 @@
-package com.nexaworks.rafiq.service.notification.implementation;
+package com.nexaworks.rafiq.service.notification;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-
-import com.nexaworks.rafiq.service.notification.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
-@Qualifier("web")
+@Qualifier("mobile")
 @Slf4j
 @RequiredArgsConstructor
-public class WebNotificationService implements NotificationService {
+public class MobileNotificationService implements NotificationService {
 }

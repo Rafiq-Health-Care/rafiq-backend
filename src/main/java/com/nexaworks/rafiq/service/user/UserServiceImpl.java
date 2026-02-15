@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service.user.implementation;
+package com.nexaworks.rafiq.service.user;
 
 import static com.nexaworks.rafiq.entities.enums.Roles.*;
 
@@ -23,9 +23,6 @@ import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.doctor.DoctorService;
 import com.nexaworks.rafiq.service.patient.PatientService;
-import com.nexaworks.rafiq.service.user.RoleService;
-import com.nexaworks.rafiq.service.user.TokenService;
-import com.nexaworks.rafiq.service.user.UserService;
 import com.nexaworks.rafiq.utils.AuthSessionManager;
 
 import jakarta.servlet.http.HttpServletResponse;

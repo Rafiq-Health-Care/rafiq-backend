@@ -20,8 +20,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.custom.UserException;
 import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.authentication.implementaion.JwtServiceImpl;
-import com.nexaworks.rafiq.service.user.implementation.TokenServiceImpl;
+import com.nexaworks.rafiq.service.authentication.JwtServiceImpl;
+import com.nexaworks.rafiq.service.user.TokenServiceImpl;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

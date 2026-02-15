@@ -18,8 +18,8 @@ spring:
     password: ${DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
+      maximum-pool-size: 100
+      minimum-idle: 50
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
@@ -36,7 +36,7 @@ spring:
   # Flyway config - must run before JPA validation
   flyway:
     baseline-on-migrate: true
-    enabled: true
+    enabled: false
     locations: classpath:db/migration,classpath:com/nexaworks/rafiq/db/migration
     user: ${DATASOURCE_USERNAME}
     password: ${DATASOURCE_PASSWORD}
@@ -134,9 +134,9 @@ server:
   port: 8030
   tomcat:
     threads:
-      max: 10
-      min-spare: 2
-    accept-count: 5
+      max: 200
+      min-spare: 10
+    accept-count: 100
 logging:
   level:
     root: ERROR

@@ -22,7 +22,7 @@ import com.nexaworks.rafiq.entities.enums.UploadType;
 import com.nexaworks.rafiq.exception.custom.EmptyFileException;
 import com.nexaworks.rafiq.exception.custom.FileException;
 import com.nexaworks.rafiq.exception.custom.FileUploadException;
-import com.nexaworks.rafiq.service.file.implementation.CloudinaryService;
+import com.nexaworks.rafiq.service.file.CloudinaryService;
 
 @DisplayName("CloudinaryService Test Cases")
 class CloudinaryServiceTest {

@@ -1,11 +1,10 @@
-package com.nexaworks.rafiq.service.file.implementation;
+package com.nexaworks.rafiq.service.file;
 
 import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import com.nexaworks.rafiq.service.file.PdfExtractorService;
 import com.nexaworks.rafiq.service.labReports.LabTestService;
 import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
 import org.springframework.stereotype.Service;

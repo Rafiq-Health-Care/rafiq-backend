@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service.doctor.implementation;
+package com.nexaworks.rafiq.service.doctor;
 
 import java.util.List;
 import java.util.UUID;
@@ -9,7 +9,6 @@ import com.nexaworks.rafiq.dto.response.specialization.SpecializationResponse;
 import com.nexaworks.rafiq.entities.Specialization;
 import com.nexaworks.rafiq.exception.custom.SpecializationNotFoundException;
 import com.nexaworks.rafiq.repository.SpecializationRepository;
-import com.nexaworks.rafiq.service.doctor.SpecializationService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service.medicine.implementation;
+package com.nexaworks.rafiq.service.medicine;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.nexaworks.rafiq.service.medicine.DrugService;
-import com.nexaworks.rafiq.service.medicine.GroupService;
-import com.nexaworks.rafiq.service.medicine.MedicineService;
 import org.jetbrains.annotations.NotNull;
 import org.quartz.SchedulerException;
 import org.springframework.data.domain.Page;

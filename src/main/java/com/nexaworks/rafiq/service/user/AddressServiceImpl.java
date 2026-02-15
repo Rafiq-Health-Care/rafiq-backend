@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service.user.implementation;
+package com.nexaworks.rafiq.service.user;
 
 import java.util.List;
 
@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import com.nexaworks.rafiq.entities.Address;
 import com.nexaworks.rafiq.repository.AddressRepository;
-import com.nexaworks.rafiq.service.user.AddressService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

@@ -1,10 +1,8 @@
-package com.nexaworks.rafiq.service.notification.implementation;
+package com.nexaworks.rafiq.service.notification;
 
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
-
-import com.nexaworks.rafiq.service.notification.EmailContentService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

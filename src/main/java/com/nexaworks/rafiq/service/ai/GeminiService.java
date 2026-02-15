@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service.ai.implementation;
+package com.nexaworks.rafiq.service.ai;
 
 import java.io.IOException;
 import java.util.Base64;
@@ -16,7 +16,6 @@ import com.nexaworks.rafiq.dto.client.extractDataFromPdf.ContentPart;
 import com.nexaworks.rafiq.dto.client.extractDataFromPdf.InlineDataPart;
 import com.nexaworks.rafiq.dto.client.extractDataFromPdf.Part;
 import com.nexaworks.rafiq.dto.client.extractDataFromPdf.RequestBodyDTO;
-import com.nexaworks.rafiq.service.ai.AiService;
 import com.nexaworks.rafiq.utils.Prompt;
 
 import lombok.RequiredArgsConstructor;

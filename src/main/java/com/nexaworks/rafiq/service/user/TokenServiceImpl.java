@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.service.user.implementation;
+package com.nexaworks.rafiq.service.user;
 
 import java.time.Instant;
 import java.util.List;
@@ -20,7 +20,6 @@ import com.nexaworks.rafiq.exception.custom.TokenNotFoundException;
 import com.nexaworks.rafiq.exception.custom.UserException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.TokenRepository;
-import com.nexaworks.rafiq.service.user.TokenService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

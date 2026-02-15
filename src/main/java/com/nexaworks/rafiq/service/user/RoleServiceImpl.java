@@ -1,11 +1,10 @@
-package com.nexaworks.rafiq.service.user.implementation;
+package com.nexaworks.rafiq.service.user;
 
 import org.springframework.stereotype.Service;
 
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.enums.Roles;
 import com.nexaworks.rafiq.repository.RoleRepository;
-import com.nexaworks.rafiq.service.user.RoleService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

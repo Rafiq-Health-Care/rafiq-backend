@@ -35,7 +35,7 @@ import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 import com.nexaworks.rafiq.exception.custom.ReminderNotFound;
 import com.nexaworks.rafiq.repository.ReminderLogRepository;
 import com.nexaworks.rafiq.repository.ReminderRepository;
-import com.nexaworks.rafiq.service.medicine.implementation.ReminderServiceImpl;
+import com.nexaworks.rafiq.service.medicine.ReminderServiceImpl;
 import com.nexaworks.rafiq.service.patient.PatientService;
 import com.nexaworks.rafiq.service.user.UserService;
 
