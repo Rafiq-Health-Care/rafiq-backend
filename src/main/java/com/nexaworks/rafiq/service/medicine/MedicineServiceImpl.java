@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.jetbrains.annotations.NotNull;
-import org.quartz.SchedulerException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -106,8 +105,7 @@ public class MedicineServiceImpl implements MedicineService {
 
     @Override
     @Transactional
-    public Medicine updateSpecific(UUID medicineId, UpdateMedicinePatchRequest request)
-            throws SchedulerException {
+    public Medicine updateSpecific(UUID medicineId, UpdateMedicinePatchRequest request) {
         Medicine medicine = getMedicine(medicineId, userService.getUserId());
         request.dosage().ifPresent(medicine::setDosage);
         request.frequency().ifPresent(medicine::setFrequency);

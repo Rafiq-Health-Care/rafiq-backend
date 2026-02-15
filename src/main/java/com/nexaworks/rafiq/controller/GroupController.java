@@ -25,12 +25,19 @@ import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.service.medicine.GroupService;
 import com.nexaworks.rafiq.service.medicine.MedicineService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/group")
 @RequiredArgsConstructor
+@Tag(name = "Medicine Group Management", description = "Endpoints for organizing medicines into groups")
 public class GroupController {
     private final GroupService groupService;
     private final GroupMapper groupMapper;
@@ -38,6 +45,9 @@ public class GroupController {
     private final MedicineMapper medicineMapper;
     private final MedicineService medicineService;
     @PostMapping("/add")
+    @Operation(summary = "Add medicine group", description = "Creates a new group to organize medicines by category or condition.")
+    @ApiResponse(responseCode = "201", description = "Group added successfully", content = @Content(schema = @Schema(implementation = AddResponse.class)))
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<AddResponse<AddGroupResponse>> addGroup(
             @Valid @RequestBody AddGroupRequest request) {
         Group group = groupMapper.toEntity(request);
@@ -47,6 +57,9 @@ public class GroupController {
                 .body(new AddResponse<>(true, "Group added successfully", response));
     }
     @GetMapping
+    @Operation(summary = "Get all groups", description = "Retrieves paginated list of medicine groups with sorting options.")
+    @ApiResponse(responseCode = "200", description = "Groups retrieved successfully", content = @Content(schema = @Schema(implementation = PageResponse.class)))
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<PageResponse<AddGroupResponse>> getGroups(
             @RequestParam(value = "sort", defaultValue = "name") String sort,
             @RequestParam(value = "page", defaultValue = "0") int page,
@@ -56,12 +69,18 @@ public class GroupController {
         return ResponseEntity.ok().body(pageMapper.mapToGroupPage(groups, groupMapper));
     }
     @GetMapping("/{id}")
+    @Operation(summary = "Get group by ID", description = "Retrieves detailed information about a specific group including all medicines.")
+    @ApiResponse(responseCode = "200", description = "Group retrieved successfully", content = @Content(schema = @Schema(implementation = Response.class)))
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Response<GroupDetailsResponse>> getGroup(@PathVariable UUID id) {
         Group group = groupService.getGroupById(id);
         GroupDetailsResponse response = groupMapper.toResponse(group, medicineMapper);
         return ResponseEntity.ok().body(new Response<>(true, response));
     }
     @PatchMapping("/{id}")
+    @Operation(summary = "Update group", description = "Updates group name or description.")
+    @ApiResponse(responseCode = "200", description = "Group updated successfully", content = @Content(schema = @Schema(implementation = AddResponse.class)))
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<AddResponse<AddGroupResponse>> updateGroup(
             @Valid @RequestBody UpdateGroupRequest request, @PathVariable UUID id) {
         Group updatedGroup = groupService.updateGroupById(request, id);
@@ -70,12 +89,18 @@ public class GroupController {
                 .body(new AddResponse<>(true, "Group updated successfully", response));
     }
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete group", description = "Removes a group. Medicines are moved back to ungrouped status.")
+    @ApiResponse(responseCode = "204", description = "Group deleted successfully")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> deleteGroup(@PathVariable UUID id) {
         groupService.deleteGroupById(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/addMedicines/{groupId}")
+    @Operation(summary = "Add medicines to group", description = "Moves multiple medicines into a group.")
+    @ApiResponse(responseCode = "200", description = "Medicines added to group successfully", content = @Content(schema = @Schema(implementation = AddResponse.class)))
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<AddResponse<AddMedicineToGroupResponse>> addMedicinesToGroup(
             @PathVariable UUID groupId, @Valid @RequestBody AddMedicinesToGroup request) {
         List<UUID> movedMedicineIds = new ArrayList<>();
@@ -86,6 +111,9 @@ public class GroupController {
                                 request.medicineIds().size() - movedMedicineIds.size())));
     }
     @PostMapping("/removeMedicines/{groupId}/{medicineId}")
+    @Operation(summary = "Remove medicine from group", description = "Removes a medicine from a group, returning it to ungrouped status.")
+    @ApiResponse(responseCode = "200", description = "Medicine removed from group successfully")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<String> removeMedicineFromGroup(
             @PathVariable(name = "groupId") UUID groupId,
             @PathVariable(name = "medicineId") UUID medicineId) {

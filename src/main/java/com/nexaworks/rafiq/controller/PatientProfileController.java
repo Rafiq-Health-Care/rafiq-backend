@@ -15,12 +15,19 @@ import com.nexaworks.rafiq.mapper.TestMapper;
 import com.nexaworks.rafiq.service.patient.PatientProfileService;
 import com.nexaworks.rafiq.service.patient.PatientService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/patients/medical-profile")
 @RequiredArgsConstructor
+@Tag(name = "Patient Profile Management", description = "Endpoints for patient medical profiles and health data")
 public class PatientProfileController {
 
     private final PatientProfileService patientProfileService;
@@ -30,6 +37,9 @@ public class PatientProfileController {
     private final TestMapper testMapper;
 
     @PostMapping
+    @Operation(summary = "Create patient profile", description = "Creates comprehensive medical profile with health metrics and basic information.")
+    @ApiResponse(responseCode = "201", description = "Patient profile created successfully", content = @Content(schema = @Schema(implementation = AddResponse.class)))
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<AddResponse<PatientProfileResponse>> addPatientProfile(
             @Valid @RequestBody CreateBasicMedicalProfileRequest request) {
         Patient patient = patientProfileService.completePatientProfile(request);
@@ -37,12 +47,18 @@ public class PatientProfileController {
                 "Patient profile created successfully", patientMapper.toResponse(patient)));
     }
     @GetMapping
+    @Operation(summary = "Get patient profile", description = "Retrieves complete patient profile including medical history and medications.")
+    @ApiResponse(responseCode = "200", description = "Patient profile retrieved successfully", content = @Content(schema = @Schema(implementation = CompletePatientProfile.class)))
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<CompletePatientProfile> getPatientProfile() {
         Patient patient = patientService.getPatientProfile();
         return ResponseEntity.ok()
                 .body(patientMapper.convertToCompleteProfile(patient, testMapper, medicineMapper));
     }
     @PutMapping
+    @Operation(summary = "Update patient profile", description = "Updates existing medical profile information.")
+    @ApiResponse(responseCode = "200", description = "Patient profile updated successfully", content = @Content(schema = @Schema(implementation = AddResponse.class)))
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<AddResponse<PatientProfileResponse>> updatePatientProfile(
             @Valid @RequestBody CreateBasicMedicalProfileRequest request) {
         Patient patient = patientProfileService.completePatientProfile(request);

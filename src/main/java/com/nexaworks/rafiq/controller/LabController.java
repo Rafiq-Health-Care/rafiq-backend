@@ -16,18 +16,28 @@ import com.nexaworks.rafiq.mapper.AddressMapper;
 import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.service.lab.LabService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/labs")
 @RequiredArgsConstructor
+@Tag(name = "Lab Management", description = "Endpoints for managing lab facilities and their information")
 public class LabController {
     private final LabService labService;
     private final AddressMapper addressMapper;
     private final PageMapper pageMapper;
 
     @PostMapping(value = "/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Add lab", description = "Creates a new lab with address and logo. Admin/doctor functionality.")
+    @ApiResponse(responseCode = "201", description = "Lab added successfully")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> addLab(@RequestPart("lab") @Valid AddLabRequest request,
             @RequestPart("logo") MultipartFile file) throws IOException {
         labService.addLab(request.name(), addressMapper.toEntity(request.addresses()), file);
@@ -35,6 +45,9 @@ public class LabController {
     }
 
     @GetMapping
+    @Operation(summary = "Get all labs", description = "Retrieves paginated list of labs with sorting.")
+    @ApiResponse(responseCode = "200", description = "Labs retrieved successfully", content = @Content(schema = @Schema(implementation = PageResponse.class)))
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<PageResponse<LabResponse>> getAllLabs(
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
@@ -45,6 +58,9 @@ public class LabController {
     }
 
     @PutMapping("/{lab-id}")
+    @Operation(summary = "Update lab", description = "Updates lab information including name, address, and logo.")
+    @ApiResponse(responseCode = "200", description = "Lab updated successfully")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> updateLab(@RequestPart("lab") @Valid AddLabRequest request,
             @RequestPart("logo") MultipartFile file, @PathVariable("lab-id") UUID labId)
             throws IOException {
@@ -54,6 +70,9 @@ public class LabController {
     }
 
     @DeleteMapping("/{lab-id}")
+    @Operation(summary = "Delete lab", description = "Removes a lab from the system.")
+    @ApiResponse(responseCode = "200", description = "Lab deleted successfully")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> updateLab(@PathVariable("lab-id") UUID labId) {
         labService.deleteLab(labId);
         return ResponseEntity.ok().build();

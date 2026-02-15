@@ -27,7 +27,6 @@ import com.nexaworks.rafiq.exception.custom.GroupNotFoundException;
 import com.nexaworks.rafiq.exception.custom.MedicineAlreadyExist;
 import com.nexaworks.rafiq.exception.custom.MedicineLimit;
 import com.nexaworks.rafiq.repository.MedicineRepository;
-import com.nexaworks.rafiq.secheduler.service.QuartzSchedulerService;
 import com.nexaworks.rafiq.service.medicine.DrugServiceImpl;
 import com.nexaworks.rafiq.service.medicine.GroupServiceImpl;
 import com.nexaworks.rafiq.service.medicine.MedicineServiceImpl;
@@ -46,8 +45,7 @@ public class MedicineServiceImplTest {
     PatientService patientService;
     @Mock
     GroupServiceImpl groupService;
-    @Mock
-    QuartzSchedulerService quartzSchedulerService;
+
     @Mock
     UserService userService;
     @InjectMocks

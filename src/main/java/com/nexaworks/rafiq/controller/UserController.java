@@ -17,6 +17,11 @@ import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.service.user.TokenService;
 import com.nexaworks.rafiq.service.user.UserService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,12 +29,15 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
+@Tag(name = "User Management", description = "Endpoints for user registration and email verification")
 public class UserController {
     private final UserService userService;
     private final UserMapper userMapper;
     private final TokenService tokenService;
 
     @PostMapping("/register/patient")
+    @Operation(summary = "Register a new patient", description = "Creates a patient account and sends OTP for email verification. Required before accessing patient-specific features.")
+    @ApiResponse(responseCode = "201", description = "Patient registered successfully, OTP sent to email")
     public ResponseEntity<Void> registerPatient(
             @Valid @RequestBody UserRegistrationRequest request) {
         userService.registerPatient(userMapper.toUser(request));
@@ -37,6 +45,8 @@ public class UserController {
     }
 
     @PostMapping(value = "/register/doctor", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Register a new doctor", description = "Creates a doctor account with specialization. National ID upload is optional but recommended for verification. Account requires email verification before activation.")
+    @ApiResponse(responseCode = "201", description = "Doctor registered successfully, OTP sent to email")
     public ResponseEntity<Void> registerDoctor(
             @RequestPart("doctorData") @Valid DoctorRegistrationRequest request,
             @RequestPart(value = "nationalId", required = false) MultipartFile nationalId)
@@ -47,6 +57,8 @@ public class UserController {
     }
 
     @PostMapping("/verification")
+    @Operation(summary = "Verify user email with OTP", description = "Completes account activation after registration. Returns authentication tokens and user role. Must be called before first login.")
+    @ApiResponse(responseCode = "200", description = "Email verified successfully", content = @Content(schema = @Schema(implementation = LoginResponse.class)))
     public ResponseEntity<LoginResponse> verification(
             @RequestBody @Valid VerificationRequest request, HttpServletResponse response) {
 
@@ -55,6 +67,8 @@ public class UserController {
     }
 
     @PostMapping("/new-otp")
+    @Operation(summary = "Request a new OTP", description = "Resends OTP when original expires or is lost. Use for email verification or password reset flows.")
+    @ApiResponse(responseCode = "200", description = "New OTP sent successfully")
     public ResponseEntity<Void> newOtp(@RequestBody ForgetPasswordRequest forgetPasswordRequest) {
         tokenService.getNewOtp(forgetPasswordRequest.email());
         return ResponseEntity.ok().build();
