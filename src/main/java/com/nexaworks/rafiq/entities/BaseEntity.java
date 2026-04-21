@@ -3,6 +3,8 @@ package com.nexaworks.rafiq.entities;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.annotations.processing.SQL;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -23,6 +25,7 @@ import lombok.experimental.SuperBuilder;
 @MappedSuperclass
 @SuperBuilder
 @EntityListeners(AuditingEntityListener.class)
+@SQLRestriction(value = "deleted = false")
 public abstract class BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -41,4 +44,13 @@ public abstract class BaseEntity {
 
     @LastModifiedBy
     private UUID updatedBy;
+
+    private boolean deleted;
+    private String deletedBy;
+    private Instant deletedAt;
+    public void delete(String deletedBy) {
+        this.deleted = true;
+        this.deletedAt = Instant.now();
+        this.deletedBy = deletedBy;
+    }
 }
