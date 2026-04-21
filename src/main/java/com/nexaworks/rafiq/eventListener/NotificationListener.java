@@ -3,15 +3,12 @@ package com.nexaworks.rafiq.eventListener;
 import java.io.IOException;
 import java.util.Map;
 
+import com.nexaworks.rafiq.dto.event.*;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.nexaworks.rafiq.dto.client.cloundinary.UploadResults;
-import com.nexaworks.rafiq.dto.event.DoctorRegisterEvent;
-import com.nexaworks.rafiq.dto.event.ForgetPasswordEvent;
-import com.nexaworks.rafiq.dto.event.NewOtpEvent;
-import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.entities.enums.UploadType;
 import com.nexaworks.rafiq.service.doctor.DoctorService;
 import com.nexaworks.rafiq.service.file.ImageService;
@@ -20,6 +17,8 @@ import com.nexaworks.rafiq.service.notification.EmailSenderService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 @RequiredArgsConstructor
@@ -70,5 +69,10 @@ public class NotificationListener {
         log.info("Sending email to {}", userRegistrationEvent.email());
         emailSenderService.sendEmail(model, userRegistrationEvent.email(),
                 "Verify your email address", "OTP_TEMPLATE.html");
+    }
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleConsultationEvent(ConsultationAddedEvent event) {
+        log.info("Received event: {}", event);
+        // TODO send email to patient
     }
 }

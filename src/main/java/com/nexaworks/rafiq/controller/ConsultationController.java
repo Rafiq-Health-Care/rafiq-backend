@@ -26,7 +26,8 @@ public class ConsultationController {
     @PostMapping("/add")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ConsultationCreatedResponse> addConsultation(@RequestBody AddConsultationRequest request){
-        Consultation consultation = consultationService.add(request);
+        Consultation consultation = mapper.toEntity(request);
+        consultation = consultationService.add(consultation);
         return ResponseEntity.ok(mapper.toDto(consultation));
 
     }
