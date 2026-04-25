@@ -23,7 +23,7 @@ public class TimeSlot {
     @Column(nullable = false)
     private int durationMinutes;
 
-    private LocalDate endDate;
+    private LocalTime endTime;
 
 
 }

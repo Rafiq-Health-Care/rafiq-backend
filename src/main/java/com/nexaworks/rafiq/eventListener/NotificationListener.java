@@ -73,6 +73,6 @@ public class NotificationListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleConsultationEvent(ConsultationAddedEvent event) {
         log.info("Received event: {}", event);
-        // TODO send email to patient
+        // TODO send email to patient -> will be batch processing
     }
 }
