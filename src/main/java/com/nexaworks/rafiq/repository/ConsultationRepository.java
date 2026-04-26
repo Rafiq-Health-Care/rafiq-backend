@@ -1,11 +1,14 @@
 package com.nexaworks.rafiq.repository;
 
 import com.nexaworks.rafiq.entities.Consultation;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalTime;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ConsultationRepository extends JpaRepository<Consultation, UUID> {
@@ -21,4 +24,7 @@ public interface ConsultationRepository extends JpaRepository<Consultation, UUID
             @Param("end") LocalTime endTime,
             @Param("doctorId") UUID doctorId
     );
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<Consultation> findConsultationById(UUID id);
 }

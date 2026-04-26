@@ -1,7 +1,8 @@
 package com.nexaworks.rafiq.controller;
 
 import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
-import com.nexaworks.rafiq.dto.response.consultation.ConsultationCreatedResponse;
+import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
+import com.nexaworks.rafiq.dto.response.consultation.ConsultationResponse;
 import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.mapper.ConsultationMapper;
 import com.nexaworks.rafiq.service.consultation.ConsultationService;
@@ -10,10 +11,10 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/consultation")
@@ -25,11 +26,29 @@ public class ConsultationController {
 
     @PostMapping("/add")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<ConsultationCreatedResponse> addConsultation(@RequestBody AddConsultationRequest request){
+    public ResponseEntity<ConsultationResponse> addConsultation(@RequestBody AddConsultationRequest request){
         Consultation consultation = mapper.toEntity(request);
         consultation = consultationService.add(consultation);
         return ResponseEntity.ok(mapper.toDto(consultation));
 
+    }
+    @GetMapping("/schedule")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public ResponseEntity<List<ConsultationResponse>> getSchedule(@RequestBody ScheduleFilter filter){
+        List<Consultation> consultations = consultationService.getDoctorSchedule(filter);
+        return ResponseEntity.ok(mapper.toListDto(consultations));
+    }
+    @PutMapping("/edit/{id}")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public ResponseEntity<ConsultationResponse> editConsultation(@RequestBody AddConsultationRequest request
+    ,@PathVariable UUID id) {
+        Consultation consultation = consultationService.editConsultation(request,id);
+        return ResponseEntity.ok(mapper.toDto(consultation));
+    }
+    @PatchMapping("/cancel/{id}")
+    public ResponseEntity<?> cancelConsultation(@PathVariable UUID id,@RequestParam String reason){
+        consultationService.cancel(id,reason);
+        return ResponseEntity.ok().build();
     }
 
 }

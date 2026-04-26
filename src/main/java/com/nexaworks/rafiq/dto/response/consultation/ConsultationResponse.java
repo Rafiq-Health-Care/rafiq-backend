@@ -9,6 +9,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
 
-public record ConsultationCreatedResponse(UUID id, LocalTime startTime, int duration, LocalDateTime date,
-                                          ConsultationStatus status, BigDecimal price, PatientDto patient, DoctorDto doctor) {
+public record ConsultationResponse(UUID id, LocalTime startTime, int duration, LocalDateTime date,
+                                   ConsultationStatus status, BigDecimal price, PatientDto patient, DoctorDto doctor) {
 }
