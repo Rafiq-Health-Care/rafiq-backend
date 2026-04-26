@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
 import com.nexaworks.rafiq.entities.Doctor;
-import com.nexaworks.rafiq.entities.Specialization;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.repository.DoctorRepository;
 import com.nexaworks.rafiq.service.doctor.DoctorServiceImpl;

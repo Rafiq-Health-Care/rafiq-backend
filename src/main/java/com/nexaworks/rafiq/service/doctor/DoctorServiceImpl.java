@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.dto.client.cloundinary.UploadResults;
 import com.nexaworks.rafiq.entities.Doctor;
-import com.nexaworks.rafiq.entities.Specialization;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.DoctorRepository;
 

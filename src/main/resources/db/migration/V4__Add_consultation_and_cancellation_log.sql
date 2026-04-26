@@ -24,7 +24,7 @@ CREATE TABLE consultation (
 );
 
 CREATE INDEX doctor_idx  ON consultation(doctor_id);
-CREATE INDEX patient_idx ON consultation(patient_id);
+CREATE INDEX patient_con_idx ON consultation(patient_id);
 CREATE INDEX status_idx  ON consultation(status);
 
 CREATE TABLE cancellation_log (

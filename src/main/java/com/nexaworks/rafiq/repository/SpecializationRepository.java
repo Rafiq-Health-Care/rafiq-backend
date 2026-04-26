@@ -5,8 +5,6 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.nexaworks.rafiq.entities.Specialization;
-
 public interface SpecializationRepository extends JpaRepository<Specialization, UUID> {
     Optional<Specialization> findByCode(String code);
 }
