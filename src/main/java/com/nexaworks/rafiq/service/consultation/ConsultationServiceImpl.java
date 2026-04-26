@@ -93,7 +93,7 @@ public class ConsultationServiceImpl implements ConsultationService{
         }
         LocalDateTime start = request.startTime();
         LocalDateTime end = request.startTime().plusMinutes(request.duration());
-        if (consultationRepository.existsByOverlapping(start,end,userId)){
+        if (consultationRepository.existsByOverlapping(start,end,userId,id)){
             throw new ConsultationException("Consultation time slot is already booked");
         }
         consultation.getTimeSlot().setStartTime(start);
