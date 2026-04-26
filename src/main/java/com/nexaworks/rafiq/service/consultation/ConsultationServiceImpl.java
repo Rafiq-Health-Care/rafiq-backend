@@ -12,6 +12,7 @@ import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.exception.custom.ConsultationException;
 import com.nexaworks.rafiq.repository.CancellationLogRepository;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
+import com.nexaworks.rafiq.repository.DoctorRepository;
 import com.nexaworks.rafiq.repository.specification.ScheduleSpecification;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -37,14 +38,21 @@ public class ConsultationServiceImpl implements ConsultationService{
     private final CancellationLogRepository cancellationLogRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final AuthService authService;
+    private final DoctorRepository doctorRepository;
 
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @Retryable(
+            retryFor = {PessimisticLockingFailureException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 500)
+    )
     public Consultation add(Consultation entity) {
         Doctor doctor = (Doctor) authService.getAuthenticateUser();
         entity.setDoctor(doctor);
 
+        doctorRepository.findByIdWithLock(doctor.getId());
 
         LocalDateTime startTime = entity.getTimeSlot().getStartTime();
         LocalDateTime endTime = entity.getTimeSlot().getStartTime()
@@ -58,7 +66,7 @@ public class ConsultationServiceImpl implements ConsultationService{
 
         Consultation consultation = consultationRepository.save(entity);
 
-        log.info("Consultation added {}", consultation.getId());
+        log.info("Consultation added {} by {}", consultation.getId(), doctor.getEmail());
 
         eventPublisher.publishEvent(new ConsultationAddedEvent(
                 consultation.getId()
