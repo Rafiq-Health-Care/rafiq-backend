@@ -27,4 +27,14 @@ public interface ConsultationRepository extends JpaRepository<Consultation, UUID
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Consultation> findConsultationById(UUID id);
+
+    @Query("""
+    SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END
+    FROM Consultation c
+    WHERE c.doctor.id = :doctorId
+        AND c.id != :consultationId
+    AND c.timeSlot.startTime < :end
+    AND c.timeSlot.endTime > :start
+    """)
+    boolean existsByOverlapping(@Param("start") LocalTime start,@Param("end") LocalTime end,@Param("doctorId") UUID userId,@Param("consultationId") UUID id);
 }

@@ -17,6 +17,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
@@ -67,11 +68,10 @@ public class ConsultationServiceImpl implements ConsultationService{
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    @Retryable(maxAttempts = 3, backoff = @Backoff(delay = 1000))
     public Consultation editConsultation(AddConsultationRequest request, UUID id) {
         UUID userId = authService.getAuthenticateUserId();
 
-        Consultation consultation = consultationRepository.findConsultationById((id))
+        Consultation consultation = consultationRepository.findById(id)
                 .orElseThrow(()->new ConsultationException("Consultation not found"));
 
         if (consultation.getStatus().isTerminal()){
@@ -85,7 +85,7 @@ public class ConsultationServiceImpl implements ConsultationService{
         }
         LocalTime start = request.startTime();
         LocalTime end = request.startTime().plusMinutes(request.duration());
-        if (consultationRepository.existsByOverlapping(start,end,userId)){
+        if (consultationRepository.existsByOverlapping(start,end,userId,id)){
             throw new ConsultationException("Consultation time slot is already booked");
         }
         consultation.getTimeSlot().setStartTime(start);
@@ -96,7 +96,11 @@ public class ConsultationServiceImpl implements ConsultationService{
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    @Retryable(maxAttempts = 3, backoff = @Backoff(delay = 1000))
+    @Retryable(
+            retryFor = {PessimisticLockingFailureException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000)
+    )
     public void cancel(UUID id, String reason) {
         Consultation consultation = consultationRepository.findConsultationById(id)
                 .orElseThrow(()->new ConsultationException("Consultation not found"));
