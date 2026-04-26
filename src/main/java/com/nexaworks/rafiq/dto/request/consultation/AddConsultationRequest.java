@@ -1,7 +1,16 @@
 package com.nexaworks.rafiq.dto.request.consultation;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalTime;
 
-public record AddConsultationRequest(LocalDateTime date, LocalTime startTime,int duration) {
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
+
+public record AddConsultationRequest(
+        @NotNull LocalDate date,
+        @NotNull LocalTime startTime,
+        int duration,
+        @NotNull @DecimalMin("0.0") BigDecimal price
+) {
 }

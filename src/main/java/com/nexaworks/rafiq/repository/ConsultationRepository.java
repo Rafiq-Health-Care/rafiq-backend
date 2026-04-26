@@ -17,6 +17,7 @@ public interface ConsultationRepository extends JpaRepository<Consultation, UUID
     SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END
     FROM Consultation c
     WHERE c.doctor.id = :doctorId
+    AND c.status != 'CANCELED'
     AND c.timeSlot.startTime < :end
     AND c.timeSlot.endTime > :start
     """)
@@ -33,7 +34,8 @@ public interface ConsultationRepository extends JpaRepository<Consultation, UUID
     SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END
     FROM Consultation c
     WHERE c.doctor.id = :doctorId
-        AND c.id != :consultationId
+    AND c.id != :consultationId
+    AND c.status != 'CANCELED'
     AND c.timeSlot.startTime < :end
     AND c.timeSlot.endTime > :start
     """)

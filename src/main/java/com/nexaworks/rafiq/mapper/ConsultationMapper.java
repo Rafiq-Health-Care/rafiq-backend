@@ -17,9 +17,10 @@ public interface ConsultationMapper {
     @Mapping(target = "duration",source = "timeSlot.durationMinutes")
     ConsultationResponse toDto(Consultation consultation);
 
-    @Mapping(target = "timeSlot.startTime",source = "startTime")
-    @Mapping(target = "timeSlot.date",source = "date")
-    @Mapping(target = "timeSlot.durationMinutes",source = "duration")
+    @Mapping(target = "timeSlot.startTime", source = "startTime")
+    @Mapping(target = "timeSlot.date",      source = "date")
+    @Mapping(target = "timeSlot.durationMinutes", source = "duration")
+    @Mapping(target = "price",              source = "price")
     Consultation toEntity(AddConsultationRequest request);
 
 

@@ -1,11 +1,24 @@
-### Login with email and password (returns LoginResponse)
+### Login — captures jwt + refreshToken into client globals automatically
 POST http://localhost:8030/auth/login
 Content-Type: application/json
 Accept: application/json
 
 {
-  "email": "john.doe@example.com",
+  "email": "dr.janedzh.doe@example.com",
   "password": "Str0ng@Pass1!"
 }
+
+> {%
+    // Extract jwt cookie value from the Set-Cookie headers and store globally
+    var cookies = response.headers.valuesOf("Set-Cookie");
+    cookies.forEach(function(c) {
+        var pair = c.split(";")[0];          // e.g. "jwt=eyJ..."
+        var name  = pair.split("=")[0].trim();
+        var value = pair.split("=").slice(1).join("=").trim();
+        if (name === "jwt")          client.global.set("jwt",          value);
+        if (name === "refreshToken") client.global.set("refreshToken", value);
+    });
+    client.log("jwt captured: " + client.global.get("jwt").substring(0, 20) + "...");
+%}
 
 ###

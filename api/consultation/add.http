@@ -1,0 +1,15 @@
+### Add consultation slot (doctor only)
+### Run api/auth/login.http first — the jwt variable is captured automatically.
+POST http://localhost:8030/consultation/add
+Content-Type: application/json
+Accept: application/json
+Cookie: jwt={{jwt}}
+
+{
+  "date": "2026-05-15",
+  "startTime": "09:00:00",
+  "duration": 30,
+  "price": 200.00
+}
+
+###

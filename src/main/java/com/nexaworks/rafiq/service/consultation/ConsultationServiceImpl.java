@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -123,6 +122,11 @@ public class ConsultationServiceImpl implements ConsultationService{
         if (consultation.getStatus().isTerminal()){
             throw new ConsultationException("Consultation is already completed");
         }
+        if (consultation.getStatus()==ConsultationStatus.AVAILABLE){
+            consultation.setStatus(ConsultationStatus.CANCELLED);
+            consultationRepository.save(consultation);
+            return;
+        }
 
 
         CancellationLog cancellationLog = CancellationLog.builder()
@@ -141,11 +145,12 @@ public class ConsultationServiceImpl implements ConsultationService{
         // TODO handle refund Logic
         // TODO handle real time connections
 
-        eventPublisher.publishEvent(new ConsultationCanceled(
-                id, consultation.getDoctor().getId(),
-                consultation.getPatient().getId(),
-                currentUser.getId(), reason
-        ));
+        Doctor doctor = consultation.getDoctor();
+        var patient = consultation.getPatient();
+        eventPublisher.publishEvent(new ConsultationCanceled(id, doctor.getEmail(),
+                doctor.getFirstName(),
+                patient != null ? patient.getEmail() : "",
+                patient != null ? patient.getFirstName() : "", cancelledByPatient, reason));
 
     }
 }

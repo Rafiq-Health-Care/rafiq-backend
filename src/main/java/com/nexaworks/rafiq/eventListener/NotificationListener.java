@@ -75,4 +75,41 @@ public class NotificationListener {
         log.info("Received event: {}", event);
         // TODO send email to patient -> will be batch processing
     }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleCancelConsultationEvent(ConsultationCanceled event) {
+        try {
+            if (event.cancelByPatient()) {
+                if (event.doctorEmail() == null || event.doctorEmail().isBlank()) {
+                    log.warn("Consultation {} cancelled by patient; doctor email missing, skip notify",
+                            event.consultationId());
+                    return;
+                }
+                Map<String, Object> model = emailContentService.createConsultationCancelledForDoctor(
+                        event.doctorName(), event.patientName(), event.consultationId(),
+                        event.reason());
+                emailSenderService.sendEmail(model, event.doctorEmail(),
+                        "A patient cancelled a consultation with you",
+                        "consultation-cancelled-doctor.html");
+                log.info("Sent consultation-cancelled email to doctor for {}", event.consultationId());
+            } else {
+                if (event.patientEmail() == null || event.patientEmail().isBlank()) {
+                    log.warn(
+                            "Consultation {} cancelled by doctor; patient email missing, skip notify",
+                            event.consultationId());
+                    return;
+                }
+                Map<String, Object> model = emailContentService.createConsultationCancelledForPatient(
+                        event.patientName(), event.doctorName(), event.consultationId(),
+                        event.reason());
+                emailSenderService.sendEmail(model, event.patientEmail(),
+                        "Your consultation was cancelled",
+                        "consultation-cancelled-patient.html");
+                log.info("Sent consultation-cancelled email to patient for {}", event.consultationId());
+            }
+        } catch (Exception e) {
+            log.error("Failed to send consultation cancellation email for {}", event.consultationId(),
+                    e);
+        }
+    }
 }
