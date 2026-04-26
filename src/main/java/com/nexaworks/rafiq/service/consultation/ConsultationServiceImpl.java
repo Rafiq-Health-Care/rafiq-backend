@@ -44,7 +44,7 @@ public class ConsultationServiceImpl implements ConsultationService{
     public Consultation add(Consultation entity) {
         Doctor doctor = (Doctor) authService.getAuthenticateUser();
         entity.setDoctor(doctor);
-        entity.setDoctor(doctor);
+
 
         LocalDateTime startTime = entity.getTimeSlot().getStartTime();
         LocalDateTime endTime = entity.getTimeSlot().getStartTime()
