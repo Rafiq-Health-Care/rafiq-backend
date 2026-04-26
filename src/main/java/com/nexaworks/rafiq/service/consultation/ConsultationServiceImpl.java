@@ -2,6 +2,8 @@ package com.nexaworks.rafiq.service.consultation;
 
 import com.nexaworks.rafiq.dto.event.ConsultationAddedEvent;
 import com.nexaworks.rafiq.dto.event.ConsultationCanceled;
+import com.nexaworks.rafiq.dto.event.ConsultationCancelled;
+import com.nexaworks.rafiq.dto.event.ConsultationChanged;
 import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
 import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
 import com.nexaworks.rafiq.entities.CancellationLog;
@@ -10,6 +12,7 @@ import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.exception.custom.ConsultationException;
+import com.nexaworks.rafiq.mapper.ConsultationMapper;
 import com.nexaworks.rafiq.repository.CancellationLogRepository;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.repository.DoctorRepository;
@@ -22,6 +25,7 @@ import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
@@ -39,6 +43,8 @@ public class ConsultationServiceImpl implements ConsultationService{
     private final ApplicationEventPublisher eventPublisher;
     private final AuthService authService;
     private final DoctorRepository doctorRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final ConsultationMapper mapper;
 
 
     @Override
@@ -107,7 +113,10 @@ public class ConsultationServiceImpl implements ConsultationService{
         consultation.getTimeSlot().setStartTime(start);
         consultation.getTimeSlot().setEndTime(end);
         log.info("Consultation edited {} by {}", consultation.getId(),userId);
-        // TODO handle real time connections
+
+        messagingTemplate.convertAndSend("/topic/consultation"
+                ,new ConsultationChanged(consultation.getId(),start));
+
         return  consultationRepository.save(consultation);
     }
 
@@ -152,7 +161,9 @@ public class ConsultationServiceImpl implements ConsultationService{
         log.info("Consultation cancelled {} by {}", consultation.getId(), currentUser.getEmail());
 
         // TODO handle refund Logic
-        // TODO handle real time connections
+        if (cancelledByPatient) {
+            messagingTemplate.convertAndSend("/topic/consultation",new ConsultationCancelled(id,ConsultationStatus.AVAILABLE));
+        }
 
         Doctor doctor = consultation.getDoctor();
         var patient = consultation.getPatient();
@@ -186,6 +197,8 @@ public class ConsultationServiceImpl implements ConsultationService{
             }
             consultation.setStatus(ConsultationStatus.CANCELLED);
             consultationRepository.save(consultation);
+            messagingTemplate.convertAndSend("/topic/consultation",
+                    new ConsultationCancelled(consultation.getId(),ConsultationStatus.CANCELLED));
             return true;
         }
         return false;
