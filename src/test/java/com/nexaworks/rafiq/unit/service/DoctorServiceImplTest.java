@@ -32,7 +32,7 @@ class DoctorServiceImplTest {
 
     private User doctor;
     private Specialization specialization;
-    private UUID specializationId;
+    private com.nexaworks.rafiq.entities.enums.Specialization specializationId;
 
     @BeforeEach
     void setUp() {
@@ -44,9 +44,8 @@ class DoctorServiceImplTest {
         doctor.setFirstName("Jane");
         doctor.setLastName("Smith");
 
-        specializationId = UUID.randomUUID();
-        specialization = new Specialization();
-        specialization.setId(specializationId);
+        specializationId = com.nexaworks.rafiq.entities.enums.Specialization.ALLERGY;
+
     }
 
     @DisplayName("Should register doctor successfully")
@@ -60,7 +59,7 @@ class DoctorServiceImplTest {
         doctorEntity.setFirstName(doctor.getFirstName());
         doctorEntity.setLastName(doctor.getLastName());
 
-        when(specializationService.getSpecialization(specializationId)).thenReturn(specialization);
+
         when(doctorRepository.save(any(Doctor.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -68,7 +67,7 @@ class DoctorServiceImplTest {
         doctorService.register(doctorEntity, specializationId, description);
 
         // then
-        verify(specializationService, times(1)).getSpecialization(specializationId);
+
         verify(doctorRepository, times(1))
                 .save(argThat(savedDoctor -> savedDoctor.getDescription().equals(description)
                         && savedDoctor.getSpecialization().equals(specialization)));

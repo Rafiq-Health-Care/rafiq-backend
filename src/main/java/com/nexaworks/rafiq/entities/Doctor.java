@@ -2,6 +2,7 @@ package com.nexaworks.rafiq.entities;
 
 import java.util.List;
 
+import com.nexaworks.rafiq.entities.enums.Specialization;
 import org.hibernate.annotations.BatchSize;
 
 import com.nexaworks.rafiq.entities.enums.Status;
@@ -28,8 +29,7 @@ public class Doctor extends User {
     private String nationalId;
     private String hospitalId;
 
-    @ManyToOne
-    @JoinColumn(name = "specialization_id", nullable = false)
+    @Enumerated(EnumType.STRING)
     private Specialization specialization;
 
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)

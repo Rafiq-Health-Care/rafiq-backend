@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.nexaworks.rafiq.entities.enums.Specialization;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -63,7 +64,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void registerDoctor(User user, MultipartFile nationalId, UUID specialization,
+    public void registerDoctor(User user, MultipartFile nationalId, Specialization specialization,
             String description) throws IOException {
 
         verifyEmailAvailability(user);

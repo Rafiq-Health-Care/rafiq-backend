@@ -32,10 +32,8 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     @Transactional
-    public void register(Doctor doctor, UUID specialization, String description) {
-        Specialization doctorSpecialization = specializationService
-                .getSpecialization(specialization);
-        doctor.setSpecialization(doctorSpecialization);
+    public void register(Doctor doctor, com.nexaworks.rafiq.entities.enums.Specialization specialization, String description) {
+        doctor.setSpecialization(specialization);
         doctor.setDescription(description);
         doctorRepository.save(doctor);
         log.info("Doctor registered successfully");

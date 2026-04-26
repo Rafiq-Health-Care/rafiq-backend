@@ -14,12 +14,12 @@ import java.util.List;
 public interface ConsultationMapper {
     @Mapping(target = "startTime",source = "timeSlot.startTime")
     @Mapping(target = "date",source = "timeSlot.date")
-    @Mapping(target = "duration",source = "timeSlot.duration")
+    @Mapping(target = "duration",source = "timeSlot.durationMinutes")
     ConsultationResponse toDto(Consultation consultation);
 
     @Mapping(target = "timeSlot.startTime",source = "startTime")
     @Mapping(target = "timeSlot.date",source = "date")
-    @Mapping(target = "timeSlot.duration",source = "duration")
+    @Mapping(target = "timeSlot.durationMinutes",source = "duration")
     Consultation toEntity(AddConsultationRequest request);
 
 
