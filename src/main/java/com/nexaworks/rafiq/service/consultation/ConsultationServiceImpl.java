@@ -84,12 +84,34 @@ public class ConsultationServiceImpl implements ConsultationService{
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @Retryable(
+            retryFor = {PessimisticLockingFailureException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 500)
+    )
     public Consultation editConsultation(AddConsultationRequest request, UUID id) {
         UUID userId = authService.getAuthenticateUserId();
 
         Consultation consultation = consultationRepository.findById(id)
                 .orElseThrow(()->new ConsultationException("Consultation not found"));
 
+        validateEditability(consultation, userId);
+
+        doctorRepository.findByIdWithLock(userId);
+
+        LocalDateTime start = request.startTime();
+        LocalDateTime end = request.startTime().plusMinutes(request.duration());
+        if (consultationRepository.existsByOverlapping(start,end,userId,id)){
+            throw new ConsultationException("Consultation time slot is already booked");
+        }
+        consultation.getTimeSlot().setStartTime(start);
+        consultation.getTimeSlot().setEndTime(end);
+        log.info("Consultation edited {} by {}", consultation.getId(),userId);
+        // TODO handle real time connections
+        return  consultationRepository.save(consultation);
+    }
+
+    private static void validateEditability(Consultation consultation, UUID userId) {
         if (consultation.getStatus().isTerminal()){
             throw new ConsultationException("Consultation is already completed");
         }
@@ -99,16 +121,6 @@ public class ConsultationServiceImpl implements ConsultationService{
         if (!consultation.getDoctor().getId().equals(userId)){
             throw new ConsultationException("You are not authorized to edit this consultation");
         }
-        LocalDateTime start = request.startTime();
-        LocalDateTime end = request.startTime().plusMinutes(request.duration());
-        if (consultationRepository.existsByOverlapping(start,end,userId,id)){
-            throw new ConsultationException("Consultation time slot is already booked");
-        }
-        consultation.getTimeSlot().setStartTime(start);
-        consultation.getTimeSlot().setEndTime(end);
-        log.info("Consultation edited {}", consultation.getId());
-        // TODO handle real time connections
-        return  consultationRepository.save(consultation);
     }
 
     @Override
@@ -123,20 +135,35 @@ public class ConsultationServiceImpl implements ConsultationService{
                 .orElseThrow(()->new ConsultationException("Consultation not found"));
 
         User currentUser = authService.getAuthenticateUser();
-        if (!consultation.getDoctor().getId().equals(currentUser.getId())&&!consultation.getPatient().getId().equals(currentUser.getId())){
+        if (consultation.getStatus().isTerminal()) {
+            throw new ConsultationException("Consultation is already completed");
+        }
+
+        if (cancelAvailableConsultation(consultation, currentUser)) return;
+
+        if (!consultation.getDoctor().getId().equals(currentUser.getId())
+                && !consultation.getPatient().getId().equals(currentUser.getId())) {
             throw new ConsultationException("You are not authorized to cancel this consultation");
         }
 
-        if (consultation.getStatus().isTerminal()){
-            throw new ConsultationException("Consultation is already completed");
-        }
-        if (consultation.getStatus()==ConsultationStatus.AVAILABLE){
-            consultation.setStatus(ConsultationStatus.CANCELLED);
-            consultationRepository.save(consultation);
-            return;
-        }
 
+        boolean cancelledByPatient = cancelBookedConsultation(reason, consultation, currentUser);
 
+        log.info("Consultation cancelled {} by {}", consultation.getId(), currentUser.getEmail());
+
+        // TODO handle refund Logic
+        // TODO handle real time connections
+
+        Doctor doctor = consultation.getDoctor();
+        var patient = consultation.getPatient();
+        eventPublisher.publishEvent(new ConsultationCanceled(id, doctor.getEmail(),
+                doctor.getFirstName(),
+                patient != null ? patient.getEmail() : "",
+                patient != null ? patient.getFirstName() : "", cancelledByPatient, reason));
+
+    }
+
+    private boolean cancelBookedConsultation(String reason, Consultation consultation, User currentUser) {
         CancellationLog cancellationLog = CancellationLog.builder()
                 .consultation(consultation)
                 .cancelledBy(currentUser)
@@ -149,16 +176,18 @@ public class ConsultationServiceImpl implements ConsultationService{
 
         consultation.setCancellationLog(cancellationLog);
         consultationRepository.save(consultation);
+        return cancelledByPatient;
+    }
 
-        // TODO handle refund Logic
-        // TODO handle real time connections
-
-        Doctor doctor = consultation.getDoctor();
-        var patient = consultation.getPatient();
-        eventPublisher.publishEvent(new ConsultationCanceled(id, doctor.getEmail(),
-                doctor.getFirstName(),
-                patient != null ? patient.getEmail() : "",
-                patient != null ? patient.getFirstName() : "", cancelledByPatient, reason));
-
+    private boolean cancelAvailableConsultation(Consultation consultation, User currentUser) {
+        if (consultation.getStatus() == ConsultationStatus.AVAILABLE) {
+            if (!consultation.getDoctor().getId().equals(currentUser.getId())) {
+                throw new ConsultationException("You are not authorized to cancel this consultation");
+            }
+            consultation.setStatus(ConsultationStatus.CANCELLED);
+            consultationRepository.save(consultation);
+            return true;
+        }
+        return false;
     }
 }
