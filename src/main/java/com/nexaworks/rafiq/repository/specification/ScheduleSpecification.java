@@ -22,11 +22,11 @@ public class ScheduleSpecification {
             });
 
             Optional.ofNullable(filter.startDate()).ifPresent(startDate -> {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("timeSlot").get("date"), startDate));
+                predicates.add(cb.greaterThanOrEqualTo(root.get("timeSlot").get("startTime"), startDate));
             });
 
             Optional.ofNullable(filter.endDate()).ifPresent(endDate -> {
-                predicates.add(cb.lessThanOrEqualTo(root.get("timeSlot").get("date"), endDate));
+                predicates.add(cb.lessThanOrEqualTo(root.get("timeSlot").get("startTime"), endDate));
             });
 
             return cb.and(predicates.toArray(new Predicate[0]));

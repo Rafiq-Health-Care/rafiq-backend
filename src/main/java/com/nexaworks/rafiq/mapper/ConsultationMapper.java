@@ -13,12 +13,10 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface ConsultationMapper {
     @Mapping(target = "startTime",source = "timeSlot.startTime")
-    @Mapping(target = "date",source = "timeSlot.date")
     @Mapping(target = "duration",source = "timeSlot.durationMinutes")
     ConsultationResponse toDto(Consultation consultation);
 
     @Mapping(target = "timeSlot.startTime", source = "startTime")
-    @Mapping(target = "timeSlot.date",      source = "date")
     @Mapping(target = "timeSlot.durationMinutes", source = "duration")
     @Mapping(target = "price",              source = "price")
     Consultation toEntity(AddConsultationRequest request);

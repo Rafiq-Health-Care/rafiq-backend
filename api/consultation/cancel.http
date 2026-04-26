@@ -8,7 +8,7 @@ Cookie: jwt={{jwt}}
 ###
 
 ### Cancel — no-space reason
-PATCH http://localhost:8030/consultation/cancel/9c5ec2c7-f053-4b1c-ba85-afd0e61535c8?reason=schedule_conflict
+PATCH http://localhost:8030/consultation/cancel/b1af2740-96b9-4622-b6e2-6d72d7f4635e?reason=schedule_conflict
 Accept: application/json
 Cookie: jwt={{jwt}}
 

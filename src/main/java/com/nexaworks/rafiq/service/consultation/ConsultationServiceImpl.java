@@ -26,7 +26,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -46,8 +46,8 @@ public class ConsultationServiceImpl implements ConsultationService{
         entity.setDoctor(doctor);
         entity.setDoctor(doctor);
 
-        LocalTime startTime = entity.getTimeSlot().getStartTime();
-        LocalTime endTime = entity.getTimeSlot().getStartTime()
+        LocalDateTime startTime = entity.getTimeSlot().getStartTime();
+        LocalDateTime endTime = entity.getTimeSlot().getStartTime()
                 .plusMinutes(entity.getTimeSlot().getDurationMinutes());
 
         if (consultationRepository.existsByOverlapping(startTime,endTime,doctor.getId())){
@@ -63,7 +63,7 @@ public class ConsultationServiceImpl implements ConsultationService{
         eventPublisher.publishEvent(new ConsultationAddedEvent(
                 consultation.getId()
                 ,consultation.getDoctor().getId()
-                ,consultation.getTimeSlot().getDate()));
+                ,consultation.getTimeSlot().getStartTime()));
         return consultation;
     }
 
@@ -91,9 +91,9 @@ public class ConsultationServiceImpl implements ConsultationService{
         if (!consultation.getDoctor().getId().equals(userId)){
             throw new ConsultationException("You are not authorized to edit this consultation");
         }
-        LocalTime start = request.startTime();
-        LocalTime end = request.startTime().plusMinutes(request.duration());
-        if (consultationRepository.existsByOverlapping(start,end,userId,id)){
+        LocalDateTime start = request.startTime();
+        LocalDateTime end = request.startTime().plusMinutes(request.duration());
+        if (consultationRepository.existsByOverlapping(start,end,userId)){
             throw new ConsultationException("Consultation time slot is already booked");
         }
         consultation.getTimeSlot().setStartTime(start);

@@ -1,22 +1,20 @@
-### Doctor schedule — paginated filter (doctor only)
+### Doctor schedule — with filters
 ### Run api/auth/login.http first — the jwt variable is captured automatically.
 GET http://localhost:8030/consultation/schedule?page=0&size=10
 Content-Type: application/json
-Accept: application/json
 Cookie: jwt={{jwt}}
 
 {
-  "startDate": "2026-05-01",
-  "endDate": "2026-05-31",
-  "status": "AVAILABLE"
+  "startDate": "2026-04-26T09:00:00",
+  "endDate": "2026-04-26T18:00:00",
+  "status": "CANCELLED"
 }
 
 ###
 
-### Same endpoint — no filters (returns all slots)
+### Doctor schedule — no filters (returns all slots)
 GET http://localhost:8030/consultation/schedule?page=0&size=20
 Content-Type: application/json
-Accept: application/json
 Cookie: jwt={{jwt}}
 
 {}

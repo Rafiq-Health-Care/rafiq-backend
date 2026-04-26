@@ -6,9 +6,8 @@ Accept: application/json
 Cookie: jwt={{jwt}}
 
 {
-  "date": "2026-05-15",
-  "startTime": "09:00:00",
-  "duration": 30,
+  "date": "2026-06-15",
+  "startTime": "2026-04-26T09:00:00",  "duration": 30,
   "price": 200.00
 }
 

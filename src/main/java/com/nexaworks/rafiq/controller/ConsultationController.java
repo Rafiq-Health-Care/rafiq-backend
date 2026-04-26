@@ -40,7 +40,7 @@ public class ConsultationController {
     }
     @GetMapping("/schedule")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<PageResponse<ConsultationResponse>> getSchedule(@RequestBody ScheduleFilter filter, @RequestParam Pageable pageable){
+    public ResponseEntity<PageResponse<ConsultationResponse>> getSchedule(@RequestBody ScheduleFilter filter,Pageable pageable){
         Page<Consultation> consultations = consultationService.getDoctorSchedule(filter,pageable);
         return ResponseEntity.ok(mapper.toPageResponse(consultations));
     }
