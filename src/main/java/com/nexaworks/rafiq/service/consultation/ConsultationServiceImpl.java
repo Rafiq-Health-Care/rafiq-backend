@@ -12,15 +12,19 @@ import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.exception.custom.ConsultationException;
 import com.nexaworks.rafiq.repository.CancellationLogRepository;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
+import com.nexaworks.rafiq.repository.specification.ScheduleSpecification;
 import com.nexaworks.rafiq.service.authentication.AuthService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.PessimisticLockingFailureException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -37,7 +41,7 @@ public class ConsultationServiceImpl implements ConsultationService{
 
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public Consultation add(Consultation entity) {
         Doctor doctor = (Doctor) authService.getAuthenticateUser();
         entity.setDoctor(doctor);
@@ -62,12 +66,14 @@ public class ConsultationServiceImpl implements ConsultationService{
     }
 
     @Override
-    public List<Consultation> getDoctorSchedule(ScheduleFilter filter) {
-        return List.of();
+    @Transactional(readOnly = true)
+    public Page<Consultation> getDoctorSchedule(ScheduleFilter filter, Pageable pageable) {
+        Specification<Consultation> spec = ScheduleSpecification.filter(filter, authService.getAuthenticateUserId());
+        return consultationRepository.findAll(spec,pageable);
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public Consultation editConsultation(AddConsultationRequest request, UUID id) {
         UUID userId = authService.getAuthenticateUserId();
 
@@ -95,7 +101,7 @@ public class ConsultationServiceImpl implements ConsultationService{
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     @Retryable(
             retryFor = {PessimisticLockingFailureException.class},
             maxAttempts = 3,

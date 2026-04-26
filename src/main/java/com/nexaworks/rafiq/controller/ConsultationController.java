@@ -2,13 +2,17 @@ package com.nexaworks.rafiq.controller;
 
 import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
 import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
+import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationResponse;
 import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.mapper.ConsultationMapper;
+import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.service.consultation.ConsultationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +28,8 @@ public class ConsultationController {
     private final ConsultationService consultationService;
     private final ConsultationMapper mapper;
 
+
+
     @PostMapping("/add")
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<ConsultationResponse> addConsultation(@RequestBody AddConsultationRequest request){
@@ -34,9 +40,9 @@ public class ConsultationController {
     }
     @GetMapping("/schedule")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<List<ConsultationResponse>> getSchedule(@RequestBody ScheduleFilter filter){
-        List<Consultation> consultations = consultationService.getDoctorSchedule(filter);
-        return ResponseEntity.ok(mapper.toListDto(consultations));
+    public ResponseEntity<PageResponse<ConsultationResponse>> getSchedule(@RequestBody ScheduleFilter filter, @RequestParam Pageable pageable){
+        Page<Consultation> consultations = consultationService.getDoctorSchedule(filter,pageable);
+        return ResponseEntity.ok(mapper.toPageResponse(consultations));
     }
     @PutMapping("/edit/{id}")
     @PreAuthorize("hasRole('DOCTOR')")
