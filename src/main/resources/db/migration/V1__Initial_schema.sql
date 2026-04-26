@@ -22,18 +22,6 @@ CREATE TABLE role (
     updated_by UUID
 );
 
--- Specialization table
-CREATE TABLE specialization (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255),
-    description VARCHAR(255),
-    code VARCHAR(255),
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE,
-    created_by UUID NOT NULL,
-    updated_by UUID
-);
-
 -- Social Links table
 CREATE TABLE social_links (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -203,7 +191,7 @@ CREATE TABLE doctor_profile (
     public_id VARCHAR(255),
     status VARCHAR(50),
     user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-    specialization_id UUID NOT NULL REFERENCES specialization(id),
+    specialization VARCHAR(100) NOT NULL,
     social_links_id UUID REFERENCES social_links(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE,
@@ -212,7 +200,7 @@ CREATE TABLE doctor_profile (
 );
 
 CREATE INDEX doctor_profile_idx ON doctor_profile(user_id);
-CREATE INDEX specialization_idx ON doctor_profile(specialization_id);
+CREATE INDEX specialization_idx ON doctor_profile(specialization);
 
 -- Medical Certifications table
 CREATE TABLE medical_certifications (

@@ -58,6 +58,9 @@ public class ConsultationServiceImpl implements ConsultationService{
 
 
         Consultation consultation = consultationRepository.save(entity);
+
+        log.info("Consultation added {}", consultation.getId());
+
         eventPublisher.publishEvent(new ConsultationAddedEvent(
                 consultation.getId()
                 ,consultation.getDoctor().getId()
@@ -96,6 +99,7 @@ public class ConsultationServiceImpl implements ConsultationService{
         }
         consultation.getTimeSlot().setStartTime(start);
         consultation.getTimeSlot().setEndTime(end);
+        log.info("Consultation edited {}", consultation.getId());
         // TODO handle real time connections
         return  consultationRepository.save(consultation);
     }

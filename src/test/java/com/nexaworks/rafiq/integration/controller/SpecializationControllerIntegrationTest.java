@@ -24,6 +24,6 @@ public class SpecializationControllerIntegrationTest extends BaseIntegrationTest
         mockMvc.perform(MockMvcRequestBuilders.get("/specialization")).andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(greaterThan(0)))
-                .andExpect(jsonPath("$[0].id").exists()).andExpect(jsonPath("$[0].name").exists());
+                .andExpect(jsonPath("$[0]").isString());
     }
 }
