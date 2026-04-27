@@ -14,7 +14,10 @@ target/
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
+# Ignore IDE metadata but allow HTTP Client to persist cookies (see .idea/httpRequests/)
+.idea/*
+!.idea/httpRequests/
+!.idea/httpRequests/**
 *.iws
 *.iml
 *.ipr
@@ -32,6 +35,8 @@ build/
 ### VS Code ###
 .vscode/
 
+.env
 .env.properties
 docker-compose.yml
+!.env.example
 

@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 @SuperBuilder
 @Table(name = "consultation", indexes = {
         @Index(name = "doctor_idx", columnList = "doctor_id"),
-        @Index(name = "patient_idx", columnList = "patient_id"),
+        @Index(name = "patient_con_idx", columnList = "patient_id"),
         @Index(name = "status_idx", columnList = "status")
 }, uniqueConstraints = {
         @UniqueConstraint(name = "uk_doctor_date_start",

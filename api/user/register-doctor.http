@@ -9,15 +9,15 @@ Content-Type: application/json
 
 {
   "user": {
-    "email": "dr.janedzh.doe+{{$uuid}}@example.com",
+    "email": "dr.janedzh.doe@example.com",
     "password": "Str0ng@Pass1!",
     "firstName": "Jane",
     "lastName": "Doe",
     "phone": "+15551230001",
-    "age": 40,
+     "birthDate": "1985-06-15",
     "gender": "female"
   },
-  "specialization": "caaae0d0-c8f9-4cf9-97dd-3467708c79f6",
+  "specialization": "ONCOLOGY",
   "description": "Board-certified cardiologist with 10+ years of experience"
 }
 
@@ -25,6 +25,6 @@ Content-Type: application/json
 Content-Disposition: form-data; name="nationalId"; filename="doctor-national-id.jpg"
 Content-Type: image/jpeg
 
-< /home/bialy/rafiq-backend/api/asset/doctor-national-id.jpg
+< /home/elbialy/rafiq-backend/api/asset/doctor-national-id.jpg
 
 --Boundary_123456--

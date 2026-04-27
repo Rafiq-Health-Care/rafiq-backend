@@ -9,7 +9,7 @@ spring:
   application:
     name: rafiq
   config:
-    import: optional:file:./.env.properties
+    import: optional:file:.env[.properties]
 
   # Database config
   datasource:
@@ -26,7 +26,7 @@ spring:
    # JPA config
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:

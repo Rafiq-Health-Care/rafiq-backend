@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultation cancelled</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .email-wrapper {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        .header {
+            background-color: #0d6efd;
+            padding: 24px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .content h2 {
+            color: #0d6efd;
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+        .content p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .meta {
+            background: #f0f4ff;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        .footer {
+            background-color: #f0f2f5;
+            text-align: center;
+            font-size: 13px;
+            color: #777;
+            padding: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="email-wrapper">
+    <div class="header">
+        <h1>Consultation update</h1>
+    </div>
+    <div class="content">
+        <h2>Hello <span th:text="${recipientName}">Doctor</span>,</h2>
+        <p>
+            <strong th:text="${otherPartyName}">The patient</strong> has cancelled a consultation with you on <strong>Rafiq</strong>.
+            The time slot has been released and is available again for booking where applicable.
+        </p>
+        <div class="meta">
+            <p><strong>Reference:</strong> <span th:text="${consultationId}">—</span></p>
+            <p><strong>Reason given:</strong> <span th:text="${reason}">—</span></p>
+        </div>
+        <p>If you have questions, contact support through the Rafiq app.</p>
+    </div>
+    <div class="footer">
+        <p>&copy; <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2026</span> Rafiq. All rights reserved.</p>
+        <p>This is an automated message — please do not reply.</p>
+    </div>
+</div>
+</body>
+</html>

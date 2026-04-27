@@ -33,6 +33,7 @@ import com.nexaworks.rafiq.exception.custom.GroupIsAlreadyExistsException;
 import com.nexaworks.rafiq.exception.custom.GroupNotFoundException;
 import com.nexaworks.rafiq.exception.custom.MedicineNotFound;
 import com.nexaworks.rafiq.repository.GroupRepository;
+import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.service.medicine.GroupServiceImpl;
 import com.nexaworks.rafiq.service.patient.PatientService;
 
@@ -44,6 +45,9 @@ public class GroupServiceImplTest {
 
     @Mock
     private PatientService patientService;
+
+    @Mock
+    private AuthService authService;
 
     @InjectMocks
     private GroupServiceImpl groupService;
@@ -137,8 +141,8 @@ public class GroupServiceImplTest {
             Group savedGroup = Group.builder().id(groupId).name("Vitamins")
                     .description("Vitamin supplements").color(Color.BLUE).patient(patient).build();
 
-            when(groupRepository.existsGroupByName("Vitamins")).thenReturn(false);
-            when(patientService.getPatientProfile()).thenReturn(patient);
+            when(authService.getAuthenticateUser()).thenReturn(patient);
+            when(groupRepository.existsGroupByName_AndPatient("Vitamins", patient)).thenReturn(false);
             when(groupRepository.save(any(Group.class))).thenReturn(savedGroup);
 
             // Act
@@ -149,8 +153,8 @@ public class GroupServiceImplTest {
             assertThat(result.getId()).isEqualTo(groupId);
             assertThat(result.getName()).isEqualTo("Vitamins");
             assertThat(result.getPatient()).isEqualTo(patient);
-            verify(groupRepository, times(1)).existsGroupByName("Vitamins");
-            verify(patientService, times(1)).getPatientProfile();
+            verify(authService, times(1)).getAuthenticateUser();
+            verify(groupRepository, times(1)).existsGroupByName_AndPatient("Vitamins", patient);
             verify(groupRepository, times(1)).save(any(Group.class));
         }
 
@@ -161,15 +165,16 @@ public class GroupServiceImplTest {
             Group group = Group.builder().name("Vitamins").description("Vitamin supplements")
                     .build();
 
-            when(groupRepository.existsGroupByName("Vitamins")).thenReturn(true);
+            when(authService.getAuthenticateUser()).thenReturn(patient);
+            when(groupRepository.existsGroupByName_AndPatient("Vitamins", patient)).thenReturn(true);
 
             // Act & Assert
             assertThatExceptionOfType(GroupIsAlreadyExistsException.class)
                     .isThrownBy(() -> groupService.addGroup(group))
                     .withMessageContaining("Group with name Vitamins already exists");
 
-            verify(groupRepository, times(1)).existsGroupByName("Vitamins");
-            verify(patientService, never()).getPatientProfile();
+            verify(authService, times(1)).getAuthenticateUser();
+            verify(groupRepository, times(1)).existsGroupByName_AndPatient("Vitamins", patient);
             verify(groupRepository, never()).save(any(Group.class));
         }
     }
@@ -191,7 +196,7 @@ public class GroupServiceImplTest {
             Pageable pageable = PageRequest.of(0, 10, Sort.by("name").ascending());
             Page<Group> groupPage = new PageImpl<>(groups, pageable, groups.size());
 
-            when(patientService.getPatientProfile()).thenReturn(patient);
+            when(authService.getAuthenticateUserId()).thenReturn(patientId);
             when(groupRepository.findByPatientId(eq(patientId), any(Pageable.class)))
                     .thenReturn(groupPage);
 
@@ -202,7 +207,7 @@ public class GroupServiceImplTest {
             assertThat(result).isNotNull();
             assertThat(result.getTotalElements()).isEqualTo(2);
             assertThat(result.getContent().size()).isEqualTo(2);
-            verify(patientService, times(1)).getPatientProfile();
+            verify(authService, times(1)).getAuthenticateUserId();
             verify(groupRepository, times(1)).findByPatientId(eq(patientId), any(Pageable.class));
         }
 
@@ -219,7 +224,7 @@ public class GroupServiceImplTest {
             Pageable pageable = PageRequest.of(0, 10, Sort.by("name").descending());
             Page<Group> groupPage = new PageImpl<>(groups, pageable, groups.size());
 
-            when(patientService.getPatientProfile()).thenReturn(patient);
+            when(authService.getAuthenticateUserId()).thenReturn(patientId);
             when(groupRepository.findByPatientId(eq(patientId), any(Pageable.class)))
                     .thenReturn(groupPage);
 
@@ -230,7 +235,7 @@ public class GroupServiceImplTest {
             assertThat(result).isNotNull();
             assertThat(result.getTotalElements()).isEqualTo(2);
             assertThat(result.getContent().size()).isEqualTo(2);
-            verify(patientService, times(1)).getPatientProfile();
+            verify(authService, times(1)).getAuthenticateUserId();
             verify(groupRepository, times(1)).findByPatientId(eq(patientId), any(Pageable.class));
         }
 
@@ -242,7 +247,7 @@ public class GroupServiceImplTest {
             Pageable pageable = PageRequest.of(0, 10, Sort.by("name").ascending());
             Page<Group> groupPage = new PageImpl<>(groups, pageable, 0);
 
-            when(patientService.getPatientProfile()).thenReturn(patient);
+            when(authService.getAuthenticateUserId()).thenReturn(patientId);
             when(groupRepository.findByPatientId(eq(patientId), any(Pageable.class)))
                     .thenReturn(groupPage);
 
@@ -253,7 +258,7 @@ public class GroupServiceImplTest {
             assertThat(result).isNotNull();
             assertThat(result.getTotalElements()).isEqualTo(0);
             assertThat(result.getContent().size()).isEqualTo(0);
-            verify(patientService, times(1)).getPatientProfile();
+            verify(authService, times(1)).getAuthenticateUserId();
             verify(groupRepository, times(1)).findByPatientId(eq(patientId), any(Pageable.class));
         }
     }
@@ -277,7 +282,8 @@ public class GroupServiceImplTest {
 
             when(groupRepository.findById(groupId)).thenReturn(Optional.of(existingGroup));
             when(patientService.getPatientProfile()).thenReturn(patient);
-            when(groupRepository.existsGroupByName("New Name")).thenReturn(false);
+            when(groupRepository.existsGroupByPatient_IdAndName(patientId, "New Name"))
+                    .thenReturn(false);
             when(groupRepository.save(any(Group.class))).thenReturn(updatedGroup);
 
             // Act
