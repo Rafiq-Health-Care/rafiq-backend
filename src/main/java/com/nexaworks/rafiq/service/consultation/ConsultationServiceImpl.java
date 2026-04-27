@@ -30,6 +30,8 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -114,8 +116,16 @@ public class ConsultationServiceImpl implements ConsultationService{
         consultation.getTimeSlot().setEndTime(end);
         log.info("Consultation edited {} by {}", consultation.getId(),userId);
 
-        messagingTemplate.convertAndSend("/topic/consultation"
-                ,new ConsultationChanged(consultation.getId(),start));
+
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit(){
+                        messagingTemplate.convertAndSend("/topic/consultation"
+                                ,new ConsultationChanged(consultation.getId(),start));
+                    }
+                }
+        );
 
         return  consultationRepository.save(consultation);
     }
@@ -161,9 +171,17 @@ public class ConsultationServiceImpl implements ConsultationService{
         log.info("Consultation cancelled {} by {}", consultation.getId(), currentUser.getEmail());
 
         // TODO handle refund Logic
-        if (cancelledByPatient) {
-            messagingTemplate.convertAndSend("/topic/consultation",new ConsultationCancelled(id,ConsultationStatus.AVAILABLE));
-        }
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit(){
+                        if (cancelledByPatient) {
+                            messagingTemplate.convertAndSend("/topic/consultation",new ConsultationCancelled(id,ConsultationStatus.AVAILABLE));
+                        }
+                    }
+                }
+        );
+
 
         Doctor doctor = consultation.getDoctor();
         var patient = consultation.getPatient();
