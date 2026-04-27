@@ -66,7 +66,7 @@ public class ConsultationServiceImpl implements ConsultationService{
         LocalDateTime endTime = entity.getTimeSlot().getStartTime()
                 .plusMinutes(entity.getTimeSlot().getDurationMinutes());
 
-        if (consultationRepository.existsByOverlapping(startTime,endTime,doctor.getId())){
+        if (consultationRepository.existsByOverlapping(startTime,endTime,doctor.getId(),ConsultationStatus.CANCELLED)){
             throw new ConsultationException("Consultation time slot is already booked");
         }
         entity.getTimeSlot().setEndTime(endTime);
@@ -109,7 +109,7 @@ public class ConsultationServiceImpl implements ConsultationService{
 
         LocalDateTime start = request.startTime();
         LocalDateTime end = request.startTime().plusMinutes(request.duration());
-        if (consultationRepository.existsByOverlapping(start,end,userId,id)){
+        if (consultationRepository.existsByOverlapping(start,end,userId,id,ConsultationStatus.CANCELLED)){
             throw new ConsultationException("Consultation time slot is already booked");
         }
         consultation.getTimeSlot().setStartTime(start);
