@@ -6,9 +6,9 @@ import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationResponse;
 import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.mapper.ConsultationMapper;
-import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.service.consultation.ConsultationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
@@ -32,7 +32,7 @@ public class ConsultationController {
 
     @PostMapping("/add")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<ConsultationResponse> addConsultation(@RequestBody AddConsultationRequest request){
+    public ResponseEntity<ConsultationResponse> addConsultation(@Valid @RequestBody AddConsultationRequest request){
         Consultation consultation = mapper.toEntity(request);
         consultation = consultationService.add(consultation);
         return ResponseEntity.ok(mapper.toDto(consultation));
@@ -40,13 +40,13 @@ public class ConsultationController {
     }
     @GetMapping("/schedule")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<PageResponse<ConsultationResponse>> getSchedule(@RequestBody ScheduleFilter filter,Pageable pageable){
+    public ResponseEntity<PageResponse<ConsultationResponse>> getSchedule(@Valid @RequestBody ScheduleFilter filter,Pageable pageable){
         Page<Consultation> consultations = consultationService.getDoctorSchedule(filter,pageable);
         return ResponseEntity.ok(mapper.toPageResponse(consultations));
     }
     @PutMapping("/edit/{id}")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<ConsultationResponse> editConsultation(@RequestBody AddConsultationRequest request
+    public ResponseEntity<ConsultationResponse> editConsultation(@Valid @RequestBody AddConsultationRequest request
     ,@PathVariable UUID id) {
         Consultation consultation = consultationService.editConsultation(request,id);
         return ResponseEntity.ok(mapper.toDto(consultation));
