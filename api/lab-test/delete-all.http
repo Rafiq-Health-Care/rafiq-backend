@@ -1,5 +1,0 @@
-### Delete all lab tests (returns number of deleted records)
-DELETE http://localhost:8030/lab-test
-Accept: application/json
-
-###

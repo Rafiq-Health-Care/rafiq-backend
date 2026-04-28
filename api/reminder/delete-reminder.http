@@ -1,6 +1,0 @@
-### Delete a reminder by ID
-DELETE http://localhost:8030/reminder/c9e6c58f-5370-4a48-8d29-e67e118fcebb
-Accept: application/json
-
-###
-
