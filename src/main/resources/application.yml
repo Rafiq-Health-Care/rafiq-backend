@@ -139,4 +139,4 @@ server:
     accept-count: 100
 logging:
   level:
-    root: ERROR
+    root: INFO
