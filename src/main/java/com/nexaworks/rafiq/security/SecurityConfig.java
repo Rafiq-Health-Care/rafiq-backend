@@ -31,7 +31,7 @@ public class SecurityConfig {
                         "/v3/api-docs/**", "/swagger-resources", "/swagger-resources/**",
                         "/configuration/ui", "/configuration/security", "/swagger-ui/**",
                         "/webjars/**", "/swagger-ui.html", "/favicon.ico", "/labs", "/auth/google",
-                        "/drugs", "/password/forget-password", "/password/change-password","/ws/**")
+                        "/drugs", "/password/forget-password", "/password/change-password","/ws/**","/test2","/index.html")
                 .permitAll().anyRequest().authenticated())
                 .sessionManagement(sc -> sc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable)

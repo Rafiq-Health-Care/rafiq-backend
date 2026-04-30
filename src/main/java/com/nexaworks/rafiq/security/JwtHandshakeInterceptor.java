@@ -1,41 +1,50 @@
 package com.nexaworks.rafiq.security;
 
+import java.util.Map;
 
-import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
-import java.util.Map;
+import jakarta.servlet.http.Cookie;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
 public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
+    public static final String JWT_ATTR = "jwt";
+
     @Override
     public boolean beforeHandshake(ServerHttpRequest request,
                                    ServerHttpResponse response,
                                    WebSocketHandler wsHandler,
-                                   Map<String, Object> attributes) throws Exception {
+                                   Map<String, Object> attributes) {
 
-        log.info("Before handshake called");
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if (auth != null && !auth.getPrincipal().equals("anonymousUser")&& auth.isAuthenticated()) {
-            attributes.put("user", auth);
-            log.info("Authenticated user: {}", auth.getPrincipal().toString());
-            return true;
+        if (request instanceof ServletServerHttpRequest servletRequest) {
+            Cookie[] cookies = servletRequest.getServletRequest().getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if ("jwt".equals(cookie.getName())) {
+                        attributes.put(JWT_ATTR, cookie.getValue());
+                        log.debug("WebSocket handshake captured jwt cookie");
+                        return true;
+                    }
+                }
+            }
         }
-
-        return false;     }
+        log.warn("Rejecting WebSocket handshake — no jwt cookie present");
+        return false;
+    }
 
     @Override
-    public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, @Nullable Exception exception) {
-
+    public void afterHandshake(ServerHttpRequest request,
+                               ServerHttpResponse response,
+                               WebSocketHandler wsHandler,
+                               @Nullable Exception exception) {
     }
 }
