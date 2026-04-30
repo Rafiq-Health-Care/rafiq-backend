@@ -1,5 +1,0 @@
-### Get paginated lab tests (returns PageResponse<TestResponse>)
-GET http://localhost:8030/lab-test?page=0&size=10&sort=name&direction=asc
-Accept: application/json
-
-###
