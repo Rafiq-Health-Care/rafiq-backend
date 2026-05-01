@@ -194,55 +194,7 @@ public class ConsultationServiceImpl implements ConsultationService{
 
     }
 
-    @Override
-    @Transactional
-    @Retryable(
-            retryFor = {PessimisticLockingFailureException.class},
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 500)
-    )
-    public String reserve(UUID id, PaymentProvider provider) {
-        Patient patient = (Patient) authService.getAuthenticateUser();
-        log.info("Patient {} is reserving consultation {}", patient.getEmail(), id);
-        Consultation consultation = consultationRepository.findConsultationById(id)
-                .orElseThrow(()->new ConsultationException("Consultation not found"));
 
-        if (!consultation.getStatus().equals(ConsultationStatus.AVAILABLE)){
-            throw new ConsultationException("Consultation cannot be reserved");
-        }
-
-        checkPatientOverlapping(consultation, patient);
-        consultation.setStatus(ConsultationStatus.BOOKED);
-
-        log.info("Consultation {} is reserved by {}", consultation.getId(), patient.getEmail());
-
-        consultation.setPatient(patient);
-
-        String clientSecret = paymentService.process(consultation,patient,provider);
-
-        consultationRepository.save(consultation);
-
-        log.debug("Payment key for consultation {} is {}", consultation.getId(), clientSecret);
-
-        TransactionSynchronizationManager.registerSynchronization(
-                new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit(){
-                        messagingTemplate.convertAndSend("/topic/consultation",
-                                new ConsultationEvent(consultation.getId(), EventType.BOOKED, Map.of()));
-                    }
-                }
-        );
-
-        return clientSecret;
-    }
-
-    private void checkPatientOverlapping(Consultation consultation, Patient currentUser) {
-        if (consultationRepository.existsByPatientOverlapping(consultation.getTimeSlot().getStartTime(),
-                consultation.getTimeSlot().getEndTime(),currentUser.getId(),ConsultationStatus.AVAILABLE)){
-            throw new ConsultationException("Consultation time slot is already booked");
-        }
-    }
 
     private boolean cancelBookedConsultation(String reason, Consultation consultation, User currentUser) {
         CancellationLog cancellationLog = CancellationLog.builder()

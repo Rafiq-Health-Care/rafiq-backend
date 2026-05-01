@@ -18,6 +18,4 @@ public interface ConsultationService {
     Consultation editConsultation(AddConsultationRequest request, UUID id);
 
     void cancel(UUID id, String reason);
-
-    String  reserve(UUID id, PaymentProvider provider);
 }

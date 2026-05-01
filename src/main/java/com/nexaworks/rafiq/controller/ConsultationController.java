@@ -8,6 +8,7 @@ import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.enums.PaymentProvider;
 import com.nexaworks.rafiq.mapper.ConsultationMapper;
 import com.nexaworks.rafiq.service.consultation.ConsultationService;
+import com.nexaworks.rafiq.service.consultation.ReservationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ import java.util.UUID;
 @Tag(name = "Consultation", description = "Endpoints for consultation")
 public class ConsultationController {
     private final ConsultationService consultationService;
+    private final ReservationService reservationService;
     private final ConsultationMapper mapper;
 
 
@@ -61,7 +63,7 @@ public class ConsultationController {
     @PostMapping("/reserve/{id}")
     @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<String > reserveConsultation(@PathVariable UUID id, @RequestParam PaymentProvider provider){
-       String paymentKey = consultationService.reserve(id,provider);
+       String paymentKey = reservationService.reserve(id,provider);
        return ResponseEntity.ok(paymentKey);
     }
 
