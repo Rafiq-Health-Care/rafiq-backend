@@ -47,4 +47,17 @@ public interface ConsultationRepository extends JpaRepository<Consultation, UUID
                                 @Param("doctorId") UUID userId,
                                 @Param("consultationId") UUID id,
                                 @Param("status") ConsultationStatus status);
+    @Query("""
+    SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END
+    FROM Consultation c
+    WHERE c.doctor.id = :patientId
+    AND c.id != :consultationId
+    AND c.status != :status
+    AND c.timeSlot.startTime < :end
+    AND c.timeSlot.endTime > :start
+    """)
+    boolean existsByPatientOverlapping(@Param("start") LocalDateTime startTime,
+                                       @Param("end") LocalDateTime endTime,
+                                       @Param("patientId") UUID id1,
+                                       @Param("status") ConsultationStatus consultationStatus);
 }

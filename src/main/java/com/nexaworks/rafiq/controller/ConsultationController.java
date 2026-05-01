@@ -5,6 +5,7 @@ import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationResponse;
 import com.nexaworks.rafiq.entities.Consultation;
+import com.nexaworks.rafiq.entities.enums.PaymentProvider;
 import com.nexaworks.rafiq.mapper.ConsultationMapper;
 import com.nexaworks.rafiq.service.consultation.ConsultationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -56,5 +57,13 @@ public class ConsultationController {
         consultationService.cancel(id,reason);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/reserve/{id}")
+    @PreAuthorize("hasRole('PATIENT')")
+    public ResponseEntity<String > reserveConsultation(@PathVariable UUID id, @RequestParam PaymentProvider provider){
+       String paymentKey = consultationService.reserve(id,provider);
+       return ResponseEntity.ok(paymentKey);
+    }
+
 
 }
