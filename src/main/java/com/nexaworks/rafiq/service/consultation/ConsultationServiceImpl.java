@@ -48,7 +48,7 @@ public class ConsultationServiceImpl implements ConsultationService{
     private final AuthService authService;
     private final DoctorRepository doctorRepository;
     private final SimpMessagingTemplate messagingTemplate;
-    private final PaymentService paymentService;
+
 
 
     @Override
