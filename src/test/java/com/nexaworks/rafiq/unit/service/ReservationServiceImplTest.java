@@ -91,7 +91,8 @@ class ReservationServiceImplTest {
         when(authService.getAuthenticateUser()).thenReturn(patient);
         when(consultationRepository.findConsultationById(consultationId)).thenReturn(Optional.of(consultation));
         when(consultationRepository.existsByPatientOverlapping(
-                eq(slotStart), eq(slotEnd), eq(patient.getId()), eq(ConsultationStatus.AVAILABLE))).thenReturn(false);
+                eq(slotStart), eq(slotEnd), eq(patient.getId()), eq(ConsultationStatus.CANCELLED)))
+                .thenReturn(false);
         when(paymentService.process(consultation, patient, PaymentProvider.STRIPE)).thenReturn("pi_secret_xyz");
 
         try (MockedStatic<TransactionSynchronizationManager> tx = mockStatic(TransactionSynchronizationManager.class)) {
@@ -144,7 +145,7 @@ class ReservationServiceImplTest {
         when(authService.getAuthenticateUser()).thenReturn(patient);
         when(consultationRepository.findConsultationById(consultationId)).thenReturn(Optional.of(consultation));
         when(consultationRepository.existsByPatientOverlapping(
-                eq(slotStart), eq(slotEnd), eq(patient.getId()), eq(ConsultationStatus.AVAILABLE))).thenReturn(true);
+                eq(slotStart), eq(slotEnd), eq(patient.getId()), eq(ConsultationStatus.CANCELLED))).thenReturn(true);
 
         assertThatThrownBy(() -> reservationService.reserve(consultationId, PaymentProvider.STRIPE))
                 .isInstanceOf(ConsultationException.class)
@@ -167,7 +168,8 @@ class ReservationServiceImplTest {
         when(authService.getAuthenticateUser()).thenReturn(patient);
         when(consultationRepository.findConsultationById(consultationId)).thenReturn(Optional.of(consultation));
         when(consultationRepository.existsByPatientOverlapping(
-                eq(slotStart), eq(slotEnd), eq(patient.getId()), eq(ConsultationStatus.AVAILABLE))).thenReturn(false);
+                eq(slotStart), eq(slotEnd), eq(patient.getId()), eq(ConsultationStatus.CANCELLED)))
+                .thenReturn(false);
         when(paymentService.process(consultation, patient, PaymentProvider.STRIPE))
                 .thenThrow(new RuntimeException("payment gateway error"));
 
