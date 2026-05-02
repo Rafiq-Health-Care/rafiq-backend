@@ -6,7 +6,8 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum ConsultationStatus {
-    BOOKED(0.9),
+    BOOKED(0.0),
+    CONFIRMED(0.9),
     ONGOING(0.5),
     COMPLETED(0),
     CANCELLED(0),

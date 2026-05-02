@@ -3,6 +3,7 @@ package com.nexaworks.rafiq.service.consultation;
 import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
 import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
 import com.nexaworks.rafiq.entities.Consultation;
+import com.nexaworks.rafiq.entities.enums.PaymentProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

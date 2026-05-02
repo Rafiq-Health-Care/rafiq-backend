@@ -6,11 +6,11 @@ import com.nexaworks.rafiq.dto.event.ConsultationCancelled;
 import com.nexaworks.rafiq.dto.event.ConsultationChanged;
 import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
 import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
-import com.nexaworks.rafiq.entities.CancellationLog;
-import com.nexaworks.rafiq.entities.Consultation;
-import com.nexaworks.rafiq.entities.Doctor;
-import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.dto.response.consultation.ConsultationEvent;
+import com.nexaworks.rafiq.entities.*;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
+import com.nexaworks.rafiq.entities.enums.EventType;
+import com.nexaworks.rafiq.entities.enums.PaymentProvider;
 import com.nexaworks.rafiq.exception.custom.ConsultationException;
 import com.nexaworks.rafiq.mapper.ConsultationMapper;
 import com.nexaworks.rafiq.repository.CancellationLogRepository;
@@ -18,6 +18,7 @@ import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.repository.DoctorRepository;
 import com.nexaworks.rafiq.repository.specification.ScheduleSpecification;
 import com.nexaworks.rafiq.service.authentication.AuthService;
+import com.nexaworks.rafiq.service.payment.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -34,6 +35,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -46,6 +48,7 @@ public class ConsultationServiceImpl implements ConsultationService{
     private final AuthService authService;
     private final DoctorRepository doctorRepository;
     private final SimpMessagingTemplate messagingTemplate;
+
 
 
     @Override
@@ -190,6 +193,8 @@ public class ConsultationServiceImpl implements ConsultationService{
                 patient != null ? patient.getFirstName() : "", cancelledByPatient, reason));
 
     }
+
+
 
     private boolean cancelBookedConsultation(String reason, Consultation consultation, User currentUser) {
         CancellationLog cancellationLog = CancellationLog.builder()
