@@ -51,7 +51,6 @@ public interface ConsultationRepository extends JpaRepository<Consultation, UUID
     SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END
     FROM Consultation c
     WHERE c.doctor.id = :patientId
-    AND c.id != :consultationId
     AND c.status != :status
     AND c.timeSlot.startTime < :end
     AND c.timeSlot.endTime > :start

@@ -82,7 +82,7 @@ public class ReservationServiceImpl implements ReservationService{
 
     private void checkPatientOverlapping(Consultation consultation, Patient currentUser) {
         if (consultationRepository.existsByPatientOverlapping(consultation.getTimeSlot().getStartTime(),
-                consultation.getTimeSlot().getEndTime(),currentUser.getId(),ConsultationStatus.AVAILABLE)){
+                consultation.getTimeSlot().getEndTime(),currentUser.getId(),ConsultationStatus.CANCELLED)){
             throw new ConsultationException("Consultation time slot is already booked");
         }
     }
