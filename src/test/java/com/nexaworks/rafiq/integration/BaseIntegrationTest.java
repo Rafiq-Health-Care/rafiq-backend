@@ -1,11 +1,16 @@
 package com.nexaworks.rafiq.integration;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -20,15 +25,30 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import com.nexaworks.rafiq.client.Gemini;
 import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.integration.config.IntegrationTestExternalMocks;
 import com.nexaworks.rafiq.integration.config.TestDataSeeder;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Testcontainers
 @ActiveProfiles("test")
-@Import(TestDataSeeder.class)
+@Import({TestDataSeeder.class, IntegrationTestExternalMocks.class})
 public abstract class BaseIntegrationTest {
+
+    /** HTTP body-shaped JSON so {@link com.nexaworks.rafiq.service.ai.GeminiService} parsing succeeds */
+    protected static final String MOCK_GEMINI_HTTP_RESPONSE =
+            "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{\\\"name\\\":\\\"Test Result\\\",\\\"date\\\":\\\"2024-01-15\\\",\\\"tests\\\":[]}\"}]}}]}";
+
+    @MockBean
+    protected Gemini gemini;
+
+    @BeforeEach
+    void stubGeminiClientApi() {
+        when(gemini.getResult(any())).thenReturn(MOCK_GEMINI_HTTP_RESPONSE);
+    }
+
     @SuppressWarnings("resource")
     @Container
     static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:15")

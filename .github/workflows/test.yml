@@ -1,0 +1,52 @@
+name: Run Tests
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+      - feat/consultation
+    paths:
+      - "src/**"
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  test:
+    environment: development
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: maven
+
+      - name: Make mvnw executable
+        run: chmod +x ./mvnw
+
+      - name: Run Tests
+        run: ./mvnw clean verify -B
+
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: '**/target/surefire-reports/TEST-*.xml'
+          detailed_summary: true
+          include_passed: true
+
+      - name: Post coverage comment
+        uses: madrapps/jacoco-report@v1.6.1
+        if: success() || failure()
+        with:
+          paths: ./target/site/jacoco/jacoco.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
