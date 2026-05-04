@@ -50,3 +50,38 @@ jobs:
         with:
           paths: ./target/site/jacoco/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  notify-discord:
+      name: Notify Discord
+      runs-on: ubuntu-latest
+      if: github.event_name == 'pull_request'
+      needs: test
+
+      steps:
+        - name: Send Discord notification
+          env:
+            DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          run: |
+            payload=$(jq -n \
+              --arg title "🔀 New Pull Request" \
+              --arg desc "${{ github.event.pull_request.title }}" \
+              --arg author "${{ github.actor }}" \
+              --arg branch "${{ github.head_ref }} → ${{ github.base_ref }}" \
+              --arg url "${{ github.event.pull_request.html_url }}" \
+              '{
+                embeds: [{
+                  title: $title,
+                  description: $desc,
+                  color: 5814783,
+                  fields: [
+                    { name: "Author", value: $author, inline: true },
+                    { name: "Branch", value: $branch, inline: true }
+                  ],
+                  url: $url
+                }]
+              }')
+            
+            curl -H "Content-Type: application/json" \
+              -X POST \
+              -d "$payload" \
+              $DISCORD_WEBHOOK   
