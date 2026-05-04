@@ -18,7 +18,7 @@ import java.io.IOException;
 public class SMSNotificationListener {
     private final NotificationService<SmsNotification> notificationService;
 
-    public SMSNotificationListener(@Qualifier("mobile") NotificationService<SmsNotification> notificationService) {
+    public SMSNotificationListener(@Qualifier("sms") NotificationService<SmsNotification> notificationService) {
         this.notificationService = notificationService;
     }
 
