@@ -77,11 +77,8 @@ spring:
       simple:
         acknowledge-mode: manual
         retry:
-          enabled: true
-          initial-interval: 1000
-          max-attempts: 3
-          multiplier: 2.0
-          max-interval: 10000
+          enabled: false
+
   # Mail config
   mail:
     host: ${MAIL_HOST}
