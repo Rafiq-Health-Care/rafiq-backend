@@ -10,7 +10,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 
 public record AddConsultationRequest(
-        @NotNull  LocalDateTime startTime,
+        @NotNull @FutureDate LocalDateTime startTime,
         int duration,
         @NotNull @DecimalMin("0.0") BigDecimal price
 ) {

@@ -102,7 +102,7 @@ public class RabbitMessagingService implements MessageService{
         );
         rabbitTemplate.convertAndSend(CONSULTATION_EXPIRATION_EXCHANGE,CONSULTATION_EXPIRATION_ROUTING_KEY,id.toString(),
                 message -> {
-                    message.getMessageProperties().setHeader("x-delay", 50000);
+                    message.getMessageProperties().setHeader("x-delay", delay);
                     return message;
                 });
     }
