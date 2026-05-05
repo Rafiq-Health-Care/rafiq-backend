@@ -5,8 +5,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.nexaworks.rafiq.config.RabbitMQConfig;
 import com.nexaworks.rafiq.dto.event.NewOtpEvent;
+import com.nexaworks.rafiq.dto.notificaiton.EmailNotification;
 import com.nexaworks.rafiq.repository.UserRepository;
+import com.nexaworks.rafiq.service.notification.EmailContentService;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -32,7 +36,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 public class TokenServiceImpl implements TokenService {
     private final TokenRepository tokenRepository;
     private final UserRepository userRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final AmqpTemplate rabbitTemplate;
+    private final EmailContentService emailContentService;
 
     @Value("${refresh.expiration}")
     public Long REFRESH_EXPIRATION;
@@ -132,10 +137,10 @@ public class TokenServiceImpl implements TokenService {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                log.info("New OTP sent to {}", user.get().getEmail());
-                eventPublisher.publishEvent(
-                        new NewOtpEvent(user.get().getEmail(), otp, user.get().getFirstName()));
-
+                rabbitTemplate.convertAndSend(RabbitMQConfig.NOTIFICATION_EXCHANGE,
+                        RabbitMQConfig.ROUTING_KEY_EMAIL,
+                        new EmailNotification(user.get().getEmail(),"new-otp.html","New OTP"
+                        ,emailContentService.createOtpEmail(otp, user.get().getFirstName(),"")));
             }
         });
     }
