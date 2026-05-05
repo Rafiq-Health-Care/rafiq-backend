@@ -54,11 +54,12 @@ jobs:
   notify-discord:
     name: Notify Discord
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && secrets.DISCORD_WEBHOOK != ''
+    if: github.event_name == 'pull_request'
     needs: test
 
     steps:
       - name: Send Discord notification
+        if: secrets.DISCORD_WEBHOOK != ''
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           PR_TITLE: ${{ github.event.pull_request.title }}
