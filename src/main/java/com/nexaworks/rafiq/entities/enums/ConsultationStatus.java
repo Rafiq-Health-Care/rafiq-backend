@@ -13,6 +13,7 @@ public enum ConsultationStatus {
     CANCELLED(0),
     NO_SHOW(1),
     AVAILABLE(0),
+    EXPIRED(0),
     RESCHEDULED(0);
     public boolean isTerminal() {
         return this == CANCELLED || this == COMPLETED;
