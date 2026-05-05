@@ -55,18 +55,25 @@ jobs:
 
     steps:
       - name: Send Discord message
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
-          curl -H "Content-Type: application/json" \
-          -d '{
-            "embeds": [{
-              "title": "📬 New PR: ${{ github.event.pull_request.title }}",
-              "url": "${{ github.event.pull_request.html_url }}",
-              "color": 5814783,
-              "fields": [
-                { "name": "Author", "value": "${{ github.event.pull_request.user.login }}", "inline": true },
-                { "name": "Branch", "value": "${{ github.event.pull_request.head.ref }}", "inline": true },
-                { "name": "Target", "value": "${{ github.event.pull_request.base.ref }}", "inline": true }
-              ]
-            }]
-          }' \
-          ${{ secrets.DISCORD_WEBHOOK }}
+          if [ -z "$DISCORD_WEBHOOK" ]; then
+            echo "::warning::DISCORD_WEBHOOK is empty or not configured — add a repository secret named DISCORD_WEBHOOK with your Discord incoming webhook URL."
+            exit 0
+          fi
+          curl -sS -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "📬 New PR: ${{ github.event.pull_request.title }}",
+                "url": "${{ github.event.pull_request.html_url }}",
+                "color": 5814783,
+                "fields": [
+                  { "name": "Author", "value": "${{ github.event.pull_request.user.login }}", "inline": true },
+                  { "name": "Branch", "value": "${{ github.event.pull_request.head.ref }}", "inline": true },
+                  { "name": "Target", "value": "${{ github.event.pull_request.base.ref }}", "inline": true }
+                ]
+              }]
+            }' \
+            "$DISCORD_WEBHOOK"
