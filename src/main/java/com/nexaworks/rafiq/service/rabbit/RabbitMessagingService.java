@@ -13,8 +13,11 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import static com.nexaworks.rafiq.config.RabbitMQConfig.*;
 import static com.nexaworks.rafiq.entities.enums.ActionStatus.CONSULTATION_CANCELLED;
@@ -90,6 +93,16 @@ public class RabbitMessagingService implements MessageService{
         rabbitTemplate.convertAndSend(NOTIFICATION_EXCHANGE,
                 ROUTING_KEY_PUSH,notification);
 
+    }
+
+    @Override
+    public void publishExpirationEvent(UUID id, LocalDateTime endTime) {
+        long delay = LocalDateTime.now().until(endTime.plusMinutes(10), ChronoUnit.SECONDS);
+        rabbitTemplate.convertAndSend(CONSULTATION_EXPIRATION_EXCHANGE,CONSULTATION_EXPIRATION_ROUTING_KEY,id.toString(),
+                message -> {
+                    message.getMessageProperties().setHeader("x-delay", delay);
+                    return message;
+                });
     }
 
 

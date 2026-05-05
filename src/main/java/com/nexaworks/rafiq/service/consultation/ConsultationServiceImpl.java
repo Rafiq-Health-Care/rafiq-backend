@@ -81,6 +81,14 @@ public class ConsultationServiceImpl implements ConsultationService{
         log.info("Consultation added {} by {}", consultation.getId(), doctor.getEmail());
 
         // TODO add expire date to the consultation
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit(){
+                        messageService.publishExpirationEvent(consultation.getId(),consultation.getTimeSlot().getEndTime());
+                    }
+                }
+        );
         return consultation;
     }
 

@@ -27,6 +27,68 @@ public class RabbitMQConfig {
 
     public static final String NOTIFICATION_DLQ_EXCHANGE = "notification.dlq.exchange";
 
+    public static final String CONSULTATION_EXPIRATION_QUEUE = "consultation.expiration";
+    public static final String CONSULTATION_EXPIRATION_EXCHANGE = "consultation.expiration.exchange";
+    public static final String CONSULTATION_EXPIRATION_ROUTING_KEY = "consultation.expiration";
+
+    public static final String CONSULTATION_EXPIRATION_DLQ = "consultation.expiration.dlq";
+    public static final String CONSULTATION_EXPIRATION_DLQ_ROUTING_KEY = "consultation.expiration.dlq";
+
+    public static final String CONSULTATION_EXPIRATION_RETRY_QUEUE = "consultation.expiration.retry";
+    public static final String CONSULTATION_EXPIRATION_RETRY_ROUTING_KEY = "consultation.expiration.retry";
+
+    @Bean
+    public DirectExchange consultationExpirationExchange() {
+        return new DirectExchange(CONSULTATION_EXPIRATION_EXCHANGE);
+    }
+
+    @Bean
+    public Queue consultationExpirationQueue() {
+        return QueueBuilder.durable(CONSULTATION_EXPIRATION_QUEUE)
+                .withArgument("x-dead-letter-exchange", CONSULTATION_EXPIRATION_EXCHANGE)
+                .withArgument("x-dead-letter-routing-key", CONSULTATION_EXPIRATION_RETRY_ROUTING_KEY)
+                .build();
+    }
+
+    @Bean
+    public Queue consultationExpirationRetryQueue() {
+        return QueueBuilder.durable(CONSULTATION_EXPIRATION_RETRY_QUEUE)
+                .withArgument("x-dead-letter-exchange",CONSULTATION_EXPIRATION_EXCHANGE)
+                .withArgument("x-dead-letter-routing-key", CONSULTATION_EXPIRATION_ROUTING_KEY)
+                .withArgument("x-message-ttl", 60_000L)
+                .build();
+    }
+
+    @Bean
+    public Queue consultationExpirationDlq() {
+        return QueueBuilder.durable(CONSULTATION_EXPIRATION_DLQ)
+                .build();
+    }
+
+
+    @Bean
+    public Binding consultationExpirationBinding() {
+        return BindingBuilder
+                .bind(consultationExpirationQueue())
+                .to(consultationExpirationExchange())
+                .with(CONSULTATION_EXPIRATION_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding consultationExpirationRetryBinding() {
+        return BindingBuilder
+                .bind(consultationExpirationRetryQueue())
+                .to(consultationExpirationExchange())
+                .with(CONSULTATION_EXPIRATION_RETRY_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding consultationExpirationDlqBinding() {
+        return BindingBuilder
+                .bind(consultationExpirationDlq())
+                .to(consultationExpirationExchange())
+                .with(CONSULTATION_EXPIRATION_DLQ_ROUTING_KEY);
+    }
 
     @Bean(name = "emailDLQ")
     public Queue emailDLQ() {
