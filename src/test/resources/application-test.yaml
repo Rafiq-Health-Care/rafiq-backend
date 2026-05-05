@@ -29,6 +29,21 @@ spring:
   test:
     database:
       replace: none
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    virtual-host: ${RABBITMQ_VIRTUAL_HOST}
+    listener:
+      simple:
+        auto-startup: false
+
+RABBITMQ_HOST: localhost
+RABBITMQ_PORT: 5672
+RABBITMQ_USERNAME: guest
+RABBITMQ_PASSWORD: guest
+RABBITMQ_VIRTUAL_HOST: /
 
 # Satisfy ${...} placeholders in application.yml (no real secrets required for integration tests).
 DATASOURCE_URL: "jdbc:postgresql://127.0.0.1:5432/unused_until_testcontainers"
