@@ -9,6 +9,7 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -18,19 +19,20 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import com.nexaworks.rafiq.dto.notificaiton.EmailNotification;
 import com.nexaworks.rafiq.exception.custom.MailSenderException;
-import com.nexaworks.rafiq.service.notification.EmailSenderService;
-import com.nexaworks.rafiq.service.notification.EmailSenderServiceImpl;
+import com.nexaworks.rafiq.service.notification.EmailNotificationService;
+import com.nexaworks.rafiq.service.notification.NotificationService;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 
-@DisplayName("EmailSenderServiceImpl Test Cases")
+@DisplayName("EmailNotificationService Test Cases")
 @SpringBootTest
 @EnableRetry
-@ContextConfiguration(classes = {EmailSenderServiceImpl.class})
-public class EmailSenderServiceImplTest {
+@ContextConfiguration(classes = {EmailNotificationService.class})
+public class EmailNotificationServiceTest {
 
     @MockitoBean
     JavaMailSender javaMailSender;
@@ -39,7 +41,8 @@ public class EmailSenderServiceImplTest {
     SpringTemplateEngine templateEngine;
 
     @Autowired
-    EmailSenderService emailSenderService;
+    @Qualifier("email")
+    NotificationService<EmailNotification> emailNotificationService;
 
     @DisplayName("Should send email successfully")
     @Test
@@ -51,8 +54,8 @@ public class EmailSenderServiceImplTest {
                 .thenReturn("<html>email</html>");
         doNothing().when(javaMailSender).send(any(MimeMessage.class));
 
-        emailSenderService.sendEmail(Map.of("username", "Elbialy"), "test@example.com",
-                "Test Email", "testTemplate");
+        emailNotificationService.sendNotification(new EmailNotification("test@example.com",
+                "testTemplate", "Test Email", Map.of("username", "Elbialy")));
 
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
         verify(templateEngine, times(1)).process(eq("testTemplate"), any(Context.class));
@@ -71,13 +74,14 @@ public class EmailSenderServiceImplTest {
         }).when(javaMailSender).send(any(MimeMessage.class));
 
         assertThrows(MailSenderException.class,
-                () -> emailSenderService.sendEmail(Map.of("username", "Elbialy"),
-                        "test@example.com", "Test Email", "testTemplate"));
+                () -> emailNotificationService.sendNotification(new EmailNotification(
+                        "test@example.com", "testTemplate", "Test Email",
+                        Map.of("username", "Elbialy"))));
 
         verify(javaMailSender, times(4)).send(any(MimeMessage.class));
     }
 
-    @DisplayName("Should retry if mail send exception occurs")
+    @DisplayName("Should retry when template raises MessagingException")
     @Test
     void shouldThrowMailExceptionIfMessageExceptionOccurs() {
         MimeMessage mimeMessage = new MimeMessage(
@@ -88,8 +92,9 @@ public class EmailSenderServiceImplTest {
         }).when(templateEngine).process(anyString(), any(Context.class));
 
         assertThrows(MailSenderException.class,
-                () -> emailSenderService.sendEmail(Map.of("username", "Elbialy"),
-                        "test@example.com", "Test Email", "testTemplate"));
+                () -> emailNotificationService.sendNotification(new EmailNotification(
+                        "test@example.com", "testTemplate", "Test Email",
+                        Map.of("username", "Elbialy"))));
 
         verify(templateEngine, times(4)).process(eq("testTemplate"), any(Context.class));
 
@@ -109,8 +114,8 @@ public class EmailSenderServiceImplTest {
         }).doThrow(new MailException("Simulated mail failure again") {
         }).doNothing().when(javaMailSender).send(any(MimeMessage.class));
 
-        emailSenderService.sendEmail(Map.of("username", "Elbialy"), "test@example.com",
-                "Test Email", "testTemplate");
+        emailNotificationService.sendNotification(new EmailNotification("test@example.com",
+                "testTemplate", "Test Email", Map.of("username", "Elbialy")));
 
         verify(javaMailSender, times(3)).send(any(MimeMessage.class));
         verify(templateEngine, atLeastOnce()).process(eq("testTemplate"), any(Context.class));
@@ -131,8 +136,8 @@ public class EmailSenderServiceImplTest {
         }).doAnswer(invocation -> "<html>email</html>").when(templateEngine).process(anyString(),
                 any(Context.class));
 
-        emailSenderService.sendEmail(Map.of("username", "Elbialy"), "test@example.com",
-                "Test Email", "testTemplate");
+        emailNotificationService.sendNotification(new EmailNotification("test@example.com",
+                "testTemplate", "Test Email", Map.of("username", "Elbialy")));
 
         verify(templateEngine, times(3)).process(eq("testTemplate"), any(Context.class));
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));

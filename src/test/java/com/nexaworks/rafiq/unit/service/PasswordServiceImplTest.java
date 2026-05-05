@@ -3,26 +3,25 @@ package com.nexaworks.rafiq.unit.service;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import com.nexaworks.rafiq.dto.event.ForgetPasswordEvent;
 import com.nexaworks.rafiq.dto.request.user.ChangePasswordRequest;
 import com.nexaworks.rafiq.dto.request.user.ForgetPasswordRequest;
 import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
@@ -31,6 +30,7 @@ import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
+import com.nexaworks.rafiq.service.rabbit.MessageService;
 import com.nexaworks.rafiq.service.user.PasswordServiceImpl;
 import com.nexaworks.rafiq.service.user.TokenService;
 
@@ -45,7 +45,7 @@ class PasswordServiceImplTest {
     private TokenService tokenService;
 
     @Mock
-    private ApplicationEventPublisher eventPublisher;
+    private MessageService messageService;
 
     @Mock
     private AuthService authService;
@@ -56,14 +56,12 @@ class PasswordServiceImplTest {
     @InjectMocks
     private PasswordServiceImpl passwordService;
 
-    @Captor
-    private ArgumentCaptor<ForgetPasswordEvent> forgetPasswordEventCaptor;
-
     private User testUser;
     private Token testToken;
 
     @BeforeEach
     void setUp() {
+        TransactionSynchronizationManager.initSynchronization();
         testUser = new User();
         testUser.setEmail("test@example.com");
         testUser.setFirstName("John");
@@ -76,12 +74,26 @@ class PasswordServiceImplTest {
         testToken.setExpiryDate(Instant.now().plus(1, ChronoUnit.HOURS));
     }
 
+    @AfterEach
+    void tearDown() {
+        TransactionSynchronizationManager.clearSynchronization();
+    }
+
+    private void triggerAfterCommitCallbacks() {
+        TransactionSynchronizationManager.getSynchronizations().forEach(sync -> {
+            try {
+                sync.afterCommit();
+            } catch (Exception ignored) {
+            }
+        });
+    }
+
     @Nested
     @DisplayName("Forget Password Tests")
     class ForgetPasswordTests {
 
         @Test
-        @DisplayName("Should generate access token and publish event when user exists")
+        @DisplayName("Should generate access token and send reset message when user exists")
         void shouldGenerateAccessTokenAndPublishEventWhenUserExists() {
             // Arrange
             ForgetPasswordRequest request = new ForgetPasswordRequest("test@example.com");
@@ -93,19 +105,12 @@ class PasswordServiceImplTest {
 
             // Act
             passwordService.forgetPassword(request);
+            triggerAfterCommitCallbacks();
 
             // Assert
             verify(userRepository).findByEmail(request.email());
             verify(tokenService).generateAccessToken(Optional.of(testUser));
-            verify(eventPublisher).publishEvent(forgetPasswordEventCaptor.capture());
-
-            ForgetPasswordEvent event = forgetPasswordEventCaptor.getValue();
-            org.assertj.core.api.Assertions.assertThat(event.email())
-                    .isEqualTo(testUser.getEmail());
-            org.assertj.core.api.Assertions.assertThat(event.accessToken())
-                    .isEqualTo(generatedToken);
-            org.assertj.core.api.Assertions.assertThat(event.name())
-                    .isEqualTo(testUser.getFirstName());
+            verify(messageService).sendResetPasswordEvent(eq(testUser), eq(generatedToken));
         }
 
         @Test
@@ -121,7 +126,7 @@ class PasswordServiceImplTest {
             // Assert
             verify(userRepository).findByEmail(request.email());
             verify(tokenService, never()).generateAccessToken(any());
-            verify(eventPublisher, never()).publishEvent(any());
+            verify(messageService, never()).sendResetPasswordEvent(any(User.class), anyString());
         }
     }
 

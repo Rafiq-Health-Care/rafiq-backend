@@ -2,6 +2,7 @@ package com.nexaworks.rafiq.unit.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -18,13 +19,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.entities.Patient;
@@ -36,6 +35,7 @@ import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
 import com.nexaworks.rafiq.exception.custom.TokenNotFoundException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.entities.enums.Specialization;
+import com.nexaworks.rafiq.service.rabbit.MessageService;
 import com.nexaworks.rafiq.service.doctor.DoctorServiceImpl;
 import com.nexaworks.rafiq.service.file.ImageService;
 import com.nexaworks.rafiq.service.patient.PatientServiceImpl;
@@ -64,7 +64,7 @@ public class UserServiceImplTest {
     ImageService imageService;
 
     @Mock
-    ApplicationEventPublisher eventPublisher;
+    MessageService messageService;
 
     @Mock
     AuthSessionManager authSessionManager;
@@ -127,7 +127,7 @@ public class UserServiceImplTest {
         verify(roleService, times(1)).getRole(Roles.ROLE_PATIENT);
         verify(patientService, times(1)).register(any(Patient.class));
         verify(tokenService, times(1)).generateOtpToken(any(Patient.class));
-        verify(eventPublisher, times(1)).publishEvent(any(UserRegistrationEvent.class));
+        verify(messageService, times(1)).sendRegistrationEvent(eq(patient), eq(expectedToken));
     }
 
     private static User getUser() {
@@ -147,7 +147,8 @@ public class UserServiceImplTest {
         assertThrows(com.nexaworks.rafiq.exception.custom.RegistrationException.class,
                 () -> userService.registerPatient(patient));
         verify(userRepository, never()).save(any(User.class));
-        verify(eventPublisher, never()).publishEvent(any(UserRegistrationEvent.class));
+        verify(messageService, never()).sendRegistrationEvent(any(User.class), anyString());
+        verify(messageService, never()).sendNewOtpEvent(any(User.class), anyString());
     }
 
     @DisplayName("Register doctor should add user and publish event to send the activation email")
@@ -179,8 +180,7 @@ public class UserServiceImplTest {
         verify(doctorService, times(1)).register(any(Doctor.class), eq(specialization),
                 eq(description));
         verify(tokenService, times(1)).generateOtpToken(any(Doctor.class));
-        verify(eventPublisher, times(1))
-                .publishEvent(any(com.nexaworks.rafiq.dto.event.DoctorRegisterEvent.class));
+        verify(messageService, times(1)).sendNewOtpEvent(eq(doctor), eq(expectedToken));
     }
 
     @DisplayName("Register doctor should throw exception when user with email already exists")
@@ -193,7 +193,8 @@ public class UserServiceImplTest {
         assertThrows(RegistrationException.class,
                 () -> userService.registerDoctor(doctor, null, null, null));
         verify(userRepository, never()).save(any(User.class));
-        verify(eventPublisher, never()).publishEvent(any(UserRegistrationEvent.class));
+        verify(messageService, never()).sendRegistrationEvent(any(User.class), anyString());
+        verify(messageService, never()).sendNewOtpEvent(any(User.class), anyString());
     }
 
     @DisplayName("Verify user email should create login tokens")

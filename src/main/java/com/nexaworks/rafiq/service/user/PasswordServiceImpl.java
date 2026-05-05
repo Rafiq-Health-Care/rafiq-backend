@@ -3,6 +3,11 @@ package com.nexaworks.rafiq.service.user;
 import java.time.Instant;
 import java.util.Optional;
 
+import com.nexaworks.rafiq.config.RabbitMQConfig;
+import com.nexaworks.rafiq.dto.notificaiton.EmailNotification;
+import com.nexaworks.rafiq.service.notification.EmailContentService;
+import com.nexaworks.rafiq.service.rabbit.MessageService;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,6 +25,8 @@ import com.nexaworks.rafiq.service.authentication.AuthService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @RequiredArgsConstructor
@@ -27,9 +34,11 @@ import lombok.extern.slf4j.Slf4j;
 public class PasswordServiceImpl implements PasswordService {
     private final UserRepository userRepository;
     private final TokenService tokenService;
-    private final ApplicationEventPublisher eventPublisher;
     private final AuthService authService;
     private final PasswordEncoder passwordEncoder;
+    private final MessageService messageService;
+
+
 
     @Override
     @Transactional
@@ -40,10 +49,16 @@ public class PasswordServiceImpl implements PasswordService {
             return;
         }
         String token = tokenService.generateAccessToken(user);
-        log.info("Generated OTP {}", token);
-        eventPublisher
-                .publishEvent(new ForgetPasswordEvent(email, token, user.get().getFirstName()));
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        messageService.sendResetPasswordEvent(user.get(),token);
+                    }
+                }
+        );
     }
+
     @Override
     @Transactional
     public void changePassword(ChangePasswordRequest changePasswordRequest) {

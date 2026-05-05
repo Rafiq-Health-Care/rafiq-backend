@@ -19,6 +19,7 @@ import com.nexaworks.rafiq.repository.DoctorRepository;
 import com.nexaworks.rafiq.repository.specification.ScheduleSpecification;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.service.payment.PaymentService;
+import com.nexaworks.rafiq.service.rabbit.MessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -48,6 +49,7 @@ public class ConsultationServiceImpl implements ConsultationService{
     private final AuthService authService;
     private final DoctorRepository doctorRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final MessageService messageService;
 
 
 
@@ -78,10 +80,14 @@ public class ConsultationServiceImpl implements ConsultationService{
 
         log.info("Consultation added {} by {}", consultation.getId(), doctor.getEmail());
 
-        eventPublisher.publishEvent(new ConsultationAddedEvent(
-                consultation.getId()
-                ,consultation.getDoctor().getId()
-                ,consultation.getTimeSlot().getStartTime()));
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit(){
+                        messageService.publishExpirationEvent(consultation.getId(),consultation.getTimeSlot().getEndTime());
+                    }
+                }
+        );
         return consultation;
     }
 
@@ -178,22 +184,29 @@ public class ConsultationServiceImpl implements ConsultationService{
                     @Override
                     public void afterCommit(){
                         if (cancelledByPatient) {
-                            messagingTemplate.convertAndSend("/topic/consultation",new ConsultationCancelled(id,ConsultationStatus.AVAILABLE));
+                            messagingTemplate.convertAndSend("/topic/consultation",
+                                    new ConsultationCancelled(id,ConsultationStatus.AVAILABLE));
+                            messageService.sendPatientCancelledEvent(consultation);
+                        }
+                        else {
+                            messageService.sendDoctorCancelledEvent(consultation);
                         }
                     }
                 }
         );
 
-
-        Doctor doctor = consultation.getDoctor();
-        var patient = consultation.getPatient();
-        eventPublisher.publishEvent(new ConsultationCanceled(id, doctor.getEmail(),
-                doctor.getFirstName(),
-                patient != null ? patient.getEmail() : "",
-                patient != null ? patient.getFirstName() : "", cancelledByPatient, reason));
-
     }
 
+    @Override
+    @Transactional
+    public void expire(String consultationId) {
+        Consultation consultation = consultationRepository.findConsultationById(UUID.fromString(consultationId))
+                .orElseThrow(()->new ConsultationException("Consultation not found"));
+        if (consultation.getStatus() == ConsultationStatus.AVAILABLE){
+            consultation.setStatus(ConsultationStatus.EXPIRED);
+        }
+        consultationRepository.save(consultation);
+    }
 
 
     private boolean cancelBookedConsultation(String reason, Consultation consultation, User currentUser) {
