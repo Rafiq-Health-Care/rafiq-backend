@@ -4,13 +4,13 @@ import com.nexaworks.rafiq.validation.annotation.FutureDate;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-public class DateValidator implements ConstraintValidator<FutureDate, LocalDate> {
+public class DateValidator implements ConstraintValidator<FutureDate, LocalDateTime> {
 
     @Override
-    public boolean isValid(LocalDate value, ConstraintValidatorContext context) {
-        if (value == null) return true; // let @NotNull handle nulls
-        return value.isAfter(LocalDate.now());
+    public boolean isValid(LocalDateTime value, ConstraintValidatorContext context) {
+        if (value == null) return true;
+        return value.isAfter(LocalDateTime.now().plusMinutes(120));
     }
 }
