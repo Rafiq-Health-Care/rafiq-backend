@@ -2,7 +2,10 @@ package com.nexaworks.rafiq.service.rabbit;
 
 import com.nexaworks.rafiq.config.RabbitMQConfig;
 import com.nexaworks.rafiq.dto.notificaiton.EmailNotification;
+import com.nexaworks.rafiq.dto.notificaiton.PushNotification;
+import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.entities.enums.ActionStatus;
 import com.nexaworks.rafiq.service.notification.EmailContentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,9 +13,11 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static com.nexaworks.rafiq.config.RabbitMQConfig.*;
+import static com.nexaworks.rafiq.entities.enums.ActionStatus.CONSULTATION_CANCELLED;
 
 
 @Service
@@ -22,6 +27,8 @@ import static com.nexaworks.rafiq.config.RabbitMQConfig.*;
 public class RabbitMessagingService implements MessageService{
     public static final String OTP_NOTIFICATION_TEMPLATE = "new-otp.html";
     public static final String DEFAULT_URL = "";
+    public static final String CONSULTATION_CANCELLED_DOCTOR_HTML = "consultation-cancelled-doctor.html";
+    public static final String CONSULTATION_CANCELLED_PATIENT_HTML = "consultation-cancelled-patient.html";
     private final AmqpTemplate rabbitTemplate;
     private final EmailContentService emailContentService;
     private static final String RESET_PASSWORD_URL = "http://localhost:8080/api/v1/auth/reset-password";
@@ -49,4 +56,41 @@ public class RabbitMessagingService implements MessageService{
                         "Verify your email address"
                         ,emailContentService.createOtpEmail(otp, user.getFirstName(),DEFAULT_URL)));
     }
+
+    @Override
+    public void sendPatientCancelledEvent(Consultation consultation) {
+        Map<String, Object> model = emailContentService.createConsultationCancelledForDoctor(
+               consultation.getDoctor().getName(),consultation.getPatient().getName() ,consultation.getId(),
+                consultation.getCancellationLog().getReason());
+        rabbitTemplate.convertAndSend(NOTIFICATION_EXCHANGE,
+                ROUTING_KEY_EMAIL,
+                new EmailNotification(consultation.getDoctor().getEmail(),
+                        CONSULTATION_CANCELLED_DOCTOR_HTML,"Consultation cancelled",model));
+        PushNotification notification = new PushNotification(CONSULTATION_CANCELLED,
+                consultation.getPatient().getName()+"cancelled the consultation",
+                Map.of("consultationId",consultation.getId().toString()));
+
+        rabbitTemplate.convertAndSend(NOTIFICATION_EXCHANGE,
+                ROUTING_KEY_PUSH,notification);
+    }
+
+    @Override
+    public void sendDoctorCancelledEvent(Consultation consultation) {
+        Map<String, Object> model = emailContentService.createConsultationCancelledForPatient(
+                consultation.getPatient().getName(),consultation.getDoctor().getName() ,consultation.getId(),
+                consultation.getCancellationLog().getReason());
+        rabbitTemplate.convertAndSend(NOTIFICATION_EXCHANGE,
+                ROUTING_KEY_EMAIL,
+                new EmailNotification(consultation.getPatient().getEmail(), CONSULTATION_CANCELLED_PATIENT_HTML
+                        ,"Consultation cancelled",model));
+        PushNotification notification = new PushNotification(CONSULTATION_CANCELLED,
+                consultation.getDoctor().getName()+"cancelled the consultation",
+                Map.of("consultationId",consultation.getId().toString()));
+
+        rabbitTemplate.convertAndSend(NOTIFICATION_EXCHANGE,
+                ROUTING_KEY_PUSH,notification);
+
+    }
+
+
 }
