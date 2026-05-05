@@ -51,6 +51,7 @@ jobs:
           paths: ./target/site/jacoco/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
   notify:
+    environment: development
     runs-on: ubuntu-latest
 
     steps:
