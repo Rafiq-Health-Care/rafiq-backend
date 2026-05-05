@@ -97,10 +97,12 @@ public class RabbitMessagingService implements MessageService{
 
     @Override
     public void publishExpirationEvent(UUID id, LocalDateTime endTime) {
-        long delay = LocalDateTime.now().until(endTime.plusMinutes(10), ChronoUnit.SECONDS);
+        long delay = Math.max(0,
+                LocalDateTime.now().until(endTime.plusMinutes(10), ChronoUnit.MILLIS)
+        );
         rabbitTemplate.convertAndSend(CONSULTATION_EXPIRATION_EXCHANGE,CONSULTATION_EXPIRATION_ROUTING_KEY,id.toString(),
                 message -> {
-                    message.getMessageProperties().setHeader("x-delay", delay);
+                    message.getMessageProperties().setHeader("x-delay", 50000);
                     return message;
                 });
     }

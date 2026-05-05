@@ -198,6 +198,16 @@ public class ConsultationServiceImpl implements ConsultationService{
 
     }
 
+    @Override
+    @Transactional
+    public void expire(String consultationId) {
+        Consultation consultation = consultationRepository.findConsultationById(UUID.fromString(consultationId))
+                .orElseThrow(()->new ConsultationException("Consultation not found"));
+        if (consultation.getStatus() == ConsultationStatus.AVAILABLE){
+            consultation.setStatus(ConsultationStatus.EXPIRED);
+        }
+        consultationRepository.save(consultation);
+    }
 
 
     private boolean cancelBookedConsultation(String reason, Consultation consultation, User currentUser) {

@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Configuration
 public class RabbitMQConfig {
     public static final String EMAIL_NOTIFICATION_QUEUE = "notification.email";
@@ -38,10 +41,18 @@ public class RabbitMQConfig {
     public static final String CONSULTATION_EXPIRATION_RETRY_ROUTING_KEY = "consultation.expiration.retry";
 
     @Bean
-    public DirectExchange consultationExpirationExchange() {
-        return new DirectExchange(CONSULTATION_EXPIRATION_EXCHANGE);
-    }
+    public CustomExchange delayedExchange() {
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-delayed-type", "direct");
 
+        return new CustomExchange(
+                CONSULTATION_EXPIRATION_EXCHANGE,
+                "x-delayed-message",
+                true,
+                false,
+                args
+        );
+    }
     @Bean
     public Queue consultationExpirationQueue() {
         return QueueBuilder.durable(CONSULTATION_EXPIRATION_QUEUE)
@@ -70,24 +81,27 @@ public class RabbitMQConfig {
     public Binding consultationExpirationBinding() {
         return BindingBuilder
                 .bind(consultationExpirationQueue())
-                .to(consultationExpirationExchange())
-                .with(CONSULTATION_EXPIRATION_ROUTING_KEY);
+                .to(delayedExchange())
+                .with(CONSULTATION_EXPIRATION_ROUTING_KEY)
+                .noargs();
     }
 
     @Bean
     public Binding consultationExpirationRetryBinding() {
         return BindingBuilder
                 .bind(consultationExpirationRetryQueue())
-                .to(consultationExpirationExchange())
-                .with(CONSULTATION_EXPIRATION_RETRY_ROUTING_KEY);
+                .to(delayedExchange())
+                .with(CONSULTATION_EXPIRATION_RETRY_ROUTING_KEY)
+                .noargs();
     }
 
     @Bean
     public Binding consultationExpirationDlqBinding() {
         return BindingBuilder
                 .bind(consultationExpirationDlq())
-                .to(consultationExpirationExchange())
-                .with(CONSULTATION_EXPIRATION_DLQ_ROUTING_KEY);
+                .to(delayedExchange())
+                .with(CONSULTATION_EXPIRATION_DLQ_ROUTING_KEY)
+                .noargs();
     }
 
     @Bean(name = "emailDLQ")
