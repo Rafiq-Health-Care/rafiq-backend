@@ -10,6 +10,7 @@ import com.nexaworks.rafiq.config.RabbitMQConfig;
 import com.nexaworks.rafiq.dto.notificaiton.EmailNotification;
 import com.nexaworks.rafiq.entities.enums.Specialization;
 import com.nexaworks.rafiq.service.notification.EmailContentService;
+import com.nexaworks.rafiq.service.rabbit.MessageService;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -42,12 +43,11 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final RoleService roleService;
     private final TokenService tokenService;
-    private final ApplicationEventPublisher eventPublisher;
     private final AuthSessionManager authSessionManager;
     private final PatientService patientService;
     private final DoctorService doctorService;
-    private final AmqpTemplate rabbitTemplate;
-    private final EmailContentService emailContentService;
+    private final MessageService messageService;
+
 
     @Override
     @Transactional
@@ -61,19 +61,13 @@ public class UserServiceImpl implements UserService {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                sendNotification(user, otp);
+                messageService.sendRegistrationEvent(user, otp);
 
             }
         });
     }
 
-    private void sendNotification(User user, String otp) {
-        rabbitTemplate.convertAndSend(RabbitMQConfig.NOTIFICATION_EXCHANGE,
-                RabbitMQConfig.ROUTING_KEY_EMAIL,
-                new EmailNotification(user.getEmail(),"OTP_TEMPLATE.html",
-                        "Verify your email address"
-                        ,emailContentService.createOtpEmail(otp, user.getFirstName(),"")));
-    }
+
 
     @Override
     @Transactional
@@ -90,7 +84,7 @@ public class UserServiceImpl implements UserService {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                sendNotification(user, otp);
+                messageService.sendNewOtpEvent(user, otp);
                 //TODO handle national Id uploading
             }
         });

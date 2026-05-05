@@ -5,14 +5,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.nexaworks.rafiq.config.RabbitMQConfig;
-import com.nexaworks.rafiq.dto.event.NewOtpEvent;
-import com.nexaworks.rafiq.dto.notificaiton.EmailNotification;
 import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.notification.EmailContentService;
-import org.springframework.amqp.core.AmqpTemplate;
+import com.nexaworks.rafiq.service.rabbit.MessageService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,8 +31,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 public class TokenServiceImpl implements TokenService {
     private final TokenRepository tokenRepository;
     private final UserRepository userRepository;
-    private final AmqpTemplate rabbitTemplate;
-    private final EmailContentService emailContentService;
+    private final MessageService messageService;
+
 
     @Value("${refresh.expiration}")
     public Long REFRESH_EXPIRATION;
@@ -137,13 +132,12 @@ public class TokenServiceImpl implements TokenService {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                rabbitTemplate.convertAndSend(RabbitMQConfig.NOTIFICATION_EXCHANGE,
-                        RabbitMQConfig.ROUTING_KEY_EMAIL,
-                        new EmailNotification(user.get().getEmail(),"new-otp.html","New OTP"
-                        ,emailContentService.createOtpEmail(otp, user.get().getFirstName(),"")));
+                messageService.sendNewOtpEvent(user.get(), otp);
             }
         });
     }
+
+
 
     private Token buildToken(User user, String token, TokenType tokenType, Long EXPIRATION) {
         return Token.builder().token(token).user(user).tokenType(tokenType)
