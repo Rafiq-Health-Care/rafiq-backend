@@ -6,7 +6,11 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.nexaworks.rafiq.config.RabbitMQConfig;
+import com.nexaworks.rafiq.dto.notificaiton.EmailNotification;
 import com.nexaworks.rafiq.entities.enums.Specialization;
+import com.nexaworks.rafiq.service.notification.EmailContentService;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -42,6 +46,8 @@ public class UserServiceImpl implements UserService {
     private final AuthSessionManager authSessionManager;
     private final PatientService patientService;
     private final DoctorService doctorService;
+    private final AmqpTemplate rabbitTemplate;
+    private final EmailContentService emailContentService;
 
     @Override
     @Transactional
@@ -55,11 +61,18 @@ public class UserServiceImpl implements UserService {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                log.info("OTP sent to {}", user.getEmail());
-                eventPublisher.publishEvent(
-                        new UserRegistrationEvent(user.getEmail(), otp, user.getFirstName()));
+                sendNotification(user, otp);
+
             }
         });
+    }
+
+    private void sendNotification(User user, String otp) {
+        rabbitTemplate.convertAndSend(RabbitMQConfig.NOTIFICATION_EXCHANGE,
+                RabbitMQConfig.ROUTING_KEY_EMAIL,
+                new EmailNotification(user.getEmail(),"OTP_TEMPLATE.html",
+                        "Verify your email address"
+                        ,emailContentService.createOtpEmail(otp, user.getFirstName(),"")));
     }
 
     @Override
@@ -77,9 +90,8 @@ public class UserServiceImpl implements UserService {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                eventPublisher.publishEvent(new DoctorRegisterEvent(
-                        new UserRegistrationEvent(user.getEmail(), otp, user.getFirstName()),
-                        user.getId(), nationalId));
+                sendNotification(user, otp);
+                //TODO handle national Id uploading
             }
         });
     }
