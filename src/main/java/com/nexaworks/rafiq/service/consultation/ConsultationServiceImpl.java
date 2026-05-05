@@ -80,10 +80,7 @@ public class ConsultationServiceImpl implements ConsultationService{
 
         log.info("Consultation added {} by {}", consultation.getId(), doctor.getEmail());
 
-        eventPublisher.publishEvent(new ConsultationAddedEvent(
-                consultation.getId()
-                ,consultation.getDoctor().getId()
-                ,consultation.getTimeSlot().getStartTime()));
+        // TODO add expire date to the consultation
         return consultation;
     }
 

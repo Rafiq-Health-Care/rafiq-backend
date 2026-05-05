@@ -71,7 +71,6 @@ public class ReservationServiceImpl implements ReservationService{
                 new TransactionSynchronization() {
                     @Override
                     public void afterCommit(){
-                        // TODO add expire date to the consultation
                         messagingTemplate.convertAndSend("/topic/consultation",
                                 new ConsultationEvent(consultation.getId(), EventType.BOOKED, Map.of()));
                     }

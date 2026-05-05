@@ -19,8 +19,7 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import com.nexaworks.rafiq.exception.custom.MailSenderException;
-import com.nexaworks.rafiq.service.notification.EmailSenderService;
-import com.nexaworks.rafiq.service.notification.EmailSenderServiceImpl;
+import com.nexaworks.rafiq.service.notification.EmailNotificationService;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
@@ -29,8 +28,8 @@ import jakarta.mail.internet.MimeMessage;
 @DisplayName("EmailSenderServiceImpl Test Cases")
 @SpringBootTest
 @EnableRetry
-@ContextConfiguration(classes = {EmailSenderServiceImpl.class})
-public class EmailSenderServiceImplTest {
+@ContextConfiguration(classes = {EmailNotificationService.class})
+public class EmailNotificationServiceTest {
 
     @MockitoBean
     JavaMailSender javaMailSender;
