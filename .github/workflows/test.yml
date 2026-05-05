@@ -52,36 +52,43 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
   notify-discord:
-      name: Notify Discord
-      runs-on: ubuntu-latest
-      if: github.event_name == 'pull_request'
-      needs: test
+    name: Notify Discord
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && secrets.DISCORD_WEBHOOK != ''
+    needs: test
 
-      steps:
-        - name: Send Discord notification
-          env:
-            DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          run: |
-            payload=$(jq -n \
-              --arg title "🔀 New Pull Request" \
-              --arg desc "${{ github.event.pull_request.title }}" \
-              --arg author "${{ github.actor }}" \
-              --arg branch "${{ github.head_ref }} → ${{ github.base_ref }}" \
-              --arg url "${{ github.event.pull_request.html_url }}" \
-              '{
-                embeds: [{
-                  title: $title,
-                  description: $desc,
-                  color: 5814783,
-                  fields: [
-                    { name: "Author", value: $author, inline: true },
-                    { name: "Branch", value: $branch, inline: true }
-                  ],
-                  url: $url
-                }]
-              }')
-            
-            curl -H "Content-Type: application/json" \
-              -X POST \
-              -d "$payload" \
-              $DISCORD_WEBHOOK   
+    steps:
+      - name: Send Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.actor }}
+          PR_HEAD: ${{ github.head_ref }}
+          PR_BASE: ${{ github.base_ref }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          payload=$(jq -n \
+            --arg title "🔀 New Pull Request" \
+            --arg desc "$PR_TITLE" \
+            --arg author "$PR_AUTHOR" \
+            --arg head "$PR_HEAD" \
+            --arg base "$PR_BASE" \
+            --arg url "$PR_URL" \
+            '{
+              embeds: [{
+                title: $title,
+                description: $desc,
+                color: 5814783,
+                fields: [
+                  { name: "Author", value: $author, inline: true },
+                  { name: "Branch", value: ($head + " → " + $base), inline: true }
+                ],
+                url: $url
+              }]
+            }')
+
+          curl -sS -H "Content-Type: application/json" \
+            -X POST \
+            -d "$payload" \
+            --fail-with-body \
+            "$DISCORD_WEBHOOK"
