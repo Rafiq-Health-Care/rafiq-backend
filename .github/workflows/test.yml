@@ -50,3 +50,31 @@ jobs:
         with:
           paths: ./target/site/jacoco/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send Discord message
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          URL: ${{ github.event.pull_request.html_url }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          HEAD: ${{ github.event.pull_request.head.ref }}
+          BASE: ${{ github.event.pull_request.base.ref }}
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{
+            \"embeds\": [{
+              \"title\": \"📬 New PR: $TITLE\",
+              \"url\": \"$URL\",
+              \"color\": 5814783,
+              \"fields\": [
+                { \"name\": \"Author\", \"value\": \"$AUTHOR\", \"inline\": true },
+                { \"name\": \"Branch\", \"value\": \"$HEAD\", \"inline\": true },
+                { \"name\": \"Target\", \"value\": \"$BASE\", \"inline\": true }
+              ]
+            }]
+          }" \
+          "$WEBHOOK"
