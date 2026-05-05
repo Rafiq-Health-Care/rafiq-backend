@@ -9,6 +9,7 @@ on:
     paths:
       - "src/**"
 
+
 permissions:
   contents: read
   checks: write
