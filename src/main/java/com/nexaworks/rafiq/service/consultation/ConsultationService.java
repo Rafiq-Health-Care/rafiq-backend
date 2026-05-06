@@ -20,4 +20,6 @@ public interface ConsultationService {
     void cancel(UUID id, String reason);
 
     void expire(String consultationId);
+
+    void prepare(UUID uuid);
 }

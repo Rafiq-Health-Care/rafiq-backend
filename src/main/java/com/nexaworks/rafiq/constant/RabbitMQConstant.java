@@ -35,4 +35,6 @@ public class RabbitMQConstant {
     public static final String CONSULTATION_PREPARATION_DLQ_QUEUE = "consultation.preparation.dlq.queue";
 
     public static final String CONSULTATION_PREPARATION_ROUTING_KEY = "consultation.preparation";
+    public static final String CONSULTATION_PREPARATION_RETRY_ROUTING_KEY = "consultation.preparation.retry";
+    public static final String CONSULTATION_PREPARATION_DLQ_ROUTING_KEY = "consultation.preparation.dlq";
 }
