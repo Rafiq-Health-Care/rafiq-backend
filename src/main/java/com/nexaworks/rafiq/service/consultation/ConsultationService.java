@@ -21,5 +21,4 @@ public interface ConsultationService {
 
     void expire(String consultationId);
 
-    void prepare(UUID uuid);
 }

@@ -2,6 +2,7 @@ package com.nexaworks.rafiq.consumer;
 
 import com.nexaworks.rafiq.dto.notificaiton.PushNotification;
 import com.nexaworks.rafiq.entities.enums.ActionStatus;
+import com.nexaworks.rafiq.service.consultation.ConsultationPreparationService;
 import com.nexaworks.rafiq.service.consultation.ConsultationService;
 import com.nexaworks.rafiq.service.notification.NotificationService;
 import com.rabbitmq.client.Channel;
@@ -25,6 +26,7 @@ import static com.nexaworks.rafiq.constant.RabbitMQConstant.*;
 @RequiredArgsConstructor
 public class ConsultationConsumer {
     private final ConsultationService consultationService;
+    private final ConsultationPreparationService consultationPreparationService;
     private final AmqpTemplate rabbitTemplate;
 
 
@@ -66,7 +68,7 @@ public class ConsultationConsumer {
     public void handlePreparation(String consultationId, Message message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long tag) throws IOException {
         log.info("Received preparation request for consultation: {}", consultationId);
         try {
-            consultationService.prepare(UUID.fromString(consultationId));
+            consultationPreparationService.prepare(UUID.fromString(consultationId));
             log.info("Consultation prepared successfully: {}", consultationId);
             channel.basicAck(tag,false);
         }catch (Exception e){

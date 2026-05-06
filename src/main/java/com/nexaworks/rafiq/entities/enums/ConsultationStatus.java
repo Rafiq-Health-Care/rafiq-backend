@@ -19,6 +19,9 @@ public enum ConsultationStatus {
     public boolean isTerminal() {
         return this == CANCELLED || this == COMPLETED;
     }
+    public boolean isPreparable() {
+        return this == BOOKED || this == CONFIRMED || this == ONGOING;
+    }
     private final double refundPercentage;
 
 
