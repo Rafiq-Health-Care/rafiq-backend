@@ -16,4 +16,6 @@ public interface MessageService {
     void sendDoctorCancelledEvent(Consultation consultation);
 
     void publishExpirationEvent(UUID id, LocalDateTime endTime);
+
+    void publishPreparationEvent(UUID id, LocalDateTime startTime);
 }

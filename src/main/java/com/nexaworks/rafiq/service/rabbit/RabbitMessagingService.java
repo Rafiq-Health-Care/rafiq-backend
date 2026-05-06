@@ -108,5 +108,17 @@ public class RabbitMessagingService implements MessageService{
                 });
     }
 
+    @Override
+    public void publishPreparationEvent(UUID id, LocalDateTime startTime) {
+       long delay = Math.max(0,
+                LocalDateTime.now().until(startTime.plusMinutes(10), ChronoUnit.MILLIS));
+
+       rabbitTemplate.convertAndSend(CONSULTATION_PREPARATION_EXCHANGE,CONSULTATION_PREPARATION_ROUTING_KEY,id.toString(),
+                message -> {
+                    message.getMessageProperties().setHeader("x-delay", delay);
+                    return message;
+                });
+    }
+
 
 }

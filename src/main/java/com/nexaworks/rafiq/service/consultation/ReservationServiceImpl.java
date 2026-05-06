@@ -73,6 +73,9 @@ public class ReservationServiceImpl implements ReservationService{
                 new TransactionSynchronization() {
                     @Override
                     public void afterCommit(){
+                        messageService.publishPreparationEvent(consultation.getId(),
+                                consultation.getTimeSlot().getStartTime());
+
                         messagingTemplate.convertAndSend("/topic/consultation",
                                 new ConsultationEvent(consultation.getId(), EventType.BOOKED, Map.of()));
                     }
