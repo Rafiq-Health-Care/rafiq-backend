@@ -9,6 +9,7 @@ public enum ConsultationStatus {
     BOOKED(0.0),
     CONFIRMED(0.9),
     ONGOING(0.5),
+    LIVE(0),
     COMPLETED(0),
     CANCELLED(0),
     NO_SHOW(1),

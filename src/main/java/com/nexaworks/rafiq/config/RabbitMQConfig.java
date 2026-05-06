@@ -12,33 +12,12 @@ import org.springframework.context.annotation.Configuration;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.nexaworks.rafiq.constant.RabbitMQConstant.*;
+
 @Configuration
 public class RabbitMQConfig {
-    public static final String EMAIL_NOTIFICATION_QUEUE = "notification.email";
-    public static final String SMS_NOTIFICATION_QUEUE = "notification.sms";
-    public static final String PUSH_NOTIFICATION_QUEUE = "notification.push";
 
-    public static final String NOTIFICATION_EXCHANGE = "notification.exchange";
 
-    public static final String ROUTING_KEY_EMAIL = "notification.email";
-    public static final String ROUTING_KEY_SMS = "notification.sms";
-    public static final String ROUTING_KEY_PUSH = "notification.push";
-
-    public static final String EMAIL_DLQ = "notification.email.dlq";
-    public static final String SMS_DLQ = "notification.sms.dlq";
-    public static final String PUSH_DLQ = "notification.push.dlq";
-
-    public static final String NOTIFICATION_DLQ_EXCHANGE = "notification.dlq.exchange";
-
-    public static final String CONSULTATION_EXPIRATION_QUEUE = "consultation.expiration";
-    public static final String CONSULTATION_EXPIRATION_EXCHANGE = "consultation.expiration.exchange";
-    public static final String CONSULTATION_EXPIRATION_ROUTING_KEY = "consultation.expiration";
-
-    public static final String CONSULTATION_EXPIRATION_DLQ = "consultation.expiration.dlq";
-    public static final String CONSULTATION_EXPIRATION_DLQ_ROUTING_KEY = "consultation.expiration.dlq";
-
-    public static final String CONSULTATION_EXPIRATION_RETRY_QUEUE = "consultation.expiration.retry";
-    public static final String CONSULTATION_EXPIRATION_RETRY_ROUTING_KEY = "consultation.expiration.retry";
 
     @Bean
     public CustomExchange delayedExchange() {
@@ -201,6 +180,65 @@ public class RabbitMQConfig {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(messageConverter);
         return rabbitTemplate;
+    }
+
+    @Bean
+    public CustomExchange consultationPreparationExchange() {
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-delayed-type", "direct");
+        return new CustomExchange(
+                CONSULTATION_PREPARATION_EXCHANGE,
+                "x-delayed-message",
+                true,
+                false,
+                args
+        );
+    }
+
+    @Bean
+    public DirectExchange consultationPreparationRetryExchange() {
+        return new DirectExchange(CONSULTATION_PREPARATION_RETRY_EXCHANGE);
+    }
+
+
+    @Bean
+    public Queue consultationPreparationQueue() {
+        return QueueBuilder.durable(CONSULTATION_PREPARATION_QUEUE)
+                .withArgument("x-dead-letter-exchange", CONSULTATION_PREPARATION_RETRY_EXCHANGE)
+                .withArgument("x-dead-letter-routing-key", CONSULTATION_PREPARATION_ROUTING_KEY)
+                .build();
+    }
+
+    @Bean
+    public Queue consultationPreparationRetryQueue() {
+        return QueueBuilder.durable(CONSULTATION_PREPARATION_RETRY_QUEUE)
+                .withArgument("x-dead-letter-exchange", CONSULTATION_PREPARATION_EXCHANGE)
+                .withArgument("x-dead-letter-routing-key", CONSULTATION_PREPARATION_ROUTING_KEY)
+                .withArgument("x-message-ttl", 30000) // 30 seconds retry delay
+                .build();
+    }
+
+    @Bean
+    public Queue consultationPreparationDlqQueue() {
+        return QueueBuilder.durable(CONSULTATION_PREPARATION_DLQ_QUEUE).build();
+    }
+
+
+    @Bean
+    public Binding consultationPreparationBinding() {
+        return BindingBuilder
+                .bind(consultationPreparationQueue())
+                .to(consultationPreparationExchange())
+                .with(CONSULTATION_PREPARATION_ROUTING_KEY)
+                .noargs();
+    }
+
+    @Bean
+    public Binding consultationPreparationRetryBinding() {
+        return BindingBuilder
+                .bind(consultationPreparationRetryQueue())
+                .to(consultationPreparationRetryExchange())
+                .with(CONSULTATION_PREPARATION_ROUTING_KEY);
     }
 
 

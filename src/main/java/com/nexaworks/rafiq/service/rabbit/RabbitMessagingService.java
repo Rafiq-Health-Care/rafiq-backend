@@ -19,7 +19,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.nexaworks.rafiq.config.RabbitMQConfig.*;
+
+import static com.nexaworks.rafiq.constant.RabbitMQConstant.*;
 import static com.nexaworks.rafiq.entities.enums.ActionStatus.CONSULTATION_CANCELLED;
 
 
@@ -53,8 +54,8 @@ public class RabbitMessagingService implements MessageService{
                         ,emailContentService.createOtpEmail(otp, user.getFirstName(), DEFAULT_URL)));
     }
     public void sendRegistrationEvent(User user, String otp) {
-        rabbitTemplate.convertAndSend(RabbitMQConfig.NOTIFICATION_EXCHANGE,
-                RabbitMQConfig.ROUTING_KEY_EMAIL,
+        rabbitTemplate.convertAndSend(NOTIFICATION_EXCHANGE,
+               ROUTING_KEY_EMAIL,
                 new EmailNotification(user.getEmail(),OTP_NOTIFICATION_TEMPLATE,
                         "Verify your email address"
                         ,emailContentService.createOtpEmail(otp, user.getFirstName(),DEFAULT_URL)));

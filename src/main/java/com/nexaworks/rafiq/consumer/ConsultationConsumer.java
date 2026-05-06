@@ -1,6 +1,5 @@
-package com.nexaworks.rafiq.eventListener;
+package com.nexaworks.rafiq.consumer;
 
-import com.nexaworks.rafiq.config.RabbitMQConfig;
 import com.nexaworks.rafiq.service.consultation.ConsultationService;
 import com.rabbitmq.client.Channel;
 import lombok.RequiredArgsConstructor;
@@ -13,17 +12,16 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 
-
-import static com.nexaworks.rafiq.config.RabbitMQConfig.*;
+import static com.nexaworks.rafiq.constant.RabbitMQConstant.*;
 
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class ConsultationListener {
+public class ConsultationConsumer {
     private final ConsultationService consultationService;
     private final AmqpTemplate rabbitTemplate;
 
-    @RabbitListener(queues = RabbitMQConfig.CONSULTATION_EXPIRATION_QUEUE)
+    @RabbitListener(queues = CONSULTATION_EXPIRATION_QUEUE)
     public void handleExpiration(String consultationId, Message message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long tag){
         log.info("Received expiration request for consultation: {}", consultationId);
         try {
