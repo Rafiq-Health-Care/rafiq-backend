@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.nexaworks</groupId>
 	<artifactId>rafiq</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0-beta.1</version>
 	<name>rafiq</name>
 	<description>Health Care App</description>
 	<url/>
