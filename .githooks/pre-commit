@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+#
+# Pre-commit hook: formats staged Java files with Spotless (Eclipse formatter).
+#
+# Behaviour:
+#   * Collects staged *.java files (added / copied / modified).
+#   * Runs `mvn spotless:apply` only on those fil
+#   es via -DspotlessFiles=...
+#   * Re-stages the (possibly reformatted) files so the commit always
+#     contains formatted code.
+#   * If Spotless fails, the commit is aborted.
+#
+# Skip the hook for a one-off commit with:  git commit --no-verify
+#
+
+set -euo pipefail
+
+# Only consider staged Java files (Added / Copied / Modified, not Deleted).
+mapfile -t STAGED_JAVA < <(git diff --cached --name-only --diff-filter=ACM -- '*.java')
+
+if [ "${#STAGED_JAVA[@]}" -eq 0 ]; then
+    exit 0
+fi
+
+echo "[pre-commit] Formatting ${#STAGED_JAVA[@]} staged Java file(s) with Spotless..."
+
+# Spotless's -DspotlessFiles takes a comma-separated list of regex patterns,
+# so we escape regex metacharacters (chiefly '.') in each path.
+escape_regex() {
+    printf '%s' "$1" | sed -e 's/[][\\.^$*+?(){}|/]/\\&/g'
+}
+
+SPOTLESS_FILES=""
+for f in "${STAGED_JAVA[@]}"; do
+    escaped=$(escape_regex "$f")
+    if [ -z "$SPOTLESS_FILES" ]; then
+        SPOTLESS_FILES="$escaped"
+    else
+        SPOTLESS_FILES="$SPOTLESS_FILES,$escaped"
+    fi
+done
+
+# Prefer the wrapper if present so we don't depend on a system-wide mvn.
+if [ -x "./mvnw" ]; then
+    MVN_CMD="./mvnw"
+else
+    MVN_CMD="mvn"
+fi
+
+if ! "$MVN_CMD" -q spotless:apply -DspotlessFiles="$SPOTLESS_FILES"; then
+    echo "[pre-commit] Spotless failed. Aborting commit." >&2
+    exit 1
+fi
+
+# Re-stage the files; Spotless may have rewritten some of them.
+git add -- "${STAGED_JAVA[@]}"
+
+echo "[pre-commit] Done."
