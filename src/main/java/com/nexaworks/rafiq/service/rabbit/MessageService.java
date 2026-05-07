@@ -1,10 +1,10 @@
 package com.nexaworks.rafiq.service.rabbit;
 
-import com.nexaworks.rafiq.entities.Consultation;
-import com.nexaworks.rafiq.entities.User;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import com.nexaworks.rafiq.entities.Consultation;
+import com.nexaworks.rafiq.entities.User;
 
 public interface MessageService {
     void sendResetPasswordEvent(User user, String token);

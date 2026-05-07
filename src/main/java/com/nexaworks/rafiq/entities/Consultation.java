@@ -1,12 +1,13 @@
 package com.nexaworks.rafiq.entities;
 
+import java.math.BigDecimal;
+
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.Specialization;
+
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-
-import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -14,14 +15,11 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Entity
 @SuperBuilder
-@Table(name = "consultation", indexes = {
-        @Index(name = "doctor_idx", columnList = "doctor_id"),
+@Table(name = "consultation", indexes = {@Index(name = "doctor_idx", columnList = "doctor_id"),
         @Index(name = "patient_con_idx", columnList = "patient_id"),
-        @Index(name = "status_idx", columnList = "status")
-}, uniqueConstraints = {
-        @UniqueConstraint(name = "uk_doctor_date_start",
-                columnNames = {"doctor_id", "start_time"})
-})
+        @Index(name = "status_idx", columnList = "status")}, uniqueConstraints = {
+                @UniqueConstraint(name = "uk_doctor_date_start", columnNames = {"doctor_id",
+                        "start_time"})})
 public class Consultation extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -56,7 +54,6 @@ public class Consultation extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private Specialization specialization;
-
 
     @Transient
     public boolean isCancelled() {

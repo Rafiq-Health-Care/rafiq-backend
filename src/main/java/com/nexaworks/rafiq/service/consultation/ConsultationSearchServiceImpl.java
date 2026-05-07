@@ -1,5 +1,14 @@
 package com.nexaworks.rafiq.service.consultation;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
 import com.nexaworks.rafiq.dto.response.consultation.CallResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationFilter;
@@ -10,22 +19,15 @@ import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.repository.specification.ConsultationSpecification;
 import com.nexaworks.rafiq.repository.specification.ScheduleSpecification;
 import com.nexaworks.rafiq.service.authentication.AuthService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 @Transactional(readOnly = true)
-public class ConsultationSearchServiceImpl implements ConsultationSearchService{
+public class ConsultationSearchServiceImpl implements ConsultationSearchService {
     private final ConsultationRepository consultationRepository;
     private final AuthService authService;
 
@@ -33,7 +35,7 @@ public class ConsultationSearchServiceImpl implements ConsultationSearchService{
     public Page<Consultation> getConsultations(ConsultationFilter filter, Pageable pageable) {
         Specification<Consultation> spec = ConsultationSpecification.filterConsultation(filter);
 
-        return consultationRepository.findAll(spec,pageable);
+        return consultationRepository.findAll(spec, pageable);
     }
 
     @Override
@@ -43,26 +45,29 @@ public class ConsultationSearchServiceImpl implements ConsultationSearchService{
 
     @Override
     public Consultation getConsultation(UUID id) {
-        return consultationRepository.findById(id).orElseThrow(()->new ConsultationException("Consultation not found"));
+        return consultationRepository.findById(id)
+                .orElseThrow(() -> new ConsultationException("Consultation not found"));
     }
     @Override
     @Transactional(readOnly = true)
     public Page<Consultation> getDoctorSchedule(ScheduleFilter filter, Pageable pageable) {
-        Specification<Consultation> spec = ScheduleSpecification.filter(filter, authService.getAuthenticateUserId());
-        return consultationRepository.findAll(spec,pageable);
+        Specification<Consultation> spec = ScheduleSpecification.filter(filter,
+                authService.getAuthenticateUserId());
+        return consultationRepository.findAll(spec, pageable);
     }
 
     @Override
     public List<Consultation> getPatientUpcoming() {
         UUID patientId = authService.getAuthenticateUserId();
-        return consultationRepository.findAllByPatientIdAndStatus(patientId, ConsultationStatus.CONFIRMED,ConsultationStatus.ONGOING);
+        return consultationRepository.findAllByPatientIdAndStatus(patientId,
+                ConsultationStatus.CONFIRMED, ConsultationStatus.ONGOING);
     }
 
     @Override
     public List<Consultation> getDoctorUpcoming() {
         UUID doctorId = authService.getAuthenticateUserId();
-        return consultationRepository.findAllDoctorUpcoming(doctorId, ConsultationStatus.CONFIRMED,ConsultationStatus.ONGOING);
+        return consultationRepository.findAllDoctorUpcoming(doctorId, ConsultationStatus.CONFIRMED,
+                ConsultationStatus.ONGOING);
     }
-
 
 }

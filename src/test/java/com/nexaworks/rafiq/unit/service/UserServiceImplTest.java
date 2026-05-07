@@ -30,15 +30,15 @@ import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.Roles;
+import com.nexaworks.rafiq.entities.enums.Specialization;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
 import com.nexaworks.rafiq.exception.custom.TokenNotFoundException;
 import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.entities.enums.Specialization;
-import com.nexaworks.rafiq.service.rabbit.MessageService;
 import com.nexaworks.rafiq.service.doctor.DoctorServiceImpl;
 import com.nexaworks.rafiq.service.file.ImageService;
 import com.nexaworks.rafiq.service.patient.PatientServiceImpl;
+import com.nexaworks.rafiq.service.rabbit.MessageService;
 import com.nexaworks.rafiq.service.user.RoleServiceImpl;
 import com.nexaworks.rafiq.service.user.TokenServiceImpl;
 import com.nexaworks.rafiq.service.user.UserServiceImpl;
@@ -109,8 +109,8 @@ public class UserServiceImplTest {
     void registerPatient_ShouldAddUserAndPublishEventToSendActivationEmail_WhenPatientIsRegistered() {
         // Create Patient object (Patient extends User with is-a relationship)
         Patient patient = Patient.builder().id(UUID.randomUUID()).email("patient@example.com")
-                .firstName("Jane").lastName("Doe").password("password123")
-                .roles(new HashSet<>()).build();
+                .firstName("Jane").lastName("Doe").password("password123").roles(new HashSet<>())
+                .build();
 
         String expectedToken = "123456";
         Role patientRole = new Role();

@@ -14,7 +14,6 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.Uploader;
 import com.nexaworks.rafiq.service.call.RtcProvider;
 
-
 @TestConfiguration(proxyBeanMethods = false)
 @Profile("test")
 public class IntegrationTestExternalMocks {
@@ -25,8 +24,8 @@ public class IntegrationTestExternalMocks {
         Cloudinary cloudinary = Mockito.mock(Cloudinary.class);
         Uploader uploader = Mockito.mock(Uploader.class);
         Mockito.when(cloudinary.uploader()).thenReturn(uploader);
-        Mockito.when(uploader.upload(Mockito.any(byte[].class), Mockito.anyMap())).thenReturn(
-                Map.of("secure_url",
+        Mockito.when(uploader.upload(Mockito.any(byte[].class), Mockito.anyMap()))
+                .thenReturn(Map.of("secure_url",
                         "https://res.cloudinary.com/integration-test/image/upload/v123/mock.png",
                         "public_id", "integration-test/mock-public-id"));
         Mockito.when(uploader.destroy(Mockito.anyString(), Mockito.anyMap()))

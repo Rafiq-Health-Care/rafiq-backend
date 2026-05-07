@@ -20,10 +20,8 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
     public static final String JWT_ATTR = "jwt";
 
     @Override
-    public boolean beforeHandshake(ServerHttpRequest request,
-                                   ServerHttpResponse response,
-                                   WebSocketHandler wsHandler,
-                                   Map<String, Object> attributes) {
+    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
+            WebSocketHandler wsHandler, Map<String, Object> attributes) {
 
         if (request instanceof ServletServerHttpRequest servletRequest) {
             Cookie[] cookies = servletRequest.getServletRequest().getCookies();
@@ -42,9 +40,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
     }
 
     @Override
-    public void afterHandshake(ServerHttpRequest request,
-                               ServerHttpResponse response,
-                               WebSocketHandler wsHandler,
-                               @Nullable Exception exception) {
+    public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response,
+            WebSocketHandler wsHandler, @Nullable Exception exception) {
     }
 }

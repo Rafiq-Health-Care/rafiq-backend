@@ -1,10 +1,12 @@
 package com.nexaworks.rafiq.entities;
 
-import com.nexaworks.rafiq.entities.enums.JobStatus;
-import jakarta.persistence.*;
-import lombok.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import com.nexaworks.rafiq.entities.enums.JobStatus;
+
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Getter
@@ -13,8 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @Table(name = "payment_jobs", indexes = {
-        @Index(name = "idx_job_status_run_at", columnList = "status, run_at")
-})
+        @Index(name = "idx_job_status_run_at", columnList = "status, run_at")})
 public class PaymentJob {
 
     @Id

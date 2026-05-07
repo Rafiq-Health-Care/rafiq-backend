@@ -1,14 +1,15 @@
 package com.nexaworks.rafiq.service.consultation;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
 import com.nexaworks.rafiq.dto.response.consultation.CallResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationFilter;
 import com.nexaworks.rafiq.entities.Consultation;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
-import java.util.List;
-import java.util.UUID;
 
 public interface ConsultationSearchService {
     Page<Consultation> getConsultations(ConsultationFilter filter, Pageable pageable);

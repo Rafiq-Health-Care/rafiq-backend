@@ -1,33 +1,9 @@
 package com.nexaworks.rafiq.service.consultation;
 
-import com.nexaworks.rafiq.dto.event.ConsultationCancelled;
-import com.nexaworks.rafiq.dto.event.ConsultationChanged;
-import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
-import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
-import com.nexaworks.rafiq.dto.response.consultation.CallResponse;
-import com.nexaworks.rafiq.dto.response.consultation.ConsultationEvent;
-import com.nexaworks.rafiq.dto.response.consultation.ConsultationFilter;
-import com.nexaworks.rafiq.entities.*;
-import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
-import com.nexaworks.rafiq.entities.enums.EventType;
-import com.nexaworks.rafiq.entities.enums.PaymentProvider;
-import com.nexaworks.rafiq.exception.custom.ConsultationException;
-import com.nexaworks.rafiq.mapper.ConsultationMapper;
-import com.nexaworks.rafiq.repository.CancellationLogRepository;
-import com.nexaworks.rafiq.repository.ConsultationRepository;
-import com.nexaworks.rafiq.repository.DoctorRepository;
-import com.nexaworks.rafiq.repository.specification.ConsultationSpecification;
-import com.nexaworks.rafiq.repository.specification.ScheduleSpecification;
-import com.nexaworks.rafiq.service.authentication.AuthService;
-import com.nexaworks.rafiq.service.payment.PaymentService;
-import com.nexaworks.rafiq.service.rabbit.MessageService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import org.springframework.dao.PessimisticLockingFailureException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -36,15 +12,25 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import com.nexaworks.rafiq.dto.event.ConsultationCancelled;
+import com.nexaworks.rafiq.dto.event.ConsultationChanged;
+import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
+import com.nexaworks.rafiq.entities.*;
+import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
+import com.nexaworks.rafiq.exception.custom.ConsultationException;
+import com.nexaworks.rafiq.repository.CancellationLogRepository;
+import com.nexaworks.rafiq.repository.ConsultationRepository;
+import com.nexaworks.rafiq.repository.DoctorRepository;
+import com.nexaworks.rafiq.service.authentication.AuthService;
+import com.nexaworks.rafiq.service.rabbit.MessageService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ConsultationServiceImpl implements ConsultationService{
+public class ConsultationServiceImpl implements ConsultationService {
     private final ConsultationRepository consultationRepository;
     private final CancellationLogRepository cancellationLogRepository;
     private final AuthService authService;
@@ -53,14 +39,10 @@ public class ConsultationServiceImpl implements ConsultationService{
     private final MessageService messageService;
     private final SimpMessagingTemplate simpMessagingTemplate;
 
-
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @Retryable(
-            retryFor = {PessimisticLockingFailureException.class},
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 500)
-    )
+    @Retryable(retryFor = {
+            PessimisticLockingFailureException.class}, maxAttempts = 3, backoff = @Backoff(delay = 500))
     public Consultation add(Consultation entity) {
         Doctor doctor = (Doctor) authService.getAuthenticateUser();
         entity.setDoctor(doctor);
@@ -71,39 +53,35 @@ public class ConsultationServiceImpl implements ConsultationService{
         LocalDateTime endTime = entity.getTimeSlot().getStartTime()
                 .plusMinutes(entity.getTimeSlot().getDurationMinutes());
 
-        if (consultationRepository.existsByOverlapping(startTime,endTime,doctor.getId(),ConsultationStatus.CANCELLED)){
+        if (consultationRepository.existsByOverlapping(startTime, endTime, doctor.getId(),
+                ConsultationStatus.CANCELLED)) {
             throw new ConsultationException("Consultation time slot is already booked");
         }
         entity.getTimeSlot().setEndTime(endTime);
-
 
         Consultation consultation = consultationRepository.save(entity);
 
         log.info("Consultation added {} by {}", consultation.getId(), doctor.getEmail());
 
-        TransactionSynchronizationManager.registerSynchronization(
-                new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit(){
-                        messageService.publishExpirationEvent(consultation.getId(),consultation.getTimeSlot().getEndTime());
-                    }
-                }
-        );
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                messageService.publishExpirationEvent(consultation.getId(),
+                        consultation.getTimeSlot().getEndTime());
+            }
+        });
         return consultation;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @Retryable(
-            retryFor = {PessimisticLockingFailureException.class},
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 500)
-    )
+    @Retryable(retryFor = {
+            PessimisticLockingFailureException.class}, maxAttempts = 3, backoff = @Backoff(delay = 500))
     public Consultation editConsultation(AddConsultationRequest request, UUID id) {
         UUID userId = authService.getAuthenticateUserId();
 
         Consultation consultation = consultationRepository.findById(id)
-                .orElseThrow(()->new ConsultationException("Consultation not found"));
+                .orElseThrow(() -> new ConsultationException("Consultation not found"));
 
         validateEditability(consultation, userId);
 
@@ -111,113 +89,104 @@ public class ConsultationServiceImpl implements ConsultationService{
 
         LocalDateTime start = request.startTime();
         LocalDateTime end = request.startTime().plusMinutes(request.duration());
-        if (consultationRepository.existsByOverlapping(start,end,userId,id,ConsultationStatus.CANCELLED)){
+        if (consultationRepository.existsByOverlapping(start, end, userId, id,
+                ConsultationStatus.CANCELLED)) {
             throw new ConsultationException("Consultation time slot is already booked");
         }
         consultation.getTimeSlot().setStartTime(start);
         consultation.getTimeSlot().setEndTime(end);
-        log.info("Consultation edited {} by {}", consultation.getId(),userId);
+        log.info("Consultation edited {} by {}", consultation.getId(), userId);
 
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                messagingTemplate.convertAndSend("/topic/consultation",
+                        new ConsultationChanged(consultation.getId(), start));
+            }
+        });
 
-        TransactionSynchronizationManager.registerSynchronization(
-                new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit(){
-                        messagingTemplate.convertAndSend("/topic/consultation"
-                                ,new ConsultationChanged(consultation.getId(),start));
-                    }
-                }
-        );
-
-        return  consultationRepository.save(consultation);
+        return consultationRepository.save(consultation);
     }
 
     private static void validateEditability(Consultation consultation, UUID userId) {
-        if (consultation.getStatus().isTerminal()){
+        if (consultation.getStatus().isTerminal()) {
             throw new ConsultationException("Consultation is already completed");
         }
-        if (consultation.getStatus()!=ConsultationStatus.AVAILABLE){
+        if (consultation.getStatus() != ConsultationStatus.AVAILABLE) {
             throw new ConsultationException("You cannot edit on booked consultation");
         }
-        if (!consultation.getDoctor().getId().equals(userId)){
+        if (!consultation.getDoctor().getId().equals(userId)) {
             throw new ConsultationException("You are not authorized to edit this consultation");
         }
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @Retryable(
-            retryFor = {PessimisticLockingFailureException.class},
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000)
-    )
+    @Retryable(retryFor = {
+            PessimisticLockingFailureException.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
     public void cancel(UUID id, String reason) {
         Consultation consultation = consultationRepository.findConsultationById(id)
-                .orElseThrow(()->new ConsultationException("Consultation not found"));
+                .orElseThrow(() -> new ConsultationException("Consultation not found"));
 
         User currentUser = authService.getAuthenticateUser();
         if (consultation.getStatus().isTerminal()) {
             throw new ConsultationException("Consultation is already completed");
         }
 
-        if (cancelAvailableConsultation(consultation, currentUser)) return;
+        if (cancelAvailableConsultation(consultation, currentUser))
+            return;
 
         if (!consultation.getDoctor().getId().equals(currentUser.getId())
                 && !consultation.getPatient().getId().equals(currentUser.getId())) {
             throw new ConsultationException("You are not authorized to cancel this consultation");
         }
 
-
         boolean cancelledByPatient = cancelBookedConsultation(reason, consultation, currentUser);
 
         log.info("Consultation cancelled {} by {}", consultation.getId(), currentUser.getEmail());
 
         // TODO handle refund Logic
-        TransactionSynchronizationManager.registerSynchronization(
-                new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit(){
-                        if (cancelledByPatient) {
-                            messagingTemplate.convertAndSend("/topic/consultation",
-                                    new ConsultationCancelled(id,ConsultationStatus.AVAILABLE));
-                            messageService.sendPatientCancelledEvent(consultation);
-                        }
-                        else {
-                            messageService.sendDoctorCancelledEvent(consultation);
-                        }
-                    }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                if (cancelledByPatient) {
+                    messagingTemplate.convertAndSend("/topic/consultation",
+                            new ConsultationCancelled(id, ConsultationStatus.AVAILABLE));
+                    messageService.sendPatientCancelledEvent(consultation);
+                } else {
+                    messageService.sendDoctorCancelledEvent(consultation);
                 }
-        );
+            }
+        });
 
     }
 
     @Override
     @Transactional
     public void expire(String consultationId) {
-        Consultation consultation = consultationRepository.findConsultationById(UUID.fromString(consultationId))
-                .orElseThrow(()->new ConsultationException("Consultation not found"));
-        if (consultation.getStatus() == ConsultationStatus.AVAILABLE){
+        Consultation consultation = consultationRepository
+                .findConsultationById(UUID.fromString(consultationId))
+                .orElseThrow(() -> new ConsultationException("Consultation not found"));
+        if (consultation.getStatus() == ConsultationStatus.AVAILABLE) {
             consultation.setStatus(ConsultationStatus.EXPIRED);
             // TODO PUSH NOTIFICATION TO DOCTOR
-        }
-        else if (consultation.getStatus() == ConsultationStatus.LIVE){
+        } else if (consultation.getStatus() == ConsultationStatus.LIVE) {
             consultation.setStatus(ConsultationStatus.COMPLETED);
-            simpMessagingTemplate.convertAndSend("/queue/"+consultationId,1);
+            simpMessagingTemplate.convertAndSend("/queue/" + consultationId, 1);
         }
         consultationRepository.save(consultation);
     }
 
-
-    private boolean cancelBookedConsultation(String reason, Consultation consultation, User currentUser) {
-        CancellationLog cancellationLog = CancellationLog.builder()
-                .consultation(consultation)
-                .cancelledBy(currentUser)
-                .reason(reason).build();
+    private boolean cancelBookedConsultation(String reason, Consultation consultation,
+            User currentUser) {
+        CancellationLog cancellationLog = CancellationLog.builder().consultation(consultation)
+                .cancelledBy(currentUser).reason(reason).build();
 
         cancellationLogRepository.save(cancellationLog);
 
         boolean cancelledByPatient = currentUser.getId().equals(consultation.getPatient().getId());
-        consultation.setStatus(cancelledByPatient ? ConsultationStatus.AVAILABLE : ConsultationStatus.CANCELLED);
+        consultation.setStatus(
+                cancelledByPatient ? ConsultationStatus.AVAILABLE : ConsultationStatus.CANCELLED);
 
         consultation.setCancellationLog(cancellationLog);
         consultationRepository.save(consultation);
@@ -227,12 +196,13 @@ public class ConsultationServiceImpl implements ConsultationService{
     private boolean cancelAvailableConsultation(Consultation consultation, User currentUser) {
         if (consultation.getStatus() == ConsultationStatus.AVAILABLE) {
             if (!consultation.getDoctor().getId().equals(currentUser.getId())) {
-                throw new ConsultationException("You are not authorized to cancel this consultation");
+                throw new ConsultationException(
+                        "You are not authorized to cancel this consultation");
             }
             consultation.setStatus(ConsultationStatus.CANCELLED);
             consultationRepository.save(consultation);
             messagingTemplate.convertAndSend("/topic/consultation",
-                    new ConsultationCancelled(consultation.getId(),ConsultationStatus.CANCELLED));
+                    new ConsultationCancelled(consultation.getId(), ConsultationStatus.CANCELLED));
             return true;
         }
         return false;

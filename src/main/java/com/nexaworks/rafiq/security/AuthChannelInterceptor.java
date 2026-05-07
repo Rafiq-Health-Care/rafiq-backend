@@ -1,6 +1,5 @@
 package com.nexaworks.rafiq.security;
 
-import java.security.Principal;
 import java.util.Map;
 
 import org.springframework.messaging.Message;
@@ -19,7 +18,6 @@ import com.nexaworks.rafiq.service.authentication.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -29,8 +27,8 @@ public class AuthChannelInterceptor implements ChannelInterceptor {
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        StompHeaderAccessor accessor =
-                MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message,
+                StompHeaderAccessor.class);
 
         if (accessor == null || !StompCommand.CONNECT.equals(accessor.getCommand())) {
             return message;

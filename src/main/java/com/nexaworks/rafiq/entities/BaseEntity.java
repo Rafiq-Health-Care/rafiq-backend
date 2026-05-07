@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.util.UUID;
 
 import org.hibernate.annotations.SQLRestriction;
-import org.hibernate.annotations.processing.SQL;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;

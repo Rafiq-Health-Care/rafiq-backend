@@ -89,15 +89,9 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
 
     private Doctor createDoctor(String email) {
         Role doctorRole = roleRepository.findByName("ROLE_DOCTOR");
-        Doctor doctor = Doctor.builder()
-                .email(email)
-                .password(passwordEncoder.encode("Valid@1234"))
-                .firstName("Jane")
-                .lastName("Doe")
-                .specialization(Specialization.CARDIOLOGY)
-                .roles(Set.of(doctorRole))
-                .enabled(true)
-                .build();
+        Doctor doctor = Doctor.builder().email(email).password(passwordEncoder.encode("Valid@1234"))
+                .firstName("Jane").lastName("Doe").specialization(Specialization.CARDIOLOGY)
+                .roles(Set.of(doctorRole)).enabled(true).build();
         return doctorRepository.save(doctor);
     }
 
@@ -107,14 +101,9 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
 
     private Patient createPatient(String email) {
         Role patientRole = roleRepository.findByName("ROLE_PATIENT");
-        Patient patient = Patient.builder()
-                .email(email)
-                .password(passwordEncoder.encode("Valid@1234"))
-                .firstName("John")
-                .lastName("Smith")
-                .roles(Set.of(patientRole))
-                .enabled(true)
-                .build();
+        Patient patient = Patient.builder().email(email)
+                .password(passwordEncoder.encode("Valid@1234")).firstName("John").lastName("Smith")
+                .roles(Set.of(patientRole)).enabled(true).build();
         return patientRepository.save(patient);
     }
 
@@ -124,19 +113,11 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
 
     private Consultation persistConsultation(Doctor doctor, Patient patient,
             ConsultationStatus status, LocalDateTime startTime) {
-        TimeSlot slot = TimeSlot.builder()
-                .startTime(startTime)
-                .endTime(startTime.plusMinutes(60))
-                .durationMinutes(60)
-                .build();
-        Consultation consultation = Consultation.builder()
-                .doctor(doctor)
-                .patient(patient)
-                .timeSlot(slot)
-                .price(BigDecimal.valueOf(100))
-                .status(status)
-                .specialization(doctor.getSpecialization())
-                .build();
+        TimeSlot slot = TimeSlot.builder().startTime(startTime).endTime(startTime.plusMinutes(60))
+                .durationMinutes(60).build();
+        Consultation consultation = Consultation.builder().doctor(doctor).patient(patient)
+                .timeSlot(slot).price(BigDecimal.valueOf(100)).status(status)
+                .specialization(doctor.getSpecialization()).build();
         return consultationRepository.save(consultation);
     }
 
@@ -150,16 +131,11 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
         void shouldCreateConsultation_WhenDoctorIsAuthenticated() throws Exception {
             Doctor doctor = createDoctor();
             AddConsultationRequest request = new AddConsultationRequest(
-                    LocalDateTime.now().plusDays(2).withNano(0),
-                    60,
-                    BigDecimal.valueOf(150));
+                    LocalDateTime.now().plusDays(2).withNano(0), 60, BigDecimal.valueOf(150));
 
-            mockMvc.perform(post(ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(withUserId(doctor)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").exists())
+            mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(doctor)))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.id").exists())
                     .andExpect(jsonPath("$.duration").value(60))
                     .andExpect(jsonPath("$.price").value(150))
                     .andExpect(jsonPath("$.status").value("AVAILABLE"))
@@ -173,14 +149,10 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
         void shouldReturnForbidden_WhenPatientTriesToAdd() throws Exception {
             Patient patient = createPatient();
             AddConsultationRequest request = new AddConsultationRequest(
-                    LocalDateTime.now().plusDays(2),
-                    60,
-                    BigDecimal.valueOf(150));
+                    LocalDateTime.now().plusDays(2), 60, BigDecimal.valueOf(150));
 
-            mockMvc.perform(post(ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(withUserId(patient)))
+            mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(patient)))
                     .andExpect(status().isForbidden());
 
             assertThat(consultationRepository.count()).isZero();
@@ -199,12 +171,9 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
             persistConsultation(doctor, ConsultationStatus.AVAILABLE);
             ScheduleFilter filter = new ScheduleFilter(null, null, null);
 
-            mockMvc.perform(post(ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(filter))
-                    .with(withUserId(doctor)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.content").isArray())
+            mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(filter)).with(withUserId(doctor)))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.content").isArray())
                     .andExpect(jsonPath("$.content.length()").value(1))
                     .andExpect(jsonPath("$.content[0].status").value("AVAILABLE"));
         }
@@ -215,10 +184,8 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
             Patient patient = createPatient();
             ScheduleFilter filter = new ScheduleFilter(null, null, null);
 
-            mockMvc.perform(post(ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(filter))
-                    .with(withUserId(patient)))
+            mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(filter)).with(withUserId(patient)))
                     .andExpect(status().isForbidden());
         }
     }
@@ -239,8 +206,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(put(ENDPOINT, consultation.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(withUserId(doctor)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(doctor)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(consultation.getId().toString()));
 
@@ -259,8 +225,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
 
             assertThatThrownBy(() -> mockMvc.perform(put(ENDPOINT, UUID.randomUUID())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-                    .with(withUserId(doctor))))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(doctor))))
                     .hasCauseInstanceOf(ConsultationException.class)
                     .hasMessageContaining("Consultation not found");
         }
@@ -278,8 +243,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
             Consultation consultation = persistConsultation(doctor, ConsultationStatus.AVAILABLE);
 
             mockMvc.perform(patch(ENDPOINT, consultation.getId())
-                    .param("reason", "scheduling conflict")
-                    .with(withUserId(doctor)))
+                    .param("reason", "scheduling conflict").with(withUserId(doctor)))
                     .andExpect(status().isOk());
 
             Consultation cancelled = consultationRepository.findById(consultation.getId())
@@ -293,8 +257,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
             Doctor doctor = createDoctor();
 
             assertThatThrownBy(() -> mockMvc.perform(patch(ENDPOINT, UUID.randomUUID())
-                    .param("reason", "any")
-                    .with(withUserId(doctor))))
+                    .param("reason", "any").with(withUserId(doctor))))
                     .hasCauseInstanceOf(ConsultationException.class)
                     .hasMessageContaining("Consultation not found");
         }
@@ -313,8 +276,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
             Consultation consultation = persistConsultation(doctor, ConsultationStatus.AVAILABLE);
 
             mockMvc.perform(post(ENDPOINT, consultation.getId())
-                    .param("provider", PaymentProvider.STRIPE.name())
-                    .with(withUserId(patient)))
+                    .param("provider", PaymentProvider.STRIPE.name()).with(withUserId(patient)))
                     .andExpect(status().isOk());
 
             Consultation reserved = consultationRepository.findById(consultation.getId())
@@ -328,11 +290,11 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
         void shouldReturnForbidden_WhenDoctorTriesToReserve() throws Exception {
             Doctor doctor = createDoctor();
             Doctor otherDoctor = createDoctor("other-doctor@example.com");
-            Consultation consultation = persistConsultation(otherDoctor, ConsultationStatus.AVAILABLE);
+            Consultation consultation = persistConsultation(otherDoctor,
+                    ConsultationStatus.AVAILABLE);
 
             mockMvc.perform(post(ENDPOINT, consultation.getId())
-                    .param("provider", PaymentProvider.STRIPE.name())
-                    .with(withUserId(doctor)))
+                    .param("provider", PaymentProvider.STRIPE.name()).with(withUserId(doctor)))
                     .andExpect(status().isForbidden());
         }
     }
@@ -387,8 +349,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Unauthenticated request is rejected with 401")
         void shouldReturnUnauthorized_WhenNotAuthenticated() throws Exception {
-            mockMvc.perform(get(ENDPOINT, UUID.randomUUID()))
-                    .andExpect(status().isUnauthorized());
+            mockMvc.perform(get(ENDPOINT, UUID.randomUUID())).andExpect(status().isUnauthorized());
         }
     }
 
@@ -406,12 +367,9 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
             ConsultationFilter filter = new ConsultationFilter(doctor.getId(),
                     Specialization.CARDIOLOGY, null, null, null, null);
 
-            mockMvc.perform(post(ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(filter))
-                    .with(withUserId(patient)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.content").isArray())
+            mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(filter)).with(withUserId(patient)))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.content").isArray())
                     .andExpect(jsonPath("$.content.length()").value(1));
         }
 
@@ -420,8 +378,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
         void shouldReturnUnauthorized_WhenNotAuthenticated() throws Exception {
             ConsultationFilter filter = new ConsultationFilter(null, null, null, null, null, null);
 
-            mockMvc.perform(post(ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
+            mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(filter)))
                     .andExpect(status().isUnauthorized());
         }
@@ -440,10 +397,8 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
             persistConsultation(doctor, patient, ConsultationStatus.CONFIRMED,
                     LocalDateTime.now().plusDays(1));
 
-            mockMvc.perform(get(ENDPOINT).with(withUserId(patient)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isArray())
-                    .andExpect(jsonPath("$.length()").value(1))
+            mockMvc.perform(get(ENDPOINT).with(withUserId(patient))).andExpect(status().isOk())
+                    .andExpect(jsonPath("$").isArray()).andExpect(jsonPath("$.length()").value(1))
                     .andExpect(jsonPath("$[0].status").value("CONFIRMED"));
         }
 
@@ -470,10 +425,8 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
             persistConsultation(doctor, patient, ConsultationStatus.CONFIRMED,
                     LocalDateTime.now().plusDays(1));
 
-            mockMvc.perform(get(ENDPOINT).with(withUserId(doctor)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isArray())
-                    .andExpect(jsonPath("$.length()").value(1))
+            mockMvc.perform(get(ENDPOINT).with(withUserId(doctor))).andExpect(status().isOk())
+                    .andExpect(jsonPath("$").isArray()).andExpect(jsonPath("$.length()").value(1))
                     .andExpect(jsonPath("$[0].status").value("CONFIRMED"));
         }
 

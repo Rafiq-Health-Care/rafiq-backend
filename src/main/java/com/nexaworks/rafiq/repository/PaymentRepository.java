@@ -1,9 +1,10 @@
 package com.nexaworks.rafiq.repository;
 
-import com.nexaworks.rafiq.entities.Payment;
+import java.util.UUID;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.UUID;
+import com.nexaworks.rafiq.entities.Payment;
 
 public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 }

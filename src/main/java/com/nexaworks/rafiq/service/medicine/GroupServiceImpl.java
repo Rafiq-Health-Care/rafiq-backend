@@ -3,8 +3,6 @@ package com.nexaworks.rafiq.service.medicine;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.nexaworks.rafiq.entities.Patient;
-import com.nexaworks.rafiq.service.authentication.AuthService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,10 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.nexaworks.rafiq.dto.request.group.UpdateGroupRequest;
 import com.nexaworks.rafiq.entities.Group;
 import com.nexaworks.rafiq.entities.Medicine;
+import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.exception.custom.GroupIsAlreadyExistsException;
 import com.nexaworks.rafiq.exception.custom.GroupNotFoundException;
 import com.nexaworks.rafiq.exception.custom.MedicineNotFound;
 import com.nexaworks.rafiq.repository.GroupRepository;
+import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.service.patient.PatientService;
 
 import lombok.RequiredArgsConstructor;

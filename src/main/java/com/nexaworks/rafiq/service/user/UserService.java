@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.nexaworks.rafiq.entities.enums.Specialization;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.entities.enums.Specialization;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.Email;
@@ -25,7 +25,6 @@ public interface UserService {
             HttpServletResponse response);
 
     User addUser(String email, String firstName, String lastName);
-
 
     UUID getUserId();
 
