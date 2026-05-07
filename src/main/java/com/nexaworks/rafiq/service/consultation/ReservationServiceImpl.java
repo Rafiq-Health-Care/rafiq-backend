@@ -12,6 +12,7 @@ import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.repository.DoctorRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.service.payment.PaymentService;
+import com.nexaworks.rafiq.service.rabbit.MessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -35,6 +36,7 @@ public class ReservationServiceImpl implements ReservationService{
     private final AuthService authService;
     private final SimpMessagingTemplate messagingTemplate;
     private final PaymentService paymentService;
+    private final MessageService messageService;
 
 
     @Override
@@ -71,6 +73,9 @@ public class ReservationServiceImpl implements ReservationService{
                 new TransactionSynchronization() {
                     @Override
                     public void afterCommit(){
+                        messageService.publishPreparationEvent(consultation.getId(),
+                                consultation.getTimeSlot().getStartTime());
+
                         messagingTemplate.convertAndSend("/topic/consultation",
                                 new ConsultationEvent(consultation.getId(), EventType.BOOKED, Map.of()));
                     }

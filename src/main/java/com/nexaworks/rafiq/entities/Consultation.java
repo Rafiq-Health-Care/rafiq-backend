@@ -51,6 +51,8 @@ public class Consultation extends BaseEntity {
     @OneToOne(mappedBy = "consultation", cascade = CascadeType.ALL)
     private Payment payment;
 
+    private String accessToken;
+
 
     @Transient
     public boolean isCancelled() {

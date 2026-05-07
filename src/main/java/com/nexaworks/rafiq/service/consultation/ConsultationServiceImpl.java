@@ -1,7 +1,5 @@
 package com.nexaworks.rafiq.service.consultation;
 
-import com.nexaworks.rafiq.dto.event.ConsultationAddedEvent;
-import com.nexaworks.rafiq.dto.event.ConsultationCanceled;
 import com.nexaworks.rafiq.dto.event.ConsultationCancelled;
 import com.nexaworks.rafiq.dto.event.ConsultationChanged;
 import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
@@ -45,12 +43,11 @@ import java.util.UUID;
 public class ConsultationServiceImpl implements ConsultationService{
     private final ConsultationRepository consultationRepository;
     private final CancellationLogRepository cancellationLogRepository;
-    private final ApplicationEventPublisher eventPublisher;
     private final AuthService authService;
     private final DoctorRepository doctorRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final MessageService messageService;
-
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
 
     @Override
@@ -204,6 +201,11 @@ public class ConsultationServiceImpl implements ConsultationService{
                 .orElseThrow(()->new ConsultationException("Consultation not found"));
         if (consultation.getStatus() == ConsultationStatus.AVAILABLE){
             consultation.setStatus(ConsultationStatus.EXPIRED);
+            // TODO PUSH NOTIFICATION TO DOCTOR
+        }
+        else if (consultation.getStatus() == ConsultationStatus.LIVE){
+            consultation.setStatus(ConsultationStatus.COMPLETED);
+            simpMessagingTemplate.convertAndSend("/queue/"+consultationId,1);
         }
         consultationRepository.save(consultation);
     }

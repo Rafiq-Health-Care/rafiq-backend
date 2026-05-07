@@ -1,6 +1,5 @@
-package com.nexaworks.rafiq.eventListener;
+package com.nexaworks.rafiq.consumer;
 
-import com.nexaworks.rafiq.config.RabbitMQConfig;
 import com.nexaworks.rafiq.dto.notificaiton.EmailNotification;
 import com.nexaworks.rafiq.service.notification.NotificationService;
 import com.rabbitmq.client.Channel;
@@ -12,18 +11,19 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Map;
+
+import static com.nexaworks.rafiq.constant.RabbitMQConstant.EMAIL_NOTIFICATION_QUEUE;
 
 @Component
 @Slf4j
-public class EmailNotificationListener {
+public class EmailNotificationConsumer {
     private final NotificationService<EmailNotification> notificationService;
 
-    public EmailNotificationListener(@Qualifier("email") NotificationService<EmailNotification> notificationService) {
+    public EmailNotificationConsumer(@Qualifier("email") NotificationService<EmailNotification> notificationService) {
         this.notificationService = notificationService;
     }
 
-    @RabbitListener(queues = RabbitMQConfig.EMAIL_NOTIFICATION_QUEUE)
+    @RabbitListener(queues = EMAIL_NOTIFICATION_QUEUE)
     public void handleEmailNotification(EmailNotification emailNotification, Channel channel,@Header(AmqpHeaders.DELIVERY_TAG) long tag) throws IOException {
         log.info("Received email notification: {}", emailNotification);
         try {

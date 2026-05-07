@@ -19,7 +19,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.nexaworks.rafiq.config.RabbitMQConfig.*;
+
+import static com.nexaworks.rafiq.constant.RabbitMQConstant.*;
 import static com.nexaworks.rafiq.entities.enums.ActionStatus.CONSULTATION_CANCELLED;
 
 
@@ -53,8 +54,8 @@ public class RabbitMessagingService implements MessageService{
                         ,emailContentService.createOtpEmail(otp, user.getFirstName(), DEFAULT_URL)));
     }
     public void sendRegistrationEvent(User user, String otp) {
-        rabbitTemplate.convertAndSend(RabbitMQConfig.NOTIFICATION_EXCHANGE,
-                RabbitMQConfig.ROUTING_KEY_EMAIL,
+        rabbitTemplate.convertAndSend(NOTIFICATION_EXCHANGE,
+               ROUTING_KEY_EMAIL,
                 new EmailNotification(user.getEmail(),OTP_NOTIFICATION_TEMPLATE,
                         "Verify your email address"
                         ,emailContentService.createOtpEmail(otp, user.getFirstName(),DEFAULT_URL)));
@@ -98,9 +99,21 @@ public class RabbitMessagingService implements MessageService{
     @Override
     public void publishExpirationEvent(UUID id, LocalDateTime endTime) {
         long delay = Math.max(0,
-                LocalDateTime.now().until(endTime.plusMinutes(10), ChronoUnit.MILLIS)
+                LocalDateTime.now().until(endTime, ChronoUnit.MILLIS)
         );
         rabbitTemplate.convertAndSend(CONSULTATION_EXPIRATION_EXCHANGE,CONSULTATION_EXPIRATION_ROUTING_KEY,id.toString(),
+                message -> {
+                    message.getMessageProperties().setHeader("x-delay", delay);
+                    return message;
+                });
+    }
+
+    @Override
+    public void publishPreparationEvent(UUID id, LocalDateTime startTime) {
+       long delay = Math.max(0,
+                LocalDateTime.now().until(startTime, ChronoUnit.MILLIS));
+
+       rabbitTemplate.convertAndSend(CONSULTATION_PREPARATION_EXCHANGE,CONSULTATION_PREPARATION_ROUTING_KEY,id.toString(),
                 message -> {
                     message.getMessageProperties().setHeader("x-delay", delay);
                     return message;

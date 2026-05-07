@@ -110,6 +110,10 @@ otp:
 access:
   token:
     expiration: ${ACCESS_TOKEN_EXPIRATION}
+  # Agora config
+agora:
+   app-id: ${AGORA_APP_ID}
+   app-certificate: ${AGORA_APP_CERTIFICATE}
   # Server config
 server:
   port: 8030

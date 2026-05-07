@@ -1,8 +1,6 @@
-package com.nexaworks.rafiq.eventListener;
+package com.nexaworks.rafiq.consumer;
 
-import com.nexaworks.rafiq.config.RabbitMQConfig;
 import com.nexaworks.rafiq.dto.notificaiton.PushNotification;
-import com.nexaworks.rafiq.dto.notificaiton.SmsNotification;
 import com.nexaworks.rafiq.service.notification.NotificationService;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
@@ -14,16 +12,18 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+import static com.nexaworks.rafiq.constant.RabbitMQConstant.SMS_NOTIFICATION_QUEUE;
+
 @Component
 @Slf4j
-public class PushNotificationListener {
+public class PushNotificationConsumer {
     private final NotificationService<PushNotification> notificationService;
 
-    public PushNotificationListener(@Qualifier("mobile") NotificationService<PushNotification> notificationService) {
+    public PushNotificationConsumer(@Qualifier("mobile") NotificationService<PushNotification> notificationService) {
         this.notificationService = notificationService;
     }
 
-    @RabbitListener(queues = RabbitMQConfig.SMS_NOTIFICATION_QUEUE)
+    @RabbitListener(queues = SMS_NOTIFICATION_QUEUE)
     public void handleSMSNotification(PushNotification pushNotification,
                                       Channel channel,
                                       @Header(AmqpHeaders.DELIVERY_TAG) long tag) throws IOException {
