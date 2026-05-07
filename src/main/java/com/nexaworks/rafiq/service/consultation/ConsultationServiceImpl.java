@@ -204,6 +204,7 @@ public class ConsultationServiceImpl implements ConsultationService{
             // TODO PUSH NOTIFICATION TO DOCTOR
         }
         else if (consultation.getStatus() == ConsultationStatus.LIVE){
+            consultation.setStatus(ConsultationStatus.COMPLETED);
             simpMessagingTemplate.convertAndSend("/queue/"+consultationId,1);
         }
         consultationRepository.save(consultation);
