@@ -18,4 +18,6 @@ public interface MessageService {
     void publishExpirationEvent(UUID id, LocalDateTime endTime);
 
     void publishPreparationEvent(UUID id, LocalDateTime startTime);
+
+    void publishDoctorExpireNotification(String notificationToken, LocalDateTime startTime);
 }

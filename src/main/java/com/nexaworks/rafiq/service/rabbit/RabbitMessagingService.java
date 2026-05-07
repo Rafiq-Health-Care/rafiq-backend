@@ -1,7 +1,7 @@
 package com.nexaworks.rafiq.service.rabbit;
 
 import static com.nexaworks.rafiq.constant.RabbitMQConstant.*;
-import static com.nexaworks.rafiq.entities.enums.ActionStatus.CONSULTATION_CANCELLED;
+import static com.nexaworks.rafiq.entities.enums.ActionStatus.*;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -104,6 +104,13 @@ public class RabbitMessagingService implements MessageService {
                     message.getMessageProperties().setHeader("x-delay", delay);
                     return message;
                 });
+    }
+
+    @Override
+    public void publishDoctorExpireNotification(String notificationToken, LocalDateTime startTime) {
+        PushNotification notification = new PushNotification(CONSULTATION_EXPIRED,
+                notificationToken, Map.of("startTime", startTime.toString()));
+        rabbitTemplate.convertAndSend(NOTIFICATION_EXCHANGE, ROUTING_KEY_PUSH, notification);
     }
 
 }

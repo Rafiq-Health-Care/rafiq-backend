@@ -169,12 +169,26 @@ public class ConsultationServiceImpl implements ConsultationService {
                 .orElseThrow(() -> new ConsultationException("Consultation not found"));
         if (consultation.getStatus() == ConsultationStatus.AVAILABLE) {
             consultation.setStatus(ConsultationStatus.EXPIRED);
-            // TODO PUSH NOTIFICATION TO DOCTOR
+
         } else if (consultation.getStatus() == ConsultationStatus.LIVE) {
             consultation.setStatus(ConsultationStatus.COMPLETED);
-            simpMessagingTemplate.convertAndSend("/queue/" + consultationId, 1);
         }
+
         consultationRepository.save(consultation);
+        log.info("Consultation expired {}", consultationId);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                if (consultation.getStatus() == ConsultationStatus.AVAILABLE) {
+                    messageService.publishDoctorExpireNotification(
+                            consultation.getDoctor().getNotificationToken(),
+                            consultation.getTimeSlot().getStartTime());
+
+                } else if (consultation.getStatus() == ConsultationStatus.LIVE) {
+                    simpMessagingTemplate.convertAndSend("/queue/" + consultationId, 1);
+                }
+            }
+        });
     }
 
     private boolean cancelBookedConsultation(String reason, Consultation consultation,
