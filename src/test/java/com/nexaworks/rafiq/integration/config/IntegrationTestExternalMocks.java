@@ -12,12 +12,9 @@ import org.springframework.context.annotation.Profile;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.Uploader;
+import com.nexaworks.rafiq.service.call.RtcProvider;
 
-/**
- * Substitutes Cloudinary SDK with Mockito-backed bean so integration tests never call Cloudinary.
- * Gemini is mocked via {@code @MockBean} on {@link com.nexaworks.rafiq.integration.BaseIntegrationTest}
- * so the Feign client bean is replaced (avoids duplicate {@code @Primary} beans).
- */
+
 @TestConfiguration(proxyBeanMethods = false)
 @Profile("test")
 public class IntegrationTestExternalMocks {
@@ -35,5 +32,14 @@ public class IntegrationTestExternalMocks {
         Mockito.when(uploader.destroy(Mockito.anyString(), Mockito.anyMap()))
                 .thenReturn(Collections.emptyMap());
         return cloudinary;
+    }
+
+    @Bean
+    @Primary
+    public RtcProvider rtcProviderMock() {
+        RtcProvider mock = Mockito.mock(RtcProvider.class);
+        Mockito.when(mock.generateToken(Mockito.anyString(), Mockito.anyInt()))
+                .thenReturn("integration-test-mock-rtc-token");
+        return mock;
     }
 }

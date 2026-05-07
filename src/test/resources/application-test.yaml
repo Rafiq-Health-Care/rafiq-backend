@@ -72,3 +72,7 @@ GOOGLE_GENAI_API_KEY: test-google-genai-api-key
 CLOUDINARY_CLOUD_NAME: test-cloud
 CLOUDINARY_API_KEY: test-cloudinary-key
 CLOUDINARY_API_SECRET: test-cloudinary-secret
+
+# Agora placeholders (RtcProvider is mocked in IntegrationTestExternalMocks; SDK is not used).
+AGORA_APP_ID: "00000000000000000000000000000000"
+AGORA_APP_CERTIFICATE: "00000000000000000000000000000000"
