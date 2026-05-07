@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.repository;
 
+import com.nexaworks.rafiq.dto.response.consultation.CallResponse;
 import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import jakarta.persistence.LockModeType;
@@ -8,10 +9,12 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.security.core.parameters.P;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -59,4 +62,14 @@ public interface ConsultationRepository extends JpaRepository<Consultation, UUID
                                        @Param("end") LocalDateTime endTime,
                                        @Param("patientId") UUID id1,
                                        @Param("status") ConsultationStatus consultationStatus);
+
+
+    @Query("SELECT new com.nexaworks.rafiq.dto.response.consultation.CallResponse(c.id,c.accessToken) FROM Consultation c")
+    CallResponse getConsultationCallInfo(UUID id);
+
+    @Query("SELECT c FROM Consultation c WHERE c.patient.id = :patientId AND c.status= :status1 OR c.status= :status2")
+    List<Consultation> findAllByPatientIdAndStatus(@Param("patientId") UUID patientId, @Param("status1") ConsultationStatus status1, @Param("status2") ConsultationStatus status2);
+
+    @Query("SELECT c FROM Consultation c WHERE c.doctor.id= :doctorId AND c.status= :status1 OR c.status= :status2")
+    List<Consultation> findAllDoctorUpcoming(@Param("doctorId") UUID doctorId, @Param("status1") ConsultationStatus status1, @Param("status2") ConsultationStatus status2);
 }

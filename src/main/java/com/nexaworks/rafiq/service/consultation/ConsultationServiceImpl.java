@@ -4,7 +4,9 @@ import com.nexaworks.rafiq.dto.event.ConsultationCancelled;
 import com.nexaworks.rafiq.dto.event.ConsultationChanged;
 import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
 import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
+import com.nexaworks.rafiq.dto.response.consultation.CallResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationEvent;
+import com.nexaworks.rafiq.dto.response.consultation.ConsultationFilter;
 import com.nexaworks.rafiq.entities.*;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.EventType;
@@ -14,6 +16,7 @@ import com.nexaworks.rafiq.mapper.ConsultationMapper;
 import com.nexaworks.rafiq.repository.CancellationLogRepository;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.repository.DoctorRepository;
+import com.nexaworks.rafiq.repository.specification.ConsultationSpecification;
 import com.nexaworks.rafiq.repository.specification.ScheduleSpecification;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.service.payment.PaymentService;
@@ -34,6 +37,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -86,13 +90,6 @@ public class ConsultationServiceImpl implements ConsultationService{
                 }
         );
         return consultation;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<Consultation> getDoctorSchedule(ScheduleFilter filter, Pageable pageable) {
-        Specification<Consultation> spec = ScheduleSpecification.filter(filter, authService.getAuthenticateUserId());
-        return consultationRepository.findAll(spec,pageable);
     }
 
     @Override

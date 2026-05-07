@@ -4,6 +4,7 @@ import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationResponse;
 import com.nexaworks.rafiq.entities.Consultation;
+import org.mapstruct.IterableMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.data.domain.Page;
@@ -35,4 +36,8 @@ public interface ConsultationMapper {
                 page.isFirst()
         );
     }
+
+
+    @IterableMapping(elementTargetType = ConsultationResponse.class)
+    List<ConsultationResponse> toDtoList(List<Consultation> upcomingConsultation);
 }

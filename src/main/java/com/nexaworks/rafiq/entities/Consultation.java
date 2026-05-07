@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.entities;
 
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
+import com.nexaworks.rafiq.entities.enums.Specialization;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -52,6 +53,9 @@ public class Consultation extends BaseEntity {
     private Payment payment;
 
     private String accessToken;
+
+    @Enumerated(EnumType.STRING)
+    private Specialization specialization;
 
 
     @Transient

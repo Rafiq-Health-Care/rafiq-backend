@@ -3,10 +3,13 @@ package com.nexaworks.rafiq.controller;
 import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
 import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
+import com.nexaworks.rafiq.dto.response.consultation.CallResponse;
+import com.nexaworks.rafiq.dto.response.consultation.ConsultationFilter;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationResponse;
 import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.enums.PaymentProvider;
 import com.nexaworks.rafiq.mapper.ConsultationMapper;
+import com.nexaworks.rafiq.service.consultation.ConsultationSearchService;
 import com.nexaworks.rafiq.service.consultation.ConsultationService;
 import com.nexaworks.rafiq.service.consultation.ReservationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,6 +31,7 @@ import java.util.UUID;
 @Tag(name = "Consultation", description = "Endpoints for consultation")
 public class ConsultationController {
     private final ConsultationService consultationService;
+    private final ConsultationSearchService consultationSearchService;
     private final ReservationService reservationService;
     private final ConsultationMapper mapper;
 
@@ -44,7 +48,7 @@ public class ConsultationController {
     @PostMapping("/schedule")
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<PageResponse<ConsultationResponse>> getSchedule(@Valid @RequestBody ScheduleFilter filter,Pageable pageable){
-        Page<Consultation> consultations = consultationService.getDoctorSchedule(filter,pageable);
+        Page<Consultation> consultations = consultationSearchService.getDoctorSchedule(filter,pageable);
         return ResponseEntity.ok(mapper.toPageResponse(consultations));
     }
     @PutMapping("/edit/{id}")
@@ -66,6 +70,41 @@ public class ConsultationController {
        String paymentKey = reservationService.reserve(id,provider);
        return ResponseEntity.ok(paymentKey);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ConsultationResponse> getConsultation(@PathVariable UUID id){
+        Consultation consultation = consultationSearchService.getConsultation(id);
+        return ResponseEntity.ok(mapper.toDto(consultation));
+    }
+
+    @GetMapping("/{id}/call")
+    public ResponseEntity<CallResponse> getCall(@PathVariable UUID id){
+        return ResponseEntity.ok(consultationSearchService.getConsultationCall(id));
+    }
+
+    @PostMapping("/filter")
+    public ResponseEntity<PageResponse<ConsultationResponse>> filterConsultation(@RequestBody ConsultationFilter filter,
+                                                                                 Pageable pageable){
+
+        Page<Consultation> pageableConsultation = consultationSearchService.getConsultations(filter,pageable);
+
+        return ResponseEntity.ok(mapper.toPageResponse(pageableConsultation));
+    }
+
+    @GetMapping("/patient/upcoming")
+    public ResponseEntity<List<ConsultationResponse>> getPatientUpcoming(){
+        List<Consultation> upcomingConsultation = consultationSearchService.getPatientUpcoming();
+
+        return ResponseEntity.ok(mapper.toDtoList(upcomingConsultation));
+    }
+
+    @GetMapping("/doctor/upcoming")
+    public ResponseEntity<List<ConsultationResponse>> getDoctorUpcoming(){
+        List<Consultation> upcomingConsultation = consultationSearchService.getDoctorUpcoming();
+
+        return ResponseEntity.ok(mapper.toDtoList(upcomingConsultation));
+    }
+
 
 
 }
