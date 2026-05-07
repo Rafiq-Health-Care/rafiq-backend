@@ -4,8 +4,7 @@
 #
 # Behaviour:
 #   * Collects staged *.java files (added / copied / modified).
-#   * Runs `mvn spotless:apply` only on those fil
-#   es via -DspotlessFiles=...
+#   * Runs `mvn spotless:apply` only on those files via -DspotlessFiles=...
 #   * Re-stages the (possibly reformatted) files so the commit always
 #     contains formatted code.
 #   * If Spotless fails, the commit is aborted.
@@ -24,19 +23,23 @@ fi
 
 echo "[pre-commit] Formatting ${#STAGED_JAVA[@]} staged Java file(s) with Spotless..."
 
-# Spotless's -DspotlessFiles takes a comma-separated list of regex patterns,
-# so we escape regex metacharacters (chiefly '.') in each path.
+# Spotless's -DspotlessFiles takes a comma-separated list of regex patterns
+# that are matched against each file's *absolute* path with Pattern.matches(),
+# so the pattern must match the full path. We:
+#   * escape regex metacharacters (chiefly '.') in each path,
+#   * prefix every pattern with '.*' so it matches the absolute path
+#     regardless of where the repo is checked out.
 escape_regex() {
-    printf '%s' "$1" | sed -e 's/[][\\.^$*+?(){}|/]/\\&/g'
+    printf '%s' "$1" | sed -e 's/[][\\.^$*+?(){}|]/\\&/g'
 }
 
 SPOTLESS_FILES=""
 for f in "${STAGED_JAVA[@]}"; do
-    escaped=$(escape_regex "$f")
+    pattern=".*$(escape_regex "$f")"
     if [ -z "$SPOTLESS_FILES" ]; then
-        SPOTLESS_FILES="$escaped"
+        SPOTLESS_FILES="$pattern"
     else
-        SPOTLESS_FILES="$SPOTLESS_FILES,$escaped"
+        SPOTLESS_FILES="$SPOTLESS_FILES,$pattern"
     fi
 done
 
