@@ -51,7 +51,7 @@ public class ConsultationPreparationServiceImpl implements ConsultationPreparati
         }
 
         consultation.setStatus(ConsultationStatus.LIVE);
-        consultation.setSessionToken(accessToken);
+        consultation.setAccessToken(accessToken);
         consultationRepository.save(consultation);
 
         sendNotificationsToPatientAndDoctor(consultation, accessToken);
