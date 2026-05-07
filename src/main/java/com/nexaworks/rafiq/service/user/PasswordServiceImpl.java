@@ -3,17 +3,12 @@ package com.nexaworks.rafiq.service.user;
 import java.time.Instant;
 import java.util.Optional;
 
-import com.nexaworks.rafiq.config.RabbitMQConfig;
-import com.nexaworks.rafiq.dto.notificaiton.EmailNotification;
-import com.nexaworks.rafiq.service.notification.EmailContentService;
-import com.nexaworks.rafiq.service.rabbit.MessageService;
-import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import com.nexaworks.rafiq.dto.event.ForgetPasswordEvent;
 import com.nexaworks.rafiq.dto.request.user.ChangePasswordRequest;
 import com.nexaworks.rafiq.dto.request.user.ForgetPasswordRequest;
 import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
@@ -22,11 +17,10 @@ import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
+import com.nexaworks.rafiq.service.rabbit.MessageService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @RequiredArgsConstructor
@@ -38,8 +32,6 @@ public class PasswordServiceImpl implements PasswordService {
     private final PasswordEncoder passwordEncoder;
     private final MessageService messageService;
 
-
-
     @Override
     @Transactional
     public void forgetPassword(ForgetPasswordRequest forgetPasswordRequest) {
@@ -49,14 +41,12 @@ public class PasswordServiceImpl implements PasswordService {
             return;
         }
         String token = tokenService.generateAccessToken(user);
-        TransactionSynchronizationManager.registerSynchronization(
-                new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit() {
-                        messageService.sendResetPasswordEvent(user.get(),token);
-                    }
-                }
-        );
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                messageService.sendResetPasswordEvent(user.get(), token);
+            }
+        });
     }
 
     @Override

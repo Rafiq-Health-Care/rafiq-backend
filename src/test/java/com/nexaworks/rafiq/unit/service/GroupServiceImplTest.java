@@ -142,7 +142,8 @@ public class GroupServiceImplTest {
                     .description("Vitamin supplements").color(Color.BLUE).patient(patient).build();
 
             when(authService.getAuthenticateUser()).thenReturn(patient);
-            when(groupRepository.existsGroupByName_AndPatient("Vitamins", patient)).thenReturn(false);
+            when(groupRepository.existsGroupByName_AndPatient("Vitamins", patient))
+                    .thenReturn(false);
             when(groupRepository.save(any(Group.class))).thenReturn(savedGroup);
 
             // Act
@@ -166,7 +167,8 @@ public class GroupServiceImplTest {
                     .build();
 
             when(authService.getAuthenticateUser()).thenReturn(patient);
-            when(groupRepository.existsGroupByName_AndPatient("Vitamins", patient)).thenReturn(true);
+            when(groupRepository.existsGroupByName_AndPatient("Vitamins", patient))
+                    .thenReturn(true);
 
             // Act & Assert
             assertThatExceptionOfType(GroupIsAlreadyExistsException.class)

@@ -8,7 +8,6 @@ import com.nexaworks.rafiq.entities.enums.Specialization;
 
 public interface DoctorService {
 
-
     void updateNationalId(UploadResults uploadResults, UUID uuid);
 
     void register(Doctor user, Specialization specialization, String description);

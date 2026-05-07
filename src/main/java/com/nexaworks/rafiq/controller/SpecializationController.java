@@ -2,11 +2,11 @@ package com.nexaworks.rafiq.controller;
 
 import java.util.List;
 
-import com.nexaworks.rafiq.entities.enums.Specialization;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.nexaworks.rafiq.dto.response.specialization.SpecializationResponse;
+import com.nexaworks.rafiq.entities.enums.Specialization;
 import com.nexaworks.rafiq.service.doctor.SpecializationService;
 
 import io.swagger.v3.oas.annotations.Operation;

@@ -38,9 +38,11 @@ import com.nexaworks.rafiq.service.rabbit.MessageService;
 @Import({TestDataSeeder.class, IntegrationTestExternalMocks.class})
 public abstract class BaseIntegrationTest {
 
-    /** HTTP body-shaped JSON so {@link com.nexaworks.rafiq.service.ai.GeminiService} parsing succeeds */
-    protected static final String MOCK_GEMINI_HTTP_RESPONSE =
-            "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{\\\"name\\\":\\\"Test Result\\\",\\\"date\\\":\\\"2024-01-15\\\",\\\"tests\\\":[]}\"}]}}]}";
+    /**
+     * HTTP body-shaped JSON so {@link com.nexaworks.rafiq.service.ai.GeminiService}
+     * parsing succeeds
+     */
+    protected static final String MOCK_GEMINI_HTTP_RESPONSE = "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{\\\"name\\\":\\\"Test Result\\\",\\\"date\\\":\\\"2024-01-15\\\",\\\"tests\\\":[]}\"}]}}]}";
 
     @MockBean
     protected Gemini gemini;

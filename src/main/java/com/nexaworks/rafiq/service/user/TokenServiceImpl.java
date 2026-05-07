@@ -5,11 +5,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.rabbit.MessageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
@@ -19,11 +19,11 @@ import com.nexaworks.rafiq.exception.custom.TokenNotFoundException;
 import com.nexaworks.rafiq.exception.custom.UserException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.TokenRepository;
+import com.nexaworks.rafiq.repository.UserRepository;
+import com.nexaworks.rafiq.service.rabbit.MessageService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +32,6 @@ public class TokenServiceImpl implements TokenService {
     private final TokenRepository tokenRepository;
     private final UserRepository userRepository;
     private final MessageService messageService;
-
 
     @Value("${refresh.expiration}")
     public Long REFRESH_EXPIRATION;
@@ -120,8 +119,9 @@ public class TokenServiceImpl implements TokenService {
             return;
         }
         List<Token> tokens = tokenRepository.findByTokenTypeAndUser(TokenType.OTP, user.get());
-        if (tokens.size() > 5){
-            throw new UserException("You have reached the maximum number of OTPs allowed. Please try again later.");
+        if (tokens.size() > 5) {
+            throw new UserException(
+                    "You have reached the maximum number of OTPs allowed. Please try again later.");
         }
         tokens.stream().filter(token -> token.getExpiryDate().isAfter(Instant.now()))
                 .forEach(token -> token.setExpiryDate(Instant.now()));
@@ -136,8 +136,6 @@ public class TokenServiceImpl implements TokenService {
             }
         });
     }
-
-
 
     private Token buildToken(User user, String token, TokenType tokenType, Long EXPIRATION) {
         return Token.builder().token(token).user(user).tokenType(tokenType)

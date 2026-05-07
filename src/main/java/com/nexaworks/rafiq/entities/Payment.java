@@ -1,11 +1,13 @@
 package com.nexaworks.rafiq.entities;
 
-import com.nexaworks.rafiq.entities.enums.PaymentStatus;
-import jakarta.persistence.*;
-import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import com.nexaworks.rafiq.entities.enums.PaymentStatus;
+
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "payments")
@@ -47,10 +49,8 @@ public class Payment {
     @Column(nullable = false)
     private PaymentStatus status;
 
-
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
-
 
     @Column(name = "paid_at")
     private LocalDateTime paidAt;

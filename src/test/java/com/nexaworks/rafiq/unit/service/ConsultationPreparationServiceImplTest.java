@@ -62,7 +62,8 @@ class ConsultationPreparationServiceImplTest {
         consultationId = UUID.randomUUID();
         LocalDateTime slotStart = LocalDateTime.now().plusMinutes(15);
         LocalDateTime slotEnd = LocalDateTime.now().plusHours(1);
-        timeSlot = TimeSlot.builder().startTime(slotStart).endTime(slotEnd).durationMinutes(45).build();
+        timeSlot = TimeSlot.builder().startTime(slotStart).endTime(slotEnd).durationMinutes(45)
+                .build();
 
         doctor = new Doctor();
         doctor.setFirstName("Jane");
@@ -94,7 +95,8 @@ class ConsultationPreparationServiceImplTest {
     void shouldDoNothingWhenStatusNotPreparable() {
         Consultation consultation = baseConsultation(ConsultationStatus.AVAILABLE);
 
-        when(consultationRepository.findConsultationById(consultationId)).thenReturn(Optional.of(consultation));
+        when(consultationRepository.findConsultationById(consultationId))
+                .thenReturn(Optional.of(consultation));
 
         preparationService.prepare(consultationId);
 
@@ -108,7 +110,8 @@ class ConsultationPreparationServiceImplTest {
     void shouldThrowWhenRtcReturnsNull() {
         Consultation consultation = baseConsultation(ConsultationStatus.BOOKED);
 
-        when(consultationRepository.findConsultationById(consultationId)).thenReturn(Optional.of(consultation));
+        when(consultationRepository.findConsultationById(consultationId))
+                .thenReturn(Optional.of(consultation));
         when(rtcProvider.generateToken(eq(consultationId.toString()), anyInt())).thenReturn(null);
 
         assertThatThrownBy(() -> preparationService.prepare(consultationId))
@@ -124,7 +127,8 @@ class ConsultationPreparationServiceImplTest {
     void shouldPrepareSuccessfully() {
         Consultation consultation = baseConsultation(ConsultationStatus.CONFIRMED);
 
-        when(consultationRepository.findConsultationById(consultationId)).thenReturn(Optional.of(consultation));
+        when(consultationRepository.findConsultationById(consultationId))
+                .thenReturn(Optional.of(consultation));
         String token = "rtc-token-xyz";
         when(rtcProvider.generateToken(eq(consultationId.toString()), anyInt())).thenReturn(token);
 
@@ -137,8 +141,8 @@ class ConsultationPreparationServiceImplTest {
     }
 
     private Consultation baseConsultation(ConsultationStatus status) {
-        Consultation consultation = Consultation.builder().id(consultationId).status(status).doctor(doctor)
-                .patient(patient).price(BigDecimal.TEN).build();
+        Consultation consultation = Consultation.builder().id(consultationId).status(status)
+                .doctor(doctor).patient(patient).price(BigDecimal.TEN).build();
         consultation.setTimeSlot(timeSlot);
         return consultation;
     }

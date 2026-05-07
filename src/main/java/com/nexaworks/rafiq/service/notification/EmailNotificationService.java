@@ -1,10 +1,5 @@
 package com.nexaworks.rafiq.service.notification;
 
-import java.util.Map;
-
-
-import com.nexaworks.rafiq.dto.notificaiton.EmailNotification;
-import com.nexaworks.rafiq.dto.notificaiton.Notification;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -15,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import com.nexaworks.rafiq.dto.notificaiton.EmailNotification;
 import com.nexaworks.rafiq.exception.custom.MailSenderException;
 
 import jakarta.mail.MessagingException;
@@ -26,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Qualifier("email")
 @RequiredArgsConstructor
 @Slf4j
-public class EmailNotificationService implements NotificationService<EmailNotification>{
+public class EmailNotificationService implements NotificationService<EmailNotification> {
     private final JavaMailSender javaMailSender;
     private final SpringTemplateEngine templateEngine;
 

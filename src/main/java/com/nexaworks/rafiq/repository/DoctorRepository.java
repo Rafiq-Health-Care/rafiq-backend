@@ -2,12 +2,13 @@ package com.nexaworks.rafiq.repository;
 
 import java.util.UUID;
 
-import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import com.nexaworks.rafiq.entities.Doctor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+
+import com.nexaworks.rafiq.entities.Doctor;
+
+import jakarta.persistence.LockModeType;
 
 public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)

@@ -74,9 +74,9 @@ public class EmailNotificationServiceTest {
         }).when(javaMailSender).send(any(MimeMessage.class));
 
         assertThrows(MailSenderException.class,
-                () -> emailNotificationService.sendNotification(new EmailNotification(
-                        "test@example.com", "testTemplate", "Test Email",
-                        Map.of("username", "Elbialy"))));
+                () -> emailNotificationService
+                        .sendNotification(new EmailNotification("test@example.com", "testTemplate",
+                                "Test Email", Map.of("username", "Elbialy"))));
 
         verify(javaMailSender, times(4)).send(any(MimeMessage.class));
     }
@@ -92,9 +92,9 @@ public class EmailNotificationServiceTest {
         }).when(templateEngine).process(anyString(), any(Context.class));
 
         assertThrows(MailSenderException.class,
-                () -> emailNotificationService.sendNotification(new EmailNotification(
-                        "test@example.com", "testTemplate", "Test Email",
-                        Map.of("username", "Elbialy"))));
+                () -> emailNotificationService
+                        .sendNotification(new EmailNotification("test@example.com", "testTemplate",
+                                "Test Email", Map.of("username", "Elbialy"))));
 
         verify(templateEngine, times(4)).process(eq("testTemplate"), any(Context.class));
 

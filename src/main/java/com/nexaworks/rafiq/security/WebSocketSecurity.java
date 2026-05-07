@@ -19,13 +19,12 @@ public class WebSocketSecurity {
                 .simpTypeMatchers(SimpMessageType.CONNECT).authenticated()
                 .simpSubscribeDestMatchers("/topic/test").hasRole("DOCTOR")
                 .simpSubscribeDestMatchers("/topic/test", "/queue/**", "/user/**").authenticated()
-                .simpDestMatchers("/app/**").authenticated()
-                .anyMessage().denyAll()
-                .build();
+                .simpDestMatchers("/app/**").authenticated().anyMessage().denyAll().build();
     }
 
     @Bean
     ChannelInterceptor csrfChannelInterceptor() {
-        return new ChannelInterceptor() {};
+        return new ChannelInterceptor() {
+        };
     }
 }

@@ -264,7 +264,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         LocalDate.of(1994, 1, 1));
 
                 DoctorRegistrationRequest request = new DoctorRegistrationRequest(userRequest,
-                        Specialization.CARDIOLOGY, "Experienced cardiologist with 10 years of practice");
+                        Specialization.CARDIOLOGY,
+                        "Experienced cardiologist with 10 years of practice");
 
                 String doctorDataJson = objectMapper.writeValueAsString(request);
                 MockMultipartFile doctorData = new MockMultipartFile("doctorData", "",

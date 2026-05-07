@@ -6,13 +6,6 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.nexaworks.rafiq.config.RabbitMQConfig;
-import com.nexaworks.rafiq.dto.notificaiton.EmailNotification;
-import com.nexaworks.rafiq.entities.enums.Specialization;
-import com.nexaworks.rafiq.service.notification.EmailContentService;
-import com.nexaworks.rafiq.service.rabbit.MessageService;
-import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,14 +14,14 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.nexaworks.rafiq.dto.event.DoctorRegisterEvent;
-import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.*;
+import com.nexaworks.rafiq.entities.enums.Specialization;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.doctor.DoctorService;
 import com.nexaworks.rafiq.service.patient.PatientService;
+import com.nexaworks.rafiq.service.rabbit.MessageService;
 import com.nexaworks.rafiq.utils.AuthSessionManager;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -48,7 +41,6 @@ public class UserServiceImpl implements UserService {
     private final DoctorService doctorService;
     private final MessageService messageService;
 
-
     @Override
     @Transactional
     public void registerPatient(User user) {
@@ -67,8 +59,6 @@ public class UserServiceImpl implements UserService {
         });
     }
 
-
-
     @Override
     @Transactional
     public void registerDoctor(User user, MultipartFile nationalId, Specialization specialization,
@@ -85,7 +75,7 @@ public class UserServiceImpl implements UserService {
             @Override
             public void afterCommit() {
                 messageService.sendNewOtpEvent(user, otp);
-                //TODO handle national Id uploading
+                // TODO handle national Id uploading
             }
         });
     }

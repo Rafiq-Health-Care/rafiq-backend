@@ -53,7 +53,6 @@ class DoctorServiceImplTest {
         doctorEntity.setFirstName(doctor.getFirstName());
         doctorEntity.setLastName(doctor.getLastName());
 
-
         when(doctorRepository.save(any(Doctor.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
