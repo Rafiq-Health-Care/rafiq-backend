@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.entities.enums.Specialization;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.Email;
@@ -17,14 +18,13 @@ public interface UserService {
 
     void registerPatient(User user);
 
-    void registerDoctor(User user, MultipartFile nationalId, UUID specialization,
+    void registerDoctor(User user, MultipartFile nationalId, Specialization specialization,
             String description) throws IOException;
 
     LoginResponse verifyUserEmail(@NotBlank @Email String email, @NotBlank String otp,
             HttpServletResponse response);
 
     User addUser(String email, String firstName, String lastName);
-
 
     UUID getUserId();
 

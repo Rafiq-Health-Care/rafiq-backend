@@ -5,7 +5,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import com.nexaworks.rafiq.service.labReports.LabTestService;
 import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +18,7 @@ import com.itextpdf.text.pdf.PdfWriter;
 import com.nexaworks.rafiq.exception.custom.EmptyFileException;
 import com.nexaworks.rafiq.service.ai.AiService;
 import com.nexaworks.rafiq.service.authentication.AuthService;
+import com.nexaworks.rafiq.service.labReports.LabTestService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

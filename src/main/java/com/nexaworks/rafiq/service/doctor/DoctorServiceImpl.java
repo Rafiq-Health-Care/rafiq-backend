@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.dto.client.cloundinary.UploadResults;
 import com.nexaworks.rafiq.entities.Doctor;
-import com.nexaworks.rafiq.entities.Specialization;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.repository.DoctorRepository;
 
@@ -19,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DoctorServiceImpl implements DoctorService {
     private final DoctorRepository doctorRepository;
-    private final SpecializationService specializationService;
 
     @Override
     @Transactional
@@ -32,10 +30,9 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     @Transactional
-    public void register(Doctor doctor, UUID specialization, String description) {
-        Specialization doctorSpecialization = specializationService
-                .getSpecialization(specialization);
-        doctor.setSpecialization(doctorSpecialization);
+    public void register(Doctor doctor,
+            com.nexaworks.rafiq.entities.enums.Specialization specialization, String description) {
+        doctor.setSpecialization(specialization);
         doctor.setDescription(description);
         doctorRepository.save(doctor);
         log.info("Doctor registered successfully");

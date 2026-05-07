@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,9 +23,9 @@ import com.nexaworks.rafiq.dto.request.user.UserRegistrationRequest;
 import com.nexaworks.rafiq.dto.request.user.VerificationRequest;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.entities.enums.Specialization;
 import com.nexaworks.rafiq.entities.enums.TokenType;
 import com.nexaworks.rafiq.integration.BaseIntegrationTest;
-import com.nexaworks.rafiq.repository.SpecializationRepository;
 import com.nexaworks.rafiq.repository.TokenRepository;
 import com.nexaworks.rafiq.repository.UserRepository;
 
@@ -38,9 +37,6 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private SpecializationRepository specializationRepository;
 
     @Autowired
     private TokenRepository tokenRepository;
@@ -267,13 +263,9 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         "Valid@1234", "John", "Doe", "+12345678901", "male",
                         LocalDate.of(1994, 1, 1));
 
-                UUID specializationId = specializationRepository.findAll().stream().findFirst()
-                        .orElseThrow(
-                                () -> new RuntimeException("No specialization found in database"))
-                        .getId();
-
                 DoctorRegistrationRequest request = new DoctorRegistrationRequest(userRequest,
-                        specializationId, "Experienced cardiologist with 10 years of practice");
+                        Specialization.CARDIOLOGY,
+                        "Experienced cardiologist with 10 years of practice");
 
                 String doctorDataJson = objectMapper.writeValueAsString(request);
                 MockMultipartFile doctorData = new MockMultipartFile("doctorData", "",
@@ -306,13 +298,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         "Valid@1234", "John", "Doe", "+12345678901", "male",
                         LocalDate.of(1994, 1, 1));
 
-                UUID specializationId = specializationRepository.findAll().stream().findFirst()
-                        .orElseThrow(
-                                () -> new RuntimeException("No specialization found in database"))
-                        .getId();
-
                 DoctorRegistrationRequest request = new DoctorRegistrationRequest(userRequest,
-                        specializationId, "Experienced cardiologist");
+                        Specialization.CARDIOLOGY, "Experienced cardiologist");
 
                 String doctorDataJson = objectMapper.writeValueAsString(request);
                 MockMultipartFile doctorData = new MockMultipartFile("doctorData", "",
@@ -340,13 +327,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         "Val id@1234", // Password with space
                         "John", "Doe", "+12345678901", "male", LocalDate.of(1994, 1, 1));
 
-                UUID specializationId = specializationRepository.findAll().stream().findFirst()
-                        .orElseThrow(
-                                () -> new RuntimeException("No specialization found in database"))
-                        .getId();
-
                 DoctorRegistrationRequest request = new DoctorRegistrationRequest(userRequest,
-                        specializationId, "Experienced cardiologist");
+                        Specialization.CARDIOLOGY, "Experienced cardiologist");
 
                 String doctorDataJson = objectMapper.writeValueAsString(request);
                 MockMultipartFile doctorData = new MockMultipartFile("doctorData", "",
@@ -374,13 +356,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         "Valid@1234", "John", "Doe", "01234567890", // Invalid phone - starts with 0
                         "male", LocalDate.of(1994, 1, 1));
 
-                UUID specializationId = specializationRepository.findAll().stream().findFirst()
-                        .orElseThrow(
-                                () -> new RuntimeException("No specialization found in database"))
-                        .getId();
-
                 DoctorRegistrationRequest request = new DoctorRegistrationRequest(userRequest,
-                        specializationId, "Experienced cardiologist");
+                        Specialization.CARDIOLOGY, "Experienced cardiologist");
 
                 String doctorDataJson = objectMapper.writeValueAsString(request);
                 MockMultipartFile doctorData = new MockMultipartFile("doctorData", "",
@@ -407,13 +384,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                 UserRegistrationRequest userRequest = new UserRegistrationRequest(email,
                         "Valid@1234", "John", "Doe", "+12345678901", "male",
                         LocalDate.now().plusDays(1));
-                UUID specializationId = specializationRepository.findAll().stream().findFirst()
-                        .orElseThrow(
-                                () -> new RuntimeException("No specialization found in database"))
-                        .getId();
-
                 DoctorRegistrationRequest request = new DoctorRegistrationRequest(userRequest,
-                        specializationId, "Experienced cardiologist");
+                        Specialization.CARDIOLOGY, "Experienced cardiologist");
 
                 String doctorDataJson = objectMapper.writeValueAsString(request);
                 MockMultipartFile doctorData = new MockMultipartFile("doctorData", "",
@@ -442,13 +414,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         LocalDate.of(1994, 1, 1)); // Invalid
                 // gender
 
-                UUID specializationId = specializationRepository.findAll().stream().findFirst()
-                        .orElseThrow(
-                                () -> new RuntimeException("No specialization found in database"))
-                        .getId();
-
                 DoctorRegistrationRequest request = new DoctorRegistrationRequest(userRequest,
-                        specializationId, "Experienced cardiologist");
+                        Specialization.CARDIOLOGY, "Experienced cardiologist");
 
                 String doctorDataJson = objectMapper.writeValueAsString(request);
                 MockMultipartFile doctorData = new MockMultipartFile("doctorData", "",
@@ -476,13 +443,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         "Valid@1234", "", // Blank first name
                         "Doe", "+12345678901", "male", LocalDate.of(1994, 1, 1));
 
-                UUID specializationId = specializationRepository.findAll().stream().findFirst()
-                        .orElseThrow(
-                                () -> new RuntimeException("No specialization found in database"))
-                        .getId();
-
                 DoctorRegistrationRequest request = new DoctorRegistrationRequest(userRequest,
-                        specializationId, "Experienced cardiologist");
+                        Specialization.CARDIOLOGY, "Experienced cardiologist");
 
                 String doctorDataJson = objectMapper.writeValueAsString(request);
                 MockMultipartFile doctorData = new MockMultipartFile("doctorData", "",
@@ -510,13 +472,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         "Valid@1234", "John", "Doe", "+12345678901", "male",
                         LocalDate.of(1994, 1, 1));
 
-                UUID specializationId = specializationRepository.findAll().stream().findFirst()
-                        .orElseThrow(
-                                () -> new RuntimeException("No specialization found in database"))
-                        .getId();
-
                 DoctorRegistrationRequest firstRequest = new DoctorRegistrationRequest(
-                        firstUserRequest, specializationId, "Experienced cardiologist");
+                        firstUserRequest, Specialization.CARDIOLOGY, "Experienced cardiologist");
 
                 String firstDoctorDataJson = objectMapper.writeValueAsString(firstRequest);
                 MockMultipartFile firstDoctorData = new MockMultipartFile("doctorData", "",
@@ -540,7 +497,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         LocalDate.of(1999, 1, 1));
 
                 DoctorRegistrationRequest duplicateRequest = new DoctorRegistrationRequest(
-                        duplicateUserRequest, specializationId, "Experienced surgeon");
+                        duplicateUserRequest, Specialization.CARDIOLOGY, "Experienced surgeon");
 
                 String duplicateDoctorDataJson = objectMapper.writeValueAsString(duplicateRequest);
                 MockMultipartFile duplicateDoctorData = new MockMultipartFile("doctorData", "",

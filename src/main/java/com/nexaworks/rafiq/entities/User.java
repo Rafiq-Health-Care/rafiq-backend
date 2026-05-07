@@ -47,7 +47,7 @@ public class User extends BaseEntity implements UserDetails, Principal {
     private boolean active = true;
 
     @Builder.Default
-    private boolean locked = false; // for softly delete
+    private boolean locked = false;
 
     @Builder.Default
     private boolean enabled = false;

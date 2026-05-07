@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.nexaworks.rafiq.dto.response.specialization.SpecializationResponse;
+import com.nexaworks.rafiq.entities.enums.Specialization;
 import com.nexaworks.rafiq.service.doctor.SpecializationService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,7 +29,7 @@ public class SpecializationController {
     @Operation(summary = "Get all specializations", description = "Retrieves list of available doctor specializations for registration dropdown.")
     @ApiResponse(responseCode = "200", description = "Specializations retrieved successfully", content = @Content(array = @ArraySchema(schema = @Schema(implementation = SpecializationResponse.class))))
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<List<SpecializationResponse>> getSpecializations() {
+    public ResponseEntity<List<Specialization>> getSpecializations() {
         return ResponseEntity.ok().body(specializationService.getSpecializations());
     }
 }

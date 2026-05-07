@@ -1,15 +1,9 @@
 spring:
-  # Dev tools config
-  devtools:
-    livereload:
-      enabled: true
-    restart:
-      enabled: true
-  # Application config
+  # Application config (devtools + SQL logging: application-dev.yml / application-prod.yml)
   application:
     name: rafiq
   config:
-    import: optional:file:./.env.properties
+    import: optional:file:.env[.properties]
 
   # Database config
   datasource:
@@ -26,11 +20,7 @@ spring:
    # JPA config
   jpa:
     hibernate:
-      ddl-auto: create-drop
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
+      ddl-auto: validate
     defer-datasource-initialization: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   # Flyway config - must run before JPA validation
@@ -66,28 +56,19 @@ spring:
           facebook:
             client-id: ${FACEBOOK_CLIENT_ID}
             client-secret: ${FACEBOOK_CLIENT_SECRET}
-  # Quartz scheduler config
-  quartz:
-    job-store-type: jdbc
-    jdbc:
-      initialize-schema: always
-    properties:
-      org:
-        quartz:
-          jobStore:
-            dataSource: quartzDataSource
-            driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
-          dataSource:
-            quartzDataSource:
-              provider: hikaricp
-              driver: org.postgresql.Driver
-              URL: ${spring.datasource.url}
-              user: ${spring.datasource.username}
-              password: ${spring.datasource.password}
-          scheduler:
-            instanceName: RafiqScheduler
-          threadPool:
-            threadCount: 1
+ # RabbitMQ config
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    virtual-host: ${RABBITMQ_VIRTUAL_HOST}
+    listener:
+      simple:
+        acknowledge-mode: manual
+        retry:
+          enabled: false
+
   # Mail config
   mail:
     host: ${MAIL_HOST}
@@ -129,6 +110,10 @@ otp:
 access:
   token:
     expiration: ${ACCESS_TOKEN_EXPIRATION}
+  # Agora config
+agora:
+   app-id: ${AGORA_APP_ID}
+   app-certificate: ${AGORA_APP_CERTIFICATE}
   # Server config
 server:
   port: 8030
@@ -139,4 +124,4 @@ server:
     accept-count: 100
 logging:
   level:
-    root: ERROR
+    root: INFO

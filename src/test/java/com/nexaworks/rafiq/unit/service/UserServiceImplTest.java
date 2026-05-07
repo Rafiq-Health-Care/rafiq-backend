@@ -2,10 +2,13 @@ package com.nexaworks.rafiq.unit.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,27 +19,26 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import com.nexaworks.rafiq.dto.event.UserRegistrationEvent;
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.Roles;
+import com.nexaworks.rafiq.entities.enums.Specialization;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
 import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
 import com.nexaworks.rafiq.exception.custom.TokenNotFoundException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.doctor.DoctorServiceImpl;
-import com.nexaworks.rafiq.service.doctor.SpecializationServiceImpl;
 import com.nexaworks.rafiq.service.file.ImageService;
 import com.nexaworks.rafiq.service.patient.PatientServiceImpl;
+import com.nexaworks.rafiq.service.rabbit.MessageService;
 import com.nexaworks.rafiq.service.user.RoleServiceImpl;
 import com.nexaworks.rafiq.service.user.TokenServiceImpl;
 import com.nexaworks.rafiq.service.user.UserServiceImpl;
@@ -62,7 +64,7 @@ public class UserServiceImplTest {
     ImageService imageService;
 
     @Mock
-    ApplicationEventPublisher eventPublisher;
+    MessageService messageService;
 
     @Mock
     AuthSessionManager authSessionManager;
@@ -72,9 +74,6 @@ public class UserServiceImplTest {
 
     @Mock
     PatientServiceImpl patientService;
-
-    @Mock
-    SpecializationServiceImpl specializationService;
 
     @InjectMocks
     UserServiceImpl userService;
@@ -110,25 +109,25 @@ public class UserServiceImplTest {
     void registerPatient_ShouldAddUserAndPublishEventToSendActivationEmail_WhenPatientIsRegistered() {
         // Create Patient object (Patient extends User with is-a relationship)
         Patient patient = Patient.builder().id(UUID.randomUUID()).email("patient@example.com")
-                .firstName("Jane").lastName("Doe").password("password123").build();
+                .firstName("Jane").lastName("Doe").password("password123").roles(new HashSet<>())
+                .build();
 
         String expectedToken = "123456";
         Role patientRole = new Role();
         patientRole.setName("PATIENT");
 
+        when(userRepository.existsUserByEmail(anyString())).thenReturn(false);
         when(roleService.getRole(Roles.ROLE_PATIENT)).thenReturn(patientRole);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
-        when(userRepository.save(any(Patient.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
         when(tokenService.generateOtpToken(any(Patient.class))).thenReturn(expectedToken);
 
         userService.registerPatient(patient);
         triggerTransactionSynchronization();
 
         verify(roleService, times(1)).getRole(Roles.ROLE_PATIENT);
-        verify(userRepository, times(1)).save(any(Patient.class));
+        verify(patientService, times(1)).register(any(Patient.class));
         verify(tokenService, times(1)).generateOtpToken(any(Patient.class));
-        verify(eventPublisher, times(1)).publishEvent(any(UserRegistrationEvent.class));
+        verify(messageService, times(1)).sendRegistrationEvent(eq(patient), eq(expectedToken));
     }
 
     private static User getUser() {
@@ -148,7 +147,8 @@ public class UserServiceImplTest {
         assertThrows(com.nexaworks.rafiq.exception.custom.RegistrationException.class,
                 () -> userService.registerPatient(patient));
         verify(userRepository, never()).save(any(User.class));
-        verify(eventPublisher, never()).publishEvent(any(UserRegistrationEvent.class));
+        verify(messageService, never()).sendRegistrationEvent(any(User.class), anyString());
+        verify(messageService, never()).sendNewOtpEvent(any(User.class), anyString());
     }
 
     @DisplayName("Register doctor should add user and publish event to send the activation email")
@@ -157,40 +157,30 @@ public class UserServiceImplTest {
             throws IOException {
         // Create Doctor object (Doctor extends User with is-a relationship)
         Doctor doctor = Doctor.builder().id(UUID.randomUUID()).email("doctor@example.com")
-                .firstName("John").lastName("Doe").password("password123").build();
+                .firstName("John").lastName("Doe").password("password123").roles(new HashSet<>())
+                .build();
 
         Role doctorRole = new Role();
         doctorRole.setName("DOCTOR");
 
-        com.nexaworks.rafiq.entities.Specialization specialization = com.nexaworks.rafiq.entities.Specialization
-                .builder().id(UUID.randomUUID()).name("Cardiology").build();
-
-        UUID specializationId = specialization.getId();
+        Specialization specialization = Specialization.CARDIOLOGY;
         String expectedToken = "123456";
         String description = "Experienced doctor";
 
+        when(userRepository.existsUserByEmail(anyString())).thenReturn(false);
         when(roleService.getRole(Roles.ROLE_DOCTOR)).thenReturn(doctorRole);
-        when(specializationService.getSpecialization(specializationId)).thenReturn(specialization);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
-        when(userRepository.save(any(Doctor.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
         when(tokenService.generateOtpToken(any(Doctor.class))).thenReturn(expectedToken);
 
         userService.registerDoctor(doctor, new MockMultipartFile("nationalId", "nationalId.png",
-                "image/png", "dummy image content".getBytes()), specializationId, description);
+                "image/png", "dummy image content".getBytes()), specialization, description);
         triggerTransactionSynchronization();
 
         verify(roleService, times(1)).getRole(Roles.ROLE_DOCTOR);
-        verify(specializationService, times(1)).getSpecialization(specializationId);
-        verify(userRepository, times(1)).save(any(Doctor.class));
+        verify(doctorService, times(1)).register(any(Doctor.class), eq(specialization),
+                eq(description));
         verify(tokenService, times(1)).generateOtpToken(any(Doctor.class));
-        verify(eventPublisher, times(1))
-                .publishEvent(any(com.nexaworks.rafiq.dto.event.DoctorRegisterEvent.class));
-
-        // Verify that Doctor object has the correct properties set
-        verify(userRepository).save(argThat(savedDoctor -> savedDoctor instanceof Doctor
-                && ((Doctor) savedDoctor).getDescription().equals(description)
-                && ((Doctor) savedDoctor).getSpecialization().equals(specialization)));
+        verify(messageService, times(1)).sendNewOtpEvent(eq(doctor), eq(expectedToken));
     }
 
     @DisplayName("Register doctor should throw exception when user with email already exists")
@@ -203,7 +193,8 @@ public class UserServiceImplTest {
         assertThrows(RegistrationException.class,
                 () -> userService.registerDoctor(doctor, null, null, null));
         verify(userRepository, never()).save(any(User.class));
-        verify(eventPublisher, never()).publishEvent(any(UserRegistrationEvent.class));
+        verify(messageService, never()).sendRegistrationEvent(any(User.class), anyString());
+        verify(messageService, never()).sendNewOtpEvent(any(User.class), anyString());
     }
 
     @DisplayName("Verify user email should create login tokens")

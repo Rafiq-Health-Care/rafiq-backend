@@ -1,5 +1,0 @@
-### Get group by ID
-GET http://localhost:8030/group/11111111-1111-1111-1111-111111111111
-Accept: application/json
-
-###

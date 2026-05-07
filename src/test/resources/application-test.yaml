@@ -1,0 +1,78 @@
+# Profile `test`: merged with application.yml. BaseIntegrationTest overrides datasource via Testcontainers.
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      max-lifetime: 60000
+      connection-timeout: 10000
+      idle-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+  flyway:
+    enabled: false
+  batch:
+    jdbc:
+      initialize-schema: never
+    job:
+      enabled: false
+  sql:
+    init:
+      mode: never
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+  test:
+    database:
+      replace: none
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    virtual-host: ${RABBITMQ_VIRTUAL_HOST}
+    listener:
+      simple:
+        auto-startup: false
+
+RABBITMQ_HOST: localhost
+RABBITMQ_PORT: 5672
+RABBITMQ_USERNAME: guest
+RABBITMQ_PASSWORD: guest
+RABBITMQ_VIRTUAL_HOST: /
+
+# Satisfy ${...} placeholders in application.yml (no real secrets required for integration tests).
+DATASOURCE_URL: "jdbc:postgresql://127.0.0.1:5432/unused_until_testcontainers"
+DATASOURCE_USERNAME: unused
+DATASOURCE_PASSWORD: unused
+
+# Base64-encoded 32-byte key (JJWT rejects <256-bit keys; JwtServiceImpl uses Decoders.BASE64.decode).
+JWT_SECRET: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+JWT_EXPIRATION: 3600000
+REFRESH_EXPIRATION: 600000000
+OTP_EXPIRATION: 300000
+ACCESS_TOKEN_EXPIRATION: 360000
+
+GOOGLE_CLIENT_ID: test-google-client-id
+FACEBOOK_CLIENT_ID: test-facebook-client-id
+FACEBOOK_CLIENT_SECRET: test-facebook-client-secret
+
+MAIL_HOST: 127.0.0.1
+MAIL_PORT: 1025
+MAIL_USERNAME: "test@example.com"
+MAIL_PASSWORD: test-mail-password
+MAIL_PROTOCOL: smtp
+
+GOOGLE_GENAI_API_KEY: test-google-genai-api-key
+
+CLOUDINARY_CLOUD_NAME: test-cloud
+CLOUDINARY_API_KEY: test-cloudinary-key
+CLOUDINARY_API_SECRET: test-cloudinary-secret
+
+# Agora placeholders (RtcProvider is mocked in IntegrationTestExternalMocks; SDK is not used).
+AGORA_APP_ID: "00000000000000000000000000000000"
+AGORA_APP_CERTIFICATE: "00000000000000000000000000000000"

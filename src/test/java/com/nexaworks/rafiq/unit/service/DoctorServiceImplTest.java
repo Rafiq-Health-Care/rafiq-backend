@@ -12,11 +12,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
 import com.nexaworks.rafiq.entities.Doctor;
-import com.nexaworks.rafiq.entities.Specialization;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.repository.DoctorRepository;
 import com.nexaworks.rafiq.service.doctor.DoctorServiceImpl;
-import com.nexaworks.rafiq.service.doctor.SpecializationService;
 
 @DisplayName("DoctorService Test Cases")
 class DoctorServiceImplTest {
@@ -24,15 +22,11 @@ class DoctorServiceImplTest {
     @Mock
     private DoctorRepository doctorRepository;
 
-    @Mock
-    private SpecializationService specializationService;
-
     @InjectMocks
     private DoctorServiceImpl doctorService;
 
     private User doctor;
-    private Specialization specialization;
-    private UUID specializationId;
+    private com.nexaworks.rafiq.entities.enums.Specialization specializationEnum;
 
     @BeforeEach
     void setUp() {
@@ -44,9 +38,8 @@ class DoctorServiceImplTest {
         doctor.setFirstName("Jane");
         doctor.setLastName("Smith");
 
-        specializationId = UUID.randomUUID();
-        specialization = new Specialization();
-        specialization.setId(specializationId);
+        specializationEnum = com.nexaworks.rafiq.entities.enums.Specialization.ALLERGY;
+
     }
 
     @DisplayName("Should register doctor successfully")
@@ -60,17 +53,16 @@ class DoctorServiceImplTest {
         doctorEntity.setFirstName(doctor.getFirstName());
         doctorEntity.setLastName(doctor.getLastName());
 
-        when(specializationService.getSpecialization(specializationId)).thenReturn(specialization);
         when(doctorRepository.save(any(Doctor.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        doctorService.register(doctorEntity, specializationId, description);
+        doctorService.register(doctorEntity, specializationEnum, description);
 
         // then
-        verify(specializationService, times(1)).getSpecialization(specializationId);
+
         verify(doctorRepository, times(1))
                 .save(argThat(savedDoctor -> savedDoctor.getDescription().equals(description)
-                        && savedDoctor.getSpecialization().equals(specialization)));
+                        && savedDoctor.getSpecialization().equals(specializationEnum)));
     }
 }

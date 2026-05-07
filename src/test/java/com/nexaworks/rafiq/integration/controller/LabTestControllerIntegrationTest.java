@@ -11,16 +11,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexaworks.rafiq.dto.request.labTest.TestRequest;
@@ -36,23 +32,9 @@ import com.nexaworks.rafiq.repository.LabTestRepository;
 import com.nexaworks.rafiq.repository.PatientRepository;
 import com.nexaworks.rafiq.repository.RoleRepository;
 import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.ai.AiService;
 
 @DisplayName("Lab Test Controller Integration Test")
 public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
-
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        @Primary
-        public AiService mockAiService() {
-            // Return a mock implementation that returns predictable results
-            return pdfFile -> {
-                // Return a default mock response
-                return "{\"name\":\"Test Result\",\"date\":\"2024-01-15\",\"tests\":[]}";
-            };
-        }
-    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -119,7 +101,6 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
 
     @Nested
     @DisplayName("Upload Lab Test")
-    @Transactional
     class UploadLabTest {
         private final String UPLOAD_ENDPOINT = "/lab-test/upload";
 

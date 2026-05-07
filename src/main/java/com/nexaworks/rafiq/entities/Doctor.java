@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.hibernate.annotations.BatchSize;
 
+import com.nexaworks.rafiq.entities.enums.Specialization;
 import com.nexaworks.rafiq.entities.enums.Status;
 
 import jakarta.persistence.*;
@@ -20,7 +21,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Entity
 @Table(name = "doctor", indexes = {
-        @Index(name = "specialization_idx", columnList = "specialization_id")})
+        @Index(name = "specialization_idx", columnList = "specialization")})
 public class Doctor extends User {
     private String description;
     private String hospitalName;
@@ -28,8 +29,7 @@ public class Doctor extends User {
     private String nationalId;
     private String hospitalId;
 
-    @ManyToOne
-    @JoinColumn(name = "specialization_id", nullable = false)
+    @Enumerated(EnumType.STRING)
     private Specialization specialization;
 
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)

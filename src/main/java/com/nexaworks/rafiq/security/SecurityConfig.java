@@ -2,6 +2,7 @@ package com.nexaworks.rafiq.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
@@ -22,15 +24,14 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/login", "/user/new-otp", "/auth/refresh", "/auth/verify",
-                        "/user/register/doctor", "/user/register/patient", "/user/verification",
-                        "/error", "/specialization/**", "/v2/api-docs", "/v3/api-docs",
-                        "/v3/api-docs/**", "/swagger-resources", "/swagger-resources/**",
-                        "/configuration/ui", "/configuration/security", "/swagger-ui/**",
-                        "/webjars/**", "/swagger-ui.html", "/favicon.ico", "/labs", "/auth/google",
-                        "/drugs", "/password/forget-password", "/password/change-password")
-                .permitAll().anyRequest().authenticated())
+        http.authorizeHttpRequests(auth -> auth.requestMatchers("/auth/login", "/user/new-otp",
+                "/auth/refresh", "/auth/verify", "/user/register/doctor", "/user/register/patient",
+                "/user/verification", "/error", "/specialization/**", "/v2/api-docs",
+                "/v3/api-docs", "/v3/api-docs/**", "/swagger-resources", "/swagger-resources/**",
+                "/configuration/ui", "/configuration/security", "/swagger-ui/**", "/webjars/**",
+                "/swagger-ui.html", "/favicon.ico", "/labs", "/auth/google", "/drugs",
+                "/password/forget-password", "/password/change-password", "/ws/**", "/test2",
+                "/index.html").permitAll().anyRequest().authenticated())
                 .sessionManagement(sc -> sc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(request -> {
