@@ -41,7 +41,7 @@ public class ConsultationController {
         return ResponseEntity.ok(mapper.toDto(consultation));
 
     }
-    @GetMapping("/schedule")
+    @PostMapping("/schedule")
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<PageResponse<ConsultationResponse>> getSchedule(@Valid @RequestBody ScheduleFilter filter,Pageable pageable){
         Page<Consultation> consultations = consultationService.getDoctorSchedule(filter,pageable);
