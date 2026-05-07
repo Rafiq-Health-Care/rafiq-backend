@@ -92,6 +92,7 @@ public class ConsultationController {
     }
 
     @GetMapping("/patient/upcoming")
+    @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<List<ConsultationResponse>> getPatientUpcoming(){
         List<Consultation> upcomingConsultation = consultationSearchService.getPatientUpcoming();
 
@@ -99,6 +100,7 @@ public class ConsultationController {
     }
 
     @GetMapping("/doctor/upcoming")
+    @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<List<ConsultationResponse>> getDoctorUpcoming(){
         List<Consultation> upcomingConsultation = consultationSearchService.getDoctorUpcoming();
 

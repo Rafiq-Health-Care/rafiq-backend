@@ -20,7 +20,7 @@ import java.math.BigDecimal;
         @Index(name = "status_idx", columnList = "status")
 }, uniqueConstraints = {
         @UniqueConstraint(name = "uk_doctor_date_start",
-                columnNames = {"doctor_id", "date", "start_time"})
+                columnNames = {"doctor_id", "start_time"})
 })
 public class Consultation extends BaseEntity {
 
