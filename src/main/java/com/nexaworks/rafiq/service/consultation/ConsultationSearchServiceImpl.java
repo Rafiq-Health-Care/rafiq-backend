@@ -70,4 +70,11 @@ public class ConsultationSearchServiceImpl implements ConsultationSearchService 
                 ConsultationStatus.ONGOING);
     }
 
+    @Override
+    public List<Consultation> getPatientConsultation(ConsultationStatus status) {
+        return consultationRepository
+                .findAllPatientConsultation(authService.getAuthenticateUserId(), status);
+
+    }
+
 }

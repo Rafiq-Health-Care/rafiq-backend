@@ -72,4 +72,8 @@ public interface ConsultationRepository
     List<Consultation> findAllDoctorUpcoming(@Param("doctorId") UUID doctorId,
             @Param("status1") ConsultationStatus status1,
             @Param("status2") ConsultationStatus status2);
+
+    @Query("SELECT c FROM Consultation c WHERE c.patient.id = :patientId AND c.status= :status")
+    List<Consultation> findAllPatientConsultation(@Param("patientId") UUID authenticateUserId,
+            @Param("status") ConsultationStatus status);
 }

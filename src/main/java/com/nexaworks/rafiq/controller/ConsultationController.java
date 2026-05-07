@@ -15,7 +15,10 @@ import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.consultation.CallResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationFilter;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationResponse;
+import com.nexaworks.rafiq.dto.response.consultation.PatientConsultationResponse;
+import com.nexaworks.rafiq.dto.response.consultation.ScheduleResponse;
 import com.nexaworks.rafiq.entities.Consultation;
+import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.PaymentProvider;
 import com.nexaworks.rafiq.mapper.ConsultationMapper;
 import com.nexaworks.rafiq.service.consultation.ConsultationSearchService;
@@ -47,11 +50,11 @@ public class ConsultationController {
     }
     @PostMapping("/schedule")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<PageResponse<ConsultationResponse>> getSchedule(
+    public ResponseEntity<PageResponse<ScheduleResponse>> getSchedule(
             @Valid @RequestBody ScheduleFilter filter, Pageable pageable) {
         Page<Consultation> consultations = consultationSearchService.getDoctorSchedule(filter,
                 pageable);
-        return ResponseEntity.ok(mapper.toPageResponse(consultations));
+        return ResponseEntity.ok(mapper.toSchedulePageResponse(consultations));
     }
     @PutMapping("/edit/{id}")
     @PreAuthorize("hasRole('DOCTOR')")
@@ -98,10 +101,10 @@ public class ConsultationController {
 
     @GetMapping("/patient/upcoming")
     @PreAuthorize("hasRole('PATIENT')")
-    public ResponseEntity<List<ConsultationResponse>> getPatientUpcoming() {
+    public ResponseEntity<List<PatientConsultationResponse>> getPatientUpcoming() {
         List<Consultation> upcomingConsultation = consultationSearchService.getPatientUpcoming();
 
-        return ResponseEntity.ok(mapper.toDtoList(upcomingConsultation));
+        return ResponseEntity.ok(mapper.toPatientDtoList(upcomingConsultation));
     }
 
     @GetMapping("/doctor/upcoming")
@@ -110,6 +113,18 @@ public class ConsultationController {
         List<Consultation> upcomingConsultation = consultationSearchService.getDoctorUpcoming();
 
         return ResponseEntity.ok(mapper.toDtoList(upcomingConsultation));
+    }
+    @PostMapping("/doctor/{id}")
+    public ResponseEntity<List<ConsultationResponse>> getDoctorConsultations(
+            @PathVariable UUID id) {
+
+    }
+
+    @PostMapping("/patient/my-consultations/{status}")
+    public ResponseEntity<List<PatientConsultationResponse>> getPatientConsultations(
+            @PathVariable ConsultationStatus status) {
+        List<Consultation> consultations = consultationSearchService.getPatientConsultation(status);
+        return ResponseEntity.ok(mapper.toPatientDtoList(consultations));
     }
 
 }

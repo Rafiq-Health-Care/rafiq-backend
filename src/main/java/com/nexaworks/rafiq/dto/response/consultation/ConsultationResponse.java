@@ -9,5 +9,7 @@ import com.nexaworks.rafiq.dto.response.patientProfile.PatientDto;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 
 public record ConsultationResponse(UUID id, LocalDateTime startTime, int duration,
-        ConsultationStatus status, BigDecimal price, PatientDto patient, DoctorDto doctor) {
+        ConsultationStatus status, BigDecimal price, PatientDto patient, DoctorDto doctor,
+        LocalDateTime bookedAt, LocalDateTime cancelledAt, String reason, String notes,
+        boolean cancelByPatient) {
 }

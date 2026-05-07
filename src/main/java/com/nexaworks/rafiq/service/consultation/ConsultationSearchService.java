@@ -10,6 +10,7 @@ import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
 import com.nexaworks.rafiq.dto.response.consultation.CallResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationFilter;
 import com.nexaworks.rafiq.entities.Consultation;
+import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 
 public interface ConsultationSearchService {
     Page<Consultation> getConsultations(ConsultationFilter filter, Pageable pageable);
@@ -23,4 +24,6 @@ public interface ConsultationSearchService {
     List<Consultation> getPatientUpcoming();
 
     List<Consultation> getDoctorUpcoming();
+
+    List<Consultation> getPatientConsultation(ConsultationStatus status);
 }
