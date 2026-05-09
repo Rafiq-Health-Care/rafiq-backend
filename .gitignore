@@ -36,6 +36,7 @@ build/
 .vscode/
 
 .env
+.env.test
 .env.properties
 docker-compose.yml
 api
