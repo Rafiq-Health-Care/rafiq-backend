@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
 import com.nexaworks.rafiq.dto.response.consultation.CallResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationFilter;
+import com.nexaworks.rafiq.dto.response.consultation.DoctorConsultationResponse;
 import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 
@@ -26,4 +27,6 @@ public interface ConsultationSearchService {
     List<Consultation> getDoctorUpcoming();
 
     List<Consultation> getPatientConsultation(ConsultationStatus status);
+
+    List<DoctorConsultationResponse> getDoctorAvailableConsultation(UUID id);
 }

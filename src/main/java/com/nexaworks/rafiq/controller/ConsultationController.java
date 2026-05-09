@@ -12,11 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
 import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
-import com.nexaworks.rafiq.dto.response.consultation.CallResponse;
-import com.nexaworks.rafiq.dto.response.consultation.ConsultationFilter;
-import com.nexaworks.rafiq.dto.response.consultation.ConsultationResponse;
-import com.nexaworks.rafiq.dto.response.consultation.PatientConsultationResponse;
-import com.nexaworks.rafiq.dto.response.consultation.ScheduleResponse;
+import com.nexaworks.rafiq.dto.response.consultation.*;
 import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.PaymentProvider;
@@ -115,9 +111,10 @@ public class ConsultationController {
         return ResponseEntity.ok(mapper.toDtoList(upcomingConsultation));
     }
     @PostMapping("/doctor/{id}")
-    public ResponseEntity<List<ConsultationResponse>> getDoctorConsultations(
+    public ResponseEntity<List<DoctorConsultationResponse>> getDoctorConsultations(
             @PathVariable UUID id) {
 
+        return ResponseEntity.ok(consultationSearchService.getDoctorAvailableConsultation(id));
     }
 
     @PostMapping("/patient/my-consultations/{status}")

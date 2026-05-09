@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationResponse;
+import com.nexaworks.rafiq.dto.response.consultation.DoctorConsultationResponse;
 import com.nexaworks.rafiq.dto.response.consultation.PatientConsultationResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ScheduleResponse;
 import com.nexaworks.rafiq.entities.Consultation;
@@ -75,4 +76,6 @@ public interface ConsultationMapper {
 
     @IterableMapping(elementTargetType = PatientConsultationResponse.class)
     List<PatientConsultationResponse> toPatientDtoList(List<Consultation> consultations);
+
+    List<DoctorConsultationResponse> toDoctorConsultationResponse(List<Consultation> consultations);
 }

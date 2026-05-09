@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.nexaworks.rafiq.dto.response.consultation.CallResponse;
+import com.nexaworks.rafiq.dto.response.consultation.DoctorConsultationResponse;
 import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 
@@ -76,4 +77,8 @@ public interface ConsultationRepository
     @Query("SELECT c FROM Consultation c WHERE c.patient.id = :patientId AND c.status= :status")
     List<Consultation> findAllPatientConsultation(@Param("patientId") UUID authenticateUserId,
             @Param("status") ConsultationStatus status);
+
+    @Query("SELECT new com.nexaworks.rafiq.dto.response.consultation.DoctorConsultationResponse(c.id,c.timeSlot.startTime,c.timeSlot.endTime) FROM Consultation  c where c.doctor.id = :id AND c.status = :status")
+    List<DoctorConsultationResponse> getDoctorAvailableConsultation(@Param("id") UUID id,
+            @Param("status") ConsultationStatus consultationStatus);
 }
