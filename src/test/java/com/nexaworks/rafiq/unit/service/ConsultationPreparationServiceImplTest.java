@@ -10,7 +10,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -142,7 +141,7 @@ class ConsultationPreparationServiceImplTest {
 
     private Consultation baseConsultation(ConsultationStatus status) {
         Consultation consultation = Consultation.builder().id(consultationId).status(status)
-                .doctor(doctor).patient(patient).price(BigDecimal.TEN).build();
+                .doctor(doctor).patient(patient).build();
         consultation.setTimeSlot(timeSlot);
         return consultation;
     }

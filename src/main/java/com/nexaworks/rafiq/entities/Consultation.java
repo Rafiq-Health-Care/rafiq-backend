@@ -1,7 +1,5 @@
 package com.nexaworks.rafiq.entities;
 
-import java.math.BigDecimal;
-
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.Specialization;
 
@@ -40,9 +38,6 @@ public class Consultation extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
-
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
 
     @OneToOne(mappedBy = "consultation", cascade = CascadeType.ALL)
     private CancellationLog cancellationLog;

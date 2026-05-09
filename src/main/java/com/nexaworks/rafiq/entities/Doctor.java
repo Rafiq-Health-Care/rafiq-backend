@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.entities;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.hibernate.annotations.BatchSize;
@@ -8,10 +9,7 @@ import com.nexaworks.rafiq.entities.enums.Specialization;
 import com.nexaworks.rafiq.entities.enums.Status;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Getter
@@ -48,4 +46,7 @@ public class Doctor extends User {
 
     @Enumerated(EnumType.STRING)
     private Status status;
+    @Column(nullable = false, precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal price = BigDecimal.valueOf(1000);
 }

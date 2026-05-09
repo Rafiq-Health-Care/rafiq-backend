@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
 import com.nexaworks.rafiq.dto.response.consultation.CallResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationFilter;
+import com.nexaworks.rafiq.dto.response.consultation.DoctorConsultationResponse;
 import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.exception.custom.ConsultationException;
@@ -68,6 +69,19 @@ public class ConsultationSearchServiceImpl implements ConsultationSearchService 
         UUID doctorId = authService.getAuthenticateUserId();
         return consultationRepository.findAllDoctorUpcoming(doctorId, ConsultationStatus.CONFIRMED,
                 ConsultationStatus.ONGOING);
+    }
+
+    @Override
+    public List<Consultation> getPatientConsultation(ConsultationStatus status) {
+        return consultationRepository
+                .findAllPatientConsultation(authService.getAuthenticateUserId(), status);
+
+    }
+
+    @Override
+    public List<DoctorConsultationResponse> getDoctorAvailableConsultation(UUID id) {
+        return consultationRepository.getDoctorAvailableConsultation(id,
+                ConsultationStatus.AVAILABLE);
     }
 
 }
