@@ -91,7 +91,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
         Role doctorRole = roleRepository.findByName("ROLE_DOCTOR");
         Doctor doctor = Doctor.builder().email(email).password(passwordEncoder.encode("Valid@1234"))
                 .firstName("Jane").lastName("Doe").specialization(Specialization.CARDIOLOGY)
-                .roles(Set.of(doctorRole)).enabled(true).build();
+                .price(BigDecimal.valueOf(150)).roles(Set.of(doctorRole)).enabled(true).build();
         return doctorRepository.save(doctor);
     }
 
@@ -116,8 +116,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
         TimeSlot slot = TimeSlot.builder().startTime(startTime).endTime(startTime.plusMinutes(60))
                 .durationMinutes(60).build();
         Consultation consultation = Consultation.builder().doctor(doctor).patient(patient)
-                .timeSlot(slot).price(BigDecimal.valueOf(100)).status(status)
-                .specialization(doctor.getSpecialization()).build();
+                .timeSlot(slot).status(status).specialization(doctor.getSpecialization()).build();
         return consultationRepository.save(consultation);
     }
 
@@ -131,7 +130,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
         void shouldCreateConsultation_WhenDoctorIsAuthenticated() throws Exception {
             Doctor doctor = createDoctor();
             AddConsultationRequest request = new AddConsultationRequest(
-                    LocalDateTime.now().plusDays(2).withNano(0), 60, BigDecimal.valueOf(150));
+                    LocalDateTime.now().plusDays(2).withNano(0), 60);
 
             mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)).with(withUserId(doctor)))
@@ -149,7 +148,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
         void shouldReturnForbidden_WhenPatientTriesToAdd() throws Exception {
             Patient patient = createPatient();
             AddConsultationRequest request = new AddConsultationRequest(
-                    LocalDateTime.now().plusDays(2), 60, BigDecimal.valueOf(150));
+                    LocalDateTime.now().plusDays(2), 60);
 
             mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)).with(withUserId(patient)))
@@ -201,8 +200,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
             Doctor doctor = createDoctor();
             Consultation consultation = persistConsultation(doctor, ConsultationStatus.AVAILABLE);
             LocalDateTime newStart = LocalDateTime.now().plusDays(3).withNano(0).withSecond(0);
-            AddConsultationRequest request = new AddConsultationRequest(newStart, 30,
-                    BigDecimal.valueOf(180));
+            AddConsultationRequest request = new AddConsultationRequest(newStart, 30);
 
             mockMvc.perform(put(ENDPOINT, consultation.getId())
                     .contentType(MediaType.APPLICATION_JSON)
@@ -221,7 +219,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
         void shouldThrow_WhenConsultationDoesNotExist() throws Exception {
             Doctor doctor = createDoctor();
             AddConsultationRequest request = new AddConsultationRequest(
-                    LocalDateTime.now().plusDays(3), 30, BigDecimal.valueOf(180));
+                    LocalDateTime.now().plusDays(3), 30);
 
             assertThatThrownBy(() -> mockMvc.perform(put(ENDPOINT, UUID.randomUUID())
                     .contentType(MediaType.APPLICATION_JSON)

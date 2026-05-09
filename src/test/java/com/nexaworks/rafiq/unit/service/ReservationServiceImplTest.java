@@ -9,7 +9,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -79,8 +78,7 @@ class ReservationServiceImplTest {
     @DisplayName("should reserve consultation successfully and return client secret")
     void shouldReserveSuccessfullyAndReturnClientSecret() {
         Consultation consultation = Consultation.builder().id(consultationId)
-                .status(ConsultationStatus.AVAILABLE).timeSlot(timeSlot)
-                .price(BigDecimal.valueOf(50)).build();
+                .status(ConsultationStatus.AVAILABLE).timeSlot(timeSlot).build();
 
         when(authService.getAuthenticateUser()).thenReturn(patient);
         when(consultationRepository.findConsultationById(consultationId))
@@ -111,7 +109,7 @@ class ReservationServiceImplTest {
     @DisplayName("should throw when consultation status is not AVAILABLE")
     void shouldThrowWhenConsultationStatusIsNotAvailable() {
         Consultation consultation = Consultation.builder().id(consultationId)
-                .status(ConsultationStatus.BOOKED).timeSlot(timeSlot).price(BigDecimal.TEN).build();
+                .status(ConsultationStatus.BOOKED).timeSlot(timeSlot).build();
 
         when(authService.getAuthenticateUser()).thenReturn(patient);
         when(consultationRepository.findConsultationById(consultationId))
@@ -131,8 +129,7 @@ class ReservationServiceImplTest {
     @DisplayName("should throw when patient has overlapping consultation")
     void shouldThrowWhenPatientHasOverlappingConsultation() {
         Consultation consultation = Consultation.builder().id(consultationId)
-                .status(ConsultationStatus.AVAILABLE).timeSlot(timeSlot).price(BigDecimal.TEN)
-                .build();
+                .status(ConsultationStatus.AVAILABLE).timeSlot(timeSlot).build();
 
         when(authService.getAuthenticateUser()).thenReturn(patient);
         when(consultationRepository.findConsultationById(consultationId))
@@ -152,8 +149,7 @@ class ReservationServiceImplTest {
     @DisplayName("should not update consultation status if payment service fails")
     void shouldNotPersistConsultationWhenPaymentFails() {
         Consultation consultation = Consultation.builder().id(consultationId)
-                .status(ConsultationStatus.AVAILABLE).timeSlot(timeSlot).price(BigDecimal.TEN)
-                .build();
+                .status(ConsultationStatus.AVAILABLE).timeSlot(timeSlot).build();
 
         when(authService.getAuthenticateUser()).thenReturn(patient);
         when(consultationRepository.findConsultationById(consultationId))

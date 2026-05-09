@@ -110,7 +110,7 @@ public class ConsultationController {
 
         return ResponseEntity.ok(mapper.toDtoList(upcomingConsultation));
     }
-    @PostMapping("/doctor/{id}")
+    @GetMapping("/doctor/{id}")
     public ResponseEntity<List<DoctorConsultationResponse>> getDoctorConsultations(
             @PathVariable UUID id) {
 
