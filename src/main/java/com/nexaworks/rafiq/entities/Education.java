@@ -15,6 +15,6 @@ import lombok.Setter;
 public class Education {
     private String degree;
     private String university;
-    private Integer sartYear;
+    private Integer startYear;
     private Integer endYear;
 }

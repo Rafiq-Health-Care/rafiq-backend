@@ -15,7 +15,7 @@ import lombok.Setter;
 public class Experience {
     private String position;
     private String hospital;
-    private Integer sartYear;
+    private Integer startYear;
     private Integer endYear;
     private String description;
 }
