@@ -1,0 +1,6 @@
+
+
+ALTER TABLE doctor
+    ADD COLUMN IF NOT EXISTS biography TEXT,
+    ADD COLUMN IF NOT EXISTS education JSONB,
+    ADD COLUMN IF NOT EXISTS experience JSONB;
