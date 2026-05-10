@@ -4,9 +4,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
 import com.nexaworks.rafiq.dto.client.cloundinary.UploadResults;
 import com.nexaworks.rafiq.dto.request.doctor.EducationItemRequest;
 import com.nexaworks.rafiq.dto.request.doctor.ExperienceItemRequest;
@@ -27,5 +24,4 @@ public interface DoctorService {
 
     Doctor getDoctorById(UUID id);
 
-    Page<Doctor> findDoctorsBySpecialization(Specialization specialization, Pageable pageable);
 }

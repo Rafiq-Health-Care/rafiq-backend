@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -103,13 +101,6 @@ public class DoctorServiceImpl implements DoctorService {
     public Doctor getDoctorById(UUID id) {
         return doctorRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Doctor not found with id: " + id));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<Doctor> findDoctorsBySpecialization(Specialization specialization,
-            Pageable pageable) {
-        return doctorRepository.findBySpecialization(specialization, pageable);
     }
 
     private Doctor requireAuthenticatedDoctor() {
