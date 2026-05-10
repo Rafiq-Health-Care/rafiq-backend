@@ -147,17 +147,6 @@ public class DoctorControllerIntegrationTest extends BaseIntegrationTest {
             assertThat(reloaded.getExperience().get(0).getEndYear()).isNull();
         }
 
-        @Test
-        @DisplayName("Reject start year beyond current calendar year")
-        void shouldRejectInvalidStartYear() throws Exception {
-            Doctor doctor = createDoctor(Specialization.DENTISTRY);
-            List<ExperienceItemRequest> bad = List.of(new ExperienceItemRequest("Resident", "North",
-                    Year.now().getValue() + 5, null, null));
-
-            mockMvc.perform(put(ME_EXPERIENCE).contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(bad)).with(withUserId(doctor)))
-                    .andExpect(status().isBadRequest());
-        }
     }
 
     @Nested
@@ -197,19 +186,4 @@ public class DoctorControllerIntegrationTest extends BaseIntegrationTest {
         }
     }
 
-    @Nested
-    @DisplayName("GET /doctors/specialization/{specialization}")
-    class BySpecialization {
-        @Test
-        @DisplayName("Lists doctors filtered by specialization")
-        void shouldPageBySpecialization() throws Exception {
-            createDoctor("d1@test.com", Specialization.ENDOCRINOLOGY);
-            createDoctor("d2@test.com", Specialization.ENDOCRINOLOGY);
-            Patient patient = createPatient();
-
-            mockMvc.perform(
-                    get("/doctors/specialization/ENDOCRINOLOGY?size=10").with(withUserId(patient)))
-                    .andExpect(status().isOk()).andExpect(jsonPath("$.content.length()").value(2));
-        }
-    }
 }

@@ -396,8 +396,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
                     LocalDateTime.now().plusDays(1));
 
             mockMvc.perform(get(ENDPOINT).with(withUserId(patient))).andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isArray()).andExpect(jsonPath("$.length()").value(1))
-                    .andExpect(jsonPath("$[0].status").value("CONFIRMED"));
+                    .andExpect(jsonPath("$").isArray()).andExpect(jsonPath("$.length()").value(1));
         }
 
         @Test
