@@ -3,14 +3,19 @@ package com.nexaworks.rafiq.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.nexaworks.rafiq.dto.request.doctor.DoctorFilter;
 import com.nexaworks.rafiq.dto.request.doctor.EducationItemRequest;
 import com.nexaworks.rafiq.dto.request.doctor.ExperienceItemRequest;
 import com.nexaworks.rafiq.dto.request.doctor.SetDoctorPriceRequest;
+import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.doctor.DoctorProfileResponse;
+import com.nexaworks.rafiq.dto.response.doctor.DoctorSearchResponse;
 import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.mapper.DoctorMapper;
 import com.nexaworks.rafiq.service.doctor.DoctorService;
@@ -56,6 +61,12 @@ public class DoctorController {
     public ResponseEntity<DoctorProfileResponse> getDoctorById(@PathVariable UUID id) {
         Doctor doctor = doctorService.getDoctorById(id);
         return ResponseEntity.ok(doctorMapper.toProfileResponse(doctor));
+    }
+    @PostMapping("/search")
+    public ResponseEntity<PageResponse<DoctorSearchResponse>> searchDoctor(
+            @RequestBody DoctorFilter filter, Pageable pageable) {
+        Page<DoctorSearchResponse> response = doctorService.search(filter, pageable);
+        return ResponseEntity.ok(doctorMapper.toSearchPageResponse(response));
     }
 
 }

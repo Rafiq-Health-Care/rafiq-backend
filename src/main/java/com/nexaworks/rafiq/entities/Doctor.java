@@ -61,4 +61,9 @@ public class Doctor extends User {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private List<Experience> experience;
+
+    @Column(name = "experience_years")
+    private int experienceYears;
+
+    private BigDecimal rating;
 }

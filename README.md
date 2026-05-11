@@ -304,7 +304,7 @@ rafiq-backend/
 
 2. **Database Migrations**: Use Flyway for production deployments. Keep migration scripts versioned.
 
-3. **API Testing**: Use the provided `.http` files in the `api/` directory with IntelliJ HTTP Client or VS Code REST Client.
+3. **API Testing**: Use the `.http` files under `api/<area>/` (e.g. `api/auth/login.http`, `api/doctor/`, `api/consultation/`) with IntelliJ HTTP Client. Run `api/auth/login.http` first: it stores `jwt` and `refreshToken` from `Set-Cookie` for `Cookie: jwt={{jwt}}` on protected calls. Host is `http://localhost:8030` in each file.
 
 4. **Logging**: Check application logs for debugging. Adjust log levels in `application.yml`.
 
