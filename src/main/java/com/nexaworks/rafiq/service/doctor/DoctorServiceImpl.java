@@ -5,13 +5,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.dto.client.cloundinary.UploadResults;
+import com.nexaworks.rafiq.dto.request.doctor.DoctorFilter;
 import com.nexaworks.rafiq.dto.request.doctor.EducationItemRequest;
 import com.nexaworks.rafiq.dto.request.doctor.ExperienceItemRequest;
+import com.nexaworks.rafiq.dto.response.doctor.DoctorSearchResponse;
 import com.nexaworks.rafiq.entities.Doctor;
+import com.nexaworks.rafiq.entities.DoctorSearchView;
 import com.nexaworks.rafiq.entities.Education;
 import com.nexaworks.rafiq.entities.Experience;
 import com.nexaworks.rafiq.entities.enums.Specialization;
@@ -19,6 +24,8 @@ import com.nexaworks.rafiq.exception.custom.UserException;
 import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
 import com.nexaworks.rafiq.mapper.DoctorMapper;
 import com.nexaworks.rafiq.repository.DoctorRepository;
+import com.nexaworks.rafiq.repository.DoctorSearchViewRepository;
+import com.nexaworks.rafiq.repository.specification.DoctorSpecification;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 
 import lombok.RequiredArgsConstructor;
@@ -31,6 +38,7 @@ public class DoctorServiceImpl implements DoctorService {
     private final DoctorRepository doctorRepository;
     private final AuthService authService;
     private final DoctorMapper doctorMapper;
+    private final DoctorSearchViewRepository doctorSearchViewRepository;
 
     @Override
     @Transactional
@@ -101,6 +109,16 @@ public class DoctorServiceImpl implements DoctorService {
     public Doctor getDoctorById(UUID id) {
         return doctorRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Doctor not found with id: " + id));
+    }
+
+    @Override
+    public Page<DoctorSearchResponse> search(DoctorFilter filter, Pageable pageable) {
+        Page<DoctorSearchView> results = doctorSearchViewRepository
+                .findAll(DoctorSpecification.search(filter), pageable);
+
+        return results.map(v -> new DoctorSearchResponse(v.getPersonalPhoto(), v.getFirstName(),
+                v.getLastName(), v.getSpecialization(), v.getNextAvailable(), v.getPrice(),
+                v.getRating(), v.getExperienceYears(), v.getDoctorId()));
     }
 
     private Doctor requireAuthenticatedDoctor() {

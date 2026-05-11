@@ -9,6 +9,7 @@ import com.nexaworks.rafiq.dto.request.doctor.EducationItemRequest;
 import com.nexaworks.rafiq.dto.request.doctor.ExperienceItemRequest;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.doctor.DoctorProfileResponse;
+import com.nexaworks.rafiq.dto.response.doctor.DoctorSearchResponse;
 import com.nexaworks.rafiq.dto.response.doctor.EducationItemResponse;
 import com.nexaworks.rafiq.dto.response.doctor.ExperienceItemResponse;
 import com.nexaworks.rafiq.entities.Doctor;
@@ -42,5 +43,11 @@ public interface DoctorMapper {
         return new PageResponse<>(page.getContent().stream().map(this::toProfileResponse).toList(),
                 page.getNumberOfElements(), page.getSize(), page.getTotalPages(), page.isLast(),
                 page.isFirst());
+    }
+
+    default PageResponse<DoctorSearchResponse> toSearchPageResponse(
+            Page<DoctorSearchResponse> page) {
+        return new PageResponse<>(page.getContent(), page.getNumberOfElements(), page.getSize(),
+                page.getTotalPages(), page.isLast(), page.isFirst());
     }
 }
