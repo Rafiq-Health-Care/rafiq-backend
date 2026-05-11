@@ -1,0 +1,2 @@
+ALTER TABLE doctor ADD COLUMN experience_years INT;
+ALTER TABLE doctor ADD COLUMN rating NUMERIC(3,1) DEFAULT 0.0;

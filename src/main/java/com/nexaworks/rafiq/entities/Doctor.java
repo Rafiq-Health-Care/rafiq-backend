@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import com.nexaworks.rafiq.entities.enums.Specialization;
 import com.nexaworks.rafiq.entities.enums.Status;
@@ -49,4 +51,19 @@ public class Doctor extends User {
     @Column(nullable = false, precision = 10, scale = 2)
     @Builder.Default
     private BigDecimal price = BigDecimal.valueOf(1000);
+    @Column(columnDefinition = "TEXT")
+    private String biography;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private List<Education> education;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private List<Experience> experience;
+
+    @Column(name = "experience_years")
+    private int experienceYears;
+
+    private BigDecimal rating;
 }
