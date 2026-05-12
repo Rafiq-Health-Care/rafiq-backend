@@ -59,6 +59,11 @@ public class PaymentTrackingService implements IPaymentTrackingService {
         Payment payment = paymentRepository.findByPaymentIntentId(intentId);
         payment.setStatus(status);
         paymentRepository.save(payment);
+        if (status != PaymentStatus.SUCCEEDED) {
+            consultationService.update(payment.getConsultation().getId(),
+                    ConsultationStatus.AVAILABLE);
+            return;
+        }
         consultationService.update(payment.getConsultation().getId(), ConsultationStatus.CONFIRMED);
         log.info("Payment {} is updated to {}", payment.getId(), status);
     }
