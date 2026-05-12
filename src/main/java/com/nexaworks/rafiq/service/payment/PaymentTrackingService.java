@@ -11,6 +11,7 @@ import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.PaymentStatus;
 import com.nexaworks.rafiq.exception.custom.PaymentException;
 import com.nexaworks.rafiq.repository.PaymentRepository;
+import com.nexaworks.rafiq.scheduler.PaymentScheduler;
 import com.nexaworks.rafiq.service.consultation.ConsultationService;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
@@ -24,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PaymentTrackingService implements IPaymentTrackingService {
     private final PaymentRepository paymentRepository;
     private final ConsultationService consultationService;
+    private final PaymentScheduler paymentScheduler;
 
     // TODO send notification to user
     @Override
@@ -37,6 +39,10 @@ public class PaymentTrackingService implements IPaymentTrackingService {
             PaymentIntent paymentIntent = PaymentIntent.retrieve(payment.getPaymentIntentId());
             if (paymentIntent.getStatus().equals("succeeded")) {
                 update(payment.getPaymentIntentId(), PaymentStatus.SUCCEEDED);
+                return;
+            } else if (paymentIntent.getStatus().equals("processing")) {
+                update(payment.getPaymentIntentId(), PaymentStatus.PROCESSING);
+                paymentScheduler.schedulePaymentTimeout(payment.getId());
                 return;
             }
             paymentIntent.cancel();
