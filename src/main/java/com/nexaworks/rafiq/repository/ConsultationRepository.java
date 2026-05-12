@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -81,4 +82,15 @@ public interface ConsultationRepository
     @Query("SELECT new com.nexaworks.rafiq.dto.response.consultation.DoctorConsultationResponse(c.id,c.timeSlot.startTime,c.timeSlot.endTime) FROM Consultation  c where c.doctor.id = :id AND c.status = :status")
     List<DoctorConsultationResponse> getDoctorAvailableConsultation(@Param("id") UUID id,
             @Param("status") ConsultationStatus consultationStatus);
+
+    @Query("""
+            SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END
+            FROM Consultation c
+            WHERE c.doctor.id = :doctorId
+            AND c.patient.id = :patientId
+            AND c.status NOT IN :excludedStatuses
+            """)
+    boolean existsByDoctorAndPatientAndStatusNotIn(@Param("doctorId") UUID doctorId,
+            @Param("patientId") UUID patientId,
+            @Param("excludedStatuses") Collection<ConsultationStatus> excludedStatuses);
 }
