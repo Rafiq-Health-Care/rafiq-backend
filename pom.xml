@@ -291,6 +291,11 @@
             <artifactId>stripe-java</artifactId>
             <version>25.3.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.jobrunr</groupId>
+            <artifactId>jobrunr-spring-boot-3-starter</artifactId>
+            <version>8.6.0</version>
+        </dependency>
 
     </dependencies>
 
