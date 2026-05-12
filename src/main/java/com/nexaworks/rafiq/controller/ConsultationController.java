@@ -20,6 +20,7 @@ import com.nexaworks.rafiq.mapper.ConsultationMapper;
 import com.nexaworks.rafiq.service.consultation.ConsultationSearchService;
 import com.nexaworks.rafiq.service.consultation.ConsultationService;
 import com.nexaworks.rafiq.service.consultation.ReservationService;
+import com.stripe.exception.StripeException;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -69,7 +70,7 @@ public class ConsultationController {
     @PostMapping("/reserve/{id}")
     @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<String> reserveConsultation(@PathVariable UUID id,
-            @RequestParam PaymentProvider provider) {
+            @RequestParam PaymentProvider provider) throws StripeException {
         String paymentKey = reservationService.reserve(id, provider);
         return ResponseEntity.ok(paymentKey);
     }

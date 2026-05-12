@@ -23,6 +23,7 @@ import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.service.payment.PaymentService;
 import com.nexaworks.rafiq.service.rabbit.MessageService;
+import com.stripe.exception.StripeException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +42,7 @@ public class ReservationServiceImpl implements ReservationService {
     @Transactional
     @Retryable(retryFor = {
             PessimisticLockingFailureException.class}, maxAttempts = 3, backoff = @Backoff(delay = 500))
-    public String reserve(UUID id, PaymentProvider provider) {
+    public String reserve(UUID id, PaymentProvider provider) throws StripeException {
         Patient patient = (Patient) authService.getAuthenticateUser();
         log.info("Patient {} is reserving consultation {}", patient.getEmail(), id);
         Consultation consultation = consultationRepository.findConsultationById(id)

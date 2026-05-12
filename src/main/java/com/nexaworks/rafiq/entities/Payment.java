@@ -26,9 +26,6 @@ public class Payment {
     @JoinColumn(name = "consultation_id", nullable = false)
     private Consultation consultation;
 
-    @OneToOne(mappedBy = "payment")
-    private PaymentJob paymentJob;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id", nullable = false)
     private User patient;
@@ -47,7 +44,8 @@ public class Payment {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PaymentStatus status;
+    @Builder.Default
+    private PaymentStatus status = PaymentStatus.PENDING;
 
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;

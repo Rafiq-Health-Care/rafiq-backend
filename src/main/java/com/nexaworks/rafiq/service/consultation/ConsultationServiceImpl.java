@@ -191,6 +191,14 @@ public class ConsultationServiceImpl implements ConsultationService {
         });
     }
 
+    @Override
+    public void update(UUID id, ConsultationStatus consultationStatus) {
+        Consultation consultation = consultationRepository.findConsultationById(id)
+                .orElseThrow(() -> new ConsultationException("Consultation not found"));
+        consultation.setStatus(consultationStatus);
+        consultationRepository.save(consultation);
+    }
+
     private boolean cancelBookedConsultation(String reason, Consultation consultation,
             User currentUser) {
         CancellationLog cancellationLog = CancellationLog.builder().consultation(consultation)
