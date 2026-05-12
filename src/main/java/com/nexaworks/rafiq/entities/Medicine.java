@@ -64,10 +64,6 @@ public class Medicine extends BaseEntity {
     private Drug drug;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doctor_id", referencedColumnName = "id")
-    private Doctor doctor;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
     private Patient patient;
 
