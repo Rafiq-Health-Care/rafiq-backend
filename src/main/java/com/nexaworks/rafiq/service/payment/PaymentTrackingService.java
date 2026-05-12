@@ -44,6 +44,7 @@ public class PaymentTrackingService implements IPaymentTrackingService {
             case "succeeded" -> update(intent.getId(), PaymentStatus.SUCCEEDED);
             case "canceled" -> update(intent.getId(), PaymentStatus.CANCELLED);
             case "processing" -> {
+                paymentScheduler.deleteJob(payment.getId());
                 paymentScheduler.schedulePaymentTimeout(payment.getId());
             }
             default -> {
