@@ -18,4 +18,5 @@ public class MedicineSummary {
     private UUID drugId;
     private String name;
     private String dosage;
+    private String frequency;
 }

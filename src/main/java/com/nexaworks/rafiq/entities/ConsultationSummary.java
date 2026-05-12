@@ -24,7 +24,7 @@ public class ConsultationSummary extends BaseEntity {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private List<String> requiredLabTests;
+    private List<String> requiredLabTest;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id", referencedColumnName = "id")
