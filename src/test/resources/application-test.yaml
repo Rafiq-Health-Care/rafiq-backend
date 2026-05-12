@@ -76,3 +76,6 @@ CLOUDINARY_API_SECRET: test-cloudinary-secret
 # Agora placeholders (RtcProvider is mocked in IntegrationTestExternalMocks; SDK is not used).
 AGORA_APP_ID: "00000000000000000000000000000000"
 AGORA_APP_CERTIFICATE: "00000000000000000000000000000000"
+
+# Stripe (StripeConfig)
+STRIPE_API_SECRET: sk_test_integration_placeholder

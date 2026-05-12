@@ -18,8 +18,7 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @Table(name = "medicine", indexes = {
         @Index(columnList = "search_vector", name = "medicine_search_vector_idx"),
-        @Index(columnList = "patient_id", name = "patient_medicine_idx"),
-        @Index(columnList = "doctor_id", name = "doctor_medicine_idx")})
+        @Index(columnList = "patient_id", name = "patient_medicine_idx")})
 public class Medicine extends BaseEntity {
 
     @NotNull
@@ -62,10 +61,6 @@ public class Medicine extends BaseEntity {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "drug_id", referencedColumnName = "id", nullable = false)
     private Drug drug;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doctor_id", referencedColumnName = "id")
-    private Doctor doctor;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
