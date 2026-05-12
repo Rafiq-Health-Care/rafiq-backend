@@ -75,7 +75,7 @@ public interface ConsultationMapper {
     @Mapping(target = "doctorImage", source = "doctor.personalPhoto")
     @Mapping(target = "startTime", source = "timeSlot.startTime")
     @Mapping(target = "duration", source = "timeSlot.durationMinutes")
-    @Mapping(target = "summaryId", ignore = true)
+    @Mapping(target = "summaryId", expression = "java(consultation.getSummary() != null ? consultation.getSummary().getId() : null)")
     PatientConsultationResponse toPatientDto(Consultation consultation);
 
     default List<PatientConsultationResponse> toPatientDtoList(List<Consultation> consultations) {
