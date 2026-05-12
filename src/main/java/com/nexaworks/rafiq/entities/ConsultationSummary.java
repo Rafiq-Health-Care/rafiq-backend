@@ -7,15 +7,21 @@ import org.hibernate.type.SqlTypes;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
+@Table(name = "consultation_summary")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 public class ConsultationSummary extends BaseEntity {
+
+    @Column(columnDefinition = "TEXT")
     private String summary;
+
+    @Column(columnDefinition = "TEXT")
     private String recoveryPlan;
 
     @JdbcTypeCode(SqlTypes.JSON)
@@ -26,12 +32,15 @@ public class ConsultationSummary extends BaseEntity {
     @Column(columnDefinition = "jsonb")
     private List<String> requiredLabTest;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doctor_id", referencedColumnName = "id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "doctor_id", referencedColumnName = "id", nullable = false)
     private Doctor doctor;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patient_id", referencedColumnName = "id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
     private Patient patient;
 
+    @OneToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "consultation_id", referencedColumnName = "id", nullable = false, unique = true)
+    private Consultation consultation;
 }
