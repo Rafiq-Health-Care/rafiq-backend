@@ -4,4 +4,6 @@ import java.util.UUID;
 
 public interface PaymentScheduler {
     void schedulePaymentTimeout(UUID paymentId);
+
+    void deleteJob(UUID id);
 }

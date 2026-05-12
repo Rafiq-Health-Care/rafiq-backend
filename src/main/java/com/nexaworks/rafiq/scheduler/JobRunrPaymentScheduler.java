@@ -23,4 +23,9 @@ public class JobRunrPaymentScheduler implements PaymentScheduler {
                 () -> paymentService.check(paymentId));
     }
 
+    @Override
+    public void deleteJob(UUID id) {
+        BackgroundJob.delete(id);
+    }
+
 }

@@ -3,6 +3,8 @@ package com.nexaworks.rafiq.service.payment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.nexaworks.rafiq.dto.response.payment.PaymentDto;
 import com.nexaworks.rafiq.entities.Consultation;
@@ -41,6 +43,14 @@ public class PaymentServiceImpl implements PaymentService {
         paymentRepository.save(payment);
         consultation.setPayment(payment);
         paymentScheduler.schedulePaymentTimeout(payment.getId());
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status == TransactionSynchronization.STATUS_ROLLED_BACK) {
+                    paymentScheduler.deleteJob(payment.getId());
+                }
+            }
+        });
         return paymentDto.clientSecret();
     }
 }
