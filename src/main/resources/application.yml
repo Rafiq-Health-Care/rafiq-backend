@@ -1,9 +1,9 @@
 spring:
+  profiles:
+    active: dev
   # Application config (devtools + SQL logging: application-dev.yml / application-prod.yml)
   application:
     name: rafiq
-  config:
-    import: optional:file:.env.test[.properties]
 
   # Database config
   datasource:
@@ -114,6 +114,21 @@ access:
 agora:
    app-id: ${AGORA_APP_ID}
    app-certificate: ${AGORA_APP_CERTIFICATE}
+  #Stripe
+stripe:
+  api-key: ${STRIPE_API_SECRET}
+  webhook-secret: "whsec_b5b9bf42a17d8e3c1e89c3fe483fa75131596fd5b9b3110f2d3f88b13e83f448"
+  # Jobrunner config
+jobrunr:
+  job-scheduler:
+    enabled: true
+  background-job-server:
+    enabled: true
+  dashboard:
+    enabled: true
+    port: 8080
+
+
   # Server config
 server:
   port: 8030
