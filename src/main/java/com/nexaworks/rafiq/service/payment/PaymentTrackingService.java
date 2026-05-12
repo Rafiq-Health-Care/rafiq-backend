@@ -13,6 +13,7 @@ import com.nexaworks.rafiq.exception.custom.PaymentException;
 import com.nexaworks.rafiq.repository.PaymentRepository;
 import com.nexaworks.rafiq.scheduler.PaymentScheduler;
 import com.nexaworks.rafiq.service.consultation.ConsultationService;
+import com.stripe.exception.InvalidRequestException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 
@@ -32,25 +33,31 @@ public class PaymentTrackingService implements IPaymentTrackingService {
     @Transactional
     public void check(UUID paymentId) throws StripeException {
         Payment payment = getPayment(paymentId);
-        if (payment.getStatus() == PaymentStatus.SUCCEEDED) {
+        if (payment.getStatus() == PaymentStatus.SUCCEEDED
+                || payment.getStatus() == PaymentStatus.FAILED
+                || payment.getStatus() == PaymentStatus.CANCELLED
+                || payment.getStatus() == PaymentStatus.REFUNDED) {
             return;
         }
-        if (payment.getStatus() == PaymentStatus.PENDING) {
-            PaymentIntent paymentIntent = PaymentIntent.retrieve(payment.getPaymentIntentId());
-            if (paymentIntent.getStatus().equals("succeeded")) {
-                update(payment.getPaymentIntentId(), PaymentStatus.SUCCEEDED);
-                return;
-            } else if (paymentIntent.getStatus().equals("processing")) {
-                update(payment.getPaymentIntentId(), PaymentStatus.PROCESSING);
+        PaymentIntent intent = PaymentIntent.retrieve(payment.getPaymentIntentId());
+        switch (intent.getStatus()) {
+            case "succeeded" -> update(intent.getId(), PaymentStatus.SUCCEEDED);
+            case "canceled" -> update(intent.getId(), PaymentStatus.CANCELLED);
+            case "processing" -> {
                 paymentScheduler.schedulePaymentTimeout(payment.getId());
-                return;
             }
-            paymentIntent.cancel();
-            consultationService.update(payment.getConsultation().getId(),
-                    ConsultationStatus.AVAILABLE);
-            payment.setStatus(PaymentStatus.CANCELLED);
-            paymentRepository.save(payment);
-            log.info("Payment {} is cancelled", paymentId);
+            default -> {
+                try {
+                    intent.cancel();
+                } catch (InvalidRequestException e) {
+                    PaymentIntent fresh = PaymentIntent.retrieve(intent.getId());
+                    if ("succeeded".equals(fresh.getStatus())) {
+                        update(fresh.getId(), PaymentStatus.SUCCEEDED);
+                        return;
+                    }
+                }
+                update(intent.getId(), PaymentStatus.CANCELLED);
+            }
         }
     }
 
@@ -58,21 +65,28 @@ public class PaymentTrackingService implements IPaymentTrackingService {
         return paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new PaymentException("Payment not found"));
     }
-
-    @Override
     @Transactional
     public void update(String intentId, PaymentStatus status) {
-        Payment payment = paymentRepository.findByPaymentIntentId(intentId)
-                .orElseThrow(() -> new PaymentException("Payment not found"));
-        payment.setStatus(status);
-        paymentRepository.save(payment);
-        if (status != PaymentStatus.SUCCEEDED) {
-            consultationService.update(payment.getConsultation().getId(),
-                    ConsultationStatus.AVAILABLE);
+        Payment payment = paymentRepository.findByPaymentIntentId(intentId).orElse(null);
+        if (payment == null) {
+            log.warn("Webhook for unknown intent {}", intentId);
             return;
         }
-        consultationService.update(payment.getConsultation().getId(), ConsultationStatus.CONFIRMED);
+        if (payment.getStatus() == PaymentStatus.SUCCEEDED
+                || payment.getStatus() == PaymentStatus.REFUNDED) {
+            log.info("Ignoring {} for terminal payment {}", status, payment.getId());
+            return;
+        }
+        payment.setStatus(status);
+        paymentRepository.save(payment);
         log.info("Payment {} is updated to {}", payment.getId(), status);
+
+        UUID consId = payment.getConsultation().getId();
+        if (status == PaymentStatus.SUCCEEDED) {
+            consultationService.update(consId, ConsultationStatus.CONFIRMED);
+        } else if (status == PaymentStatus.FAILED || status == PaymentStatus.CANCELLED) {
+            consultationService.update(consId, ConsultationStatus.AVAILABLE);
+        }
     }
 
 }
