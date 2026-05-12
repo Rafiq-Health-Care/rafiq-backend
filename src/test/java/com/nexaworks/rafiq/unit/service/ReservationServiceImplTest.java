@@ -76,7 +76,7 @@ class ReservationServiceImplTest {
 
     @Test
     @DisplayName("should reserve consultation successfully and return client secret")
-    void shouldReserveSuccessfullyAndReturnClientSecret() {
+    void shouldReserveSuccessfullyAndReturnClientSecret() throws Exception {
         Consultation consultation = Consultation.builder().id(consultationId)
                 .status(ConsultationStatus.AVAILABLE).timeSlot(timeSlot).build();
 
@@ -107,7 +107,7 @@ class ReservationServiceImplTest {
 
     @Test
     @DisplayName("should throw when consultation status is not AVAILABLE")
-    void shouldThrowWhenConsultationStatusIsNotAvailable() {
+    void shouldThrowWhenConsultationStatusIsNotAvailable() throws Exception {
         Consultation consultation = Consultation.builder().id(consultationId)
                 .status(ConsultationStatus.BOOKED).timeSlot(timeSlot).build();
 
@@ -127,7 +127,7 @@ class ReservationServiceImplTest {
 
     @Test
     @DisplayName("should throw when patient has overlapping consultation")
-    void shouldThrowWhenPatientHasOverlappingConsultation() {
+    void shouldThrowWhenPatientHasOverlappingConsultation() throws Exception {
         Consultation consultation = Consultation.builder().id(consultationId)
                 .status(ConsultationStatus.AVAILABLE).timeSlot(timeSlot).build();
 
@@ -147,7 +147,7 @@ class ReservationServiceImplTest {
 
     @Test
     @DisplayName("should not update consultation status if payment service fails")
-    void shouldNotPersistConsultationWhenPaymentFails() {
+    void shouldNotPersistConsultationWhenPaymentFails() throws Exception {
         Consultation consultation = Consultation.builder().id(consultationId)
                 .status(ConsultationStatus.AVAILABLE).timeSlot(timeSlot).build();
 
