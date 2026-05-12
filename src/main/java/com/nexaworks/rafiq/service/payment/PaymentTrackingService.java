@@ -3,6 +3,7 @@ package com.nexaworks.rafiq.service.payment;
 import java.util.UUID;
 
 import org.jspecify.annotations.NonNull;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,16 +18,21 @@ import com.stripe.exception.InvalidRequestException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class PaymentTrackingService implements IPaymentTrackingService {
     private final PaymentRepository paymentRepository;
     private final ConsultationService consultationService;
     private final PaymentScheduler paymentScheduler;
+
+    public PaymentTrackingService(PaymentRepository paymentRepository,
+            ConsultationService consultationService, @Lazy PaymentScheduler paymentScheduler) {
+        this.paymentRepository = paymentRepository;
+        this.consultationService = consultationService;
+        this.paymentScheduler = paymentScheduler;
+    }
 
     // TODO send notification to user
     @Override
