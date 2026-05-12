@@ -50,6 +50,9 @@ public class Consultation extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Specialization specialization;
 
+    @OneToOne(mappedBy = "consultation")
+    private ConsultationSummary consultationSummary;
+
     @Transient
     public boolean isCancelled() {
         return status == ConsultationStatus.CANCELLED;
