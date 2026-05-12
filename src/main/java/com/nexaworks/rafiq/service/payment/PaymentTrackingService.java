@@ -56,7 +56,8 @@ public class PaymentTrackingService implements IPaymentTrackingService {
     @Override
     @Transactional
     public void update(String intentId, PaymentStatus status) {
-        Payment payment = paymentRepository.findByPaymentIntentId(intentId);
+        Payment payment = paymentRepository.findByPaymentIntentId(intentId)
+                .orElseThrow(() -> new PaymentException("Payment not found"));
         payment.setStatus(status);
         paymentRepository.save(payment);
         if (status != PaymentStatus.SUCCEEDED) {
