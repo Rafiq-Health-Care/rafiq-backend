@@ -56,11 +56,11 @@ public class ConsultationCancellationService implements IConsultationCancellatio
                 && !consultation.getPatient().getId().equals(currentUser.getId())) {
             throw new ConsultationException("You are not authorized to cancel this consultation");
         }
+        refundService.refund(consultation);
 
         boolean cancelledByPatient = cancelBookedConsultation(reason, consultation, currentUser);
 
         log.info("Consultation cancelled {} by {}", consultation.getId(), currentUser.getEmail());
-        refundService.refund(consultation);
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
