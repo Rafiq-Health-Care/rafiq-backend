@@ -19,6 +19,7 @@ import com.nexaworks.rafiq.entities.enums.PaymentProvider;
 import com.nexaworks.rafiq.mapper.ConsultationMapper;
 import com.nexaworks.rafiq.service.consultation.ConsultationSearchService;
 import com.nexaworks.rafiq.service.consultation.ConsultationService;
+import com.nexaworks.rafiq.service.consultation.IConsultationCancellationService;
 import com.nexaworks.rafiq.service.consultation.ReservationService;
 import com.stripe.exception.StripeException;
 
@@ -35,6 +36,7 @@ public class ConsultationController {
     private final ConsultationSearchService consultationSearchService;
     private final ReservationService reservationService;
     private final ConsultationMapper mapper;
+    private final IConsultationCancellationService cancellationService;
 
     @PostMapping("/add")
     @PreAuthorize("hasRole('DOCTOR')")
@@ -63,7 +65,7 @@ public class ConsultationController {
     @PatchMapping("/cancel/{id}")
     public ResponseEntity<?> cancelConsultation(@PathVariable UUID id,
             @RequestParam String reason) {
-        consultationService.cancel(id, reason);
+        cancellationService.cancel(id, reason);
         return ResponseEntity.ok().build();
     }
 
