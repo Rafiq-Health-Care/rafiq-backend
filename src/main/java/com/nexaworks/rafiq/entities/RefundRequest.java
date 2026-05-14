@@ -27,7 +27,7 @@ public class RefundRequest extends BaseEntity {
     private BigDecimal amount;
 
     @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "payment_id", nullable = false)
+    @JoinColumn(name = "payment_id", nullable = false, unique = true)
     private Payment payment;
 
     @OneToOne
@@ -35,7 +35,7 @@ public class RefundRequest extends BaseEntity {
     private Patient patient;
 
     @OneToOne
-    @JoinColumn(name = "consultation_id", nullable = false)
+    @JoinColumn(name = "consultation_id", nullable = false, unique = true)
     private Consultation consultation;
 
 }
