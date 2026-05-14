@@ -12,8 +12,8 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
-import com.nexaworks.rafiq.service.consultation.ConsultationPreparationService;
-import com.nexaworks.rafiq.service.consultation.ConsultationService;
+import com.nexaworks.rafiq.service.consultation.IConsultationPreparationService;
+import com.nexaworks.rafiq.service.consultation.IConsultationService;
 import com.rabbitmq.client.Channel;
 
 import lombok.RequiredArgsConstructor;
@@ -26,8 +26,8 @@ public class ConsultationConsumer {
 
     private static final int MAX_RETRIES = 3;
 
-    private final ConsultationService consultationService;
-    private final ConsultationPreparationService consultationPreparationService;
+    private final IConsultationService IConsultationService;
+    private final IConsultationPreparationService IConsultationPreparationService;
     private final AmqpTemplate rabbitTemplate;
 
     @RabbitListener(queues = CONSULTATION_EXPIRATION_QUEUE)
@@ -35,7 +35,7 @@ public class ConsultationConsumer {
             @Header(AmqpHeaders.DELIVERY_TAG) long tag) throws IOException {
         log.info("Received expiration request for consultation: {}", consultationId);
         try {
-            consultationService.expire(consultationId);
+            IConsultationService.expire(consultationId);
             channel.basicAck(tag, false);
         } catch (Exception e) {
             log.error("Failed to expire consultation: {}", consultationId, e);
@@ -50,7 +50,7 @@ public class ConsultationConsumer {
             @Header(AmqpHeaders.DELIVERY_TAG) long tag) throws IOException {
         log.info("Received preparation request for consultation: {}", consultationId);
         try {
-            consultationPreparationService.prepare(UUID.fromString(consultationId));
+            IConsultationPreparationService.prepare(UUID.fromString(consultationId));
             channel.basicAck(tag, false);
         } catch (IllegalArgumentException e) {
             log.error("Invalid UUID '{}', routing directly to DLQ", consultationId);

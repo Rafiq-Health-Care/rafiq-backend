@@ -17,10 +17,10 @@ import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.PaymentProvider;
 import com.nexaworks.rafiq.mapper.ConsultationMapper;
-import com.nexaworks.rafiq.service.consultation.ConsultationSearchService;
-import com.nexaworks.rafiq.service.consultation.ConsultationService;
 import com.nexaworks.rafiq.service.consultation.IConsultationCancellationService;
-import com.nexaworks.rafiq.service.consultation.ReservationService;
+import com.nexaworks.rafiq.service.consultation.IConsultationSearchService;
+import com.nexaworks.rafiq.service.consultation.IConsultationService;
+import com.nexaworks.rafiq.service.consultation.IReservationService;
 import com.stripe.exception.StripeException;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,9 +32,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Tag(name = "Consultation", description = "Endpoints for consultation")
 public class ConsultationController {
-    private final ConsultationService consultationService;
-    private final ConsultationSearchService consultationSearchService;
-    private final ReservationService reservationService;
+    private final IConsultationService IConsultationService;
+    private final IConsultationSearchService IConsultationSearchService;
+    private final IReservationService IReservationService;
     private final ConsultationMapper mapper;
     private final IConsultationCancellationService cancellationService;
 
@@ -43,7 +43,7 @@ public class ConsultationController {
     public ResponseEntity<ConsultationResponse> addConsultation(
             @Valid @RequestBody AddConsultationRequest request) {
         Consultation consultation = mapper.toEntity(request);
-        consultation = consultationService.add(consultation);
+        consultation = IConsultationService.add(consultation);
         return ResponseEntity.ok(mapper.toDto(consultation));
 
     }
@@ -51,7 +51,7 @@ public class ConsultationController {
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<PageResponse<ScheduleResponse>> getSchedule(
             @Valid @RequestBody ScheduleFilter filter, Pageable pageable) {
-        Page<Consultation> consultations = consultationSearchService.getDoctorSchedule(filter,
+        Page<Consultation> consultations = IConsultationSearchService.getDoctorSchedule(filter,
                 pageable);
         return ResponseEntity.ok(mapper.toSchedulePageResponse(consultations));
     }
@@ -59,7 +59,7 @@ public class ConsultationController {
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<ConsultationResponse> editConsultation(
             @Valid @RequestBody AddConsultationRequest request, @PathVariable UUID id) {
-        Consultation consultation = consultationService.editConsultation(request, id);
+        Consultation consultation = IConsultationService.editConsultation(request, id);
         return ResponseEntity.ok(mapper.toDto(consultation));
     }
     @PatchMapping("/cancel/{id}")
@@ -73,27 +73,27 @@ public class ConsultationController {
     @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<String> reserveConsultation(@PathVariable UUID id,
             @RequestParam PaymentProvider provider) throws StripeException {
-        String paymentKey = reservationService.reserve(id, provider);
+        String paymentKey = IReservationService.reserve(id, provider);
         return ResponseEntity.ok(paymentKey);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ConsultationResponse> getConsultation(@PathVariable UUID id) {
-        Consultation consultation = consultationSearchService.getConsultation(id);
+        Consultation consultation = IConsultationSearchService.getConsultation(id);
         return ResponseEntity.ok(mapper.toDto(consultation));
     }
 
     @GetMapping("/{id}/call")
     public ResponseEntity<CallResponse> getCall(@PathVariable UUID id) {
-        return ResponseEntity.ok(consultationSearchService.getConsultationCall(id));
+        return ResponseEntity.ok(IConsultationSearchService.getConsultationCall(id));
     }
 
     @PostMapping("/filter")
     public ResponseEntity<PageResponse<ConsultationResponse>> filterConsultation(
             @RequestBody ConsultationFilter filter, Pageable pageable) {
 
-        Page<Consultation> pageableConsultation = consultationSearchService.getConsultations(filter,
-                pageable);
+        Page<Consultation> pageableConsultation = IConsultationSearchService
+                .getConsultations(filter, pageable);
 
         return ResponseEntity.ok(mapper.toPageResponse(pageableConsultation));
     }
@@ -101,7 +101,7 @@ public class ConsultationController {
     @GetMapping("/patient/upcoming")
     @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<List<PatientConsultationResponse>> getPatientUpcoming() {
-        List<Consultation> upcomingConsultation = consultationSearchService.getPatientUpcoming();
+        List<Consultation> upcomingConsultation = IConsultationSearchService.getPatientUpcoming();
 
         return ResponseEntity.ok(mapper.toPatientDtoList(upcomingConsultation));
     }
@@ -109,7 +109,7 @@ public class ConsultationController {
     @GetMapping("/doctor/upcoming")
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<List<ConsultationResponse>> getDoctorUpcoming() {
-        List<Consultation> upcomingConsultation = consultationSearchService.getDoctorUpcoming();
+        List<Consultation> upcomingConsultation = IConsultationSearchService.getDoctorUpcoming();
 
         return ResponseEntity.ok(mapper.toDtoList(upcomingConsultation));
     }
@@ -117,13 +117,14 @@ public class ConsultationController {
     public ResponseEntity<List<DoctorConsultationResponse>> getDoctorConsultations(
             @PathVariable UUID id) {
 
-        return ResponseEntity.ok(consultationSearchService.getDoctorAvailableConsultation(id));
+        return ResponseEntity.ok(IConsultationSearchService.getDoctorAvailableConsultation(id));
     }
 
     @PostMapping("/patient/my-consultations/{status}")
     public ResponseEntity<List<PatientConsultationResponse>> getPatientConsultations(
             @PathVariable ConsultationStatus status) {
-        List<Consultation> consultations = consultationSearchService.getPatientConsultation(status);
+        List<Consultation> consultations = IConsultationSearchService
+                .getPatientConsultation(status);
         return ResponseEntity.ok(mapper.toPatientDtoList(consultations));
     }
 

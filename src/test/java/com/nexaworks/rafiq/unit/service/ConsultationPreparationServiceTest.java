@@ -32,12 +32,12 @@ import com.nexaworks.rafiq.exception.custom.ConsultationException;
 import com.nexaworks.rafiq.exception.custom.RtcProviderException;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.service.call.RtcProvider;
-import com.nexaworks.rafiq.service.consultation.ConsultationPreparationServiceImpl;
+import com.nexaworks.rafiq.service.consultation.ConsultationPreparationService;
 import com.nexaworks.rafiq.service.notification.NotificationService;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ConsultationPreparationServiceImpl Unit Tests")
-class ConsultationPreparationServiceImplTest {
+class ConsultationPreparationServiceTest {
 
     @Mock
     private NotificationService<PushNotification> notificationService;
@@ -49,7 +49,7 @@ class ConsultationPreparationServiceImplTest {
     private RtcProvider rtcProvider;
 
     @InjectMocks
-    private ConsultationPreparationServiceImpl preparationService;
+    private ConsultationPreparationService preparationService;
 
     private UUID consultationId;
     private TimeSlot timeSlot;

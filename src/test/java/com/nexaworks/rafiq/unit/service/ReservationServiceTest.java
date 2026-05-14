@@ -33,12 +33,12 @@ import com.nexaworks.rafiq.entities.enums.PaymentProvider;
 import com.nexaworks.rafiq.exception.custom.ConsultationException;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
-import com.nexaworks.rafiq.service.consultation.ReservationServiceImpl;
+import com.nexaworks.rafiq.service.consultation.ReservationService;
 import com.nexaworks.rafiq.service.payment.PaymentService;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ReservationServiceImpl Unit Tests")
-class ReservationServiceImplTest {
+class ReservationServiceTest {
 
     @Mock
     private ConsultationRepository consultationRepository;
@@ -53,7 +53,7 @@ class ReservationServiceImplTest {
     private PaymentService paymentService;
 
     @InjectMocks
-    private ReservationServiceImpl reservationService;
+    private ReservationService reservationService;
 
     private Patient patient;
     private UUID consultationId;

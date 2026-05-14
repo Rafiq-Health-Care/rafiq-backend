@@ -13,7 +13,7 @@ import com.nexaworks.rafiq.entities.enums.PaymentStatus;
 import com.nexaworks.rafiq.exception.custom.PaymentException;
 import com.nexaworks.rafiq.repository.PaymentRepository;
 import com.nexaworks.rafiq.scheduler.PaymentScheduler;
-import com.nexaworks.rafiq.service.consultation.ConsultationService;
+import com.nexaworks.rafiq.service.consultation.IConsultationService;
 import com.stripe.exception.InvalidRequestException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
@@ -24,13 +24,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PaymentTrackingService implements IPaymentTrackingService {
     private final PaymentRepository paymentRepository;
-    private final ConsultationService consultationService;
+    private final IConsultationService IConsultationService;
     private final PaymentScheduler paymentScheduler;
 
     public PaymentTrackingService(PaymentRepository paymentRepository,
-            ConsultationService consultationService, @Lazy PaymentScheduler paymentScheduler) {
+            IConsultationService IConsultationService, @Lazy PaymentScheduler paymentScheduler) {
         this.paymentRepository = paymentRepository;
-        this.consultationService = consultationService;
+        this.IConsultationService = IConsultationService;
         this.paymentScheduler = paymentScheduler;
     }
 
@@ -90,9 +90,9 @@ public class PaymentTrackingService implements IPaymentTrackingService {
 
         UUID consId = payment.getConsultation().getId();
         if (status == PaymentStatus.SUCCEEDED) {
-            consultationService.update(consId, ConsultationStatus.CONFIRMED);
+            IConsultationService.update(consId, ConsultationStatus.CONFIRMED);
         } else if (status == PaymentStatus.FAILED || status == PaymentStatus.CANCELLED) {
-            consultationService.update(consId, ConsultationStatus.AVAILABLE);
+            IConsultationService.update(consId, ConsultationStatus.AVAILABLE);
         }
     }
 
