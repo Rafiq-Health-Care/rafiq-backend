@@ -14,7 +14,7 @@ import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.enums.ActionStatus;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
-import com.nexaworks.rafiq.exception.custom.ConsultationException;
+import com.nexaworks.rafiq.exception.custom.ConsultationNotFoundException;
 import com.nexaworks.rafiq.exception.custom.RtcProviderException;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.service.call.RtcProvider;
@@ -36,7 +36,7 @@ public class ConsultationPreparationServiceImpl implements ConsultationPreparati
     @Transactional(rollbackOn = {RtcProviderException.class})
     public void prepare(UUID uuid) {
         Consultation consultation = consultationRepository.findConsultationById(uuid)
-                .orElseThrow(() -> new ConsultationException("Consultation not found"));
+                .orElseThrow(() -> new ConsultationNotFoundException("Consultation not found"));
 
         if (!consultation.getStatus().isPreparable()) {
             return;

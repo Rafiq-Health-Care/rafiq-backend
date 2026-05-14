@@ -18,7 +18,9 @@ import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.EventType;
 import com.nexaworks.rafiq.entities.enums.PaymentProvider;
-import com.nexaworks.rafiq.exception.custom.ConsultationException;
+import com.nexaworks.rafiq.exception.custom.ConsultationNotFoundException;
+import com.nexaworks.rafiq.exception.custom.ConsultationOverlappingException;
+import com.nexaworks.rafiq.exception.custom.ConsultationReservedException;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.service.payment.PaymentService;
@@ -46,10 +48,10 @@ public class ReservationServiceImpl implements ReservationService {
         Patient patient = (Patient) authService.getAuthenticateUser();
         log.info("Patient {} is reserving consultation {}", patient.getEmail(), id);
         Consultation consultation = consultationRepository.findConsultationById(id)
-                .orElseThrow(() -> new ConsultationException("Consultation not found"));
+                .orElseThrow(() -> new ConsultationNotFoundException("Consultation not found"));
 
         if (!consultation.getStatus().equals(ConsultationStatus.AVAILABLE)) {
-            throw new ConsultationException("Consultation cannot be reserved");
+            throw new ConsultationReservedException("Consultation cannot be reserved");
         }
 
         checkPatientOverlapping(consultation, patient);
@@ -83,7 +85,7 @@ public class ReservationServiceImpl implements ReservationService {
         if (consultationRepository.existsByPatientOverlapping(
                 consultation.getTimeSlot().getStartTime(), consultation.getTimeSlot().getEndTime(),
                 currentUser.getId(), ConsultationStatus.CANCELLED)) {
-            throw new ConsultationException("Consultation time slot is already booked");
+            throw new ConsultationOverlappingException("Consultation time slot is already booked");
         }
     }
 }
