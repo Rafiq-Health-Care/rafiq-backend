@@ -10,19 +10,18 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.*;
 import com.nexaworks.rafiq.entities.enums.Specialization;
 import com.nexaworks.rafiq.exception.custom.RegistrationException;
+import com.nexaworks.rafiq.rabbit.manager.UserNotificationManager;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.doctor.DoctorService;
 import com.nexaworks.rafiq.service.patient.PatientService;
-import com.nexaworks.rafiq.service.rabbit.MessageService;
 import com.nexaworks.rafiq.utils.AuthSessionManager;
+import com.nexaworks.rafiq.utils.TransactionUtils;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +38,8 @@ public class UserServiceImpl implements UserService {
     private final AuthSessionManager authSessionManager;
     private final PatientService patientService;
     private final DoctorService doctorService;
-    private final MessageService messageService;
+    private final TransactionUtils transactionUtils;
+    private final UserNotificationManager manager;
 
     @Override
     @Transactional
@@ -49,14 +49,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         patientService.register((Patient) user);
         String otp = tokenService.generateOtpToken(user);
-
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                messageService.sendRegistrationEvent(user, otp);
-
-            }
-        });
+        transactionUtils.afterCommit(() -> manager.sendRegistrationEvent(user, otp));
     }
 
     @Override
@@ -70,14 +63,7 @@ public class UserServiceImpl implements UserService {
         doctorService.register((Doctor) user, specialization, description);
 
         String otp = tokenService.generateOtpToken(user);
-
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                messageService.sendNewOtpEvent(user, otp);
-                // TODO handle national Id uploading
-            }
-        });
+        transactionUtils.afterCommit(() -> manager.sendRegistrationEvent(user, otp));
     }
 
     @Override
