@@ -1,5 +1,7 @@
 package com.nexaworks.rafiq.rabbit.publisher;
 
+import static com.nexaworks.rafiq.rabbit.constant.RabbitMQConstant.*;
+
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
