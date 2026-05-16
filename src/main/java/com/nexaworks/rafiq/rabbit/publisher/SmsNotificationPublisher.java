@@ -1,5 +1,8 @@
 package com.nexaworks.rafiq.rabbit.publisher;
 
+import static com.nexaworks.rafiq.rabbit.constant.RabbitMQConstant.NOTIFICATION_EXCHANGE;
+import static com.nexaworks.rafiq.rabbit.constant.RabbitMQConstant.ROUTING_KEY_SMS;
+
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.stereotype.Component;
 
