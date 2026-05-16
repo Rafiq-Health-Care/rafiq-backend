@@ -3,8 +3,8 @@ package com.nexaworks.rafiq.rabbit.publisher;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.stereotype.Component;
 
-import com.nexaworks.rafiq.constant.RabbitMQConstant;
-import com.nexaworks.rafiq.dto.event.refund.RefundRequestEvent;
+import com.nexaworks.rafiq.rabbit.constant.RabbitMQConstant;
+import com.nexaworks.rafiq.rabbit.event.RefundRequestEvent;
 
 import lombok.extern.slf4j.Slf4j;
 
