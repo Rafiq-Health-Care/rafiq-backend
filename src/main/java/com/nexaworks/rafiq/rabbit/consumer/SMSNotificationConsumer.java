@@ -1,6 +1,6 @@
-package com.nexaworks.rafiq.consumer;
+package com.nexaworks.rafiq.rabbit.consumer;
 
-import static com.nexaworks.rafiq.constant.RabbitMQConstant.SMS_NOTIFICATION_QUEUE;
+import static com.nexaworks.rafiq.rabbit.constant.RabbitMQConstant.SMS_NOTIFICATION_QUEUE;
 
 import java.io.IOException;
 
@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
-import com.nexaworks.rafiq.dto.notificaiton.SmsNotification;
+import com.nexaworks.rafiq.rabbit.notificaiton.SmsNotification;
 import com.nexaworks.rafiq.service.notification.NotificationService;
 import com.rabbitmq.client.Channel;
 

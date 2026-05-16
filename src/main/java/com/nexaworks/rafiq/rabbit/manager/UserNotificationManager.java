@@ -3,8 +3,8 @@ package com.nexaworks.rafiq.rabbit.manager;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.nexaworks.rafiq.dto.notificaiton.EmailNotification;
 import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.rabbit.notificaiton.EmailNotification;
 import com.nexaworks.rafiq.rabbit.publisher.EventPublisher;
 import com.nexaworks.rafiq.service.notification.EmailContentService;
 

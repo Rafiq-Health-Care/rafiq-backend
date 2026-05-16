@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.constant;
+package com.nexaworks.rafiq.rabbit.constant;
 
 public class RabbitMQConstant {
     public static final String EMAIL_NOTIFICATION_QUEUE = "notification.email";
@@ -37,4 +37,13 @@ public class RabbitMQConstant {
     public static final String CONSULTATION_PREPARATION_ROUTING_KEY = "consultation.preparation";
     public static final String CONSULTATION_PREPARATION_RETRY_ROUTING_KEY = "consultation.preparation.retry";
     public static final String CONSULTATION_PREPARATION_DLQ_ROUTING_KEY = "consultation.preparation.dlq";
+
+    public static final String REFUND_REQUEST_EXCHANGE = "refund.request.exchange";
+    public static final String REFUND_REQUEST_QUEUE = "refund.request.queue";
+    public static final String REFUND_REQUEST_ROUTING_KEY = "refund.request";
+    public static final String REFUND_REQUEST_DLQ_ROUTING_KEY = "refund.request.dlq";
+    public static final String REFUND_REQUEST_DLQ_QUEUE = "refund.request.dlq.queue";
+
+    public static final String OTP_QUEUE = "notification.otp";
+    public static final String OTP_ROUTING_KEY = "notification.otp";
 }
