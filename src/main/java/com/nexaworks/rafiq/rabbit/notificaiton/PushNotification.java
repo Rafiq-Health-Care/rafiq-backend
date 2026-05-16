@@ -1,4 +1,4 @@
-package com.nexaworks.rafiq.dto.notificaiton;
+package com.nexaworks.rafiq.rabbit.notificaiton;
 
 import java.util.Map;
 

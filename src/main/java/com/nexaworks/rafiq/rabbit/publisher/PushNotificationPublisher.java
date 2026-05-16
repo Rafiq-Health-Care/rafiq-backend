@@ -1,12 +1,12 @@
 package com.nexaworks.rafiq.rabbit.publisher;
 
-import static com.nexaworks.rafiq.constant.RabbitMQConstant.NOTIFICATION_EXCHANGE;
-import static com.nexaworks.rafiq.constant.RabbitMQConstant.ROUTING_KEY_PUSH;
+import static com.nexaworks.rafiq.rabbit.constant.RabbitMQConstant.NOTIFICATION_EXCHANGE;
+import static com.nexaworks.rafiq.rabbit.constant.RabbitMQConstant.ROUTING_KEY_PUSH;
 
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.stereotype.Component;
 
-import com.nexaworks.rafiq.dto.notificaiton.PushNotification;
+import com.nexaworks.rafiq.rabbit.notificaiton.PushNotification;
 
 import lombok.extern.slf4j.Slf4j;
 
