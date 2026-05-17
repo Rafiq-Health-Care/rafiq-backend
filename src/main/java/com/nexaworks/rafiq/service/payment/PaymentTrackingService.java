@@ -8,12 +8,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.entities.Payment;
-import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.PaymentStatus;
 import com.nexaworks.rafiq.exception.custom.PaymentException;
 import com.nexaworks.rafiq.repository.PaymentRepository;
 import com.nexaworks.rafiq.scheduler.PaymentScheduler;
-import com.nexaworks.rafiq.service.consultation.IConsultationService;
+import com.nexaworks.rafiq.service.consultation.IConsultationProcessingService;
 import com.stripe.exception.InvalidRequestException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
@@ -24,13 +23,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PaymentTrackingService implements IPaymentTrackingService {
     private final PaymentRepository paymentRepository;
-    private final IConsultationService IConsultationService;
+    private final IConsultationProcessingService consultationProcessingService;
     private final PaymentScheduler paymentScheduler;
 
     public PaymentTrackingService(PaymentRepository paymentRepository,
-            IConsultationService IConsultationService, @Lazy PaymentScheduler paymentScheduler) {
+            IConsultationProcessingService consultationProcessingService,
+            @Lazy PaymentScheduler paymentScheduler) {
         this.paymentRepository = paymentRepository;
-        this.IConsultationService = IConsultationService;
+        this.consultationProcessingService = consultationProcessingService;
         this.paymentScheduler = paymentScheduler;
     }
 
@@ -90,9 +90,9 @@ public class PaymentTrackingService implements IPaymentTrackingService {
 
         UUID consId = payment.getConsultation().getId();
         if (status == PaymentStatus.SUCCEEDED) {
-            IConsultationService.update(consId, ConsultationStatus.CONFIRMED);
+            consultationProcessingService.success(consId);
         } else if (status == PaymentStatus.FAILED || status == PaymentStatus.CANCELLED) {
-            IConsultationService.update(consId, ConsultationStatus.AVAILABLE);
+            consultationProcessingService.failed(consId);
         }
     }
 
