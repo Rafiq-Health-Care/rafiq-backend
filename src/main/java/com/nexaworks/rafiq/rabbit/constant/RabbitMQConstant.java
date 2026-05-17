@@ -43,6 +43,7 @@ public class RabbitMQConstant {
     public static final String REFUND_REQUEST_ROUTING_KEY = "refund.request";
     public static final String REFUND_REQUEST_DLQ_ROUTING_KEY = "refund.request.dlq";
     public static final String REFUND_REQUEST_DLQ_QUEUE = "refund.request.dlq.queue";
+    public static final String REFUND_REQUEST_DLQ_EXCHANGE = "refund.request.dlq.exchange";
 
     public static final String OTP_QUEUE = "notification.otp";
     public static final String OTP_ROUTING_KEY = "notification.otp";
