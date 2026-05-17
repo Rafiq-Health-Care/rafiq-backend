@@ -63,7 +63,7 @@ public class ReservationService implements IReservationService {
         log.info("Consultation {} is reserved by {}", slot.getId(), patient.getId());
 
         String clientSecret = paymentService.process(consultation, patient, provider);
-        slot.setStatus(SlotStatus.BOOKED);
+        slot.setStatus(SlotStatus.PENDING_PAYMENT);
 
         consultationRepository.save(consultation);
 
