@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.service.consultation;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -14,17 +15,17 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationEvent;
 import com.nexaworks.rafiq.entities.Consultation;
+import com.nexaworks.rafiq.entities.ConsultationSlot;
 import com.nexaworks.rafiq.entities.Patient;
-import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.EventType;
 import com.nexaworks.rafiq.entities.enums.PaymentProvider;
-import com.nexaworks.rafiq.exception.custom.ConsultationNotFoundException;
-import com.nexaworks.rafiq.exception.custom.ConsultationOverlappingException;
-import com.nexaworks.rafiq.exception.custom.ConsultationReservedException;
+import com.nexaworks.rafiq.entities.enums.SlotStatus;
+import com.nexaworks.rafiq.exception.custom.*;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
+import com.nexaworks.rafiq.repository.ConsultationSlotRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.service.payment.PaymentService;
-import com.nexaworks.rafiq.service.rabbit.MessageService;
+import com.nexaworks.rafiq.utils.TransactionUtils;
 import com.stripe.exception.StripeException;
 
 import lombok.RequiredArgsConstructor;
@@ -35,10 +36,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ReservationService implements IReservationService {
     private final ConsultationRepository consultationRepository;
+    private final ConsultationSlotRepository slotRepository;
     private final AuthService authService;
     private final SimpMessagingTemplate messagingTemplate;
     private final PaymentService paymentService;
-    private final MessageService messageService;
+    private final TransactionUtils transactionUtils;
 
     @Override
     @Transactional
@@ -47,21 +49,21 @@ public class ReservationService implements IReservationService {
     public String reserve(UUID id, PaymentProvider provider) throws StripeException {
         Patient patient = (Patient) authService.getAuthenticateUser();
         log.info("Patient {} is reserving consultation {}", patient.getEmail(), id);
-        Consultation consultation = consultationRepository.findConsultationById(id)
-                .orElseThrow(() -> new ConsultationNotFoundException("Consultation not found"));
 
-        if (!consultation.getStatus().equals(ConsultationStatus.AVAILABLE)) {
-            throw new ConsultationReservedException("Consultation cannot be reserved");
+        ConsultationSlot slot = slotRepository.findConsultationByIdWithLock(id)
+                .orElseThrow(() -> new SlotNotFoundException("Consultation not found"));
+
+        if (!slot.getStatus().equals(SlotStatus.AVAILABLE)) {
+            throw new SlotReservedException("Consultation cannot be reserved");
         }
 
-        checkPatientOverlapping(consultation, patient);
-        consultation.setStatus(ConsultationStatus.BOOKED);
+        checkPatientOverlapping(slot.getStartTime(), slot.getEndTime(), patient);
+        Consultation consultation = Consultation.builder().slot(slot).patient(patient).build();
 
-        log.info("Consultation {} is reserved by {}", consultation.getId(), patient.getEmail());
-
-        consultation.setPatient(patient);
+        log.info("Consultation {} is reserved by {}", slot.getId(), patient.getId());
 
         String clientSecret = paymentService.process(consultation, patient, provider);
+        slot.setStatus(SlotStatus.BOOKED);
 
         consultationRepository.save(consultation);
 
@@ -70,9 +72,6 @@ public class ReservationService implements IReservationService {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                messageService.publishPreparationEvent(consultation.getId(),
-                        consultation.getTimeSlot().getStartTime());
-
                 messagingTemplate.convertAndSend("/topic/consultation",
                         new ConsultationEvent(consultation.getId(), EventType.BOOKED, Map.of()));
             }
@@ -81,10 +80,9 @@ public class ReservationService implements IReservationService {
         return clientSecret;
     }
 
-    private void checkPatientOverlapping(Consultation consultation, Patient currentUser) {
-        if (consultationRepository.existsByPatientOverlapping(
-                consultation.getTimeSlot().getStartTime(), consultation.getTimeSlot().getEndTime(),
-                currentUser.getId(), ConsultationStatus.CANCELLED)) {
+    private void checkPatientOverlapping(LocalDateTime start, LocalDateTime end,
+            Patient currentUser) {
+        if (consultationRepository.existsByPatientOverlapping(start, end, currentUser.getId())) {
             throw new ConsultationOverlappingException("Consultation time slot is already booked");
         }
     }
