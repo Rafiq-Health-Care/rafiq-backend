@@ -1,10 +1,10 @@
 package com.nexaworks.rafiq.rabbit.manager;
 
-import static com.nexaworks.rafiq.entities.enums.ActionStatus.CONSULTATION_CANCELLED;
-import static com.nexaworks.rafiq.entities.enums.ActionStatus.CONSULTATION_EXPIRED;
+import static com.nexaworks.rafiq.entities.enums.ActionStatus.*;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -64,6 +64,16 @@ public class ConsultationNotificationManager {
     public void publishDoctorExpireNotification(String notificationToken, LocalDateTime startTime) {
         PushNotification notification = new PushNotification(CONSULTATION_EXPIRED,
                 notificationToken, Map.of("startTime", startTime.toString()));
+        pushPublisher.publish(notification);
+    }
+    public void publishSuccessfulReservationNotification(String notificationToken, UUID slotId) {
+        PushNotification notification = new PushNotification(NEW_CONSULTATION, notificationToken,
+                Map.of("slotId", slotId.toString()));
+        pushPublisher.publish(notification);
+    }
+    public void publishFailedReservationNotification(String notificationToken, UUID reservationId) {
+        PushNotification notification = new PushNotification(CONSULTATION_FAILED, notificationToken,
+                Map.of("slotId", reservationId.toString()));
         pushPublisher.publish(notification);
     }
 }
