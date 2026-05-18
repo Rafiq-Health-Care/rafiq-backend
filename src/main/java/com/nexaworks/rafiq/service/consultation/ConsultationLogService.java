@@ -26,6 +26,7 @@ public class ConsultationLogService implements IConsultationLogService {
         ConsultationLog consultationLog;
         if (consultation.getConsultationLog() == null) {
             consultationLog = new ConsultationLog();
+            consultationLog.setConsultation(consultation);
             consultation.setConsultationLog(consultationLog);
         } else {
             consultationLog = consultation.getConsultationLog();

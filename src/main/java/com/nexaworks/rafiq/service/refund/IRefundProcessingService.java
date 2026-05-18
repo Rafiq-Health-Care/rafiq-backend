@@ -6,6 +6,6 @@ import com.stripe.exception.StripeException;
 
 public interface IRefundProcessingService {
     void beginProcessing(UUID refundId) throws StripeException;
-    void markSucceeded(UUID refundId);
-    void markFailed(UUID refundId);
+    void markSucceeded(String refundId);
+    void markFailed(String refundId);
 }

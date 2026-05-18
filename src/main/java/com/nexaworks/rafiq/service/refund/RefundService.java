@@ -106,6 +106,9 @@ public class RefundService implements IRefundService {
     }
 
     private void validatePayment(Payment payment) {
+        if (payment == null) {
+            throw new CanNotRefundException("No payment found for this consultation");
+        }
         if (payment.getStatus() != PaymentStatus.SUCCEEDED) {
             throw new CanNotRefundException(
                     "Cannot refund payment with status " + payment.getStatus());

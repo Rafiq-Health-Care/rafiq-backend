@@ -67,9 +67,14 @@ public class ConsultationCancellationService implements IConsultationCancellatio
 
         boolean cancelledByPatient = cancelBookedConsultation(reason, consultation, currentUser);
 
-        UUID refundId = refundService.refund(consultation, !cancelledByPatient);
-
         log.info("Consultation cancelled {} by {}", consultation.getId(), currentUser.getEmail());
+
+        if (consultation.getPayment() == null) {
+            transactionUtils.afterCommit(() -> notify(id, cancelledByPatient, consultation));
+            return;
+        }
+
+        UUID refundId = refundService.refund(consultation, !cancelledByPatient);
 
         transactionUtils.afterCommit(() -> {
             eventManager.publishRefundRequestEvent(refundId);

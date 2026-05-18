@@ -10,8 +10,10 @@ import com.nexaworks.rafiq.entities.RefundRequest;
 import com.nexaworks.rafiq.entities.enums.PaymentStatus;
 import com.nexaworks.rafiq.entities.enums.RefundStatus;
 import com.nexaworks.rafiq.exception.custom.payment.RefundNotFoundException;
+import com.nexaworks.rafiq.rabbit.manager.RefundEventManager;
 import com.nexaworks.rafiq.repository.RefundRepository;
 import com.nexaworks.rafiq.service.payment.PaymentService;
+import com.nexaworks.rafiq.utils.TransactionUtils;
 import com.stripe.exception.StripeException;
 
 import lombok.RequiredArgsConstructor;
@@ -22,14 +24,17 @@ import lombok.extern.slf4j.Slf4j;
 public class RefundProcessingService implements IRefundProcessingService {
     private final RefundRepository refundRepository;
     private final PaymentService paymentService;
+    private final RefundEventManager refundEventManager;
+    private final TransactionUtils transactionUtils;
 
     @Override
     @Transactional
     public void beginProcessing(UUID refundId) throws StripeException {
         log.info("Beginning processing for refund {}", refundId);
-        updateRefundStatus(refundId, RefundStatus.PROCESSING);
+        RefundRequest refund = refundRepository.findById(refundId).orElseThrow(
+                () -> new RefundNotFoundException("Refund not found with id: " + refundId));
         log.info("Refund {} is now in PROCESSING state", refundId);
-        RefundRequest refund = getRefundRequest(refundId);
+        refund.setStatus(RefundStatus.PROCESSING);
         String stripeRefundId = paymentService.processRefund(refund.getPayment());
         refund.setStripeRefundId(stripeRefundId);
         refundRepository.save(refund);
@@ -38,7 +43,7 @@ public class RefundProcessingService implements IRefundProcessingService {
 
     @Override
     @Transactional
-    public void markSucceeded(UUID refundId) {
+    public void markSucceeded(String refundId) {
         log.info("Marking refund {} as succeeded", refundId);
         RefundRequest refund = getRefundRequest(refundId);
         refund.setStatus(RefundStatus.COMPLETED);
@@ -46,24 +51,24 @@ public class RefundProcessingService implements IRefundProcessingService {
         refundRepository.save(refund);
         log.info("Refund {} completed — payment {} marked as REFUNDED", refundId,
                 refund.getPayment().getId());
+        transactionUtils.afterCommit(() -> refundEventManager.publishRefundSucceededNotification(
+                refund.getId(), refund.getPatient().getNotificationToken(), refund.getAmount()));
     }
 
     @Override
     @Transactional
-    public void markFailed(UUID refundId) {
+    public void markFailed(String refundId) {
         log.info("Marking refund {} as failed", refundId);
-        updateRefundStatus(refundId, RefundStatus.FAILED);
-        log.info("Refund {} marked as FAILED", refundId);
-    }
-
-    private void updateRefundStatus(UUID refundId, RefundStatus status) {
         RefundRequest refund = getRefundRequest(refundId);
-        refund.setStatus(status);
+        refund.setStatus(RefundStatus.FAILED);
         refundRepository.save(refund);
+        log.info("Refund {} marked as FAILED", refundId);
+        transactionUtils.afterCommit(() -> refundEventManager.publishRefundFailedNotification(
+                refund.getId(), refund.getPatient().getNotificationToken()));
     }
 
-    private @NonNull RefundRequest getRefundRequest(UUID refundId) {
-        return refundRepository.findById(refundId).orElseThrow(
+    private @NonNull RefundRequest getRefundRequest(String refundId) {
+        return refundRepository.findByStripeRefundId(refundId).orElseThrow(
                 () -> new RefundNotFoundException("Refund not found with id: " + refundId));
     }
 }
