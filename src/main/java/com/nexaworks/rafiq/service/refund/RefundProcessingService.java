@@ -33,7 +33,7 @@ public class RefundProcessingService implements IRefundProcessingService {
         String stripeRefundId = paymentService.processRefund(refund.getPayment());
         refund.setStripeRefundId(stripeRefundId);
         refundRepository.save(refund);
-        log.info("Refund {} is now in COMPLETED state", refundId);
+
     }
 
     @Override

@@ -15,6 +15,7 @@ import com.nexaworks.rafiq.entities.enums.PaymentProvider;
 import com.nexaworks.rafiq.exception.custom.payment.PaymentException;
 import com.nexaworks.rafiq.exception.custom.payment.PaymentProviderException;
 import com.nexaworks.rafiq.repository.PaymentRepository;
+import com.nexaworks.rafiq.scheduler.PaymentScheduler;
 import com.stripe.exception.StripeException;
 
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PaymentServiceImpl implements PaymentService {
     private final ApplicationContext applicationContext;
     private final PaymentRepository paymentRepository;
+    private final PaymentScheduler paymentScheduler;
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = {
             PaymentProviderException.class, PaymentException.class})
@@ -44,10 +46,8 @@ public class PaymentServiceImpl implements PaymentService {
         consultation.setPayment(payment);
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
-            public void afterCompletion(int status) {
-                if (status == TransactionSynchronization.STATUS_ROLLED_BACK) {
-                    paymentScheduler.deleteJob(payment.getId());
-                }
+            public void afterCommit() {
+                paymentScheduler.schedulePaymentExpiration(payment.getId());
             }
         });
         return paymentDto.clientSecret();
