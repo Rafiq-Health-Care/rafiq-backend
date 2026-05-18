@@ -34,7 +34,6 @@ public class PaymentTrackingService implements IPaymentTrackingService {
         this.paymentScheduler = paymentScheduler;
     }
 
-    // TODO send notification to user
     @Override
     @Transactional
     public void check(UUID paymentId) throws StripeException {
@@ -50,9 +49,9 @@ public class PaymentTrackingService implements IPaymentTrackingService {
             case "succeeded" -> update(intent.getId(), PaymentStatus.SUCCEEDED);
             case "canceled" -> update(intent.getId(), PaymentStatus.CANCELLED);
             case "processing" -> {
-                paymentScheduler.deleteJob(payment.getId());
-                paymentScheduler.schedulePaymentTimeout(payment.getId());
+                paymentScheduler.reschedule(paymentId);
             }
+
             default -> {
                 try {
                     intent.cancel();
