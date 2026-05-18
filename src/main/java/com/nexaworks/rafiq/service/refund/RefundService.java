@@ -38,7 +38,7 @@ public class RefundService implements IRefundService {
 
     @Override
     @Transactional
-    public UUID refund(Consultation consultation) {
+    public UUID refund(Consultation consultation, boolean isFullRefund) {
         validateConsultation(consultation);
         validatePayment(consultation.getPayment());
 
@@ -48,9 +48,14 @@ public class RefundService implements IRefundService {
         }
 
         log.info("Refunding consultation {}", consultation.getId());
+        BigDecimal refundAmount;
+        if (isFullRefund) {
+            refundAmount = consultation.getPayment().getAmount();
+        } else {
 
-        BigDecimal refundAmount = getRefundAmount(consultation.getSlot().getStartTime(),
-                consultation.getPayment().getAmount());
+            refundAmount = getRefundAmount(consultation.getSlot().getStartTime(),
+                    consultation.getPayment().getAmount());
+        }
 
         RefundRequest refundRequest = RefundRequest.builder().amount(refundAmount)
                 .payment(consultation.getPayment()).consultation(consultation)
