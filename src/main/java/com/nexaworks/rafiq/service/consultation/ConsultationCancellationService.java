@@ -14,6 +14,7 @@ import com.nexaworks.rafiq.entities.CancellationLog;
 import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
+import com.nexaworks.rafiq.entities.enums.SlotStatus;
 import com.nexaworks.rafiq.exception.custom.ConsultationException;
 import com.nexaworks.rafiq.exception.custom.ConsultationNotFoundException;
 import com.nexaworks.rafiq.rabbit.manager.ConsultationNotificationManager;
@@ -52,9 +53,6 @@ public class ConsultationCancellationService implements IConsultationCancellatio
             throw new ConsultationException("Consultation is already completed");
         }
 
-        if (cancelAvailableConsultation(consultation, currentUser))
-            return;
-
         if (!consultation.getDoctor().getId().equals(currentUser.getId())
                 && !consultation.getPatient().getId().equals(currentUser.getId())) {
             throw new ConsultationException("You are not authorized to cancel this consultation");
@@ -76,20 +74,6 @@ public class ConsultationCancellationService implements IConsultationCancellatio
             }
         });
     }
-    private boolean cancelAvailableConsultation(Consultation consultation, User currentUser) {
-        if (consultation.getStatus() == ConsultationStatus.AVAILABLE) {
-            if (!consultation.getDoctor().getId().equals(currentUser.getId())) {
-                throw new ConsultationException(
-                        "You are not authorized to cancel this consultation");
-            }
-            consultation.setStatus(ConsultationStatus.CANCELLED);
-            consultationRepository.save(consultation);
-            messagingTemplate.convertAndSend("/topic/consultation",
-                    new ConsultationCancelled(consultation.getId(), ConsultationStatus.CANCELLED));
-            return true;
-        }
-        return false;
-    }
     private boolean cancelBookedConsultation(String reason, Consultation consultation,
             User currentUser) {
         CancellationLog cancellationLog = CancellationLog.builder().consultation(consultation)
@@ -98,10 +82,10 @@ public class ConsultationCancellationService implements IConsultationCancellatio
         cancellationLogRepository.save(cancellationLog);
 
         boolean cancelledByPatient = currentUser.getId().equals(consultation.getPatient().getId());
-        consultation.setStatus(
-                cancelledByPatient ? ConsultationStatus.AVAILABLE : ConsultationStatus.CANCELLED);
+        consultation.setStatus(ConsultationStatus.CANCELLED);
 
         consultation.setCancellationLog(cancellationLog);
+        consultation.getSlot().setStatus(SlotStatus.AVAILABLE);
         consultationRepository.save(consultation);
         return cancelledByPatient;
     }
