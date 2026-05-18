@@ -29,6 +29,7 @@ import com.nexaworks.rafiq.client.Gemini;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.integration.config.IntegrationTestExternalMocks;
 import com.nexaworks.rafiq.integration.config.TestDataSeeder;
+import com.nexaworks.rafiq.rabbit.manager.UserNotificationManager;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
@@ -36,6 +37,8 @@ import com.nexaworks.rafiq.integration.config.TestDataSeeder;
 @ActiveProfiles("test")
 @Import({TestDataSeeder.class, IntegrationTestExternalMocks.class})
 public abstract class BaseIntegrationTest {
+
+    protected static final String IDEMPOTENCY_KEY_HEADER = "Idempotency-Key";
 
     /**
      * HTTP body-shaped JSON so {@link com.nexaworks.rafiq.service.ai.GeminiService}
@@ -47,7 +50,7 @@ public abstract class BaseIntegrationTest {
     protected Gemini gemini;
 
     @MockBean
-    protected MessageService messageService;
+    protected UserNotificationManager messageService;
 
     @BeforeEach
     void stubGeminiClientApi() {

@@ -53,7 +53,7 @@ public interface ConsultationRepository
     @Query("""
             SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END
             FROM Consultation c
-            WHERE c.slot.id = :doctorId
+            WHERE c.slot.doctor.id = :doctorId
             AND c.patient.id = :patientId
             AND c.status NOT IN :excludedStatuses
             """)

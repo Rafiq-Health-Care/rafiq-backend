@@ -1,7 +1,6 @@
 package com.nexaworks.rafiq.integration.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -25,23 +24,33 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
+import com.nexaworks.rafiq.dto.request.consultation.CancelConsultationRequest;
+import com.nexaworks.rafiq.dto.request.consultation.EditConsultationSlotRequest;
+import com.nexaworks.rafiq.dto.request.consultation.ReserveConsultationRequest;
 import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
-import com.nexaworks.rafiq.dto.response.consultation.ConsultationFilter;
 import com.nexaworks.rafiq.entities.Consultation;
+import com.nexaworks.rafiq.entities.ConsultationSlot;
 import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.Role;
-import com.nexaworks.rafiq.entities.TimeSlot;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.PaymentProvider;
+import com.nexaworks.rafiq.entities.enums.SlotStatus;
 import com.nexaworks.rafiq.entities.enums.Specialization;
 import com.nexaworks.rafiq.integration.BaseIntegrationTest;
+import com.nexaworks.rafiq.rabbit.manager.ConsultationNotificationManager;
+import com.nexaworks.rafiq.rabbit.manager.RefundEventManager;
 import com.nexaworks.rafiq.repository.CancellationLogRepository;
+import com.nexaworks.rafiq.repository.ConsultationLogRepository;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
+import com.nexaworks.rafiq.repository.ConsultationSlotRepository;
 import com.nexaworks.rafiq.repository.DoctorRepository;
 import com.nexaworks.rafiq.repository.PatientRepository;
+import com.nexaworks.rafiq.repository.PaymentRepository;
+import com.nexaworks.rafiq.repository.RefundRepository;
 import com.nexaworks.rafiq.repository.RoleRepository;
 import com.nexaworks.rafiq.repository.UserRepository;
+import com.nexaworks.rafiq.service.payment.PaymentService;
 
 @DisplayName("Consultation Controller Integration Tests")
 public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
@@ -62,7 +71,19 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
     private ConsultationRepository consultationRepository;
 
     @Autowired
+    private ConsultationSlotRepository consultationSlotRepository;
+
+    @Autowired
     private CancellationLogRepository cancellationLogRepository;
+
+    @Autowired
+    private ConsultationLogRepository consultationLogRepository;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    @Autowired
+    private RefundRepository refundRepository;
 
     @Autowired
     private RoleRepository roleRepository;
@@ -73,10 +94,23 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @org.springframework.boot.test.mock.mockito.MockBean
+    private PaymentService paymentService;
+
+    @org.springframework.boot.test.mock.mockito.MockBean
+    private ConsultationNotificationManager consultationNotificationManager;
+
+    @org.springframework.boot.test.mock.mockito.MockBean
+    private RefundEventManager refundEventManager;
+
     @BeforeEach
     void cleanDatabase() {
         cancellationLogRepository.deleteAll();
+        consultationLogRepository.deleteAll();
+        refundRepository.deleteAll();
+        paymentRepository.deleteAll();
         consultationRepository.deleteAll();
+        consultationSlotRepository.deleteAll();
         patientRepository.deleteAll();
         doctorRepository.deleteAll();
         userRepository.deleteAll();
@@ -106,23 +140,24 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
         return patientRepository.save(patient);
     }
 
-    private Consultation persistConsultation(Doctor doctor, ConsultationStatus status) {
-        return persistConsultation(doctor, null, status, LocalDateTime.now().plusDays(1));
+    private ConsultationSlot persistSlot(Doctor doctor, SlotStatus status,
+            LocalDateTime startTime) {
+        ConsultationSlot slot = ConsultationSlot.builder().doctor(doctor).startTime(startTime)
+                .endTime(startTime.plusMinutes(60)).durationMinutes(60).status(status).build();
+        return consultationSlotRepository.save(slot);
     }
 
-    private Consultation persistConsultation(Doctor doctor, Patient patient,
-            ConsultationStatus status, LocalDateTime startTime) {
-        TimeSlot slot = TimeSlot.builder().startTime(startTime).endTime(startTime.plusMinutes(60))
-                .durationMinutes(60).build();
-        Consultation consultation = Consultation.builder().doctor(doctor).patient(patient)
-                .timeSlot(slot).status(status).specialization(doctor.getSpecialization()).build();
+    private Consultation persistConsultation(ConsultationSlot slot, Patient patient,
+            ConsultationStatus status) {
+        Consultation consultation = Consultation.builder().slot(slot).patient(patient)
+                .status(status).build();
         return consultationRepository.save(consultation);
     }
 
     @Nested
-    @DisplayName("POST /consultation/add")
+    @DisplayName("POST /slot")
     class AddConsultation {
-        private static final String ENDPOINT = "/consultation/add";
+        private static final String ENDPOINT = "/slot";
 
         @Test
         @DisplayName("Doctor creates a consultation successfully")
@@ -132,14 +167,15 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
                     LocalDateTime.now().plusDays(2).withNano(0), 60);
 
             mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON)
+                    .header(IDEMPOTENCY_KEY_HEADER, UUID.randomUUID())
                     .content(objectMapper.writeValueAsString(request)).with(withUserId(doctor)))
-                    .andExpect(status().isOk()).andExpect(jsonPath("$.id").exists())
-                    .andExpect(jsonPath("$.duration").value(60))
-                    .andExpect(jsonPath("$.price").value(150))
-                    .andExpect(jsonPath("$.status").value("AVAILABLE"))
-                    .andExpect(jsonPath("$.doctor.id").value(doctor.getId().toString()));
+                    .andExpect(status().isCreated());
 
-            assertThat(consultationRepository.count()).isEqualTo(1);
+            assertThat(consultationSlotRepository.count()).isEqualTo(1);
+            ConsultationSlot slot = consultationSlotRepository.findAll().get(0);
+            assertThat(slot.getDoctor().getId()).isEqualTo(doctor.getId());
+            assertThat(slot.getDurationMinutes()).isEqualTo(60);
+            assertThat(slot.getStatus()).isEqualTo(SlotStatus.AVAILABLE);
         }
 
         @Test
@@ -150,6 +186,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
                     LocalDateTime.now().plusDays(2), 60);
 
             mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON)
+                    .header(IDEMPOTENCY_KEY_HEADER, UUID.randomUUID())
                     .content(objectMapper.writeValueAsString(request)).with(withUserId(patient)))
                     .andExpect(status().isForbidden());
 
@@ -158,15 +195,15 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Nested
-    @DisplayName("POST /consultation/schedule")
+    @DisplayName("POST /slot/schedule/search")
     class GetSchedule {
-        private static final String ENDPOINT = "/consultation/schedule";
+        private static final String ENDPOINT = "/slot/schedule/search";
 
         @Test
         @DisplayName(" Doctor retrieves their own schedule")
         void shouldReturnDoctorSchedule_WhenDoctorIsAuthenticated() throws Exception {
             Doctor doctor = createDoctor();
-            persistConsultation(doctor, ConsultationStatus.AVAILABLE);
+            persistSlot(doctor, SlotStatus.AVAILABLE, LocalDateTime.now().plusDays(1));
             ScheduleFilter filter = new ScheduleFilter(null, null, null);
 
             mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON)
@@ -189,97 +226,117 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Nested
-    @DisplayName("PUT /consultation/edit/{id}")
+    @DisplayName("PUT /slot/{id}")
     class EditConsultation {
-        private static final String ENDPOINT = "/consultation/edit/{id}";
+        private static final String ENDPOINT = "/slot/{id}";
 
         @Test
         @DisplayName("Doctor edits their own AVAILABLE consultation")
         void shouldEditConsultation_WhenStatusIsAvailableAndDoctorOwnsIt() throws Exception {
             Doctor doctor = createDoctor();
-            Consultation consultation = persistConsultation(doctor, ConsultationStatus.AVAILABLE);
+            ConsultationSlot slot = persistSlot(doctor, SlotStatus.AVAILABLE,
+                    LocalDateTime.now().plusDays(1));
             LocalDateTime newStart = LocalDateTime.now().plusDays(3).withNano(0).withSecond(0);
-            AddConsultationRequest request = new AddConsultationRequest(newStart, 30);
+            EditConsultationSlotRequest request = new EditConsultationSlotRequest(newStart,
+                    newStart.plusMinutes(30), 30, SlotStatus.AVAILABLE);
 
-            mockMvc.perform(put(ENDPOINT, consultation.getId())
-                    .contentType(MediaType.APPLICATION_JSON)
+            mockMvc.perform(put(ENDPOINT, slot.getId()).contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)).with(withUserId(doctor)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(consultation.getId().toString()));
+                    .andExpect(jsonPath("$.slotId").value(slot.getId().toString()));
 
-            Consultation updated = consultationRepository.findById(consultation.getId())
+            ConsultationSlot updated = consultationSlotRepository.findById(slot.getId())
                     .orElseThrow();
-            assertThat(updated.getTimeSlot().getStartTime()).isEqualTo(newStart);
-            assertThat(updated.getTimeSlot().getEndTime()).isEqualTo(newStart.plusMinutes(30));
+            assertThat(updated.getStartTime()).isEqualTo(newStart);
+            assertThat(updated.getEndTime()).isEqualTo(newStart.plusMinutes(30));
         }
 
         @Test
         @DisplayName("Editing a non-existent consultation throws ConsultationException")
         void shouldThrow_WhenConsultationDoesNotExist() throws Exception {
             Doctor doctor = createDoctor();
-            AddConsultationRequest request = new AddConsultationRequest(
-                    LocalDateTime.now().plusDays(3), 30);
+            EditConsultationSlotRequest request = new EditConsultationSlotRequest(
+                    LocalDateTime.now().plusDays(3),
+                    LocalDateTime.now().plusDays(3).plusMinutes(30), 30, SlotStatus.AVAILABLE);
 
-            assertThatThrownBy(() -> mockMvc.perform(put(ENDPOINT, UUID.randomUUID())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)).with(withUserId(doctor))))
-                    .hasCauseInstanceOf(ConsultationException.class)
-                    .hasMessageContaining("Consultation not found");
+            mockMvc.perform(put(ENDPOINT, UUID.randomUUID()).contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(doctor)))
+                    .andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("PATCH /consultation/cancel/{id}")
+    @DisplayName("PATCH /consultation/{id}/cancel")
     class CancelConsultation {
-        private static final String ENDPOINT = "/consultation/cancel/{id}";
+        private static final String ENDPOINT = "/consultation/{id}/cancel";
 
         @Test
         @DisplayName("Doctor cancels their AVAILABLE consultation")
         void shouldCancelAvailableConsultation_WhenDoctorIsOwner() throws Exception {
             Doctor doctor = createDoctor();
-            Consultation consultation = persistConsultation(doctor, ConsultationStatus.AVAILABLE);
+            Patient patient = createPatient();
+            ConsultationSlot slot = persistSlot(doctor, SlotStatus.BOOKED,
+                    LocalDateTime.now().plusDays(1));
+            Consultation consultation = persistConsultation(slot, patient,
+                    ConsultationStatus.UPCOMING);
 
+            CancelConsultationRequest request = new CancelConsultationRequest(
+                    "scheduling conflict");
             mockMvc.perform(patch(ENDPOINT, consultation.getId())
-                    .param("reason", "scheduling conflict").with(withUserId(doctor)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(doctor)))
                     .andExpect(status().isOk());
 
             Consultation cancelled = consultationRepository.findById(consultation.getId())
                     .orElseThrow();
             assertThat(cancelled.getStatus()).isEqualTo(ConsultationStatus.CANCELLED);
+            ConsultationSlot updatedSlot = consultationSlotRepository.findById(slot.getId())
+                    .orElseThrow();
+            assertThat(updatedSlot.getStatus()).isEqualTo(SlotStatus.AVAILABLE);
         }
 
         @Test
         @DisplayName("Cancelling a non-existent consultation throws ConsultationException")
         void shouldThrow_WhenConsultationDoesNotExist() throws Exception {
             Doctor doctor = createDoctor();
+            CancelConsultationRequest request = new CancelConsultationRequest("any");
 
-            assertThatThrownBy(() -> mockMvc.perform(patch(ENDPOINT, UUID.randomUUID())
-                    .param("reason", "any").with(withUserId(doctor))))
-                    .hasCauseInstanceOf(ConsultationException.class)
-                    .hasMessageContaining("Consultation not found");
+            mockMvc.perform(patch(ENDPOINT, UUID.randomUUID())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(doctor)))
+                    .andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("POST /consultation/reserve/{id}")
+    @DisplayName("POST /consultation")
     class ReserveConsultation {
-        private static final String ENDPOINT = "/consultation/reserve/{id}";
+        private static final String ENDPOINT = "/consultation";
 
         @Test
         @DisplayName(" Patient reserves an AVAILABLE consultation")
         void shouldReserveConsultation_WhenStatusIsAvailable() throws Exception {
             Doctor doctor = createDoctor();
             Patient patient = createPatient();
-            Consultation consultation = persistConsultation(doctor, ConsultationStatus.AVAILABLE);
+            ConsultationSlot slot = persistSlot(doctor, SlotStatus.AVAILABLE,
+                    LocalDateTime.now().plusDays(1));
+            ReserveConsultationRequest request = new ReserveConsultationRequest(slot.getId(),
+                    "notes", PaymentProvider.STRIPE);
 
-            mockMvc.perform(post(ENDPOINT, consultation.getId())
-                    .param("provider", PaymentProvider.STRIPE.name()).with(withUserId(patient)))
-                    .andExpect(status().isOk());
+            org.mockito.Mockito
+                    .when(paymentService.process(org.mockito.ArgumentMatchers.any(),
+                            org.mockito.ArgumentMatchers.eq(patient),
+                            org.mockito.ArgumentMatchers.eq(PaymentProvider.STRIPE)))
+                    .thenReturn("pi_secret_xyz");
 
-            Consultation reserved = consultationRepository.findById(consultation.getId())
+            mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(patient)))
+                    .andExpect(status().isCreated());
+
+            ConsultationSlot updatedSlot = consultationSlotRepository.findById(slot.getId())
                     .orElseThrow();
-            assertThat(reserved.getStatus()).isEqualTo(ConsultationStatus.BOOKED);
-            assertThat(reserved.getPatient().getId()).isEqualTo(patient.getId());
+            assertThat(updatedSlot.getStatus()).isEqualTo(SlotStatus.PENDING_PAYMENT);
+            assertThat(consultationRepository.count()).isEqualTo(1);
         }
 
         @Test
@@ -287,11 +344,13 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
         void shouldReturnForbidden_WhenDoctorTriesToReserve() throws Exception {
             Doctor doctor = createDoctor();
             Doctor otherDoctor = createDoctor("other-doctor@example.com");
-            Consultation consultation = persistConsultation(otherDoctor,
-                    ConsultationStatus.AVAILABLE);
+            ConsultationSlot slot = persistSlot(otherDoctor, SlotStatus.AVAILABLE,
+                    LocalDateTime.now().plusDays(1));
+            ReserveConsultationRequest request = new ReserveConsultationRequest(slot.getId(), null,
+                    PaymentProvider.STRIPE);
 
-            mockMvc.perform(post(ENDPOINT, consultation.getId())
-                    .param("provider", PaymentProvider.STRIPE.name()).with(withUserId(doctor)))
+            mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(doctor)))
                     .andExpect(status().isForbidden());
         }
     }
@@ -306,41 +365,70 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
         void shouldReturnConsultation_WhenItExists() throws Exception {
             Doctor doctor = createDoctor();
             Patient patient = createPatient();
-            Consultation consultation = persistConsultation(doctor, ConsultationStatus.AVAILABLE);
+            ConsultationSlot slot = persistSlot(doctor, SlotStatus.BOOKED,
+                    LocalDateTime.now().plusDays(1));
+            Consultation consultation = persistConsultation(slot, patient,
+                    ConsultationStatus.UPCOMING);
 
             mockMvc.perform(get(ENDPOINT, consultation.getId()).with(withUserId(patient)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(consultation.getId().toString()))
-                    .andExpect(jsonPath("$.status").value("AVAILABLE"))
-                    .andExpect(jsonPath("$.doctor.id").value(doctor.getId().toString()));
+                    .andExpect(jsonPath("$.consultationId").value(consultation.getId().toString()))
+                    .andExpect(jsonPath("$.status").value("UPCOMING"))
+                    .andExpect(jsonPath("$.doctor.id").value(doctor.getId().toString()))
+                    .andExpect(jsonPath("$.slotId").value(slot.getId().toString()));
         }
 
         @Test
         @DisplayName("Fetching a non-existent consultation throws ConsultationException")
         void shouldThrow_WhenConsultationDoesNotExist() throws Exception {
             Patient patient = createPatient();
-
-            assertThatThrownBy(() -> mockMvc
-                    .perform(get(ENDPOINT, UUID.randomUUID()).with(withUserId(patient))))
-                    .hasCauseInstanceOf(ConsultationException.class)
-                    .hasMessageContaining("Consultation not found");
+            mockMvc.perform(get(ENDPOINT, UUID.randomUUID()).with(withUserId(patient)))
+                    .andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("GET /consultation/{id}/call")
+    @DisplayName("POST /consultations/{id}/call/enter")
     class GetCall {
-        private static final String ENDPOINT = "/consultation/{id}/call";
+        private static final String ENDPOINT = "/consultations/{id}/call/enter";
 
         @Test
         @DisplayName("Authenticated user retrieves call info for a consultation")
         void shouldReturnCallInfo_WhenAuthenticated() throws Exception {
             Doctor doctor = createDoctor();
             Patient patient = createPatient();
-            Consultation consultation = persistConsultation(doctor, ConsultationStatus.AVAILABLE);
+            ConsultationSlot slot = persistSlot(doctor, SlotStatus.BOOKED,
+                    LocalDateTime.now().plusDays(1));
+            Consultation consultation = persistConsultation(slot, patient,
+                    ConsultationStatus.UPCOMING);
 
-            mockMvc.perform(get(ENDPOINT, consultation.getId()).with(withUserId(patient)))
+            mockMvc.perform(post(ENDPOINT, consultation.getId())
+                    .header(IDEMPOTENCY_KEY_HEADER, UUID.randomUUID()).with(withUserId(patient)))
                     .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("Unauthenticated request is rejected with 401")
+        void shouldReturnUnauthorized_WhenNotAuthenticated() throws Exception {
+            mockMvc.perform(post(ENDPOINT, UUID.randomUUID())).andExpect(status().isUnauthorized());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /slot/doctor/{id}")
+    class FilterConsultations {
+        private static final String ENDPOINT = "/slot/doctor/{id}";
+
+        @Test
+        @DisplayName("Authenticated user fetches available slots for doctor")
+        void shouldReturnAvailableSlots_WhenAuthenticated() throws Exception {
+            Doctor doctor = createDoctor();
+            Patient patient = createPatient();
+            persistSlot(doctor, SlotStatus.AVAILABLE, LocalDateTime.now().plusDays(1));
+
+            mockMvc.perform(get(ENDPOINT, doctor.getId()).with(withUserId(patient)))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.content").isArray())
+                    .andExpect(jsonPath("$.content.length()").value(1));
         }
 
         @Test
@@ -351,51 +439,22 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Nested
-    @DisplayName("POST /consultation/filter")
-    class FilterConsultations {
-        private static final String ENDPOINT = "/consultation/filter";
-
-        @Test
-        @DisplayName("Authenticated user filters consultations and gets paged result")
-        void shouldReturnFilteredConsultations_WhenAuthenticated() throws Exception {
-            Doctor doctor = createDoctor();
-            Patient patient = createPatient();
-            persistConsultation(doctor, ConsultationStatus.AVAILABLE);
-            ConsultationFilter filter = new ConsultationFilter(doctor.getId(),
-                    Specialization.CARDIOLOGY, null, null, null, null);
-
-            mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(filter)).with(withUserId(patient)))
-                    .andExpect(status().isOk()).andExpect(jsonPath("$.content").isArray())
-                    .andExpect(jsonPath("$.content.length()").value(1));
-        }
-
-        @Test
-        @DisplayName(" Unauthenticated filter request is rejected with 401")
-        void shouldReturnUnauthorized_WhenNotAuthenticated() throws Exception {
-            ConsultationFilter filter = new ConsultationFilter(null, null, null, null, null, null);
-
-            mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(filter)))
-                    .andExpect(status().isUnauthorized());
-        }
-    }
-
-    @Nested
-    @DisplayName("GET /consultation/patient/upcoming")
+    @DisplayName("GET /consultation/patient/{status}")
     class PatientUpcoming {
-        private static final String ENDPOINT = "/consultation/patient/upcoming";
+        private static final String ENDPOINT = "/consultation/patient/{status}";
 
         @Test
         @DisplayName(" Patient retrieves their upcoming consultations")
         void shouldReturnUpcomingConsultations_WhenAuthenticatedAsPatient() throws Exception {
             Doctor doctor = createDoctor();
             Patient patient = createPatient();
-            persistConsultation(doctor, patient, ConsultationStatus.CONFIRMED,
+            ConsultationSlot slot = persistSlot(doctor, SlotStatus.BOOKED,
                     LocalDateTime.now().plusDays(1));
+            persistConsultation(slot, patient, ConsultationStatus.UPCOMING);
 
-            mockMvc.perform(get(ENDPOINT).with(withUserId(patient))).andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isArray()).andExpect(jsonPath("$.length()").value(1));
+            mockMvc.perform(get(ENDPOINT, ConsultationStatus.UPCOMING).with(withUserId(patient)))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.content").isArray())
+                    .andExpect(jsonPath("$.content.length()").value(1));
         }
 
         @Test
@@ -403,27 +462,29 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
         void shouldReturnForbidden_WhenAuthenticatedAsDoctor() throws Exception {
             Doctor doctor = createDoctor();
 
-            mockMvc.perform(get(ENDPOINT).with(withUserId(doctor)))
+            mockMvc.perform(get(ENDPOINT, ConsultationStatus.UPCOMING).with(withUserId(doctor)))
                     .andExpect(status().isForbidden());
         }
     }
 
     @Nested
-    @DisplayName("GET /consultation/doctor/upcoming")
+    @DisplayName("GET /slot/doctor/upcoming")
     class DoctorUpcoming {
-        private static final String ENDPOINT = "/consultation/doctor/upcoming";
+        private static final String ENDPOINT = "/slot/doctor/upcoming";
 
         @Test
         @DisplayName("Doctor retrieves their upcoming consultations")
         void shouldReturnUpcomingConsultations_WhenAuthenticatedAsDoctor() throws Exception {
             Doctor doctor = createDoctor();
             Patient patient = createPatient();
-            persistConsultation(doctor, patient, ConsultationStatus.CONFIRMED,
+            ConsultationSlot slot = persistSlot(doctor, SlotStatus.BOOKED,
                     LocalDateTime.now().plusDays(1));
+            persistConsultation(slot, patient, ConsultationStatus.UPCOMING);
 
             mockMvc.perform(get(ENDPOINT).with(withUserId(doctor))).andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isArray()).andExpect(jsonPath("$.length()").value(1))
-                    .andExpect(jsonPath("$[0].status").value("CONFIRMED"));
+                    .andExpect(jsonPath("$.content").isArray())
+                    .andExpect(jsonPath("$.content.length()").value(1))
+                    .andExpect(jsonPath("$.content[0].status").value("UPCOMING"));
         }
 
         @Test

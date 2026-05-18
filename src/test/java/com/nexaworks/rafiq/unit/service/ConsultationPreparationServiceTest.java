@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -23,23 +22,20 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.nexaworks.rafiq.entities.Consultation;
+import com.nexaworks.rafiq.entities.ConsultationSlot;
 import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.entities.Patient;
-import com.nexaworks.rafiq.entities.TimeSlot;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
+import com.nexaworks.rafiq.entities.enums.SlotStatus;
+import com.nexaworks.rafiq.exception.custom.consultation.ConsultationNotFoundException;
 import com.nexaworks.rafiq.exception.custom.consultation.RtcProviderException;
-import com.nexaworks.rafiq.rabbit.notificaiton.PushNotification;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.service.call.RtcProvider;
 import com.nexaworks.rafiq.service.consultation.ConsultationPreparationService;
-import com.nexaworks.rafiq.service.notification.NotificationService;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ConsultationPreparationServiceImpl Unit Tests")
 class ConsultationPreparationServiceTest {
-
-    @Mock
-    private NotificationService<PushNotification> notificationService;
 
     @Mock
     private ConsultationRepository consultationRepository;
@@ -51,7 +47,6 @@ class ConsultationPreparationServiceTest {
     private ConsultationPreparationService preparationService;
 
     private UUID consultationId;
-    private TimeSlot timeSlot;
     private Doctor doctor;
     private Patient patient;
 
@@ -60,8 +55,6 @@ class ConsultationPreparationServiceTest {
         consultationId = UUID.randomUUID();
         LocalDateTime slotStart = LocalDateTime.now().plusMinutes(15);
         LocalDateTime slotEnd = LocalDateTime.now().plusHours(1);
-        timeSlot = TimeSlot.builder().startTime(slotStart).endTime(slotEnd).durationMinutes(45)
-                .build();
 
         doctor = new Doctor();
         doctor.setFirstName("Jane");
@@ -80,18 +73,17 @@ class ConsultationPreparationServiceTest {
         when(consultationRepository.findConsultationById(consultationId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> preparationService.prepare(consultationId))
-                .isInstanceOf(ConsultationException.class)
+            .isInstanceOf(ConsultationNotFoundException.class)
                 .hasMessage("Consultation not found");
 
         verify(rtcProvider, never()).generateToken(any(), anyInt());
         verify(consultationRepository, never()).save(any());
-        verify(notificationService, never()).sendNotification(any());
     }
 
     @Test
     @DisplayName("should exit when status is not preparable")
     void shouldDoNothingWhenStatusNotPreparable() {
-        Consultation consultation = baseConsultation(ConsultationStatus.AVAILABLE);
+        Consultation consultation = baseConsultation(SlotStatus.AVAILABLE);
 
         when(consultationRepository.findConsultationById(consultationId))
                 .thenReturn(Optional.of(consultation));
@@ -100,13 +92,12 @@ class ConsultationPreparationServiceTest {
 
         verify(rtcProvider, never()).generateToken(any(), anyInt());
         verify(consultationRepository, never()).save(any());
-        verify(notificationService, never()).sendNotification(any());
     }
 
     @Test
     @DisplayName("should throw when RTC provider returns no token")
     void shouldThrowWhenRtcReturnsNull() {
-        Consultation consultation = baseConsultation(ConsultationStatus.BOOKED);
+        Consultation consultation = baseConsultation(SlotStatus.BOOKED);
 
         when(consultationRepository.findConsultationById(consultationId))
                 .thenReturn(Optional.of(consultation));
@@ -117,13 +108,12 @@ class ConsultationPreparationServiceTest {
                 .hasMessage("Failed to generate access token for consultation");
 
         verify(consultationRepository, never()).save(any());
-        verify(notificationService, never()).sendNotification(any());
     }
 
     @Test
     @DisplayName("should set LIVE, persist token, and notify patient and doctor when preparable")
     void shouldPrepareSuccessfully() {
-        Consultation consultation = baseConsultation(ConsultationStatus.CONFIRMED);
+        Consultation consultation = baseConsultation(SlotStatus.BOOKED);
 
         when(consultationRepository.findConsultationById(consultationId))
                 .thenReturn(Optional.of(consultation));
@@ -135,13 +125,15 @@ class ConsultationPreparationServiceTest {
         assertThat(consultation.getStatus()).isEqualTo(ConsultationStatus.LIVE);
         assertThat(consultation.getAccessToken()).isEqualTo(token);
         verify(consultationRepository).save(consultation);
-        verify(notificationService, times(2)).sendNotification(any(PushNotification.class));
     }
 
-    private Consultation baseConsultation(ConsultationStatus status) {
-        Consultation consultation = Consultation.builder().id(consultationId).status(status)
-                .doctor(doctor).patient(patient).build();
-        consultation.setTimeSlot(timeSlot);
+    private Consultation baseConsultation(SlotStatus slotStatus) {
+        ConsultationSlot slot = ConsultationSlot.builder().doctor(doctor)
+                .startTime(LocalDateTime.now().plusMinutes(15))
+                .endTime(LocalDateTime.now().plusHours(1)).durationMinutes(45).status(slotStatus)
+                .build();
+        Consultation consultation = Consultation.builder().id(consultationId).slot(slot)
+                .patient(patient).build();
         return consultation;
     }
 }

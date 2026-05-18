@@ -20,6 +20,7 @@ import com.nexaworks.rafiq.exception.custom.user.TokenInvalidException;
 import com.nexaworks.rafiq.exception.custom.user.TokenNotFoundException;
 import com.nexaworks.rafiq.exception.custom.user.UserException;
 import com.nexaworks.rafiq.exception.custom.user.UserNotFoundException;
+import com.nexaworks.rafiq.rabbit.manager.UserNotificationManager;
 import com.nexaworks.rafiq.repository.TokenRepository;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.user.TokenServiceImpl;
@@ -33,7 +34,7 @@ public class TokenServiceTest {
     UserRepository userRepository;
 
     @Mock
-    MessageService messageService;
+    UserNotificationManager messageService;
 
     @InjectMocks
     @Spy

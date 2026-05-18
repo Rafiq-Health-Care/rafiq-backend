@@ -33,6 +33,7 @@ import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.service.user.PasswordServiceImpl;
 import com.nexaworks.rafiq.service.user.TokenService;
+import com.nexaworks.rafiq.utils.TransactionUtils;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PasswordServiceImpl Unit Tests")
@@ -52,6 +53,9 @@ class PasswordServiceImplTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private TransactionUtils transactionUtils;
 
     @InjectMocks
     private PasswordServiceImpl passwordService;
@@ -102,6 +106,11 @@ class PasswordServiceImplTest {
             when(userRepository.findByEmail(request.email())).thenReturn(Optional.of(testUser));
             when(tokenService.generateAccessToken(Optional.of(testUser)))
                     .thenReturn(generatedToken);
+            doAnswer(invocation -> {
+                Runnable runnable = invocation.getArgument(0);
+                runnable.run();
+                return null;
+            }).when(transactionUtils).afterCommit(any(Runnable.class));
 
             // Act
             passwordService.forgetPassword(request);

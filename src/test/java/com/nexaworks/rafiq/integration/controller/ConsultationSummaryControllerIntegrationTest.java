@@ -27,15 +27,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexaworks.rafiq.dto.request.summary.CreateConsultationSummaryRequest;
 import com.nexaworks.rafiq.dto.request.summary.UpdateConsultationSummaryRequest;
 import com.nexaworks.rafiq.entities.Consultation;
+import com.nexaworks.rafiq.entities.ConsultationSlot;
 import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.Role;
-import com.nexaworks.rafiq.entities.TimeSlot;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
+import com.nexaworks.rafiq.entities.enums.SlotStatus;
 import com.nexaworks.rafiq.entities.enums.Specialization;
 import com.nexaworks.rafiq.integration.BaseIntegrationTest;
 import com.nexaworks.rafiq.repository.CancellationLogRepository;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
+import com.nexaworks.rafiq.repository.ConsultationSlotRepository;
 import com.nexaworks.rafiq.repository.ConsultationSummaryRepository;
 import com.nexaworks.rafiq.repository.DoctorRepository;
 import com.nexaworks.rafiq.repository.PatientRepository;
@@ -57,6 +59,9 @@ public class ConsultationSummaryControllerIntegrationTest extends BaseIntegratio
     private PatientRepository patientRepository;
     @Autowired
     private ConsultationRepository consultationRepository;
+
+    @Autowired
+    private ConsultationSlotRepository consultationSlotRepository;
     @Autowired
     private ConsultationSummaryRepository consultationSummaryRepository;
     @Autowired
@@ -73,6 +78,7 @@ public class ConsultationSummaryControllerIntegrationTest extends BaseIntegratio
         consultationSummaryRepository.deleteAll();
         cancellationLogRepository.deleteAll();
         consultationRepository.deleteAll();
+        consultationSlotRepository.deleteAll();
         patientRepository.deleteAll();
         doctorRepository.deleteAll();
         userRepository.deleteAll();
@@ -103,10 +109,12 @@ public class ConsultationSummaryControllerIntegrationTest extends BaseIntegratio
 
     private Consultation persistConsultation(Doctor doctor, Patient patient,
             ConsultationStatus status, LocalDateTime start) {
-        TimeSlot slot = TimeSlot.builder().startTime(start).endTime(start.plusMinutes(60))
-                .durationMinutes(60).build();
-        Consultation c = Consultation.builder().doctor(doctor).patient(patient).timeSlot(slot)
-                .status(status).specialization(doctor.getSpecialization()).build();
+        ConsultationSlot slot = ConsultationSlot.builder().doctor(doctor).startTime(start)
+                .endTime(start.plusMinutes(60)).durationMinutes(60).status(SlotStatus.BOOKED)
+                .build();
+        ConsultationSlot savedSlot = consultationSlotRepository.save(slot);
+        Consultation c = Consultation.builder().slot(savedSlot).patient(patient).status(status)
+                .build();
         return consultationRepository.save(c);
     }
 
@@ -136,7 +144,7 @@ public class ConsultationSummaryControllerIntegrationTest extends BaseIntegratio
         void doctorRejected_whenConsultationNotCompleted() throws Exception {
             Doctor doctor = createDoctor();
             Patient patient = createPatient();
-            Consultation c = persistConsultation(doctor, patient, ConsultationStatus.CONFIRMED);
+            Consultation c = persistConsultation(doctor, patient, ConsultationStatus.UPCOMING);
 
             mockMvc.perform(post(BASE).contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(createRequest(c.getId())))
@@ -195,7 +203,7 @@ public class ConsultationSummaryControllerIntegrationTest extends BaseIntegratio
             mockMvc.perform(post(BASE).contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(createRequest(completed.getId())))
                     .with(withUserId(doctor))).andExpect(status().isOk());
-            persistConsultation(doctor, patient, ConsultationStatus.CONFIRMED,
+            persistConsultation(doctor, patient, ConsultationStatus.UPCOMING,
                     LocalDateTime.now().plusDays(2).withNano(0));
 
             mockMvc.perform(get(BASE).param("page", "0").param("size", "10")

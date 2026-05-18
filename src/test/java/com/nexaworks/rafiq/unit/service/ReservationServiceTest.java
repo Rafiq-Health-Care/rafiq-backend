@@ -25,12 +25,17 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import com.nexaworks.rafiq.dto.request.consultation.ReserveConsultationRequest;
 import com.nexaworks.rafiq.entities.Consultation;
+import com.nexaworks.rafiq.entities.ConsultationSlot;
 import com.nexaworks.rafiq.entities.Patient;
-import com.nexaworks.rafiq.entities.TimeSlot;
-import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.PaymentProvider;
+import com.nexaworks.rafiq.entities.enums.SlotStatus;
+import com.nexaworks.rafiq.exception.custom.consultation.ConsultationOverlappingException;
+import com.nexaworks.rafiq.exception.custom.consultation.SlotNotFoundException;
+import com.nexaworks.rafiq.exception.custom.consultation.SlotReservedException;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
+import com.nexaworks.rafiq.repository.ConsultationSlotRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.service.consultation.ReservationService;
 import com.nexaworks.rafiq.service.payment.PaymentService;
@@ -41,6 +46,9 @@ class ReservationServiceTest {
 
     @Mock
     private ConsultationRepository consultationRepository;
+
+    @Mock
+    private ConsultationSlotRepository slotRepository;
 
     @Mock
     private AuthService authService;
@@ -55,37 +63,36 @@ class ReservationServiceTest {
     private ReservationService reservationService;
 
     private Patient patient;
-    private UUID consultationId;
+    private UUID slotId;
     private LocalDateTime slotStart;
     private LocalDateTime slotEnd;
-    private TimeSlot timeSlot;
+    private ConsultationSlot slot;
 
     @BeforeEach
     void setUp() {
-        consultationId = UUID.randomUUID();
+        slotId = UUID.randomUUID();
         patient = new Patient();
         patient.setId(UUID.randomUUID());
         patient.setEmail("patient@test.com");
 
         slotStart = LocalDateTime.of(2026, 5, 1, 10, 0);
         slotEnd = LocalDateTime.of(2026, 5, 1, 11, 0);
-        timeSlot = TimeSlot.builder().startTime(slotStart).endTime(slotEnd).durationMinutes(60)
-                .build();
+        slot = ConsultationSlot.builder().id(slotId).startTime(slotStart).endTime(slotEnd)
+                .durationMinutes(60).status(SlotStatus.AVAILABLE).build();
     }
 
     @Test
     @DisplayName("should reserve consultation successfully and return client secret")
     void shouldReserveSuccessfullyAndReturnClientSecret() throws Exception {
-        Consultation consultation = Consultation.builder().id(consultationId)
-                .status(ConsultationStatus.AVAILABLE).timeSlot(timeSlot).build();
+        ReserveConsultationRequest request = new ReserveConsultationRequest(slotId, "notes",
+                PaymentProvider.STRIPE);
 
         when(authService.getAuthenticateUser()).thenReturn(patient);
-        when(consultationRepository.findConsultationById(consultationId))
-                .thenReturn(Optional.of(consultation));
+        when(slotRepository.findConsultationByIdWithLock(slotId)).thenReturn(Optional.of(slot));
         when(consultationRepository.existsByPatientOverlapping(eq(slotStart), eq(slotEnd),
-                eq(patient.getId()), eq(ConsultationStatus.CANCELLED))).thenReturn(false);
-        when(paymentService.process(consultation, patient, PaymentProvider.STRIPE))
-                .thenReturn("pi_secret_xyz");
+                eq(patient.getId()))).thenReturn(false);
+        when(paymentService.process(any(Consultation.class), eq(patient),
+                eq(PaymentProvider.STRIPE))).thenReturn("pi_secret_xyz");
 
         try (MockedStatic<TransactionSynchronizationManager> tx = mockStatic(
                 TransactionSynchronizationManager.class)) {
@@ -93,33 +100,32 @@ class ReservationServiceTest {
                     .registerSynchronization(any(TransactionSynchronization.class)))
                     .thenAnswer(invocation -> null);
 
-            String secret = reservationService.reserve(consultationId, PaymentProvider.STRIPE);
+            String secret = reservationService.reserve(request);
 
             assertThat(secret).isEqualTo("pi_secret_xyz");
         }
 
-        assertThat(consultation.getStatus()).isEqualTo(ConsultationStatus.BOOKED);
-        assertThat(consultation.getPatient()).isEqualTo(patient);
-        verify(consultationRepository).save(consultation);
-        verify(paymentService).process(consultation, patient, PaymentProvider.STRIPE);
+        assertThat(slot.getStatus()).isEqualTo(SlotStatus.PENDING_PAYMENT);
+        verify(consultationRepository).save(any(Consultation.class));
+        verify(paymentService).process(any(Consultation.class), eq(patient),
+                eq(PaymentProvider.STRIPE));
     }
 
     @Test
-    @DisplayName("should throw when consultation status is not AVAILABLE")
+    @DisplayName("should throw when slot status is not AVAILABLE")
     void shouldThrowWhenConsultationStatusIsNotAvailable() throws Exception {
-        Consultation consultation = Consultation.builder().id(consultationId)
-                .status(ConsultationStatus.BOOKED).timeSlot(timeSlot).build();
+        ReserveConsultationRequest request = new ReserveConsultationRequest(slotId, null,
+                PaymentProvider.STRIPE);
+        slot.setStatus(SlotStatus.BOOKED);
 
         when(authService.getAuthenticateUser()).thenReturn(patient);
-        when(consultationRepository.findConsultationById(consultationId))
-                .thenReturn(Optional.of(consultation));
+        when(slotRepository.findConsultationByIdWithLock(slotId)).thenReturn(Optional.of(slot));
 
-        assertThatThrownBy(() -> reservationService.reserve(consultationId, PaymentProvider.STRIPE))
-                .isInstanceOf(ConsultationException.class)
+        assertThatThrownBy(() -> reservationService.reserve(request))
+                .isInstanceOf(SlotReservedException.class)
                 .hasMessage("Consultation cannot be reserved");
 
-        verify(consultationRepository, never()).existsByPatientOverlapping(any(), any(), any(),
-                any());
+        verify(consultationRepository, never()).existsByPatientOverlapping(any(), any(), any());
         verify(paymentService, never()).process(any(), any(), any());
         verify(consultationRepository, never()).save(any());
     }
@@ -127,17 +133,16 @@ class ReservationServiceTest {
     @Test
     @DisplayName("should throw when patient has overlapping consultation")
     void shouldThrowWhenPatientHasOverlappingConsultation() throws Exception {
-        Consultation consultation = Consultation.builder().id(consultationId)
-                .status(ConsultationStatus.AVAILABLE).timeSlot(timeSlot).build();
+        ReserveConsultationRequest request = new ReserveConsultationRequest(slotId, null,
+                PaymentProvider.STRIPE);
 
         when(authService.getAuthenticateUser()).thenReturn(patient);
-        when(consultationRepository.findConsultationById(consultationId))
-                .thenReturn(Optional.of(consultation));
+        when(slotRepository.findConsultationByIdWithLock(slotId)).thenReturn(Optional.of(slot));
         when(consultationRepository.existsByPatientOverlapping(eq(slotStart), eq(slotEnd),
-                eq(patient.getId()), eq(ConsultationStatus.CANCELLED))).thenReturn(true);
+                eq(patient.getId()))).thenReturn(true);
 
-        assertThatThrownBy(() -> reservationService.reserve(consultationId, PaymentProvider.STRIPE))
-                .isInstanceOf(ConsultationException.class)
+        assertThatThrownBy(() -> reservationService.reserve(request))
+                .isInstanceOf(ConsultationOverlappingException.class)
                 .hasMessage("Consultation time slot is already booked");
 
         verify(paymentService, never()).process(any(), any(), any());
@@ -147,20 +152,33 @@ class ReservationServiceTest {
     @Test
     @DisplayName("should not update consultation status if payment service fails")
     void shouldNotPersistConsultationWhenPaymentFails() throws Exception {
-        Consultation consultation = Consultation.builder().id(consultationId)
-                .status(ConsultationStatus.AVAILABLE).timeSlot(timeSlot).build();
+        ReserveConsultationRequest request = new ReserveConsultationRequest(slotId, null,
+                PaymentProvider.STRIPE);
 
         when(authService.getAuthenticateUser()).thenReturn(patient);
-        when(consultationRepository.findConsultationById(consultationId))
-                .thenReturn(Optional.of(consultation));
+        when(slotRepository.findConsultationByIdWithLock(slotId)).thenReturn(Optional.of(slot));
         when(consultationRepository.existsByPatientOverlapping(eq(slotStart), eq(slotEnd),
-                eq(patient.getId()), eq(ConsultationStatus.CANCELLED))).thenReturn(false);
-        when(paymentService.process(consultation, patient, PaymentProvider.STRIPE))
+                eq(patient.getId()))).thenReturn(false);
+        when(paymentService.process(any(Consultation.class), eq(patient),
+                eq(PaymentProvider.STRIPE)))
                 .thenThrow(new RuntimeException("payment gateway error"));
 
-        assertThatThrownBy(() -> reservationService.reserve(consultationId, PaymentProvider.STRIPE))
+        assertThatThrownBy(() -> reservationService.reserve(request))
                 .isInstanceOf(RuntimeException.class).hasMessage("payment gateway error");
 
         verify(consultationRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("should throw when slot is not found")
+    void shouldThrowWhenSlotNotFound() {
+        ReserveConsultationRequest request = new ReserveConsultationRequest(slotId, null,
+                PaymentProvider.STRIPE);
+
+        when(authService.getAuthenticateUser()).thenReturn(patient);
+        when(slotRepository.findConsultationByIdWithLock(slotId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> reservationService.reserve(request))
+                .isInstanceOf(SlotNotFoundException.class).hasMessage("Consultation not found");
     }
 }
