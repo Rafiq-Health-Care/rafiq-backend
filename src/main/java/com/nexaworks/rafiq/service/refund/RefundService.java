@@ -15,7 +15,7 @@ import com.nexaworks.rafiq.entities.Payment;
 import com.nexaworks.rafiq.entities.RefundRequest;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.PaymentStatus;
-import com.nexaworks.rafiq.exception.custom.CanNotRefundException;
+import com.nexaworks.rafiq.exception.custom.payment.CanNotRefundException;
 import com.nexaworks.rafiq.repository.RefundRepository;
 
 import lombok.RequiredArgsConstructor;

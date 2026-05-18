@@ -15,7 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.*;
 import com.nexaworks.rafiq.entities.enums.Specialization;
-import com.nexaworks.rafiq.exception.custom.RegistrationException;
+import com.nexaworks.rafiq.exception.custom.user.RegistrationException;
 import com.nexaworks.rafiq.rabbit.manager.UserNotificationManager;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.doctor.DoctorService;

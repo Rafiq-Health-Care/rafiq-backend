@@ -15,7 +15,7 @@ import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.ConsultationSlot;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.SlotStatus;
-import com.nexaworks.rafiq.exception.custom.SlotNotFoundException;
+import com.nexaworks.rafiq.exception.custom.consultation.SlotNotFoundException;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.repository.ConsultationSlotRepository;
 import com.nexaworks.rafiq.repository.specification.ScheduleSpecification;
@@ -49,7 +49,7 @@ public class ConsultationSearchService implements IConsultationSearchService {
     public List<Consultation> getPatientUpcoming() {
         UUID patientId = authService.getAuthenticateUserId();
         return consultationRepository.findAllByPatientIdAndStatus(patientId,
-                ConsultationStatus.CONFIRMED, ConsultationStatus.ONGOING);
+                ConsultationStatus.UPCOMING);
     }
 
     @Override
@@ -67,8 +67,7 @@ public class ConsultationSearchService implements IConsultationSearchService {
 
     @Override
     public List<DoctorConsultationResponse> getDoctorAvailableConsultation(UUID id) {
-        return consultationSlotRepository.getDoctorAvailableConsultation(id,
-                ConsultationStatus.AVAILABLE);
+        return consultationSlotRepository.getDoctorAvailableConsultation(id, SlotStatus.AVAILABLE);
     }
 
 }

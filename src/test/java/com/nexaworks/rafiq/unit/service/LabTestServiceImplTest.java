@@ -18,7 +18,7 @@ import org.mockito.MockitoAnnotations;
 
 import com.nexaworks.rafiq.entities.LabTest;
 import com.nexaworks.rafiq.entities.Patient;
-import com.nexaworks.rafiq.exception.custom.LabTestException;
+import com.nexaworks.rafiq.exception.custom.labtest.LabTestException;
 import com.nexaworks.rafiq.repository.LabTestRepository;
 import com.nexaworks.rafiq.repository.PatientRepository;
 import com.nexaworks.rafiq.service.file.ImageService;

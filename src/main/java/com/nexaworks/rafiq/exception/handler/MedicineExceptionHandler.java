@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.nexaworks.rafiq.exception.ExceptionUtils;
-import com.nexaworks.rafiq.exception.custom.MedicineAlreadyExist;
-import com.nexaworks.rafiq.exception.custom.MedicineLimit;
-import com.nexaworks.rafiq.exception.custom.MedicineNotFound;
+import com.nexaworks.rafiq.exception.custom.medicine.MedicineAlreadyExist;
+import com.nexaworks.rafiq.exception.custom.medicine.MedicineLimit;
+import com.nexaworks.rafiq.exception.custom.medicine.MedicineNotFound;
 import com.nexaworks.rafiq.exception.model.ErrorResponse;
 
 import jakarta.servlet.http.HttpServletRequest;

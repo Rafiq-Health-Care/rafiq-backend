@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.nexaworks.rafiq.exception.model.ValidationErrorResponse;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ValidationException;
@@ -23,26 +24,29 @@ public class ValidationExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ValidationErrorResponse> handleMethodArgumentNotValid(
-            MethodArgumentNotValidException ex) {
+            MethodArgumentNotValidException ex, HttpServletRequest request) {
         Map<String, String> errors = new HashMap<>();
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
-        return buildResponse("Validation failed", errors, HttpStatus.BAD_REQUEST);
+        return buildResponse("Validation failed", errors, HttpStatus.BAD_REQUEST,
+                request.getRequestURI());
     }
 
     @ExceptionHandler(BindException.class)
-    public ResponseEntity<ValidationErrorResponse> handleBindException(BindException ex) {
+    public ResponseEntity<ValidationErrorResponse> handleBindException(BindException ex,
+            HttpServletRequest request) {
         Map<String, String> errors = new HashMap<>();
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
-        return buildResponse("Validation failed", errors, HttpStatus.BAD_REQUEST);
+        return buildResponse("Validation failed", errors, HttpStatus.BAD_REQUEST,
+                request.getRequestURI());
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ValidationErrorResponse> handleConstraintViolation(
-            ConstraintViolationException ex) {
+            ConstraintViolationException ex, HttpServletRequest request) {
         Map<String, String> errors = new HashMap<>();
         for (ConstraintViolation<?> violation : ex.getConstraintViolations()) {
             String path = violation.getPropertyPath() != null
@@ -50,22 +54,23 @@ public class ValidationExceptionHandler {
                     : "parameter";
             errors.put(path, violation.getMessage());
         }
-        return buildResponse("Validation failed", errors, HttpStatus.BAD_REQUEST);
+        return buildResponse("Validation failed", errors, HttpStatus.BAD_REQUEST,
+                request.getRequestURI());
     }
 
     @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<ValidationErrorResponse> handleValidationException(
-            ValidationException ex) {
+    public ResponseEntity<ValidationErrorResponse> handleValidationException(ValidationException ex,
+            HttpServletRequest request) {
         // Generic validation exception without field-level details
         return buildResponse(ex.getMessage() != null ? ex.getMessage() : "Validation failed",
-                new HashMap<>(), HttpStatus.BAD_REQUEST);
+                new HashMap<>(), HttpStatus.BAD_REQUEST, request.getRequestURI());
     }
 
     private ResponseEntity<ValidationErrorResponse> buildResponse(String message,
-            Map<String, String> errors, HttpStatus status) {
+            Map<String, String> errors, HttpStatus status, String path) {
         ValidationErrorResponse body = ValidationErrorResponse.builder().status(status.value())
-                .error(status.getReasonPhrase()).message(message).timestamp(LocalDateTime.now())
-                .validationErrors(errors).build();
+                .error(status.getReasonPhrase()).message(message).code("VALIDATION_ERROR")
+                .timestamp(LocalDateTime.now()).path(path).validationErrors(errors).build();
         return new ResponseEntity<>(body, status);
     }
 }

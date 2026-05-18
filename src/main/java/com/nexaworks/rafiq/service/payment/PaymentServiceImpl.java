@@ -12,8 +12,8 @@ import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.Payment;
 import com.nexaworks.rafiq.entities.enums.PaymentProvider;
-import com.nexaworks.rafiq.exception.custom.PaymentException;
-import com.nexaworks.rafiq.exception.custom.PaymentProviderException;
+import com.nexaworks.rafiq.exception.custom.payment.PaymentException;
+import com.nexaworks.rafiq.exception.custom.payment.PaymentProviderException;
 import com.nexaworks.rafiq.repository.PaymentRepository;
 import com.stripe.exception.StripeException;
 

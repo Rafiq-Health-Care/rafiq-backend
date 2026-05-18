@@ -15,9 +15,13 @@ import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
 import com.nexaworks.rafiq.entities.*;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.SlotStatus;
-import com.nexaworks.rafiq.exception.custom.*;
+import com.nexaworks.rafiq.exception.custom.auth.AuthorizationException;
+import com.nexaworks.rafiq.exception.custom.consultation.SlotCanNotCreated;
+import com.nexaworks.rafiq.exception.custom.consultation.SlotCanNotEditException;
+import com.nexaworks.rafiq.exception.custom.consultation.SlotNotFoundException;
 import com.nexaworks.rafiq.repository.ConsultationSlotRepository;
 import com.nexaworks.rafiq.repository.DoctorRepository;
+import com.nexaworks.rafiq.scheduler.ExpirationScheduler;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.utils.TransactionUtils;
 
@@ -33,6 +37,7 @@ public class ConsultationSlotService implements IConsultationSlotService {
     private final DoctorRepository doctorRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final TransactionUtils transactionUtils;
+    private final ExpirationScheduler scheduler;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -57,6 +62,7 @@ public class ConsultationSlotService implements IConsultationSlotService {
 
         slot = consultationSlotRepository.save(slot);
         log.info("Slot added {} by {}", slot.getId(), doctor.getId());
+        scheduler.scheduleConsultationSlotExpiration(slot.getId(), slot.getEndTime());
         return slot;
     }
 
@@ -88,6 +94,7 @@ public class ConsultationSlotService implements IConsultationSlotService {
         // todo migrate to server send events
         transactionUtils.afterCommit(() -> messagingTemplate.convertAndSend("/topic/consultation",
                 new ConsultationChanged(slot.getId(), start)));
+        scheduler.reSchedule(slot.getId(), slot.getEndTime());
 
         return slot;
     }

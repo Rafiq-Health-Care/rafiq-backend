@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.SlotStatus;
-import com.nexaworks.rafiq.exception.custom.ConsultationNotFoundException;
+import com.nexaworks.rafiq.exception.custom.consultation.ConsultationNotFoundException;
 import com.nexaworks.rafiq.rabbit.manager.ConsultationNotificationManager;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.scheduler.PreparationScheduler;
@@ -33,7 +33,7 @@ public class ConsultationProcessingService implements IConsultationProcessingSer
                 () -> new ConsultationNotFoundException("Consultation not found with id: " + id));
         log.info("Consultation with id: {} is confirmed", id);
 
-        consultation.setStatus(ConsultationStatus.CONFIRMED);
+        consultation.setStatus(ConsultationStatus.UPCOMING);
         consultation.getSlot().setStatus(SlotStatus.BOOKED);
 
         consultationRepository.save(consultation);

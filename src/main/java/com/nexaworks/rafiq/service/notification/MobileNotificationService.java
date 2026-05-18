@@ -3,7 +3,7 @@ package com.nexaworks.rafiq.service.notification;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import com.nexaworks.rafiq.dto.notificaiton.PushNotification;
+import com.nexaworks.rafiq.rabbit.notificaiton.PushNotification;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

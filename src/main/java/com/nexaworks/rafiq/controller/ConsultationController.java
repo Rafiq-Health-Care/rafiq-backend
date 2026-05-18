@@ -19,7 +19,7 @@ import com.nexaworks.rafiq.entities.enums.PaymentProvider;
 import com.nexaworks.rafiq.mapper.ConsultationMapper;
 import com.nexaworks.rafiq.service.consultation.IConsultationCancellationService;
 import com.nexaworks.rafiq.service.consultation.IConsultationSearchService;
-import com.nexaworks.rafiq.service.consultation.IConsultationService;
+import com.nexaworks.rafiq.service.consultation.IConsultationSlotService;
 import com.nexaworks.rafiq.service.consultation.IReservationService;
 import com.stripe.exception.StripeException;
 
@@ -32,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Tag(name = "Consultation", description = "Endpoints for consultation")
 public class ConsultationController {
-    private final IConsultationService IConsultationService;
+    private final IConsultationSlotService IConsultationSlotService;
     private final IConsultationSearchService IConsultationSearchService;
     private final IReservationService IReservationService;
     private final ConsultationMapper mapper;
@@ -43,7 +43,7 @@ public class ConsultationController {
     public ResponseEntity<ConsultationResponse> addConsultation(
             @Valid @RequestBody AddConsultationRequest request) {
         Consultation consultation = mapper.toEntity(request);
-        consultation = IConsultationService.add(consultation);
+        consultation = IConsultationSlotService.add(consultation);
         return ResponseEntity.ok(mapper.toDto(consultation));
 
     }
@@ -59,7 +59,7 @@ public class ConsultationController {
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<ConsultationResponse> editConsultation(
             @Valid @RequestBody AddConsultationRequest request, @PathVariable UUID id) {
-        Consultation consultation = IConsultationService.editConsultation(request, id);
+        Consultation consultation = IConsultationSlotService.editConsultation(request, id);
         return ResponseEntity.ok(mapper.toDto(consultation));
     }
     @PatchMapping("/cancel/{id}")
@@ -126,6 +126,11 @@ public class ConsultationController {
         List<Consultation> consultations = IConsultationSearchService
                 .getPatientConsultation(status);
         return ResponseEntity.ok(mapper.toPatientDtoList(consultations));
+    }
+    @PutMapping("/holding/{id}")
+    public ResponseEntity<Boolean> holdConsultation(@PathVariable UUID id) {
+
+        return ResponseEntity.ok().build();
     }
 
 }

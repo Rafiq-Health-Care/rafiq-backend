@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 public class CancellationLog extends BaseEntity {
 
     @OneToOne
-    @JoinColumn(name = "consultation_id", nullable = false)
+    @JoinColumn(name = "consultation_id", nullable = false, unique = true)
     private Consultation consultation;
 
     @Column(nullable = false, columnDefinition = "TEXT")

@@ -30,7 +30,6 @@ import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.TimeSlot;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.PaymentProvider;
-import com.nexaworks.rafiq.exception.custom.ConsultationException;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.service.consultation.ReservationService;

@@ -1,7 +1,6 @@
 package com.nexaworks.rafiq.rabbit.consumer;
 
-import static com.nexaworks.rafiq.rabbit.constant.RabbitMQConstant.EMAIL_NOTIFICATION_QUEUE;
-import static com.nexaworks.rafiq.rabbit.constant.RabbitMQConstant.OTP_QUEUE;
+import static com.nexaworks.rafiq.rabbit.constant.RabbitMQConstant.*;
 
 import java.io.IOException;
 
@@ -27,10 +26,27 @@ public class EmailNotificationConsumer {
         this.notificationService = notificationService;
     }
 
-    @RabbitListener(queues = {EMAIL_NOTIFICATION_QUEUE,OTP_QUEUE})
-    public void handleEmailNotification(EmailNotification emailNotification, Channel channel,
+    @RabbitListener(queues = EMAIL_NOTIFICATION_QUEUE)
+    public void handleEmailNotification(EmailNotification notification, Channel channel,
             @Header(AmqpHeaders.DELIVERY_TAG) long tag) throws IOException {
-        log.info("Received email notification: {}", emailNotification);
+        handle(notification, channel, tag);
+    }
+
+    @RabbitListener(queues = OTP_QUEUE)
+    public void handleOtpNotification(EmailNotification notification, Channel channel,
+            @Header(AmqpHeaders.DELIVERY_TAG) long tag) throws IOException {
+        handle(notification, channel, tag);
+    }
+    @RabbitListener(queues = {EMAIL_DLQ})
+    public void handleEmailDLQ(EmailNotification emailNotification, Channel channel,
+            @Header(AmqpHeaders.DELIVERY_TAG) long tag) throws IOException {
+        log.error("Email notification permanently failed, inspect manually: {}", emailNotification);
+        // todo handle failed email
+        channel.basicAck(tag, false);
+    }
+
+    private void handle(EmailNotification emailNotification, Channel channel, long tag)
+            throws IOException {
         try {
             notificationService.sendNotification(emailNotification);
             channel.basicAck(tag, false);
@@ -39,4 +55,5 @@ public class EmailNotificationConsumer {
             channel.basicNack(tag, false, false);
         }
     }
+
 }

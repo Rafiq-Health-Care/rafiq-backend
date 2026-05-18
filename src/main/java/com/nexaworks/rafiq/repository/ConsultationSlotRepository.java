@@ -46,9 +46,8 @@ public interface ConsultationSlotRepository
             @Param("end") LocalDateTime end, @Param("doctorId") UUID userId,
             @Param("consultationId") UUID id, @Param("status") ConsultationStatus status);
 
-    @Query("SELECT new com.nexaworks.rafiq.dto.response.consultation.DoctorConsultationResponse(c.id,c.startTime,c.endTime) FROM ConsultationSlot  c where c.doctor.id = :id AND c.status = :status")
-    List<DoctorConsultationResponse> getDoctorAvailableConsultation(UUID id,
-            ConsultationStatus consultationStatus);
+    @Query("SELECT new com.nexaworks.rafiq.dto.response.consultation.DoctorConsultationResponse(c.id,c.startTime,c.endTime) FROM ConsultationSlot  c where c.doctor.id = :id AND c.status = :slotStatus")
+    List<DoctorConsultationResponse> getDoctorAvailableConsultation(UUID id, SlotStatus slotStatus);
 
     @Query("SELECT c FROM ConsultationSlot c WHERE c.doctor.id = :doctorId AND c.status = :status")
     List<ConsultationSlot> findAllDoctorUpcoming(UUID doctorId, SlotStatus slotStatus);

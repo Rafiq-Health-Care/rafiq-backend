@@ -1,7 +1,7 @@
 package com.nexaworks.rafiq.entities;
 
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
-import com.nexaworks.rafiq.entities.enums.Specialization;
+import com.nexaworks.rafiq.entities.enums.PaymentStatus;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -13,48 +13,51 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Entity
 @SuperBuilder
-@Table(name = "consultation", indexes = {@Index(name = "doctor_idx", columnList = "doctor_id"),
-        @Index(name = "patient_con_idx", columnList = "patient_id"),
-        @Index(name = "status_idx", columnList = "status")}, uniqueConstraints = {
-                @UniqueConstraint(name = "uk_doctor_date_start", columnNames = {"doctor_id",
-                        "start_time"})})
 public class Consultation extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doctor_id", nullable = false)
-    private Doctor doctor;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "slot_id", nullable = false, unique = true)
+    private ConsultationSlot slot;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patient_id")
+    @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
-
-    @Embedded
-    private TimeSlot timeSlot;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private ConsultationStatus status = ConsultationStatus.AVAILABLE;
+    private ConsultationStatus status = ConsultationStatus.PENDING;
+
+    @Column(unique = true)
+    private String accessToken;
 
     @Column(columnDefinition = "TEXT")
     private String notes;
 
     @OneToOne(mappedBy = "consultation", cascade = CascadeType.ALL)
-    private CancellationLog cancellationLog;
-
-    @OneToOne(mappedBy = "consultation", cascade = CascadeType.ALL)
     private Payment payment;
 
-    private String accessToken;
-
-    @Enumerated(EnumType.STRING)
-    private Specialization specialization;
+    @OneToOne(mappedBy = "consultation", cascade = CascadeType.ALL)
+    private CancellationLog cancellationLog;
 
     @OneToOne(mappedBy = "consultation")
     private ConsultationSummary consultationSummary;
+    @OneToOne(mappedBy = "consultation")
+    private ConsultationLog consultationLog;
 
     @Transient
     public boolean isCancelled() {
         return status == ConsultationStatus.CANCELLED;
     }
+
+    @Transient
+    public boolean isRefundable() {
+        return isCancelled() && payment != null && payment.getStatus() == PaymentStatus.SUCCEEDED;
+    }
+
+    @Transient
+    public Doctor getDoctor() {
+        return slot.getDoctor();
+    }
+
 }

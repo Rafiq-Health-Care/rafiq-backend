@@ -22,14 +22,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.nexaworks.rafiq.dto.notificaiton.PushNotification;
 import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.TimeSlot;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
-import com.nexaworks.rafiq.exception.custom.ConsultationException;
-import com.nexaworks.rafiq.exception.custom.RtcProviderException;
+import com.nexaworks.rafiq.exception.custom.consultation.RtcProviderException;
+import com.nexaworks.rafiq.rabbit.notificaiton.PushNotification;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.service.call.RtcProvider;
 import com.nexaworks.rafiq.service.consultation.ConsultationPreparationService;

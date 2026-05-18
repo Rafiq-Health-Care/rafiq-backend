@@ -40,10 +40,9 @@ public interface ConsultationRepository
     @Query("SELECT new com.nexaworks.rafiq.dto.response.consultation.CallResponse(c.id,c.accessToken) FROM Consultation c")
     CallResponse getConsultationCallInfo(UUID id);
 
-    @Query("SELECT c FROM Consultation c WHERE c.patient.id = :patientId AND c.status= :status1 OR c.status= :status2")
+    @Query("SELECT c FROM Consultation c WHERE c.patient.id = :patientId AND c.status= :status1")
     List<Consultation> findAllByPatientIdAndStatus(@Param("patientId") UUID patientId,
-            @Param("status1") ConsultationStatus status1,
-            @Param("status2") ConsultationStatus status2);
+            @Param("status1") ConsultationStatus status1);
 
     @Query("SELECT c FROM Consultation c WHERE c.patient.id = :patientId AND c.status= :status")
     List<Consultation> findAllPatientConsultation(@Param("patientId") UUID authenticateUserId,

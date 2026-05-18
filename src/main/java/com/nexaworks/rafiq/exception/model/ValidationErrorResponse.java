@@ -16,6 +16,8 @@ public class ValidationErrorResponse {
     private int status;
     private String error;
     private String message;
+    private String code;
     private LocalDateTime timestamp;
+    private String path;
     private Map<String, String> validationErrors;
 }

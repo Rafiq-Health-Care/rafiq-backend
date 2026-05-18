@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.rabbit.consumer;
 
+import static com.nexaworks.rafiq.rabbit.constant.RabbitMQConstant.SMS_DLQ;
 import static com.nexaworks.rafiq.rabbit.constant.RabbitMQConstant.SMS_NOTIFICATION_QUEUE;
 
 import java.io.IOException;
@@ -37,6 +38,13 @@ public class SMSNotificationConsumer {
             log.error("Failed to send SMS notification", e);
             channel.basicNack(tag, false, false);
         }
+    }
+    @RabbitListener(queues = SMS_DLQ)
+    public void handleSmsDLQ(SmsNotification notification, Channel channel,
+            @Header(AmqpHeaders.DELIVERY_TAG) long tag) throws IOException {
+        log.error("Sms notification permanently failed, inspect manually: {}", notification);
+        // todo handle failed sms notification
+        channel.basicAck(tag, false);
     }
 
 }

@@ -31,14 +31,13 @@ import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.Roles;
 import com.nexaworks.rafiq.entities.enums.Specialization;
-import com.nexaworks.rafiq.exception.custom.RegistrationException;
-import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
-import com.nexaworks.rafiq.exception.custom.TokenNotFoundException;
+import com.nexaworks.rafiq.exception.custom.user.RegistrationException;
+import com.nexaworks.rafiq.exception.custom.user.TokenInvalidException;
+import com.nexaworks.rafiq.exception.custom.user.TokenNotFoundException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.doctor.DoctorServiceImpl;
 import com.nexaworks.rafiq.service.file.ImageService;
 import com.nexaworks.rafiq.service.patient.PatientServiceImpl;
-import com.nexaworks.rafiq.service.rabbit.MessageService;
 import com.nexaworks.rafiq.service.user.RoleServiceImpl;
 import com.nexaworks.rafiq.service.user.TokenServiceImpl;
 import com.nexaworks.rafiq.service.user.UserServiceImpl;
@@ -144,8 +143,7 @@ public class UserServiceImplTest {
                 .lastName("Doe").password("password123").build();
 
         when(userRepository.existsUserByEmail(anyString())).thenReturn(true);
-        assertThrows(com.nexaworks.rafiq.exception.custom.RegistrationException.class,
-                () -> userService.registerPatient(patient));
+        assertThrows(RegistrationException.class, () -> userService.registerPatient(patient));
         verify(userRepository, never()).save(any(User.class));
         verify(messageService, never()).sendRegistrationEvent(any(User.class), anyString());
         verify(messageService, never()).sendNewOtpEvent(any(User.class), anyString());

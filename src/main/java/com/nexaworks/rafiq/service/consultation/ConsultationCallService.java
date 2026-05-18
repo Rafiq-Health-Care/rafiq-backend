@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.nexaworks.rafiq.dto.response.consultation.CallResponse;
 import com.nexaworks.rafiq.entities.Consultation;
-import com.nexaworks.rafiq.exception.custom.ConsultationNotFoundException;
+import com.nexaworks.rafiq.exception.custom.consultation.ConsultationNotFoundException;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 

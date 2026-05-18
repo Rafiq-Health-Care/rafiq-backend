@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
-import com.nexaworks.rafiq.exception.custom.MailSenderException;
+import com.nexaworks.rafiq.exception.custom.general.MailSenderException;
 import com.nexaworks.rafiq.rabbit.notificaiton.EmailNotification;
 
 import jakarta.mail.MessagingException;

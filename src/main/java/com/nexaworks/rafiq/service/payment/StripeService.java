@@ -10,8 +10,8 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import com.nexaworks.rafiq.dto.response.payment.PaymentDto;
-import com.nexaworks.rafiq.exception.custom.PaymentException;
-import com.nexaworks.rafiq.exception.custom.PaymentProviderException;
+import com.nexaworks.rafiq.exception.custom.payment.PaymentException;
+import com.nexaworks.rafiq.exception.custom.payment.PaymentProviderException;
 import com.stripe.exception.ApiConnectionException;
 import com.stripe.exception.RateLimitException;
 import com.stripe.exception.StripeException;

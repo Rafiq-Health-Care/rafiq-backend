@@ -15,8 +15,9 @@ import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.SlotStatus;
-import com.nexaworks.rafiq.exception.custom.ConsultationException;
-import com.nexaworks.rafiq.exception.custom.ConsultationNotFoundException;
+import com.nexaworks.rafiq.exception.custom.auth.AuthorizationException;
+import com.nexaworks.rafiq.exception.custom.consultation.CanNotCancelConsultation;
+import com.nexaworks.rafiq.exception.custom.consultation.ConsultationNotFoundException;
 import com.nexaworks.rafiq.rabbit.manager.ConsultationNotificationManager;
 import com.nexaworks.rafiq.rabbit.manager.RefundEventManager;
 import com.nexaworks.rafiq.repository.CancellationLogRepository;
@@ -49,13 +50,13 @@ public class ConsultationCancellationService implements IConsultationCancellatio
                 .orElseThrow(() -> new ConsultationNotFoundException("Consultation not found"));
 
         User currentUser = authService.getAuthenticateUser();
-        if (consultation.getStatus().isTerminal()) {
-            throw new ConsultationException("Consultation is already completed");
+        if (consultation.getStatus().equals(ConsultationStatus.COMPLETED)) {
+            throw new CanNotCancelConsultation("Consultation is already completed");
         }
 
         if (!consultation.getDoctor().getId().equals(currentUser.getId())
                 && !consultation.getPatient().getId().equals(currentUser.getId())) {
-            throw new ConsultationException("You are not authorized to cancel this consultation");
+            throw new AuthorizationException("You are not authorized to cancel this consultation");
         }
 
         boolean cancelledByPatient = cancelBookedConsultation(reason, consultation, currentUser);
@@ -67,7 +68,7 @@ public class ConsultationCancellationService implements IConsultationCancellatio
             eventManager.publishRefundRequestEvent(refundId);
             if (cancelledByPatient) {
                 messagingTemplate.convertAndSend("/topic/consultation",
-                        new ConsultationCancelled(id, ConsultationStatus.AVAILABLE));
+                        new ConsultationCancelled(id, SlotStatus.AVAILABLE));
                 notificationManager.sendPatientCancelledEvent(consultation);
             } else {
                 notificationManager.sendDoctorCancelledEvent(consultation);

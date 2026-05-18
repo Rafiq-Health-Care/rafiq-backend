@@ -6,7 +6,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.nexaworks.rafiq.exception.ExceptionUtils;
-import com.nexaworks.rafiq.exception.custom.*;
+import com.nexaworks.rafiq.exception.custom.auth.GoogleAuthException;
+import com.nexaworks.rafiq.exception.custom.user.InvalidPasswordException;
+import com.nexaworks.rafiq.exception.custom.user.RegistrationException;
+import com.nexaworks.rafiq.exception.custom.user.UserException;
+import com.nexaworks.rafiq.exception.custom.user.UserNotFoundException;
 import com.nexaworks.rafiq.exception.model.ErrorResponse;
 
 import jakarta.servlet.http.HttpServletRequest;

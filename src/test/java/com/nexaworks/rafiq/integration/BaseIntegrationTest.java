@@ -29,7 +29,6 @@ import com.nexaworks.rafiq.client.Gemini;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.integration.config.IntegrationTestExternalMocks;
 import com.nexaworks.rafiq.integration.config.TestDataSeeder;
-import com.nexaworks.rafiq.service.rabbit.MessageService;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc

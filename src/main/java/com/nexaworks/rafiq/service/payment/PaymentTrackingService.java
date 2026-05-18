@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.entities.Payment;
 import com.nexaworks.rafiq.entities.enums.PaymentStatus;
-import com.nexaworks.rafiq.exception.custom.PaymentException;
+import com.nexaworks.rafiq.exception.custom.payment.PaymentException;
 import com.nexaworks.rafiq.repository.PaymentRepository;
 import com.nexaworks.rafiq.scheduler.PaymentScheduler;
 import com.nexaworks.rafiq.service.consultation.IConsultationProcessingService;

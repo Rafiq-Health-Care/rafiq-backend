@@ -8,8 +8,9 @@ import org.springframework.stereotype.Service;
 
 import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
-import com.nexaworks.rafiq.exception.custom.ConsultationNotFoundException;
-import com.nexaworks.rafiq.exception.custom.RtcProviderException;
+import com.nexaworks.rafiq.entities.enums.SlotStatus;
+import com.nexaworks.rafiq.exception.custom.consultation.ConsultationNotFoundException;
+import com.nexaworks.rafiq.exception.custom.consultation.RtcProviderException;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.service.call.RtcProvider;
 
@@ -30,11 +31,11 @@ public class ConsultationPreparationService implements IConsultationPreparationS
         Consultation consultation = consultationRepository.findConsultationById(uuid)
                 .orElseThrow(() -> new ConsultationNotFoundException("Consultation not found"));
 
-        if (!consultation.getStatus().isPreparable()) {
+        if (!consultation.getSlot().getStatus().equals(SlotStatus.BOOKED)) {
             return null;
         }
-        int expiration = Math.toIntExact(LocalDateTime.now()
-                .until(consultation.getTimeSlot().getEndTime(), ChronoUnit.SECONDS));
+        int expiration = Math.toIntExact(
+                LocalDateTime.now().until(consultation.getSlot().getEndTime(), ChronoUnit.SECONDS));
 
         String accessToken = rtcProvider.generateToken(consultation.getId().toString(), expiration);
 

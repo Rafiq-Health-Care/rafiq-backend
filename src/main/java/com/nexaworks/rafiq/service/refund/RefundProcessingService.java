@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.nexaworks.rafiq.entities.RefundRequest;
 import com.nexaworks.rafiq.entities.enums.PaymentStatus;
 import com.nexaworks.rafiq.entities.enums.RefundStatus;
-import com.nexaworks.rafiq.exception.custom.RefundNotFoundException;
+import com.nexaworks.rafiq.exception.custom.payment.RefundNotFoundException;
 import com.nexaworks.rafiq.repository.RefundRepository;
 import com.nexaworks.rafiq.service.payment.PaymentService;
 import com.stripe.exception.StripeException;

@@ -34,8 +34,10 @@ public class RefundRequest extends BaseEntity {
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "consultation_id", nullable = false, unique = true)
     private Consultation consultation;
+
+    private String stripeRefundId;
 
 }
