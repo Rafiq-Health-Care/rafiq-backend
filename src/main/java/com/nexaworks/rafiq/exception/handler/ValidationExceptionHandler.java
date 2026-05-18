@@ -64,7 +64,6 @@ public class ValidationExceptionHandler {
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ValidationErrorResponse> handleValidationException(ValidationException ex,
             HttpServletRequest request) {
-        // Generic validation exception without field-level details
         return buildResponse(ex.getMessage() != null ? ex.getMessage() : "Validation failed",
                 new HashMap<>(), HttpStatus.BAD_REQUEST, request.getRequestURI());
     }
