@@ -17,27 +17,6 @@ public class RabbitMQConstant {
 
     public static final String NOTIFICATION_DLQ_EXCHANGE = "notification.dlq.exchange";
 
-    public static final String CONSULTATION_EXPIRATION_QUEUE = "consultation.expiration";
-    public static final String CONSULTATION_EXPIRATION_EXCHANGE = "consultation.expiration.exchange";
-    public static final String CONSULTATION_EXPIRATION_ROUTING_KEY = "consultation.expiration";
-
-    public static final String CONSULTATION_EXPIRATION_DLQ = "consultation.expiration.dlq";
-    public static final String CONSULTATION_EXPIRATION_DLQ_ROUTING_KEY = "consultation.expiration.dlq";
-
-    public static final String CONSULTATION_EXPIRATION_RETRY_QUEUE = "consultation.expiration.retry";
-    public static final String CONSULTATION_EXPIRATION_RETRY_ROUTING_KEY = "consultation.expiration.retry";
-
-    public static final String CONSULTATION_PREPARATION_EXCHANGE = "consultation.preparation.exchange";
-    public static final String CONSULTATION_PREPARATION_RETRY_EXCHANGE = "consultation.preparation.retry.exchange";
-
-    public static final String CONSULTATION_PREPARATION_QUEUE = "consultation.preparation.queue";
-    public static final String CONSULTATION_PREPARATION_RETRY_QUEUE = "consultation.preparation.retry.queue";
-    public static final String CONSULTATION_PREPARATION_DLQ_QUEUE = "consultation.preparation.dlq.queue";
-
-    public static final String CONSULTATION_PREPARATION_ROUTING_KEY = "consultation.preparation";
-    public static final String CONSULTATION_PREPARATION_RETRY_ROUTING_KEY = "consultation.preparation.retry";
-    public static final String CONSULTATION_PREPARATION_DLQ_ROUTING_KEY = "consultation.preparation.dlq";
-
     public static final String REFUND_REQUEST_EXCHANGE = "refund.request.exchange";
     public static final String REFUND_REQUEST_QUEUE = "refund.request.queue";
     public static final String REFUND_REQUEST_ROUTING_KEY = "refund.request";
