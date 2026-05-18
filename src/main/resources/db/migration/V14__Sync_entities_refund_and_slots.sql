@@ -6,6 +6,7 @@
 ALTER TABLE doctor
     ADD COLUMN IF NOT EXISTS balance NUMERIC(10, 2) NOT NULL DEFAULT 0;
 
+
 -- Consultation slots table (new)
 CREATE TABLE consultation_slot (
     id               UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -23,6 +24,26 @@ CREATE TABLE consultation_slot (
     deleted_by       VARCHAR(255),
     deleted_at       TIMESTAMPTZ
 );
+CREATE OR REPLACE VIEW doctor_search_view AS
+SELECT
+    d.id                  AS doctor_id,
+    d.personal_photo      AS personal_photo,
+    u.first_name          AS first_name,
+    u.last_name           AS last_name,
+    d.specialization      AS specialization,
+    d.price               AS price,
+    d.rating              AS rating,
+    d.experience_years    AS experience_years,
+    u.gender              AS gender,
+    MIN(cs.start_time)    AS next_available
+FROM doctor d
+         JOIN users u ON d.id = u.id
+         JOIN consultation_slot cs ON cs.doctor_id = d.id
+WHERE cs.start_time >= NOW()
+  AND cs.deleted = FALSE
+GROUP BY d.id, d.personal_photo, u.first_name, u.last_name,
+         d.specialization, d.price, d.rating, d.experience_years, u.gender;
+
 
 -- Consultation: add slot_id and backfill from existing consultation fields
 ALTER TABLE consultation
@@ -67,7 +88,6 @@ WHERE NOT EXISTS (
 );
 
 ALTER TABLE consultation
-    ADD CONSTRAINT uq_consultation_slot UNIQUE (slot_id),
     ADD CONSTRAINT fk_consultation_slot FOREIGN KEY (slot_id)
         REFERENCES consultation_slot (id);
 
@@ -143,23 +163,3 @@ ALTER TABLE payments
     ADD CONSTRAINT fk_payments_refund_request FOREIGN KEY (refund_request_id)
         REFERENCES refund_request (id);
 
--- Update doctor search view to use consultation_slot
-CREATE OR REPLACE VIEW doctor_search_view AS
-SELECT
-        d.id                  AS doctor_id,
-        d.personal_photo      AS personal_photo,
-        u.first_name          AS first_name,
-        u.last_name           AS last_name,
-        d.specialization      AS specialization,
-        d.price               AS price,
-        d.rating              AS rating,
-        d.experience_years    AS experience_years,
-        u.gender              AS gender,
-        MIN(cs.start_time)    AS next_available
-FROM doctor d
-JOIN users u ON d.id = u.id
-JOIN consultation_slot cs ON cs.doctor_id = d.id
-WHERE cs.start_time >= NOW()
-    AND cs.deleted = FALSE
-GROUP BY d.id, d.personal_photo, u.first_name, u.last_name,
-                 d.specialization, d.price, d.rating, d.experience_years, u.gender;
