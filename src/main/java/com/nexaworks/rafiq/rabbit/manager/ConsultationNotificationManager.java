@@ -76,4 +76,11 @@ public class ConsultationNotificationManager {
                 Map.of("slotId", reservationId.toString()));
         pushPublisher.publish(notification);
     }
+
+    public void publishReminderNotification(UUID consultationId, String fcm,
+            LocalDateTime startTime) {
+        PushNotification notification = new PushNotification(CONSULTATION_COMING_UP, fcm, Map.of(
+                "startTime", startTime.toString(), "consultationId", consultationId.toString()));
+        pushPublisher.publish(notification);
+    }
 }
