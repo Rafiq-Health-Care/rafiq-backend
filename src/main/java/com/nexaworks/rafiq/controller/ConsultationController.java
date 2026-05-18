@@ -9,8 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
-import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.consultation.*;
 import com.nexaworks.rafiq.entities.Consultation;
@@ -19,12 +17,10 @@ import com.nexaworks.rafiq.entities.enums.PaymentProvider;
 import com.nexaworks.rafiq.mapper.ConsultationMapper;
 import com.nexaworks.rafiq.service.consultation.IConsultationCancellationService;
 import com.nexaworks.rafiq.service.consultation.IConsultationSearchService;
-import com.nexaworks.rafiq.service.consultation.IConsultationSlotService;
 import com.nexaworks.rafiq.service.consultation.IReservationService;
 import com.stripe.exception.StripeException;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -32,36 +28,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Tag(name = "Consultation", description = "Endpoints for consultation")
 public class ConsultationController {
-    private final IConsultationSlotService IConsultationSlotService;
     private final IConsultationSearchService IConsultationSearchService;
     private final IReservationService IReservationService;
     private final ConsultationMapper mapper;
     private final IConsultationCancellationService cancellationService;
 
-    @PostMapping("/add")
-    @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<ConsultationResponse> addConsultation(
-            @Valid @RequestBody AddConsultationRequest request) {
-        Consultation consultation = mapper.toEntity(request);
-        consultation = IConsultationSlotService.add(consultation);
-        return ResponseEntity.ok(mapper.toDto(consultation));
-
-    }
-    @PostMapping("/schedule")
-    @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<PageResponse<ScheduleResponse>> getSchedule(
-            @Valid @RequestBody ScheduleFilter filter, Pageable pageable) {
-        Page<Consultation> consultations = IConsultationSearchService.getDoctorSchedule(filter,
-                pageable);
-        return ResponseEntity.ok(mapper.toSchedulePageResponse(consultations));
-    }
-    @PutMapping("/edit/{id}")
-    @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<ConsultationResponse> editConsultation(
-            @Valid @RequestBody AddConsultationRequest request, @PathVariable UUID id) {
-        Consultation consultation = IConsultationSlotService.editConsultation(request, id);
-        return ResponseEntity.ok(mapper.toDto(consultation));
-    }
     @PatchMapping("/cancel/{id}")
     public ResponseEntity<?> cancelConsultation(@PathVariable UUID id,
             @RequestParam String reason) {

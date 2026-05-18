@@ -23,7 +23,6 @@ public class RefundConsumer {
     public void handleRefundRequest(RefundRequestEvent event, Channel channel,
             @Header(AmqpHeaders.DELIVERY_TAG) long tag) {
         // todo handle idempotency
-        log.info("Refund request received:{}", event.paymentId());
 
     }
 

@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.dto.event.ConsultationChanged;
 import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
+import com.nexaworks.rafiq.dto.request.consultation.EditConsultationSlotRequest;
 import com.nexaworks.rafiq.entities.*;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.SlotStatus;
@@ -70,7 +71,7 @@ public class ConsultationSlotService implements IConsultationSlotService {
     @Transactional(rollbackFor = Exception.class)
     @Retryable(retryFor = {
             PessimisticLockingFailureException.class}, maxAttempts = 3, backoff = @Backoff(delay = 500))
-    public ConsultationSlot editConsultation(AddConsultationRequest request, UUID id) {
+    public ConsultationSlot editConsultation(EditConsultationSlotRequest request, UUID id) {
         UUID userId = authService.getAuthenticateUserId();
 
         ConsultationSlot slot = consultationSlotRepository.findById(id)
