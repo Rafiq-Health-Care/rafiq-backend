@@ -2,10 +2,12 @@ package com.nexaworks.rafiq.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -13,6 +15,8 @@ import com.nexaworks.rafiq.dto.response.consultation.DoctorConsultationResponse;
 import com.nexaworks.rafiq.entities.ConsultationSlot;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.SlotStatus;
+
+import jakarta.persistence.LockModeType;
 
 public interface ConsultationSlotRepository
         extends
@@ -48,4 +52,11 @@ public interface ConsultationSlotRepository
 
     @Query("SELECT c FROM ConsultationSlot c WHERE c.doctor.id = :doctorId AND c.status = :status")
     List<ConsultationSlot> findAllDoctorUpcoming(UUID doctorId, SlotStatus slotStatus);
+
+    @Query("SELECT true FROM ConsultationSlot c WHERE c.id = :slotId AND c.status = SlotStatus.AVAILABLE")
+    boolean isBooked(UUID slotId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT c FROM ConsultationSlot c WHERE c.id = :id")
+    Optional<ConsultationSlot> findConsultationByIdWithLock(UUID id);
 }
