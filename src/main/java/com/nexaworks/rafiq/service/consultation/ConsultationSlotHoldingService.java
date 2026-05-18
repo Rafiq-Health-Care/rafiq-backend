@@ -8,6 +8,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import com.nexaworks.rafiq.exception.custom.consultation.ConsultationSlotTakenException;
 import com.nexaworks.rafiq.repository.ConsultationSlotRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 
@@ -35,10 +36,10 @@ public class ConsultationSlotHoldingService implements IConsultationSlotHoldingS
     }
 
     @Override
-    public boolean hold(UUID slotId) {
+    public void hold(UUID slotId) {
         UUID userId = authService.getAuthenticateUserId();
-        if (!slotRepository.isBooked(slotId)) {
-            return false;
+        if (slotRepository.isBooked(slotId)) {
+            throw new ConsultationSlotTakenException("Slot is booked");
         }
 
         log.info("User [{}] attempting to hold slot [{}]", userId, slotId);
@@ -52,12 +53,11 @@ public class ConsultationSlotHoldingService implements IConsultationSlotHoldingS
                 log.info("Slot [{}] held by user [{}]", slotId, userId);
             } else {
                 log.warn("Slot [{}] already held — user [{}] blocked", slotId, userId);
+                throw new ConsultationSlotTakenException("Slot is already booked");
             }
 
-            return acquired;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return false;
         }
     }
 

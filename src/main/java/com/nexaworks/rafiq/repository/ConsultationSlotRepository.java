@@ -52,7 +52,7 @@ public interface ConsultationSlotRepository
     @Query("SELECT c FROM ConsultationSlot c WHERE c.doctor.id = :doctorId AND c.status = :status")
     List<ConsultationSlot> findAllDoctorUpcoming(UUID doctorId, SlotStatus slotStatus);
 
-    @Query("SELECT true FROM ConsultationSlot c WHERE c.id = :slotId AND c.status = SlotStatus.AVAILABLE")
+    @Query("SELECT true FROM ConsultationSlot c WHERE c.id = :slotId AND c.status = SlotStatus.BOOKED")
     boolean isBooked(UUID slotId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

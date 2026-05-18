@@ -19,6 +19,7 @@ import com.nexaworks.rafiq.dto.response.consultation.ScheduleResponse;
 import com.nexaworks.rafiq.entities.ConsultationSlot;
 import com.nexaworks.rafiq.mapper.ConsultationSlotMapper;
 import com.nexaworks.rafiq.service.consultation.IConsultationSearchService;
+import com.nexaworks.rafiq.service.consultation.IConsultationSlotHoldingService;
 import com.nexaworks.rafiq.service.consultation.IConsultationSlotService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,6 +38,7 @@ public class ConsultationSlotController {
     private final IConsultationSlotService IConsultationSlotService;
     private final ConsultationSlotMapper mapper;
     private final IConsultationSearchService searchService;
+    private final IConsultationSlotHoldingService holdingService;
 
     @PostMapping
     @PreAuthorize("hasRole('DOCTOR')")
@@ -73,5 +75,24 @@ public class ConsultationSlotController {
         Page<ConsultationSlot> slotPage = searchService.getDoctorSchedule(filter, pageable);
         return ResponseEntity.ok().body(mapper.toSchedulePageResponse(slotPage));
 
+    }
+    @PutMapping("/{id}/hold")
+    @PreAuthorize("hasRole('PATIENT')")
+    @Operation(summary = "Hold a consultation slot", responses = {
+            @ApiResponse(responseCode = "200", description = "Slot held successfully"),
+            @ApiResponse(responseCode = "403", description = "Access denied"),
+            @ApiResponse(responseCode = "409", description = "Slot already held")})
+    public ResponseEntity<Void> holdConsultation(@PathVariable UUID id) {
+        holdingService.hold(id);
+        return ResponseEntity.ok().build();
+    }
+    @PutMapping("/{id}/release")
+    @PreAuthorize("hasRole('PATIENT')")
+    @Operation(summary = "Release a held consultation slot", responses = {
+            @ApiResponse(responseCode = "200", description = "Slot released successfully"),
+            @ApiResponse(responseCode = "403", description = "Access denied")})
+    public ResponseEntity<Void> releaseConsultation(@PathVariable UUID id) {
+        holdingService.release(id);
+        return ResponseEntity.ok().build();
     }
 }
