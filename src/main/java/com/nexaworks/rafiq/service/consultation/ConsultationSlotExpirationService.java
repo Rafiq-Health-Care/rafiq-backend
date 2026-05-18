@@ -34,7 +34,10 @@ public class ConsultationSlotExpirationService implements IConsultationSlotExpir
         }
         if (consultationSlot.getStatus().equals(SlotStatus.BOOKED)) {
             messagingTemplate.convertAndSend("/queue/" + consultationSlotId, Optional.of(1));
-            consultationSlot.getConsultation().setStatus(ConsultationStatus.COMPLETED);
+            consultationSlot.getConsultations().stream().filter(
+                    consultation -> consultation.getStatus().equals(ConsultationStatus.UPCOMING))
+                    .findFirst().ifPresent(
+                            consultation -> consultation.setStatus(ConsultationStatus.COMPLETED));
         }
         consultationSlot.setStatus(SlotStatus.EXPIRED);
         consultationSlotRepository.save(consultationSlot);

@@ -4,13 +4,10 @@ import static com.nexaworks.rafiq.rabbit.constant.RabbitMQConstant.*;
 
 import org.springframework.amqp.core.*;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.converter.MessageConverter;
 
 @Configuration
-@ConditionalOnBean({AmqpTemplate.class, MessageConverter.class})
 public class EmailNotificationConfiguration {
 
     @Bean(name = "emailDLQ")

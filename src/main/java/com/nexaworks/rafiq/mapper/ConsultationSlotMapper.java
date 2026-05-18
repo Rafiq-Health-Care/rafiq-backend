@@ -19,6 +19,7 @@ import com.nexaworks.rafiq.dto.response.patientProfile.PatientDto;
 import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.ConsultationSlot;
 import com.nexaworks.rafiq.entities.User;
+import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 
 @Mapper(componentModel = "spring")
 public interface ConsultationSlotMapper {
@@ -34,21 +35,43 @@ public interface ConsultationSlotMapper {
                 slotPage.getNumberOfElements(), slotPage.getSize(), slotPage.getTotalPages(),
                 slotPage.isLast(), slotPage.isFirst());
     }
+
     @Mapping(target = "slotId", source = "id")
+    @Mapping(target = "durationInMinutes", source = "durationMinutes")
     @Mapping(target = "consultationId", expression = "java(getConsultationId(slot))")
     @Mapping(target = "patientName", expression = "java(getPatientName(slot))")
     ScheduleResponse toScheduleDto(ConsultationSlot slot);
 
+    default Consultation getActiveConsultation(ConsultationSlot slot) {
+        if (slot.getConsultations() == null) {
+            return null;
+        }
+        return slot.getConsultations().stream()
+                .filter(consultation -> consultation.getStatus() != ConsultationStatus.CANCELLED)
+                .findFirst().orElse(null);
+    }
+
+    default Consultation getConsultationWithCancellation(ConsultationSlot slot) {
+        if (slot.getConsultations() == null) {
+            return null;
+        }
+        return slot.getConsultations().stream()
+                .filter(consultation -> consultation.getCancellationLog() != null).findFirst()
+                .orElse(null);
+    }
+
     default UUID getConsultationId(ConsultationSlot slot) {
-        return slot.getConsultation() != null ? slot.getConsultation().getId() : null;
+        Consultation consultation = getActiveConsultation(slot);
+        return consultation == null ? null : consultation.getId();
     }
 
     default String getPatientName(ConsultationSlot slot) {
-        if (slot.getConsultation() == null)
+        Consultation consultation = getActiveConsultation(slot);
+        if (consultation == null || consultation.getPatient() == null) {
             return null;
-        if (slot.getConsultation().getPatient() == null)
-            return null;
-        return slot.getConsultation().getPatient().getName();
+        }
+        return consultation.getPatient().getFirstName() + " "
+                + consultation.getPatient().getLastName();
     }
 
     default PageResponse<DoctorConsultationResponse> toDoctorPageResponse(
@@ -65,7 +88,6 @@ public interface ConsultationSlotMapper {
 
     @Mapping(target = "consultationId", expression = "java(getConsultationId(slot))")
     @Mapping(target = "slotId", source = "id")
-    @Mapping(target = "startTime", source = "startTime")
     @Mapping(target = "durationInMinutes", source = "durationMinutes")
     @Mapping(target = "status", expression = "java(getConsultationStatus(slot))")
     @Mapping(target = "price", expression = "java(getPrice(slot))")
@@ -81,28 +103,26 @@ public interface ConsultationSlotMapper {
     }
 
     default LocalDateTime getBookedAt(ConsultationSlot slot) {
-        Consultation consultation = slot.getConsultation();
+        Consultation consultation = getActiveConsultation(slot);
         return consultation == null ? null : toLocalDateTime(consultation.getCreatedAt());
     }
 
     default LocalDateTime getCancelledAt(ConsultationSlot slot) {
-        Consultation consultation = slot.getConsultation();
-        if (consultation == null || consultation.getCancellationLog() == null) {
+        Consultation consultation = getConsultationWithCancellation(slot);
+        if (consultation == null) {
             return null;
         }
         return toLocalDateTime(consultation.getCancellationLog().getCreatedAt());
     }
 
     default String getCancellationReason(ConsultationSlot slot) {
-        Consultation consultation = slot.getConsultation();
-        return consultation == null || consultation.getCancellationLog() == null
-                ? null
-                : consultation.getCancellationLog().getReason();
+        Consultation consultation = getConsultationWithCancellation(slot);
+        return consultation == null ? null : consultation.getCancellationLog().getReason();
     }
 
     default boolean isCancelledByPatient(ConsultationSlot slot) {
-        Consultation consultation = slot.getConsultation();
-        if (consultation == null || consultation.getCancellationLog() == null) {
+        Consultation consultation = getConsultationWithCancellation(slot);
+        if (consultation == null) {
             return false;
         }
         User cancelledBy = consultation.getCancellationLog().getCancelledBy();
@@ -110,13 +130,13 @@ public interface ConsultationSlotMapper {
                 && cancelledBy.getId().equals(consultation.getPatient().getId());
     }
 
-    default com.nexaworks.rafiq.entities.enums.ConsultationStatus getConsultationStatus(
-            ConsultationSlot slot) {
-        return slot.getConsultation() == null ? null : slot.getConsultation().getStatus();
+    default ConsultationStatus getConsultationStatus(ConsultationSlot slot) {
+        Consultation consultation = getActiveConsultation(slot);
+        return consultation == null ? null : consultation.getStatus();
     }
 
     default BigDecimal getPrice(ConsultationSlot slot) {
-        Consultation consultation = slot.getConsultation();
+        Consultation consultation = getActiveConsultation(slot);
         if (consultation != null && consultation.getPayment() != null) {
             return consultation.getPayment().getAmount();
         }
@@ -124,7 +144,7 @@ public interface ConsultationSlotMapper {
     }
 
     default PatientDto getPatientDto(ConsultationSlot slot) {
-        Consultation consultation = slot.getConsultation();
+        Consultation consultation = getActiveConsultation(slot);
         if (consultation == null || consultation.getPatient() == null) {
             return null;
         }

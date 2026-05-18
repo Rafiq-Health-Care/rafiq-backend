@@ -33,8 +33,8 @@ public class PaymentServiceImpl implements PaymentService {
             PaymentProviderException.class, PaymentException.class})
     public String process(Consultation consultation, Patient currentUser, PaymentProvider provider)
             throws StripeException {
-        PaymentProviderService paymentProviderService = (PaymentProviderService) applicationContext
-                .getBean(provider.getName());
+        PaymentProviderService paymentProviderService = applicationContext
+                .getBean(provider.getName(), PaymentProviderService.class);
 
         PaymentDto paymentDto = paymentProviderService.pay(String.valueOf(consultation.getId()),
                 consultation.getDoctor().getPrice());

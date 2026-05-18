@@ -14,7 +14,6 @@ import org.springframework.data.repository.query.Param;
 
 import com.nexaworks.rafiq.dto.response.consultation.DoctorConsultationResponse;
 import com.nexaworks.rafiq.entities.ConsultationSlot;
-import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.SlotStatus;
 
 import jakarta.persistence.LockModeType;
@@ -27,12 +26,12 @@ public interface ConsultationSlotRepository
             SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END
             FROM ConsultationSlot c
             WHERE c.doctor.id = :doctorId
-            AND c.status != :status
+            AND c.status != SlotStatus.CANCELLED
             AND c.startTime < :end
             AND c.endTime > :start
             """)
-    boolean existsByOverlapping(LocalDateTime startTime, LocalDateTime endTime, UUID id,
-            ConsultationStatus consultationStatus);
+    boolean existsByOverlapping(@Param("start") LocalDateTime startTime,
+            @Param("end") LocalDateTime endTime, @Param("doctorId") UUID id);
 
     @Query("""
             SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END
@@ -45,19 +44,23 @@ public interface ConsultationSlotRepository
             """)
     boolean existsByOverlapping(@Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end, @Param("doctorId") UUID userId,
-            @Param("consultationId") UUID id, @Param("status") ConsultationStatus status);
+            @Param("consultationId") UUID id, @Param("status") SlotStatus status);
 
     @Query("SELECT new com.nexaworks.rafiq.dto.response.consultation.DoctorConsultationResponse(c.id,c.startTime,c.endTime) FROM ConsultationSlot  c where c.doctor.id = :id AND c.status = :slotStatus")
     Page<DoctorConsultationResponse> getDoctorAvailableConsultation(UUID id, SlotStatus slotStatus,
             Pageable pageable);
 
-    @Query("SELECT c FROM ConsultationSlot c WHERE c.doctor.id = :doctorId AND c.status = :status ORDER BY c.startTime")
-    Page<ConsultationSlot> findAllDoctorUpcoming(UUID doctorId, SlotStatus slotStatus,
-            Pageable pageable);
+    @Query("SELECT c FROM ConsultationSlot c WHERE c.doctor.id = :doctorId AND c.status = :status")
+    Page<ConsultationSlot> findAllDoctorUpcoming(@Param("doctorId") UUID doctorId,
+            @Param("status") SlotStatus slotStatus, Pageable pageable);
 
-    @Query("SELECT true FROM ConsultationSlot c WHERE c.id = :slotId AND c.status = SlotStatus.BOOKED")
+    @Query("""
+                SELECT COUNT(c) > 0
+                FROM ConsultationSlot c
+                WHERE c.id = :slotId
+                  AND c.status = SlotStatus.BOOKED
+            """)
     boolean isBooked(UUID slotId);
-
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM ConsultationSlot c WHERE c.id = :id")
     Optional<ConsultationSlot> findConsultationByIdWithLock(UUID id);

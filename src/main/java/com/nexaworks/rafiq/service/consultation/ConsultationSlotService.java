@@ -14,7 +14,6 @@ import com.nexaworks.rafiq.dto.event.ConsultationChanged;
 import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
 import com.nexaworks.rafiq.dto.request.consultation.EditConsultationSlotRequest;
 import com.nexaworks.rafiq.entities.*;
-import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.SlotStatus;
 import com.nexaworks.rafiq.exception.custom.auth.AuthorizationException;
 import com.nexaworks.rafiq.exception.custom.consultation.SlotCanNotCreated;
@@ -52,8 +51,7 @@ public class ConsultationSlotService implements IConsultationSlotService {
         LocalDateTime startTime = request.startTime();
         LocalDateTime endTime = request.startTime().plusMinutes(request.duration());
 
-        if (consultationSlotRepository.existsByOverlapping(startTime, endTime, doctor.getId(),
-                ConsultationStatus.CANCELLED)) {
+        if (consultationSlotRepository.existsByOverlapping(startTime, endTime, doctor.getId())) {
             throw new SlotCanNotCreated(
                     "Can't create consultation slot, you have overlapping consultation slot");
         }
@@ -84,12 +82,13 @@ public class ConsultationSlotService implements IConsultationSlotService {
         LocalDateTime start = request.startTime();
         LocalDateTime end = request.startTime().plusMinutes(request.duration());
         if (consultationSlotRepository.existsByOverlapping(start, end, userId, id,
-                ConsultationStatus.CANCELLED)) {
+                SlotStatus.CANCELLED)) {
             throw new SlotCanNotEditException("Consultation time slot is already booked");
         }
         slot.setStartTime(start);
         slot.setEndTime(end);
         slot.setDurationMinutes(request.duration());
+        slot.setStatus(request.status());
         log.info("Slot edited {} by {}", slot.getId(), userId);
 
         // todo migrate to server send events

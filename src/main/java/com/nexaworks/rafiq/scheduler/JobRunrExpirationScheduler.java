@@ -20,7 +20,7 @@ public class JobRunrExpirationScheduler implements ExpirationScheduler {
     public void scheduleConsultationSlotExpiration(UUID consultationSlotId, LocalDateTime endTime) {
         log.info("Scheduling consultation slot expiration for slot: {}", consultationSlotId);
         BackgroundJob.schedule(consultationSlotId, endTime,
-                consultationSlotExpirationService::expire);
+                () -> consultationSlotExpirationService.expire(consultationSlotId));
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.nexaworks.rafiq.service.consultation;
 
 import java.util.UUID;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.retry.annotation.Backoff;
@@ -46,11 +47,42 @@ public class ConsultationCancellationService implements IConsultationCancellatio
     @Retryable(retryFor = {
             PessimisticLockingFailureException.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
     public void cancel(UUID id, String reason) {
+        User currentUser = authService.getAuthenticateUser();
+
+        Consultation consultation = validateAndGetConsultation(id, currentUser);
+
+        if (consultation.getStatus().equals(ConsultationStatus.PENDING)) {
+            boolean cancelledByPatient = cancelBookedConsultation(reason, consultation,
+                    currentUser);
+            consultationRepository.save(consultation);
+            log.info("Consultation cancelled {} by {}", consultation.getId(),
+                    currentUser.getEmail());
+            if (cancelledByPatient) {
+                transactionUtils.afterCommit(() -> {
+                    notificationManager.sendDoctorCancelledEvent(consultation);
+                });
+            }
+            return;
+        }
+
+        boolean cancelledByPatient = cancelBookedConsultation(reason, consultation, currentUser);
+
+        UUID refundId = refundService.refund(consultation, !cancelledByPatient);
+
+        log.info("Consultation cancelled {} by {}", consultation.getId(), currentUser.getEmail());
+
+        transactionUtils.afterCommit(() -> {
+            eventManager.publishRefundRequestEvent(refundId);
+            notify(id, cancelledByPatient, consultation);
+        });
+    }
+
+    private @NonNull Consultation validateAndGetConsultation(UUID id, User currentUser) {
         Consultation consultation = consultationRepository.findConsultationById(id)
                 .orElseThrow(() -> new ConsultationNotFoundException("Consultation not found"));
 
-        User currentUser = authService.getAuthenticateUser();
-        if (consultation.getStatus().equals(ConsultationStatus.COMPLETED)) {
+        if (consultation.getStatus().equals(ConsultationStatus.COMPLETED)
+                || consultation.getStatus().equals(ConsultationStatus.CANCELLED)) {
             throw new CanNotCancelConsultation("Consultation is already completed");
         }
 
@@ -58,23 +90,19 @@ public class ConsultationCancellationService implements IConsultationCancellatio
                 && !consultation.getPatient().getId().equals(currentUser.getId())) {
             throw new AuthorizationException("You are not authorized to cancel this consultation");
         }
-
-        boolean cancelledByPatient = cancelBookedConsultation(reason, consultation, currentUser);
-        UUID refundId = refundService.refund(consultation, !cancelledByPatient);
-
-        log.info("Consultation cancelled {} by {}", consultation.getId(), currentUser.getEmail());
-
-        transactionUtils.afterCommit(() -> {
-            eventManager.publishRefundRequestEvent(refundId);
-            if (cancelledByPatient) {
-                messagingTemplate.convertAndSend("/topic/consultation",
-                        new ConsultationCancelled(id, SlotStatus.AVAILABLE));
-                notificationManager.sendPatientCancelledEvent(consultation);
-            } else {
-                notificationManager.sendDoctorCancelledEvent(consultation);
-            }
-        });
+        return consultation;
     }
+
+    private void notify(UUID id, boolean cancelledByPatient, Consultation consultation) {
+        messagingTemplate.convertAndSend("/topic/consultation",
+                new ConsultationCancelled(id, SlotStatus.AVAILABLE));
+        if (cancelledByPatient) {
+            notificationManager.sendPatientCancelledEvent(consultation);
+        } else {
+            notificationManager.sendDoctorCancelledEvent(consultation);
+        }
+    }
+
     private boolean cancelBookedConsultation(String reason, Consultation consultation,
             User currentUser) {
         CancellationLog cancellationLog = CancellationLog.builder().consultation(consultation)

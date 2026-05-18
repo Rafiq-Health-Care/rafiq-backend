@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.entities;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.nexaworks.rafiq.entities.enums.SlotStatus;
 
@@ -29,8 +30,8 @@ public class ConsultationSlot extends BaseEntity {
     @Column(name = "end_time", nullable = false)
     private LocalDateTime endTime;
 
-    @OneToOne(mappedBy = "slot", fetch = FetchType.EAGER)
-    private Consultation consultation;
+    @OneToMany(mappedBy = "slot", fetch = FetchType.EAGER)
+    private List<Consultation> consultations;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

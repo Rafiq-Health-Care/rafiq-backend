@@ -67,5 +67,6 @@ public class Doctor extends User {
 
     private BigDecimal rating;
     @Column(name = "balance", nullable = false, precision = 10, scale = 2)
-    private BigDecimal balance;
+    @Builder.Default
+    private BigDecimal balance = BigDecimal.valueOf(0);
 }

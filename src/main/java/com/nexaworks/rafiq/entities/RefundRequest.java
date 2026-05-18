@@ -4,10 +4,7 @@ import java.math.BigDecimal;
 
 import com.nexaworks.rafiq.entities.enums.RefundStatus;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Getter
@@ -22,6 +19,7 @@ public class RefundRequest extends BaseEntity {
 
     @ToString.Include
     @Builder.Default
+    @Enumerated(EnumType.STRING)
     private RefundStatus status = RefundStatus.PENDING;
     @ToString.Include
     private BigDecimal amount;

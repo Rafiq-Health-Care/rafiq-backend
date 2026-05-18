@@ -20,7 +20,7 @@ public class JobRunrPaymentExpirationScheduler implements PaymentScheduler {
     public void schedulePaymentExpiration(UUID paymentId) {
         log.info("Scheduling payment expiration for payment: {}", paymentId);
         BackgroundJob.schedule(paymentId, LocalDateTime.now().plusMinutes(10),
-                paymentTrackingService::check);
+                () -> paymentTrackingService.check(paymentId));
 
     }
 

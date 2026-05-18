@@ -3,7 +3,6 @@ package com.nexaworks.rafiq.service.payment;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -23,8 +22,7 @@ import com.stripe.param.RefundCreateParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Service
-@Qualifier("stripe")
+@Service("stripe")
 @Slf4j
 @RequiredArgsConstructor
 public class StripeService implements PaymentProviderService {
