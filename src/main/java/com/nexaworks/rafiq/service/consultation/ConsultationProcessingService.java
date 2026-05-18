@@ -39,7 +39,9 @@ public class ConsultationProcessingService implements IConsultationProcessingSer
         consultationRepository.save(consultation);
         transactionUtils.afterCommit(() -> {
             log.info("Consultation with id: {} is confirmed", id);
-            preparationScheduler.schedulePreparation(id, consultation.getSlot().getStartTime());
+            preparationScheduler.scheduleReminder(id,
+                    consultation.getPatient().getNotificationToken(),
+                    consultation.getSlot().getStartTime());
             notificationManager.publishSuccessfulReservationNotification(
                     consultation.getSlot().getDoctor().getNotificationToken(),
                     consultation.getSlot().getId());
