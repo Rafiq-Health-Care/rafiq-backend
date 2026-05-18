@@ -4,25 +4,53 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.jobrunr.scheduling.BackgroundJob;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.nexaworks.rafiq.service.consultation.ConsultationPreparationService;
+import com.nexaworks.rafiq.rabbit.manager.ConsultationNotificationManager;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Component
-@Qualifier("jobRunr")
+@Component("jobRunr")
 @Slf4j
 @RequiredArgsConstructor
 public class JobRunrPreparationScheduler implements PreparationScheduler {
-    private final ConsultationPreparationService consultationPreparationService;
-    @Override
-    public void schedulePreparation(UUID consultationId, LocalDateTime startTime) {
-        log.info("Scheduling preparation for consultation {} at {}", consultationId, startTime);
-        BackgroundJob.schedule(consultationId, startTime.minusMinutes(5),
-                () -> consultationPreparationService.prepare(consultationId));
 
+    private final ConsultationNotificationManager notificationManager;
+
+    @Override
+    public void scheduleReminder(UUID consultationId, String fcm, LocalDateTime startTime) {
+        log.info("Scheduling reminders for consultation: {}", consultationId);
+
+        if (startTime.isBefore(LocalDateTime.now())) {
+            log.warn("Start time is in the past for consultation: {}, skipping all scheduling",
+                    consultationId);
+            return;
+        }
+
+        if (fcm == null || fcm.isBlank()) {
+            log.warn("FCM token is missing for consultation: {}, skipping push scheduling",
+                    consultationId);
+            return;
+        }
+
+        UUID reminderId = UUID.nameUUIDFromBytes((consultationId + ".reminder").getBytes());
+        UUID finalReminderId = UUID
+                .nameUUIDFromBytes((consultationId + ".final_reminder").getBytes());
+
+        if (startTime.isAfter(LocalDateTime.now().plusMinutes(30))) {
+            BackgroundJob.schedule(reminderId, startTime.minusMinutes(30), () -> notificationManager
+                    .publishReminderNotification(consultationId, fcm, startTime));
+            log.info("30-min reminder scheduled for consultation: {} [jobId: {}]", consultationId,
+                    reminderId);
+        } else {
+            log.info("Consultation: {} starts in less than 30 minutes, skipping reminder",
+                    consultationId);
+        }
+
+        BackgroundJob.schedule(finalReminderId, startTime.minusMinutes(5), () -> notificationManager
+                .publishReminderNotification(consultationId, fcm, startTime));
+        log.info("5-min reminder scheduled for consultation: {} at {} [jobId: {}]", consultationId,
+                startTime.minusMinutes(5), finalReminderId);
     }
 }
