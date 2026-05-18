@@ -1,6 +1,5 @@
 package com.nexaworks.rafiq.service.consultation;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -34,8 +33,8 @@ public class ConsultationSearchService implements IConsultationSearchService {
     private final AuthService authService;
 
     @Override
-    public ConsultationSlot getConsultation(UUID id) {
-        return consultationSlotRepository.findById(id)
+    public Consultation getConsultation(UUID id) {
+        return consultationRepository.findById(id)
                 .orElseThrow(() -> new SlotNotFoundException("Slot not found"));
     }
     @Override
@@ -46,28 +45,29 @@ public class ConsultationSearchService implements IConsultationSearchService {
     }
 
     @Override
-    public List<Consultation> getPatientUpcoming() {
+    public Page<Consultation> getPatientConsultationsByStatus(ConsultationStatus status,
+            Pageable pageable) {
         UUID patientId = authService.getAuthenticateUserId();
-        return consultationRepository.findAllByPatientIdAndStatus(patientId,
-                ConsultationStatus.UPCOMING);
+        return consultationRepository.findAllByPatientIdAndStatus(patientId, status, pageable);
     }
 
     @Override
-    public List<ConsultationSlot> getDoctorUpcoming() {
+    public Page<ConsultationSlot> getDoctorUpcoming(Pageable pageable) {
         UUID doctorId = authService.getAuthenticateUserId();
-        return consultationSlotRepository.findAllDoctorUpcoming(doctorId, SlotStatus.BOOKED);
+        return consultationSlotRepository.findAllDoctorUpcoming(doctorId, SlotStatus.BOOKED,
+                pageable);
     }
 
     @Override
-    public List<Consultation> getPatientConsultation(ConsultationStatus status) {
-        return consultationRepository
-                .findAllPatientConsultation(authService.getAuthenticateUserId(), status);
-
+    public Page<DoctorConsultationResponse> getDoctorAvailableSlots(UUID id, Pageable pageable) {
+        return consultationSlotRepository.getDoctorAvailableConsultation(id, SlotStatus.AVAILABLE,
+                pageable);
     }
 
     @Override
-    public List<DoctorConsultationResponse> getDoctorAvailableConsultation(UUID id) {
-        return consultationSlotRepository.getDoctorAvailableConsultation(id, SlotStatus.AVAILABLE);
+    public ConsultationSlot getConsultationSlot(UUID id) {
+        return consultationSlotRepository.findById(id)
+                .orElseThrow(() -> new SlotNotFoundException("Slot not found"));
     }
 
 }

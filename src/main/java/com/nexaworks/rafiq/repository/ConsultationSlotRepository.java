@@ -1,10 +1,11 @@
 package com.nexaworks.rafiq.repository;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
@@ -47,10 +48,12 @@ public interface ConsultationSlotRepository
             @Param("consultationId") UUID id, @Param("status") ConsultationStatus status);
 
     @Query("SELECT new com.nexaworks.rafiq.dto.response.consultation.DoctorConsultationResponse(c.id,c.startTime,c.endTime) FROM ConsultationSlot  c where c.doctor.id = :id AND c.status = :slotStatus")
-    List<DoctorConsultationResponse> getDoctorAvailableConsultation(UUID id, SlotStatus slotStatus);
+    Page<DoctorConsultationResponse> getDoctorAvailableConsultation(UUID id, SlotStatus slotStatus,
+            Pageable pageable);
 
-    @Query("SELECT c FROM ConsultationSlot c WHERE c.doctor.id = :doctorId AND c.status = :status")
-    List<ConsultationSlot> findAllDoctorUpcoming(UUID doctorId, SlotStatus slotStatus);
+    @Query("SELECT c FROM ConsultationSlot c WHERE c.doctor.id = :doctorId AND c.status = :status ORDER BY c.startTime")
+    Page<ConsultationSlot> findAllDoctorUpcoming(UUID doctorId, SlotStatus slotStatus,
+            Pageable pageable);
 
     @Query("SELECT true FROM ConsultationSlot c WHERE c.id = :slotId AND c.status = SlotStatus.BOOKED")
     boolean isBooked(UUID slotId);

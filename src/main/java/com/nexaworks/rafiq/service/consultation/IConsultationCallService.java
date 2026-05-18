@@ -5,5 +5,5 @@ import java.util.UUID;
 import com.nexaworks.rafiq.dto.response.consultation.CallResponse;
 
 public interface IConsultationCallService {
-    CallResponse getCall(UUID consultationId);
+    CallResponse enterCall(UUID consultationId);
 }

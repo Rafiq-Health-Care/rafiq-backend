@@ -2,7 +2,6 @@ package com.nexaworks.rafiq.service.consultation;
 
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.UUID;
 
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -13,12 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import com.nexaworks.rafiq.dto.request.consultation.ReserveConsultationRequest;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationEvent;
 import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.ConsultationSlot;
 import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.enums.EventType;
-import com.nexaworks.rafiq.entities.enums.PaymentProvider;
 import com.nexaworks.rafiq.entities.enums.SlotStatus;
 import com.nexaworks.rafiq.exception.custom.consultation.ConsultationOverlappingException;
 import com.nexaworks.rafiq.exception.custom.consultation.SlotNotFoundException;
@@ -48,11 +47,11 @@ public class ReservationService implements IReservationService {
     @Transactional
     @Retryable(retryFor = {
             PessimisticLockingFailureException.class}, maxAttempts = 3, backoff = @Backoff(delay = 500))
-    public String reserve(UUID id, PaymentProvider provider) throws StripeException {
+    public String reserve(ReserveConsultationRequest request) {
         Patient patient = (Patient) authService.getAuthenticateUser();
-        log.info("Patient {} is reserving consultation {}", patient.getEmail(), id);
+        log.info("Patient {} is reserving consultation {}", patient.getEmail(), request.slotId());
 
-        ConsultationSlot slot = slotRepository.findConsultationByIdWithLock(id)
+        ConsultationSlot slot = slotRepository.findConsultationByIdWithLock(request.slotId())
                 .orElseThrow(() -> new SlotNotFoundException("Consultation not found"));
 
         if (!slot.getStatus().equals(SlotStatus.AVAILABLE)) {
@@ -60,26 +59,34 @@ public class ReservationService implements IReservationService {
         }
 
         checkPatientOverlapping(slot.getStartTime(), slot.getEndTime(), patient);
-        Consultation consultation = Consultation.builder().slot(slot).patient(patient).build();
+        Consultation consultation = Consultation.builder().slot(slot).patient(patient)
+                .notes(request.notes()).build();
 
         log.info("Consultation {} is reserved by {}", slot.getId(), patient.getId());
 
-        String clientSecret = paymentService.process(consultation, patient, provider);
-        slot.setStatus(SlotStatus.PENDING_PAYMENT);
+        try {
+            String clientSecret = paymentService.process(consultation, patient, request.provider());
+            slot.setStatus(SlotStatus.PENDING_PAYMENT);
 
-        consultationRepository.save(consultation);
+            consultationRepository.save(consultation);
 
-        log.debug("Payment key for consultation {} is {}", consultation.getId(), clientSecret);
+            log.debug("Payment key for consultation {} is {}", consultation.getId(), clientSecret);
 
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                messagingTemplate.convertAndSend("/topic/consultation",
-                        new ConsultationEvent(consultation.getId(), EventType.BOOKED, Map.of()));
-            }
-        });
+            TransactionSynchronizationManager
+                    .registerSynchronization(new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            messagingTemplate.convertAndSend("/topic/consultation",
+                                    new ConsultationEvent(consultation.getId(), EventType.BOOKED,
+                                            Map.of()));
+                        }
+                    });
 
-        return clientSecret;
+            return clientSecret;
+        } catch (StripeException e) {
+            log.error("Stripe payment failed: {}", e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 
     private void checkPatientOverlapping(LocalDateTime start, LocalDateTime end,

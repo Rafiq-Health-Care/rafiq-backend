@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
@@ -41,8 +43,8 @@ public interface ConsultationRepository
     CallResponse getConsultationCallInfo(UUID id);
 
     @Query("SELECT c FROM Consultation c WHERE c.patient.id = :patientId AND c.status= :status1")
-    List<Consultation> findAllByPatientIdAndStatus(@Param("patientId") UUID patientId,
-            @Param("status1") ConsultationStatus status1);
+    Page<Consultation> findAllByPatientIdAndStatus(@Param("patientId") UUID patientId,
+            @Param("status1") ConsultationStatus status1, Pageable pageable);
 
     @Query("SELECT c FROM Consultation c WHERE c.patient.id = :patientId AND c.status= :status")
     List<Consultation> findAllPatientConsultation(@Param("patientId") UUID authenticateUserId,

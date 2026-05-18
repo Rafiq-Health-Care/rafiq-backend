@@ -4,14 +4,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.nexaworks.rafiq.dto.response.doctor.DoctorDto;
+import com.nexaworks.rafiq.dto.response.patientProfile.PatientDto;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Full details of a consultation")
-public record ConsultationResponse(
-
+public record ConsultationSlotResponse(
         @Schema(description = "Unique identifier of the consultation", example = "123e4567-e89b-12d3-a456-426614174000") UUID consultationId,
 
         @Schema(description = "Unique identifier of the slot", example = "789e1234-e89b-12d3-a456-426614174999") UUID slotId,
@@ -24,7 +22,7 @@ public record ConsultationResponse(
 
         @Schema(description = "Price of the consultation", example = "99.99") BigDecimal price,
 
-        @Schema(description = "Doctor assigned to this consultation") DoctorDto doctor,
+        @Schema(description = "Patient assigned to this consultation") PatientDto patient,
 
         @Schema(description = "When the consultation was booked", example = "2025-05-01T08:00:00") LocalDateTime bookedAt,
 

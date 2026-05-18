@@ -1,107 +1,93 @@
 package com.nexaworks.rafiq.controller;
 
-import java.util.List;
 import java.util.UUID;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.nexaworks.rafiq.dto.request.consultation.CancelConsultationRequest;
+import com.nexaworks.rafiq.dto.request.consultation.ReserveConsultationRequest;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
-import com.nexaworks.rafiq.dto.response.consultation.*;
+import com.nexaworks.rafiq.dto.response.consultation.ConsultationResponse;
+import com.nexaworks.rafiq.dto.response.consultation.PatientConsultationResponse;
+import com.nexaworks.rafiq.dto.response.consultation.ReserveConsultationResponse;
 import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
-import com.nexaworks.rafiq.entities.enums.PaymentProvider;
 import com.nexaworks.rafiq.mapper.ConsultationMapper;
 import com.nexaworks.rafiq.service.consultation.IConsultationCancellationService;
 import com.nexaworks.rafiq.service.consultation.IConsultationSearchService;
 import com.nexaworks.rafiq.service.consultation.IReservationService;
-import com.stripe.exception.StripeException;
 
-import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/consultation")
 @RequiredArgsConstructor
-@Tag(name = "Consultation", description = "Endpoints for consultation")
 public class ConsultationController {
-    private final IConsultationSearchService IConsultationSearchService;
-    private final IReservationService IReservationService;
-    private final ConsultationMapper mapper;
+    private final IReservationService reservationService;
     private final IConsultationCancellationService cancellationService;
+    private final IConsultationSearchService searchService;
+    private final ConsultationMapper mapper;
 
-    @PatchMapping("/cancel/{id}")
-    public ResponseEntity<?> cancelConsultation(@PathVariable UUID id,
-            @RequestParam String reason) {
-        cancellationService.cancel(id, reason);
+    @PostMapping
+    @PreAuthorize("hasRole('PATIENT')")
+    @Operation(summary = "Reserve a consultation slot", responses = {
+            @ApiResponse(responseCode = "201", description = "Reservation created, payment key returned"),
+            @ApiResponse(responseCode = "400", description = "Invalid request"),
+            @ApiResponse(responseCode = "403", description = "Access denied"),
+            @ApiResponse(responseCode = "404", description = "Slot not found"),
+            @ApiResponse(responseCode = "409", description = "Slot not available")})
+    public ResponseEntity<ReserveConsultationResponse> reserveConsultation(
+            @Valid @RequestBody ReserveConsultationRequest request) {
+        String paymentKey = reservationService.reserve(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ReserveConsultationResponse(paymentKey));
+    }
+
+    @PatchMapping("/{id}/cancel")
+    @PreAuthorize("hasAnyRole('PATIENT', 'DOCTOR')")
+    @Operation(summary = "Cancel a consultation", responses = {
+            @ApiResponse(responseCode = "200", description = "Consultation cancelled"),
+            @ApiResponse(responseCode = "400", description = "Invalid request"),
+            @ApiResponse(responseCode = "403", description = "Access denied"),
+            @ApiResponse(responseCode = "404", description = "Consultation not found"),
+            @ApiResponse(responseCode = "409", description = "Consultation cannot be cancelled")})
+    public ResponseEntity<Void> cancelConsultation(@PathVariable UUID id,
+            @Valid @RequestBody CancelConsultationRequest request) {
+        cancellationService.cancel(id, request.reason());
         return ResponseEntity.ok().build();
     }
-
-    @PostMapping("/reserve/{id}")
-    @PreAuthorize("hasRole('PATIENT')")
-    public ResponseEntity<String> reserveConsultation(@PathVariable UUID id,
-            @RequestParam PaymentProvider provider) throws StripeException {
-        String paymentKey = IReservationService.reserve(id, provider);
-        return ResponseEntity.ok(paymentKey);
-    }
-
     @GetMapping("/{id}")
-    public ResponseEntity<ConsultationResponse> getConsultation(@PathVariable UUID id) {
-        Consultation consultation = IConsultationSearchService.getConsultation(id);
+    @PreAuthorize("hasAnyRole('PATIENT')")
+    @Operation(summary = "Get consultation by ID", responses = {
+            @ApiResponse(responseCode = "200", description = "Consultation retrieved"),
+            @ApiResponse(responseCode = "403", description = "Access denied"),
+            @ApiResponse(responseCode = "404", description = "Consultation not found")})
+    public ResponseEntity<ConsultationResponse> getConsultation(
+            @Parameter(description = "UUID of the consultation", required = true) @PathVariable UUID id) {
+        Consultation consultation = searchService.getConsultation(id);
         return ResponseEntity.ok(mapper.toDto(consultation));
     }
-
-    @GetMapping("/{id}/call")
-    public ResponseEntity<CallResponse> getCall(@PathVariable UUID id) {
-        return ResponseEntity.ok(IConsultationSearchService.getConsultationCall(id));
-    }
-
-    @PostMapping("/filter")
-    public ResponseEntity<PageResponse<ConsultationResponse>> filterConsultation(
-            @RequestBody ConsultationFilter filter, Pageable pageable) {
-
-        Page<Consultation> pageableConsultation = IConsultationSearchService
-                .getConsultations(filter, pageable);
-
-        return ResponseEntity.ok(mapper.toPageResponse(pageableConsultation));
-    }
-
-    @GetMapping("/patient/upcoming")
+    @GetMapping("/patient/{status}")
     @PreAuthorize("hasRole('PATIENT')")
-    public ResponseEntity<List<PatientConsultationResponse>> getPatientUpcoming() {
-        List<Consultation> upcomingConsultation = IConsultationSearchService.getPatientUpcoming();
-
-        return ResponseEntity.ok(mapper.toPatientDtoList(upcomingConsultation));
+    @Operation(summary = "Get patient consultations by status", responses = {
+            @ApiResponse(responseCode = "200", description = "Consultations retrieved"),
+            @ApiResponse(responseCode = "400", description = "Invalid status"),
+            @ApiResponse(responseCode = "403", description = "Access denied")})
+    public ResponseEntity<PageResponse<PatientConsultationResponse>> getPatientConsultationsByStatus(
+            @Parameter(description = "Consultation status", example = "UPCOMING", required = true) @PathVariable ConsultationStatus status,
+            @ParameterObject Pageable pageable) {
+        Page<Consultation> consultations = searchService.getPatientConsultationsByStatus(status,
+                pageable);
+        return ResponseEntity.ok(mapper.toPatientPageResponse(consultations));
     }
-
-    @GetMapping("/doctor/upcoming")
-    @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<List<ConsultationResponse>> getDoctorUpcoming() {
-        List<Consultation> upcomingConsultation = IConsultationSearchService.getDoctorUpcoming();
-
-        return ResponseEntity.ok(mapper.toDtoList(upcomingConsultation));
-    }
-    @GetMapping("/doctor/{id}")
-    public ResponseEntity<List<DoctorConsultationResponse>> getDoctorConsultations(
-            @PathVariable UUID id) {
-
-        return ResponseEntity.ok(IConsultationSearchService.getDoctorAvailableConsultation(id));
-    }
-
-    @PostMapping("/patient/my-consultations/{status}")
-    public ResponseEntity<List<PatientConsultationResponse>> getPatientConsultations(
-            @PathVariable ConsultationStatus status) {
-        List<Consultation> consultations = IConsultationSearchService
-                .getPatientConsultation(status);
-        return ResponseEntity.ok(mapper.toPatientDtoList(consultations));
-    }
-    @PutMapping("/holding/{id}")
-    public ResponseEntity<Boolean> holdConsultation(@PathVariable UUID id) {
-
-        return ResponseEntity.ok().build();
-    }
-
 }

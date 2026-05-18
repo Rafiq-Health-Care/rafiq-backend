@@ -1,6 +1,5 @@
 package com.nexaworks.rafiq.service.consultation;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -14,15 +13,16 @@ import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 
 public interface IConsultationSearchService {
 
-    ConsultationSlot getConsultation(UUID id);
+    Consultation getConsultation(UUID id);
 
     Page<ConsultationSlot> getDoctorSchedule(ScheduleFilter filter, Pageable pageable);
 
-    List<Consultation> getPatientUpcoming();
+    Page<Consultation> getPatientConsultationsByStatus(ConsultationStatus status,
+            Pageable pageable);
 
-    List<ConsultationSlot> getDoctorUpcoming();
+    Page<ConsultationSlot> getDoctorUpcoming(Pageable pageable);
 
-    List<Consultation> getPatientConsultation(ConsultationStatus status);
+    Page<DoctorConsultationResponse> getDoctorAvailableSlots(UUID id, Pageable pageable);
 
-    List<DoctorConsultationResponse> getDoctorAvailableConsultation(UUID id);
+    ConsultationSlot getConsultationSlot(UUID id);
 }

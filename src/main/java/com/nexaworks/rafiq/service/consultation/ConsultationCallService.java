@@ -23,7 +23,7 @@ public class ConsultationCallService implements IConsultationCallService {
     private final ConsultationLogService consultationLogService;
     private final AuthService authService;
     @Override
-    public CallResponse getCall(UUID consultationId) {
+    public CallResponse enterCall(UUID consultationId) {
         log.info("Getting call for consultation: {}", consultationId);
         Consultation consultation = getConsultation(consultationId);
 

@@ -1,84 +1,122 @@
 package com.nexaworks.rafiq.mapper;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
+import java.util.UUID;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import org.springframework.data.domain.Page;
 
-import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationResponse;
 import com.nexaworks.rafiq.dto.response.consultation.PatientConsultationResponse;
-import com.nexaworks.rafiq.dto.response.consultation.ScheduleResponse;
+import com.nexaworks.rafiq.dto.response.doctor.DoctorDto;
 import com.nexaworks.rafiq.entities.Consultation;
+import com.nexaworks.rafiq.entities.ConsultationSummary;
+import com.nexaworks.rafiq.entities.Doctor;
+import com.nexaworks.rafiq.entities.User;
 
 @Mapper(componentModel = "spring")
 public interface ConsultationMapper {
-    @Mapping(target = "startTime", source = "timeSlot.startTime")
-    @Mapping(target = "duration", source = "timeSlot.durationMinutes")
-    @Mapping(target = "price", source = "doctor.price")
-    @Mapping(target = "bookedAt", source = "payment.createdAt")
-    @Mapping(target = "cancelledAt", source = "cancellationLog.createdAt", qualifiedByName = "instantToLocalDateTime")
-    @Mapping(target = "reason", source = "cancellationLog.reason")
-    @Mapping(target = "cancelByPatient", expression = "java(com.nexaworks.rafiq.mapper.ConsultationMapper.isCancelledByPatient(consultation))")
+    @Mapping(target = "consultationId", source = "id")
+    @Mapping(target = "slotId", source = "slot.id")
+    @Mapping(target = "startTime", source = "slot.startTime")
+    @Mapping(target = "durationInMinutes", source = "slot.durationMinutes")
+    @Mapping(target = "status", source = "status")
+    @Mapping(target = "price", expression = "java(getPrice(consultation))")
+    @Mapping(target = "doctor", expression = "java(getDoctorDto(consultation))")
+    @Mapping(target = "bookedAt", expression = "java(toLocalDateTime(consultation.getCreatedAt()))")
+    @Mapping(target = "cancelledAt", expression = "java(getCancelledAt(consultation))")
+    @Mapping(target = "reason", expression = "java(getCancellationReason(consultation))")
+    @Mapping(target = "cancelByPatient", expression = "java(isCancelledByPatient(consultation))")
     ConsultationResponse toDto(Consultation consultation);
 
-    @Named("instantToLocalDateTime")
-    default LocalDateTime instantToLocalDateTime(Instant instant) {
+    default PageResponse<PatientConsultationResponse> toPatientPageResponse(
+            Page<Consultation> upcoming) {
+        return new PageResponse<>(
+                upcoming.getContent().stream().map(this::toPatientResponse).toList(),
+                upcoming.getNumberOfElements(), upcoming.getSize(), upcoming.getTotalPages(),
+                upcoming.isLast(), upcoming.isFirst());
+    }
+
+    @Mapping(target = "consultationId", source = "id")
+    @Mapping(target = "doctorName", expression = "java(getDoctorName(consultation))")
+    @Mapping(target = "doctorBio", expression = "java(getDoctorBio(consultation))")
+    @Mapping(target = "doctorImage", expression = "java(getDoctorImage(consultation))")
+    @Mapping(target = "startTime", source = "slot.startTime")
+    @Mapping(target = "duration", source = "slot.durationMinutes")
+    @Mapping(target = "summaryId", expression = "java(getSummaryId(consultation))")
+    @Mapping(target = "doctorId", expression = "java(getDoctorId(consultation))")
+    PatientConsultationResponse toPatientResponse(Consultation consultation);
+
+    default LocalDateTime toLocalDateTime(Instant instant) {
         return instant == null ? null : LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }
 
-    static boolean isCancelledByPatient(Consultation consultation) {
-        if (consultation.getCancellationLog() == null
-                || consultation.getCancellationLog().getCancelledBy() == null
-                || consultation.getPatient() == null) {
+    default LocalDateTime getCancelledAt(Consultation consultation) {
+        if (consultation.getCancellationLog() == null) {
+            return null;
+        }
+        return toLocalDateTime(consultation.getCancellationLog().getCreatedAt());
+    }
+
+    default String getCancellationReason(Consultation consultation) {
+        return consultation.getCancellationLog() == null
+                ? null
+                : consultation.getCancellationLog().getReason();
+    }
+
+    default boolean isCancelledByPatient(Consultation consultation) {
+        if (consultation.getCancellationLog() == null) {
             return false;
         }
-        return consultation.getCancellationLog().getCancelledBy().getId()
-                .equals(consultation.getPatient().getId());
+        User cancelledBy = consultation.getCancellationLog().getCancelledBy();
+        return cancelledBy != null && consultation.getPatient() != null
+                && cancelledBy.getId().equals(consultation.getPatient().getId());
     }
 
-    @Mapping(target = "timeSlot.startTime", source = "startTime")
-    @Mapping(target = "timeSlot.durationMinutes", source = "duration")
-    Consultation toEntity(AddConsultationRequest request);
-
-    default PageResponse<ConsultationResponse> toPageResponse(Page<Consultation> page) {
-        return new PageResponse<>(page.getContent().stream().map(this::toDto).toList(),
-                page.getNumberOfElements(), page.getSize(), page.getTotalPages(), page.isLast(),
-                page.isFirst());
+    default BigDecimal getPrice(Consultation consultation) {
+        if (consultation.getPayment() != null) {
+            return consultation.getPayment().getAmount();
+        }
+        Doctor doctor = consultation.getDoctor();
+        return doctor == null ? null : doctor.getPrice();
     }
 
-    default List<ConsultationResponse> toDtoList(List<Consultation> upcomingConsultation) {
-        return upcomingConsultation.stream().map(this::toDto).toList();
+    default DoctorDto getDoctorDto(Consultation consultation) {
+        Doctor doctor = consultation.getDoctor();
+        if (doctor == null) {
+            return null;
+        }
+        return new DoctorDto(doctor.getId(), doctor.getFirstName(), doctor.getLastName(),
+                doctor.getSpecialization());
     }
 
-    default PageResponse<ScheduleResponse> toSchedulePageResponse(
-            Page<Consultation> consultations) {
-        return new PageResponse<>(
-                consultations.getContent().stream().map(this::toScheduleDto).toList(),
-                consultations.getNumberOfElements(), consultations.getSize(),
-                consultations.getTotalPages(), consultations.isLast(), consultations.isFirst());
+    default String getDoctorName(Consultation consultation) {
+        Doctor doctor = consultation.getDoctor();
+        return doctor == null ? null : doctor.getName();
     }
 
-    @Mapping(target = "startTime", source = "timeSlot.startTime")
-    @Mapping(target = "duration", source = "timeSlot.durationMinutes")
-    @Mapping(target = "patientName", expression = "java(consultation.getPatient() != null ? consultation.getPatient().getName() : null)")
-    ScheduleResponse toScheduleDto(Consultation consultation);
+    default String getDoctorBio(Consultation consultation) {
+        Doctor doctor = consultation.getDoctor();
+        return doctor == null ? null : doctor.getBiography();
+    }
 
-    @Mapping(target = "doctorName", expression = "java(consultation.getDoctor() != null ? consultation.getDoctor().getName() : null)")
-    @Mapping(target = "doctorBio", source = "doctor.description")
-    @Mapping(target = "doctorImage", source = "doctor.personalPhoto")
-    @Mapping(target = "startTime", source = "timeSlot.startTime")
-    @Mapping(target = "duration", source = "timeSlot.durationMinutes")
-    @Mapping(target = "summaryId", expression = "java(consultation.getConsultationSummary() != null ? consultation.getConsultationSummary().getId() : null)")
-    PatientConsultationResponse toPatientDto(Consultation consultation);
+    default String getDoctorImage(Consultation consultation) {
+        Doctor doctor = consultation.getDoctor();
+        return doctor == null ? null : doctor.getPersonalPhoto();
+    }
 
-    default List<PatientConsultationResponse> toPatientDtoList(List<Consultation> consultations) {
-        return consultations.stream().map(this::toPatientDto).toList();
+    default UUID getSummaryId(Consultation consultation) {
+        ConsultationSummary summary = consultation.getConsultationSummary();
+        return summary == null ? null : summary.getId();
+    }
+
+    default UUID getDoctorId(Consultation consultation) {
+        Doctor doctor = consultation.getDoctor();
+        return doctor == null ? null : doctor.getId();
     }
 }
