@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.service.payment;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +15,6 @@ import com.nexaworks.rafiq.entities.enums.PaymentProvider;
 import com.nexaworks.rafiq.exception.custom.PaymentException;
 import com.nexaworks.rafiq.exception.custom.PaymentProviderException;
 import com.nexaworks.rafiq.repository.PaymentRepository;
-import com.nexaworks.rafiq.scheduler.PaymentScheduler;
 import com.stripe.exception.StripeException;
 
 import lombok.RequiredArgsConstructor;
@@ -24,16 +24,15 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentServiceImpl implements PaymentService {
-    private final PaymentProviderRegistry registry;
+    private final ApplicationContext applicationContext;
     private final PaymentRepository paymentRepository;
-    private final PaymentScheduler paymentScheduler;
-
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = {
             PaymentProviderException.class, PaymentException.class})
     public String process(Consultation consultation, Patient currentUser, PaymentProvider provider)
             throws StripeException {
-        PaymentProviderService paymentProviderService = registry.getService(provider);
+        PaymentProviderService paymentProviderService = (PaymentProviderService) applicationContext
+                .getBean(provider.getName());
 
         PaymentDto paymentDto = paymentProviderService.pay(String.valueOf(consultation.getId()),
                 consultation.getDoctor().getPrice());
@@ -43,7 +42,6 @@ public class PaymentServiceImpl implements PaymentService {
                 .paymentProvider(provider).build();
         paymentRepository.save(payment);
         consultation.setPayment(payment);
-        paymentScheduler.schedulePaymentTimeout(payment.getId());
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCompletion(int status) {
@@ -57,8 +55,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public String processRefund(Payment payment) throws StripeException {
-        PaymentProviderService paymentProviderService = registry
-                .getService(payment.getPaymentProvider());
+        PaymentProviderService paymentProviderService = (PaymentProviderService) applicationContext
+                .getBean(payment.getPaymentProvider().getName());
+
         return paymentProviderService.refund(payment.getPaymentIntentId(),
                 payment.getRefundRequest().getAmount());
     }
