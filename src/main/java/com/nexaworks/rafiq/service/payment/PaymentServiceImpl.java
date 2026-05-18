@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentServiceImpl implements PaymentService {
-    private final PaymentProviderService paymentProviderService;
+    private final PaymentProviderRegistry registry;
     private final PaymentRepository paymentRepository;
     private final PaymentScheduler paymentScheduler;
 
@@ -33,13 +33,14 @@ public class PaymentServiceImpl implements PaymentService {
             PaymentProviderException.class, PaymentException.class})
     public String process(Consultation consultation, Patient currentUser, PaymentProvider provider)
             throws StripeException {
+        PaymentProviderService paymentProviderService = registry.getService(provider);
 
         PaymentDto paymentDto = paymentProviderService.pay(String.valueOf(consultation.getId()),
                 consultation.getDoctor().getPrice());
         Payment payment = Payment.builder().paymentIntentId(paymentDto.paymentIntentId())
                 .clientSecret(paymentDto.clientSecret()).amount(consultation.getDoctor().getPrice())
                 .currency("usd").patient(consultation.getPatient()).consultation(consultation)
-                .build();
+                .paymentProvider(provider).build();
         paymentRepository.save(payment);
         consultation.setPayment(payment);
         paymentScheduler.schedulePaymentTimeout(payment.getId());
@@ -53,4 +54,13 @@ public class PaymentServiceImpl implements PaymentService {
         });
         return paymentDto.clientSecret();
     }
+
+    @Override
+    public String processRefund(Payment payment) throws StripeException {
+        PaymentProviderService paymentProviderService = registry
+                .getService(payment.getPaymentProvider());
+        return paymentProviderService.refund(payment.getPaymentIntentId(),
+                payment.getRefundRequest().getAmount());
+    }
+
 }
