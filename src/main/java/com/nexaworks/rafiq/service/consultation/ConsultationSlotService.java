@@ -13,12 +13,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.nexaworks.rafiq.dto.event.ConsultationChanged;
 import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
 import com.nexaworks.rafiq.dto.request.consultation.EditConsultationSlotRequest;
+import com.nexaworks.rafiq.dto.response.consultation.EditConsultationSlotResponse;
 import com.nexaworks.rafiq.entities.*;
 import com.nexaworks.rafiq.entities.enums.SlotStatus;
 import com.nexaworks.rafiq.exception.custom.auth.AuthorizationException;
 import com.nexaworks.rafiq.exception.custom.consultation.SlotCanNotCreated;
 import com.nexaworks.rafiq.exception.custom.consultation.SlotCanNotEditException;
 import com.nexaworks.rafiq.exception.custom.consultation.SlotNotFoundException;
+import com.nexaworks.rafiq.mapper.ConsultationSlotMapper;
 import com.nexaworks.rafiq.repository.ConsultationSlotRepository;
 import com.nexaworks.rafiq.repository.DoctorRepository;
 import com.nexaworks.rafiq.scheduler.ExpirationScheduler;
@@ -38,6 +40,7 @@ public class ConsultationSlotService implements IConsultationSlotService {
     private final SimpMessagingTemplate messagingTemplate;
     private final TransactionUtils transactionUtils;
     private final ExpirationScheduler scheduler;
+    private final ConsultationSlotMapper mapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -69,7 +72,8 @@ public class ConsultationSlotService implements IConsultationSlotService {
     @Transactional(rollbackFor = Exception.class)
     @Retryable(retryFor = {
             PessimisticLockingFailureException.class}, maxAttempts = 3, backoff = @Backoff(delay = 500))
-    public ConsultationSlot editConsultation(EditConsultationSlotRequest request, UUID id) {
+    public EditConsultationSlotResponse editConsultation(EditConsultationSlotRequest request,
+            UUID id) {
         UUID userId = authService.getAuthenticateUserId();
 
         ConsultationSlot slot = consultationSlotRepository.findById(id)
@@ -96,7 +100,7 @@ public class ConsultationSlotService implements IConsultationSlotService {
                 new ConsultationChanged(slot.getId(), start)));
         scheduler.reSchedule(slot.getId(), slot.getEndTime());
 
-        return slot;
+        return mapper.toEditResponse(slot);
     }
 
     private static void validateEditability(ConsultationSlot slot, UUID userId) {

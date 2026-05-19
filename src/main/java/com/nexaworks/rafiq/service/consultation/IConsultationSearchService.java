@@ -2,27 +2,25 @@ package com.nexaworks.rafiq.service.consultation;
 
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
-import com.nexaworks.rafiq.dto.response.consultation.DoctorConsultationResponse;
-import com.nexaworks.rafiq.entities.Consultation;
-import com.nexaworks.rafiq.entities.ConsultationSlot;
+import com.nexaworks.rafiq.dto.response.common.PageResponse;
+import com.nexaworks.rafiq.dto.response.consultation.*;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 
 public interface IConsultationSearchService {
 
-    Consultation getConsultation(UUID id);
+    ConsultationResponse getConsultation(UUID id);
 
-    Page<ConsultationSlot> getDoctorSchedule(ScheduleFilter filter, Pageable pageable);
+    PageResponse<ScheduleResponse> getDoctorSchedule(ScheduleFilter filter, Pageable pageable);
 
-    Page<Consultation> getPatientConsultationsByStatus(ConsultationStatus status,
-            Pageable pageable);
+    PageResponse<PatientConsultationResponse> getPatientConsultationsByStatus(
+            ConsultationStatus status, Pageable pageable);
 
-    Page<ConsultationSlot> getDoctorUpcoming(Pageable pageable);
+    PageResponse<ConsultationSlotResponse> getDoctorUpcoming(Pageable pageable);
 
-    Page<DoctorConsultationResponse> getDoctorAvailableSlots(UUID id, Pageable pageable);
+    PageResponse<DoctorConsultationResponse> getDoctorAvailableSlots(UUID id, Pageable pageable);
 
-    ConsultationSlot getConsultationSlot(UUID id);
+    ConsultationSlotResponse getConsultationSlot(UUID id);
 }
