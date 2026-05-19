@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Deprecated
 public class LabServiceImpl implements LabService {
     private final LabRepository labRepository;
     private final AddressService addressService;

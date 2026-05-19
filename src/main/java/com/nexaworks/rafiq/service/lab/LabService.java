@@ -12,7 +12,7 @@ import com.nexaworks.rafiq.entities.Address;
 import com.nexaworks.rafiq.entities.Lab;
 
 import jakarta.validation.constraints.NotBlank;
-
+@Deprecated
 public interface LabService {
     void addLab(@NotBlank String name, List<Address> entity, MultipartFile file) throws IOException;
 

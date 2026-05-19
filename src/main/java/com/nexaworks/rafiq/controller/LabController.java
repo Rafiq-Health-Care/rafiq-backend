@@ -28,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/labs")
 @RequiredArgsConstructor
+@Deprecated
 @Tag(name = "Lab Management", description = "Endpoints for managing lab facilities and their information")
 public class LabController {
     private final LabService labService;

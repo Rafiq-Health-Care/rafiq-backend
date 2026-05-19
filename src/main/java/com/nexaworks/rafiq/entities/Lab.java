@@ -15,6 +15,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@Deprecated
 public class Lab extends BaseEntity {
     private String name;
 
