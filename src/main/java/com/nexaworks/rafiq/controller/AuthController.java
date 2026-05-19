@@ -8,9 +8,8 @@ import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,8 +26,10 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    @Operation(summary = "User login", description = "Authenticates user and returns role-based access. Sets HTTP-only cookies for secure token storage. Account must be verified first.")
-    @ApiResponse(responseCode = "200", description = "Login successful", content = @Content(schema = @Schema(implementation = LoginResponse.class)))
+    @Operation(summary = "User login", description = "Authenticates the user and sets HTTP-only authentication cookies.")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "Login successful"),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials"),
+            @ApiResponse(responseCode = "403", description = "Account not verified")})
     public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request,
             HttpServletResponse response) {
         return ResponseEntity.ok()
@@ -36,16 +37,18 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    @Operation(summary = "User logout", description = "Invalidates authentication tokens and clears cookies. Required for security when user finishes session.")
-    @ApiResponse(responseCode = "204", description = "Logout successful")
+    @Operation(summary = "User logout", description = "Clears authentication cookies and invalidates the current session.")
+    @ApiResponses({@ApiResponse(responseCode = "204", description = "Logout successful"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")})
     public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
         authService.logout(request, response);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/refresh")
-    @Operation(summary = "Refresh authentication token", description = "Extends session without re-authentication. Uses refresh token from cookies. Call before access token expires.")
-    @ApiResponse(responseCode = "200", description = "Token refreshed successfully", content = @Content(schema = @Schema(implementation = LoginResponse.class)))
+    @Operation(summary = "Refresh authentication token", description = "Generates a new access token using the refresh token stored in cookies.")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
+            @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token")})
     public ResponseEntity<LoginResponse> refresh(HttpServletResponse response,
             HttpServletRequest request) {
         return ResponseEntity.ok().body(authService.refresh(response, request));
