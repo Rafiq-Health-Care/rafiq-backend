@@ -3,7 +3,6 @@ package com.nexaworks.rafiq.controller;
 import java.util.UUID;
 
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +15,7 @@ import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationResponse;
 import com.nexaworks.rafiq.dto.response.consultation.PatientConsultationResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ReserveConsultationResponse;
-import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
-import com.nexaworks.rafiq.mapper.ConsultationMapper;
 import com.nexaworks.rafiq.service.consultation.IConsultationCancellationService;
 import com.nexaworks.rafiq.service.consultation.IConsultationSearchService;
 import com.nexaworks.rafiq.service.consultation.IReservationService;
@@ -37,7 +34,6 @@ public class ConsultationController {
     private final IReservationService reservationService;
     private final IConsultationCancellationService cancellationService;
     private final IConsultationSearchService searchService;
-    private final ConsultationMapper mapper;
 
     @Idempotent(force = true)
     @PostMapping
@@ -76,8 +72,8 @@ public class ConsultationController {
             @ApiResponse(responseCode = "404", description = "Consultation not found")})
     public ResponseEntity<ConsultationResponse> getConsultation(
             @Parameter(description = "UUID of the consultation", required = true) @PathVariable UUID id) {
-        Consultation consultation = searchService.getConsultation(id);
-        return ResponseEntity.ok(mapper.toDto(consultation));
+        ConsultationResponse response = searchService.getConsultation(id);
+        return ResponseEntity.ok(response);
     }
     @GetMapping("/patient/{status}")
     @PreAuthorize("hasRole('PATIENT')")
@@ -88,8 +84,8 @@ public class ConsultationController {
     public ResponseEntity<PageResponse<PatientConsultationResponse>> getPatientConsultationsByStatus(
             @Parameter(description = "Consultation status", example = "UPCOMING", required = true) @PathVariable ConsultationStatus status,
             @ParameterObject Pageable pageable) {
-        Page<Consultation> consultations = searchService.getPatientConsultationsByStatus(status,
-                pageable);
-        return ResponseEntity.ok(mapper.toPatientPageResponse(consultations));
+        PageResponse<PatientConsultationResponse> response = searchService
+                .getPatientConsultationsByStatus(status, pageable);
+        return ResponseEntity.ok(response);
     }
 }
