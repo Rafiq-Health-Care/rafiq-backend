@@ -421,4 +421,10 @@
             <url>https://repo.spring.io/milestone</url>
         </pluginRepository>
     </pluginRepositories>
+    <repositories>
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/melbiialy/idempotency-spring-boot-starter</url>
+        </repository>
+    </repositories>
 </project>
