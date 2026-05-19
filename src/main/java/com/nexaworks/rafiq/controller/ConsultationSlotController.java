@@ -3,7 +3,6 @@ package com.nexaworks.rafiq.controller;
 import java.util.UUID;
 
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +17,6 @@ import com.nexaworks.rafiq.dto.response.consultation.ConsultationSlotResponse;
 import com.nexaworks.rafiq.dto.response.consultation.DoctorConsultationResponse;
 import com.nexaworks.rafiq.dto.response.consultation.EditConsultationSlotResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ScheduleResponse;
-import com.nexaworks.rafiq.entities.ConsultationSlot;
-import com.nexaworks.rafiq.mapper.ConsultationSlotMapper;
 import com.nexaworks.rafiq.service.consultation.IConsultationSearchService;
 import com.nexaworks.rafiq.service.consultation.IConsultationSlotHoldingService;
 import com.nexaworks.rafiq.service.consultation.IConsultationSlotService;
@@ -40,7 +37,6 @@ import lombok.RequiredArgsConstructor;
 @Tag(name = "Consultation Slots", description = "Manage and search doctor consultation slots")
 public class ConsultationSlotController {
     private final IConsultationSlotService IConsultationSlotService;
-    private final ConsultationSlotMapper mapper;
     private final IConsultationSearchService searchService;
     private final IConsultationSlotHoldingService holdingService;
 
@@ -65,8 +61,9 @@ public class ConsultationSlotController {
             @ApiResponse(responseCode = "404", description = "Not found")})
     public ResponseEntity<EditConsultationSlotResponse> editConsultation(
             @Valid @RequestBody EditConsultationSlotRequest request, @PathVariable UUID id) {
-        ConsultationSlot slot = IConsultationSlotService.editConsultation(request, id);
-        return ResponseEntity.ok(mapper.toEditResponse(slot));
+        EditConsultationSlotResponse response = IConsultationSlotService.editConsultation(request,
+                id);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/schedule/search")
@@ -77,8 +74,8 @@ public class ConsultationSlotController {
             @ApiResponse(responseCode = "403", description = "Access denied")})
     public ResponseEntity<PageResponse<ScheduleResponse>> getSchedule(
             @Valid @RequestBody ScheduleFilter filter, @ParameterObject Pageable pageable) {
-        Page<ConsultationSlot> slotPage = searchService.getDoctorSchedule(filter, pageable);
-        return ResponseEntity.ok().body(mapper.toSchedulePageResponse(slotPage));
+        PageResponse<ScheduleResponse> response = searchService.getDoctorSchedule(filter, pageable);
+        return ResponseEntity.ok().body(response);
 
     }
     @PutMapping("/{id}/hold")
@@ -109,9 +106,9 @@ public class ConsultationSlotController {
     public ResponseEntity<PageResponse<DoctorConsultationResponse>> getDoctorConsultations(
             @Parameter(description = "UUID of the doctor", required = true) @PathVariable UUID id,
             @ParameterObject Pageable pageable) {
-        Page<DoctorConsultationResponse> slots = searchService.getDoctorAvailableSlots(id,
-                pageable);
-        return ResponseEntity.ok(mapper.toDoctorPageResponse(slots));
+        PageResponse<DoctorConsultationResponse> response = searchService
+                .getDoctorAvailableSlots(id, pageable);
+        return ResponseEntity.ok(response);
     }
     @GetMapping("/doctor/upcoming")
     @PreAuthorize("hasRole('DOCTOR')")
@@ -120,8 +117,8 @@ public class ConsultationSlotController {
             @ApiResponse(responseCode = "403", description = "Access denied")})
     public ResponseEntity<PageResponse<ConsultationSlotResponse>> getDoctorUpcoming(
             @ParameterObject Pageable pageable) {
-        Page<ConsultationSlot> upcoming = searchService.getDoctorUpcoming(pageable);
-        return ResponseEntity.ok(mapper.toPageResponse(upcoming));
+        PageResponse<ConsultationSlotResponse> response = searchService.getDoctorUpcoming(pageable);
+        return ResponseEntity.ok(response);
     }
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('DOCTOR')")
@@ -131,8 +128,8 @@ public class ConsultationSlotController {
             @ApiResponse(responseCode = "404", description = "Slot not found")})
     public ResponseEntity<ConsultationSlotResponse> getConsultationSlot(
             @Parameter(description = "UUID of the consultation slot", required = true) @PathVariable UUID id) {
-        ConsultationSlot slot = searchService.getConsultationSlot(id);
-        return ResponseEntity.ok(mapper.toDto(slot));
+        ConsultationSlotResponse response = searchService.getConsultationSlot(id);
+        return ResponseEntity.ok(response);
     }
 
 }
