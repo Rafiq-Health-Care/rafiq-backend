@@ -23,6 +23,7 @@ import com.nexaworks.rafiq.service.consultation.IConsultationCancellationService
 import com.nexaworks.rafiq.service.consultation.IConsultationSearchService;
 import com.nexaworks.rafiq.service.consultation.IReservationService;
 
+import dev.once.annotation.Idempotent;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -38,6 +39,7 @@ public class ConsultationController {
     private final IConsultationSearchService searchService;
     private final ConsultationMapper mapper;
 
+    @Idempotent(force = true)
     @PostMapping
     @PreAuthorize("hasRole('PATIENT')")
     @Operation(summary = "Reserve a consultation slot", responses = {
