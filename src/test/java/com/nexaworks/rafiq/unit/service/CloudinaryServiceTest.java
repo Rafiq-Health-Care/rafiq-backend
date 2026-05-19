@@ -19,9 +19,9 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.Uploader;
 import com.nexaworks.rafiq.dto.client.cloundinary.UploadResults;
 import com.nexaworks.rafiq.entities.enums.UploadType;
-import com.nexaworks.rafiq.exception.custom.EmptyFileException;
-import com.nexaworks.rafiq.exception.custom.FileException;
-import com.nexaworks.rafiq.exception.custom.FileUploadException;
+import com.nexaworks.rafiq.exception.custom.file.EmptyFileException;
+import com.nexaworks.rafiq.exception.custom.file.FileException;
+import com.nexaworks.rafiq.exception.custom.file.FileUploadException;
 import com.nexaworks.rafiq.service.file.CloudinaryService;
 
 @DisplayName("CloudinaryService Test Cases")

@@ -1,18 +1,25 @@
 package com.nexaworks.rafiq.exception.handler;
 
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.nexaworks.rafiq.exception.ExceptionUtils;
+import com.nexaworks.rafiq.exception.custom.auth.AuthorizationException;
 import com.nexaworks.rafiq.exception.model.ErrorResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @RequiredArgsConstructor
 public class AuthExceptionHandler {
     private final ExceptionUtils exceptionUtils;
@@ -23,5 +30,26 @@ public class AuthExceptionHandler {
         HttpStatus status = HttpStatus.UNAUTHORIZED;
         ErrorResponse error = exceptionUtils.getErrorResponse(ex, request, status);
         return new ResponseEntity<>(error, status);
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ErrorResponse> handleDisabledAccount(DisabledException ex,
+            HttpServletRequest request) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        ErrorResponse error = exceptionUtils.getErrorResponse(ex, request, status);
+        return new ResponseEntity<>(error, status);
+    }
+    @ExceptionHandler(AuthorizationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthorizationException(AuthorizationException ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.FORBIDDEN));
+    }
+
+    @ExceptionHandler({AccessDeniedException.class, AuthorizationDeniedException.class})
+    public ResponseEntity<ErrorResponse> handleAccessDenied(RuntimeException ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.FORBIDDEN));
     }
 }

@@ -53,6 +53,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>io.github.melbiialy</groupId>
+            <artifactId>idempotency-spring-boot-starter</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
@@ -296,6 +301,21 @@
             <artifactId>jobrunr-spring-boot-3-starter</artifactId>
             <version>8.6.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson-spring-boot-starter</artifactId>
+            <version>3.27.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>9.2.0</version>
+        </dependency>
 
     </dependencies>
 
@@ -401,4 +421,10 @@
             <url>https://repo.spring.io/milestone</url>
         </pluginRepository>
     </pluginRepositories>
+    <repositories>
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/melbiialy/idempotency-spring-boot-starter</url>
+        </repository>
+    </repositories>
 </project>

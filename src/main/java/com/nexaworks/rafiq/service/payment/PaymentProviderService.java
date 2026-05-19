@@ -7,4 +7,6 @@ import com.stripe.exception.StripeException;
 
 public interface PaymentProviderService {
     PaymentDto pay(String consultationId, BigDecimal amount) throws StripeException;
+
+    String refund(String paymentIntentId, BigDecimal amount) throws StripeException;
 }

@@ -15,7 +15,7 @@ import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.pdf.PdfWriter;
-import com.nexaworks.rafiq.exception.custom.EmptyFileException;
+import com.nexaworks.rafiq.exception.custom.file.EmptyFileException;
 import com.nexaworks.rafiq.service.ai.AiService;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.service.labReports.LabTestService;

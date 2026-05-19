@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Profile;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.Uploader;
+import com.nexaworks.rafiq.scheduler.ExpirationScheduler;
 import com.nexaworks.rafiq.service.call.RtcProvider;
 
 @TestConfiguration(proxyBeanMethods = false)
@@ -40,5 +41,11 @@ public class IntegrationTestExternalMocks {
         Mockito.when(mock.generateToken(Mockito.anyString(), Mockito.anyInt()))
                 .thenReturn("integration-test-mock-rtc-token");
         return mock;
+    }
+
+    @Bean
+    @Primary
+    public ExpirationScheduler expirationSchedulerMock() {
+        return Mockito.mock(ExpirationScheduler.class);
     }
 }

@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.nexaworks.rafiq.entities.enums.PaymentProvider;
 import com.nexaworks.rafiq.entities.enums.PaymentStatus;
 
 import jakarta.persistence.*;
@@ -22,13 +23,15 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "consultation_id", nullable = false)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinColumn(name = "consultation_id", nullable = false, unique = true)
     private Consultation consultation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id", nullable = false)
     private User patient;
+    @OneToOne(fetch = FetchType.EAGER)
+    private RefundRequest refundRequest;
 
     @Column(name = "payment_intent_id", nullable = false, unique = true)
     private String paymentIntentId;
@@ -58,6 +61,9 @@ public class Payment {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentProvider paymentProvider;
 
     @PrePersist
     protected void onCreate() {

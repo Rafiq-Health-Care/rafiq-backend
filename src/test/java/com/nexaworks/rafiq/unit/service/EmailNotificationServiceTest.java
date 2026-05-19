@@ -19,8 +19,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
-import com.nexaworks.rafiq.dto.notificaiton.EmailNotification;
-import com.nexaworks.rafiq.exception.custom.MailSenderException;
+import com.nexaworks.rafiq.exception.custom.general.MailSenderException;
+import com.nexaworks.rafiq.rabbit.notificaiton.EmailNotification;
 import com.nexaworks.rafiq.service.notification.EmailNotificationService;
 import com.nexaworks.rafiq.service.notification.NotificationService;
 

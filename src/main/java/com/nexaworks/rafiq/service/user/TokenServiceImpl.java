@@ -8,19 +8,18 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.TokenType;
-import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
-import com.nexaworks.rafiq.exception.custom.TokenNotFoundException;
-import com.nexaworks.rafiq.exception.custom.UserException;
-import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
+import com.nexaworks.rafiq.exception.custom.user.TokenInvalidException;
+import com.nexaworks.rafiq.exception.custom.user.TokenNotFoundException;
+import com.nexaworks.rafiq.exception.custom.user.UserException;
+import com.nexaworks.rafiq.exception.custom.user.UserNotFoundException;
+import com.nexaworks.rafiq.rabbit.manager.UserNotificationManager;
 import com.nexaworks.rafiq.repository.TokenRepository;
 import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.rabbit.MessageService;
+import com.nexaworks.rafiq.utils.TransactionUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 public class TokenServiceImpl implements TokenService {
     private final TokenRepository tokenRepository;
     private final UserRepository userRepository;
-    private final MessageService messageService;
+    private final TransactionUtils transactionUtils;
+    private final UserNotificationManager manager;
 
     @Value("${refresh.expiration}")
     public Long REFRESH_EXPIRATION;
@@ -129,12 +129,7 @@ public class TokenServiceImpl implements TokenService {
         String otp = generateOtpToken(user.get());
         log.info("Generated new OTP for {}", user.get().getEmail());
 
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                messageService.sendNewOtpEvent(user.get(), otp);
-            }
-        });
+        transactionUtils.afterCommit(() -> manager.sendNewOtpEvent(user.get(), otp));
     }
 
     private Token buildToken(User user, String token, TokenType tokenType, Long EXPIRATION) {

@@ -34,7 +34,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.FORBIDDEN.value(),
                 "Access Denied", "You do not have sufficient privileges to access this resource",
-                LocalDateTime.now(), request.getRequestURI());
+                "ACCESS_DENIED", LocalDateTime.now(), request.getRequestURI());
 
         response.setStatus(HttpStatus.FORBIDDEN.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

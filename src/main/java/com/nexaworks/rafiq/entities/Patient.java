@@ -61,4 +61,7 @@ public class Patient extends User {
     @OneToMany(mappedBy = "patient", cascade = {CascadeType.REMOVE,
             CascadeType.MERGE}, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<WeightHistory> weightHistory;
+    @OneToMany(mappedBy = "patient", cascade = {CascadeType.REMOVE,
+            CascadeType.MERGE}, fetch = FetchType.LAZY)
+    private List<Consultation> consultations;
 }

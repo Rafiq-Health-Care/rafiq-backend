@@ -31,18 +31,19 @@ import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.Roles;
 import com.nexaworks.rafiq.entities.enums.Specialization;
-import com.nexaworks.rafiq.exception.custom.RegistrationException;
-import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
-import com.nexaworks.rafiq.exception.custom.TokenNotFoundException;
+import com.nexaworks.rafiq.exception.custom.user.RegistrationException;
+import com.nexaworks.rafiq.exception.custom.user.TokenInvalidException;
+import com.nexaworks.rafiq.exception.custom.user.TokenNotFoundException;
+import com.nexaworks.rafiq.rabbit.manager.UserNotificationManager;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.doctor.DoctorServiceImpl;
 import com.nexaworks.rafiq.service.file.ImageService;
 import com.nexaworks.rafiq.service.patient.PatientServiceImpl;
-import com.nexaworks.rafiq.service.rabbit.MessageService;
 import com.nexaworks.rafiq.service.user.RoleServiceImpl;
 import com.nexaworks.rafiq.service.user.TokenServiceImpl;
 import com.nexaworks.rafiq.service.user.UserServiceImpl;
 import com.nexaworks.rafiq.utils.AuthSessionManager;
+import com.nexaworks.rafiq.utils.TransactionUtils;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -64,7 +65,7 @@ public class UserServiceImplTest {
     ImageService imageService;
 
     @Mock
-    MessageService messageService;
+    UserNotificationManager messageService;
 
     @Mock
     AuthSessionManager authSessionManager;
@@ -75,6 +76,9 @@ public class UserServiceImplTest {
     @Mock
     PatientServiceImpl patientService;
 
+    @Mock
+    TransactionUtils transactionUtils;
+
     @InjectMocks
     UserServiceImpl userService;
 
@@ -82,6 +86,11 @@ public class UserServiceImplTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         TransactionSynchronizationManager.initSynchronization();
+        doAnswer(invocation -> {
+            Runnable runnable = invocation.getArgument(0);
+            runnable.run();
+            return null;
+        }).when(transactionUtils).afterCommit(any(Runnable.class));
 
     }
     @AfterEach
@@ -144,11 +153,9 @@ public class UserServiceImplTest {
                 .lastName("Doe").password("password123").build();
 
         when(userRepository.existsUserByEmail(anyString())).thenReturn(true);
-        assertThrows(com.nexaworks.rafiq.exception.custom.RegistrationException.class,
-                () -> userService.registerPatient(patient));
+        assertThrows(RegistrationException.class, () -> userService.registerPatient(patient));
         verify(userRepository, never()).save(any(User.class));
         verify(messageService, never()).sendRegistrationEvent(any(User.class), anyString());
-        verify(messageService, never()).sendNewOtpEvent(any(User.class), anyString());
     }
 
     @DisplayName("Register doctor should add user and publish event to send the activation email")
@@ -180,7 +187,7 @@ public class UserServiceImplTest {
         verify(doctorService, times(1)).register(any(Doctor.class), eq(specialization),
                 eq(description));
         verify(tokenService, times(1)).generateOtpToken(any(Doctor.class));
-        verify(messageService, times(1)).sendNewOtpEvent(eq(doctor), eq(expectedToken));
+        verify(messageService, times(1)).sendRegistrationEvent(eq(doctor), eq(expectedToken));
     }
 
     @DisplayName("Register doctor should throw exception when user with email already exists")
@@ -194,7 +201,6 @@ public class UserServiceImplTest {
                 () -> userService.registerDoctor(doctor, null, null, null));
         verify(userRepository, never()).save(any(User.class));
         verify(messageService, never()).sendRegistrationEvent(any(User.class), anyString());
-        verify(messageService, never()).sendNewOtpEvent(any(User.class), anyString());
     }
 
     @DisplayName("Verify user email should create login tokens")
