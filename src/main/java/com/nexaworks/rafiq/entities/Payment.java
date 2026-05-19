@@ -11,12 +11,14 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "payments")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"consultation", "patient", "refundRequest"})
+@EqualsAndHashCode(of = "id")
+@Table(name = "payments")
 public class Payment {
 
     @Id

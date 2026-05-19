@@ -2,14 +2,12 @@ package com.nexaworks.rafiq.entities;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToOne;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
+@ToString(exclude = "doctor")
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
@@ -25,7 +23,4 @@ public class SocialLinks extends BaseEntity {
 
     @OneToOne(mappedBy = "socialLinks")
     private Doctor doctor;
-
-    @OneToOne(mappedBy = "socialLinks")
-    private Lab lab;
 }

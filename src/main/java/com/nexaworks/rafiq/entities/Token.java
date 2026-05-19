@@ -6,15 +6,14 @@ import com.nexaworks.rafiq.entities.enums.TokenType;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
+@ToString(exclude = "user")
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = false, of = "token")
 @NoArgsConstructor
 @SuperBuilder
 @Entity

@@ -14,7 +14,7 @@ import lombok.*;
 @Builder
 @ToString(onlyExplicitlyIncluded = true)
 @Entity
-
+@Table(name = "refund_request", indexes = {})
 public class RefundRequest extends BaseEntity {
 
     @ToString.Include
