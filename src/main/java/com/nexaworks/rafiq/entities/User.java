@@ -24,7 +24,9 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "users", indexes = {@Index(columnList = "email", unique = true)})
+@EqualsAndHashCode(callSuper = false, of = {"email", "phone"})
+@Table(name = "users", indexes = {@Index(columnList = "email", unique = true),
+        @Index(columnList = "phone", unique = true), @Index(columnList = "id")})
 @Inheritance(strategy = InheritanceType.JOINED)
 public class User extends BaseEntity implements UserDetails, Principal {
 
@@ -34,13 +36,17 @@ public class User extends BaseEntity implements UserDetails, Principal {
     private String email;
 
     @JsonIgnore
+    @Column(nullable = false)
     private String password;
 
-    @NotBlank
+    @Column(nullable = false)
     private String firstName;
     private String lastName;
+
+    @Column(unique = true)
     private String phone;
 
+    @Column(name = "birth_date")
     private LocalDate birthDate;
 
     @Builder.Default
@@ -52,6 +58,7 @@ public class User extends BaseEntity implements UserDetails, Principal {
     @Builder.Default
     private boolean enabled = false;
 
+    @Column(name = "notification_token")
     private String notificationToken;
 
     @Enumerated(EnumType.STRING)
