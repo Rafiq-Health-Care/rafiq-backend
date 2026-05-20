@@ -1,7 +1,0 @@
-
-
-ALTER TABLE doctor
-    ADD COLUMN price NUMERIC(10, 2) NOT NULL DEFAULT 1000;
-
-ALTER TABLE consultation
-    DROP COLUMN price;
