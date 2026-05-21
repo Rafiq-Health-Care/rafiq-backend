@@ -2,6 +2,7 @@ package com.nexaworks.rafiq.service.consultation;
 
 import java.util.UUID;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -38,6 +39,7 @@ public class ConsultationSearchService implements IConsultationSearchService {
     private final ConsultationSlotMapper consultationSlotMapper;
 
     @Override
+    @Cacheable(key = "#id", value = "consultation")
     public ConsultationResponse getConsultation(UUID id) {
         Consultation consultation = consultationRepository.findById(id)
                 .orElseThrow(() -> new SlotNotFoundException("Slot not found"));
