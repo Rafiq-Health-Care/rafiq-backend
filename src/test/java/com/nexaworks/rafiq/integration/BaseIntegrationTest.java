@@ -22,6 +22,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -29,7 +30,6 @@ import com.nexaworks.rafiq.client.Gemini;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.integration.config.IntegrationTestExternalMocks;
 import com.nexaworks.rafiq.integration.config.TestDataSeeder;
-import com.nexaworks.rafiq.rabbit.manager.UserNotificationManager;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
@@ -40,17 +40,10 @@ public abstract class BaseIntegrationTest {
 
     protected static final String IDEMPOTENCY_KEY_HEADER = "Idempotency-Key";
 
-    /**
-     * HTTP body-shaped JSON so {@link com.nexaworks.rafiq.service.ai.GeminiService}
-     * parsing succeeds
-     */
     protected static final String MOCK_GEMINI_HTTP_RESPONSE = "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{\\\"name\\\":\\\"Test Result\\\",\\\"date\\\":\\\"2024-01-15\\\",\\\"tests\\\":[]}\"}]}}]}";
 
     @MockBean
     protected Gemini gemini;
-
-    @MockBean
-    protected UserNotificationManager messageService;
 
     @BeforeEach
     void stubGeminiClientApi() {
@@ -70,11 +63,6 @@ public abstract class BaseIntegrationTest {
         registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
     }
 
-    /**
-     * Creates a SecurityMockMvcRequestPostProcessor with userId as principal
-     * instead of User object. This matches the new authentication structure where
-     * the principal is a UUID.
-     */
     protected RequestPostProcessor withUserId(User user) {
         UUID userId = user.getId();
         Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
@@ -84,5 +72,15 @@ public abstract class BaseIntegrationTest {
         Authentication authentication = new UsernamePasswordAuthenticationToken(userId, null,
                 simpleAuthorities);
         return SecurityMockMvcRequestPostProcessors.authentication(authentication);
+    }
+    @Container
+    static RabbitMQContainer rabbit = new RabbitMQContainer("rabbitmq:3-management");
+
+    @DynamicPropertySource
+    static void props(DynamicPropertyRegistry r) {
+        r.add("spring.rabbitmq.host", rabbit::getHost);
+        r.add("spring.rabbitmq.port", rabbit::getAmqpPort);
+        r.add("spring.rabbitmq.username", rabbit::getAdminUsername);
+        r.add("spring.rabbitmq.password", rabbit::getAdminPassword);
     }
 }
