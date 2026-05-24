@@ -28,13 +28,17 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import com.nexaworks.rafiq.dto.request.reminder.AddReminderRequest;
 import com.nexaworks.rafiq.dto.request.reminder.GetAllRemindersHistoryResponseProjection;
 import com.nexaworks.rafiq.dto.request.reminder.ReminderFilters;
+import com.nexaworks.rafiq.dto.response.reminder.AddReminderResponse;
 import com.nexaworks.rafiq.entities.*;
 import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 import com.nexaworks.rafiq.exception.custom.medicine.ReminderNotFound;
+import com.nexaworks.rafiq.mapper.ReminderMapper;
 import com.nexaworks.rafiq.repository.ReminderLogRepository;
 import com.nexaworks.rafiq.repository.ReminderRepository;
+import com.nexaworks.rafiq.service.medicine.IMedicineService;
 import com.nexaworks.rafiq.service.medicine.ReminderServiceImpl;
 import com.nexaworks.rafiq.service.patient.PatientService;
 import com.nexaworks.rafiq.service.user.UserService;
@@ -54,6 +58,12 @@ public class ReminderServiceTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private ReminderMapper reminderMapper;
+
+    @Mock
+    private IMedicineService medicineService;
 
     @InjectMocks
     private ReminderServiceImpl reminderService;
@@ -94,16 +104,27 @@ public class ReminderServiceTest {
     @DisplayName("Create Reminder Tests")
     class CreateReminderTests {
 
+        private AddReminderRequest createRequest(Reminder reminder) {
+            return new AddReminderRequest(reminder.getMedicine().getId(), reminder.isVibrate(),
+                    reminder.getNextReminder());
+        }
+
         @Test
         @DisplayName("Should create reminder successfully")
         void shouldCreateReminder_Successfully() {
-            when(patientService.getPatientProfile()).thenReturn(testPatient);
-            when(reminderRepository.save(any(Reminder.class))).thenReturn(testReminder);
+            AddReminderRequest request = createRequest(testReminder);
+            AddReminderResponse expectedResponse = new AddReminderResponse(testReminderId,
+                    testMedicine.getId(), true, Instant.now(), Instant.now());
 
-            Reminder result = reminderService.createReminder(testReminder);
+            when(patientService.getPatientProfile()).thenReturn(testPatient);
+            when(reminderMapper.toEntity(request, medicineService)).thenReturn(testReminder);
+            when(reminderRepository.save(any(Reminder.class))).thenReturn(testReminder);
+            when(reminderMapper.toAddReminderResponse(testReminder)).thenReturn(expectedResponse);
+
+            AddReminderResponse result = reminderService.createReminder(request);
 
             assertThat(result).isNotNull();
-            assertThat(result.getPatient()).isEqualTo(testPatient);
+            assertThat(result).isEqualTo(expectedResponse);
             verify(patientService).getPatientProfile();
             verify(reminderRepository).save(testReminder);
         }
@@ -112,12 +133,18 @@ public class ReminderServiceTest {
         @DisplayName("Should set patient to reminder when creating")
         void shouldSetPatient_WhenCreatingReminder() {
             Reminder reminderWithoutPatient = Reminder.builder().medicine(testMedicine)
-                    .vibrate(true).build();
+                    .vibrate(true).nextReminder(LocalDateTime.now().plusHours(2)).build();
+            AddReminderRequest request = createRequest(reminderWithoutPatient);
 
             when(patientService.getPatientProfile()).thenReturn(testPatient);
+            when(reminderMapper.toEntity(request, medicineService))
+                    .thenReturn(reminderWithoutPatient);
             when(reminderRepository.save(any(Reminder.class))).thenReturn(reminderWithoutPatient);
+            when(reminderMapper.toAddReminderResponse(reminderWithoutPatient))
+                    .thenReturn(new AddReminderResponse(testReminderId, testMedicine.getId(), true,
+                            Instant.now(), Instant.now()));
 
-            reminderService.createReminder(reminderWithoutPatient);
+            reminderService.createReminder(request);
 
             ArgumentCaptor<Reminder> reminderCaptor = ArgumentCaptor.forClass(Reminder.class);
             verify(reminderRepository).save(reminderCaptor.capture());
@@ -127,10 +154,16 @@ public class ReminderServiceTest {
         @Test
         @DisplayName("Should publish event after commit")
         void shouldPublishEvent_AfterCommit() {
-            when(patientService.getPatientProfile()).thenReturn(testPatient);
-            when(reminderRepository.save(any(Reminder.class))).thenReturn(testReminder);
+            AddReminderRequest request = createRequest(testReminder);
+            AddReminderResponse expectedResponse = new AddReminderResponse(testReminderId,
+                    testMedicine.getId(), true, Instant.now(), Instant.now());
 
-            reminderService.createReminder(testReminder);
+            when(patientService.getPatientProfile()).thenReturn(testPatient);
+            when(reminderMapper.toEntity(request, medicineService)).thenReturn(testReminder);
+            when(reminderRepository.save(any(Reminder.class))).thenReturn(testReminder);
+            when(reminderMapper.toAddReminderResponse(testReminder)).thenReturn(expectedResponse);
+
+            reminderService.createReminder(request);
 
             verify(reminderRepository).save(testReminder);
         }
@@ -140,15 +173,18 @@ public class ReminderServiceTest {
         void shouldSaveReminder_WithAllProperties() {
             Reminder newReminder = Reminder.builder().medicine(testMedicine).vibrate(false)
                     .status(ReminderStatus.UPCOMING).nextReminder(LocalDateTime.now()).build();
+            AddReminderRequest request = createRequest(newReminder);
+            AddReminderResponse expectedResponse = new AddReminderResponse(UUID.randomUUID(),
+                    testMedicine.getId(), false, Instant.now(), Instant.now());
 
             when(patientService.getPatientProfile()).thenReturn(testPatient);
+            when(reminderMapper.toEntity(request, medicineService)).thenReturn(newReminder);
             when(reminderRepository.save(any(Reminder.class))).thenReturn(newReminder);
+            when(reminderMapper.toAddReminderResponse(newReminder)).thenReturn(expectedResponse);
 
-            Reminder result = reminderService.createReminder(newReminder);
+            AddReminderResponse result = reminderService.createReminder(request);
 
-            assertThat(result.getMedicine()).isEqualTo(testMedicine);
-            assertThat(result.isVibrate()).isFalse();
-            assertThat(result.getStatus()).isEqualTo(ReminderStatus.UPCOMING);
+            assertThat(result).isEqualTo(expectedResponse);
             verify(reminderRepository).save(newReminder);
         }
     }

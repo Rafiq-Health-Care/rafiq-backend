@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.InvocationTargetException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -16,27 +17,34 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.nexaworks.rafiq.dto.request.medicine.AddMedicineRequest;
 import com.nexaworks.rafiq.dto.request.medicine.BulkMedicineOperationRequest;
+import com.nexaworks.rafiq.dto.response.medicine.MedicineResponse;
 import com.nexaworks.rafiq.entities.Drug;
 import com.nexaworks.rafiq.entities.Group;
 import com.nexaworks.rafiq.entities.Medicine;
 import com.nexaworks.rafiq.entities.Patient;
+import com.nexaworks.rafiq.entities.enums.Day;
 import com.nexaworks.rafiq.entities.enums.Action;
+import com.nexaworks.rafiq.entities.enums.MedicineFrequency;
 import com.nexaworks.rafiq.entities.enums.MedicineStatus;
+import com.nexaworks.rafiq.entities.enums.MedicineType;
+import com.nexaworks.rafiq.entities.enums.ReminderFrequency;
 import com.nexaworks.rafiq.exception.custom.medicine.GroupNotFoundException;
 import com.nexaworks.rafiq.exception.custom.medicine.MedicineAlreadyExist;
 import com.nexaworks.rafiq.exception.custom.medicine.MedicineLimit;
 import com.nexaworks.rafiq.repository.MedicineRepository;
 import com.nexaworks.rafiq.service.medicine.DrugServiceImpl;
 import com.nexaworks.rafiq.service.medicine.GroupServiceImpl;
-import com.nexaworks.rafiq.service.medicine.MedicineServiceImpl;
+import com.nexaworks.rafiq.service.medicine.MedicineService;
+import com.nexaworks.rafiq.mapper.MedicineMapper;
 import com.nexaworks.rafiq.service.patient.PatientService;
 import com.nexaworks.rafiq.service.user.UserService;
 
 import jakarta.validation.ValidationException;
 
 @DisplayName("MedicineService Test Cases")
-public class MedicineServiceImplTest {
+public class MedicineServiceTest {
     @Mock
     MedicineRepository medicineRepository;
     @Mock
@@ -48,8 +56,12 @@ public class MedicineServiceImplTest {
 
     @Mock
     UserService userService;
+
+        @Mock
+        MedicineMapper medicineMapper;
+
     @InjectMocks
-    MedicineServiceImpl medicineService;
+    MedicineService medicineService;
     static Patient patient;
     UUID drugId = UUID.randomUUID();
     @BeforeEach
@@ -65,38 +77,56 @@ public class MedicineServiceImplTest {
         void addMedicine_ShouldAddMedicineSuccessfully_WhenUserDoesntHaveThisMedicineBeforeAndDoesntExceedTheLimit() {
             Medicine entity = Medicine.builder().dosage("100 mlg").build();
             Drug drug = Drug.builder().id(drugId).tradeName("Advil").build();
+            AddMedicineRequest request = new AddMedicineRequest(drugId, "100 mlg",
+                    MedicineFrequency.ONCE, ReminderFrequency.DAILY, List.of(), Instant.now(),
+                    null, null, MedicineType.TABLET);
+            MedicineResponse expectedResponse = new MedicineResponse(UUID.randomUUID(),
+                    patient.getId(), "Advil", "100 mlg", MedicineFrequency.ONCE,
+                    ReminderFrequency.DAILY, List.of(), Instant.now(), null, null, null,
+                    MedicineType.TABLET, MedicineStatus.ACTIVE, null, null, null, null, null,
+                    null);
             when(patientService.getPatientProfile()).thenReturn(patient);
+            when(medicineMapper.toEntity(request)).thenReturn(entity);
             when(medicineRepository.existsByPatientIdAndDrugId(any(), any())).thenReturn(false);
             when(medicineRepository.countByPatientId(any())).thenReturn(0);
             when(medicineRepository.save(any())).thenReturn(entity);
             when(drugService.getDrugById(any())).thenReturn(drug);
+            when(medicineMapper.toDto(any(Medicine.class))).thenReturn(expectedResponse);
 
-            Medicine medicine = medicineService.addMedicine(entity, drugId);
+            MedicineResponse medicine = medicineService.addMedicine(request);
 
-            assertThat(medicine.getDrug().getId()).isEqualTo(drug.getId());
-            assertThat(medicine.getPatient()).isEqualTo(patient);
-            assertThat(medicine.getName()).isEqualTo("Advil");
+            assertThat(medicine.patientId()).isEqualTo(patient.getId());
+            assertThat(medicine.name()).isEqualTo("Advil");
+            assertThat(medicine.dosage()).isEqualTo("100 mlg");
         }
         @Test
         @DisplayName("Add medicine should throw MedicineAlreadyExist when the user already has this medicine")
         void addMedicine_ShouldThrowMedicineAlreadyExist_WhenUserAlreadyHasThisMedicine() {
             Medicine entity = Medicine.builder().dosage("100 mlg").build();
+            AddMedicineRequest request = new AddMedicineRequest(drugId, "100 mlg",
+                    MedicineFrequency.ONCE, ReminderFrequency.DAILY, List.of(), Instant.now(),
+                    null, null, MedicineType.TABLET);
             when(patientService.getPatientProfile()).thenReturn(patient);
+            when(medicineMapper.toEntity(request)).thenReturn(entity);
             when(medicineRepository.existsByPatientIdAndDrugId(any(), any())).thenReturn(true);
 
             assertThatExceptionOfType(MedicineAlreadyExist.class)
-                    .isThrownBy(() -> medicineService.addMedicine(entity, drugId))
+                    .isThrownBy(() -> medicineService.addMedicine(request))
                     .withMessage("Medicine already exist");
         }
         @Test
         @DisplayName("Add medicine should throw MedicineLimit when the user exceed the medicine limit")
         void addMedicine_ShouldThrowMedicineLimit_WhenUserExceedTheMedicineLimit() {
             Medicine entity = Medicine.builder().dosage("100 mlg").build();
+            AddMedicineRequest request = new AddMedicineRequest(drugId, "100 mlg",
+                    MedicineFrequency.ONCE, ReminderFrequency.DAILY, List.of(), Instant.now(),
+                    null, null, MedicineType.TABLET);
             when(patientService.getPatientProfile()).thenReturn(patient);
+            when(medicineMapper.toEntity(request)).thenReturn(entity);
             when(medicineRepository.countByPatientId(any())).thenReturn(200);
 
             assertThatExceptionOfType(MedicineLimit.class)
-                    .isThrownBy(() -> medicineService.addMedicine(entity, drugId))
+                    .isThrownBy(() -> medicineService.addMedicine(request))
                     .withMessage("You have reached the limit of medicine");
         }
 
