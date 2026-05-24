@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class PatientProfileServiceImpl implements PatientProfileService {
-    private final WeightHistoryService weightHistoryService;
     private final AuthServiceImpl authService;
     private final PatientRepository patientRepository;
     private final PatientService patientService;
@@ -32,10 +31,6 @@ public class PatientProfileServiceImpl implements PatientProfileService {
     @Transactional
     public PatientProfileResponse completePatientProfile(CreateBasicMedicalProfileRequest request) {
         Patient patient = (Patient) authService.getAuthenticateUser();
-        if (patient.getWeight() != request.weightInKg()) {
-            weightHistoryService.logNewWeight(request.weightInKg(), patient);
-        }
-
         fillPatientDetails(request, patient);
 
         Patient savedPatient = patientRepository.save(patient);
@@ -56,13 +51,10 @@ public class PatientProfileServiceImpl implements PatientProfileService {
         patient.setBloodType(request.bloodType());
         patient.setCigarettesPerDay(request.cigarettesPerDay());
         patient.setDrinksPerWeek(request.drinksPerWeek());
-        patient.setEmergencyContactName(request.emergencyContactName());
-        patient.setEmergencyContactPhone(request.emergencyContactPhone());
         patient.setLastSmoked(request.lastSmoked());
-        patient.setOccupation(request.occupation());
         patient.setPregnant(request.pregnant());
         patient.setSmokeStatus(request.smokeStatus());
-        patient.setWeight(request.weightInKg());
+
     }
 
 }
