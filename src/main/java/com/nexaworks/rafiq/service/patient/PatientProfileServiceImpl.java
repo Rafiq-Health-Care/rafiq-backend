@@ -4,7 +4,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.dto.request.basicMedicalProfile.CreateBasicMedicalProfileRequest;
+import com.nexaworks.rafiq.dto.response.patientProfile.CompletePatientProfile;
+import com.nexaworks.rafiq.dto.response.patientProfile.PatientProfileResponse;
 import com.nexaworks.rafiq.entities.Patient;
+import com.nexaworks.rafiq.mapper.MedicineMapper;
+import com.nexaworks.rafiq.mapper.PatientMapper;
+import com.nexaworks.rafiq.mapper.TestMapper;
 import com.nexaworks.rafiq.repository.PatientRepository;
 import com.nexaworks.rafiq.service.authentication.AuthServiceImpl;
 
@@ -18,10 +23,14 @@ public class PatientProfileServiceImpl implements PatientProfileService {
     private final WeightHistoryService weightHistoryService;
     private final AuthServiceImpl authService;
     private final PatientRepository patientRepository;
+    private final PatientService patientService;
+    private final PatientMapper patientMapper;
+    private final TestMapper testMapper;
+    private final MedicineMapper medicineMapper;
 
     @Override
     @Transactional
-    public Patient completePatientProfile(CreateBasicMedicalProfileRequest request) {
+    public PatientProfileResponse completePatientProfile(CreateBasicMedicalProfileRequest request) {
         Patient patient = (Patient) authService.getAuthenticateUser();
         if (patient.getWeight() != request.weightInKg()) {
             weightHistoryService.logNewWeight(request.weightInKg(), patient);
@@ -29,7 +38,15 @@ public class PatientProfileServiceImpl implements PatientProfileService {
 
         fillPatientDetails(request, patient);
 
-        return patientRepository.save(patient);
+        Patient savedPatient = patientRepository.save(patient);
+        return patientMapper.toResponse(savedPatient);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CompletePatientProfile getCompletePatientProfile() {
+        Patient patient = patientService.getPatientProfile();
+        return patientMapper.convertToCompleteProfile(patient, testMapper, medicineMapper);
     }
 
     private static void fillPatientDetails(CreateBasicMedicalProfileRequest request,

@@ -13,14 +13,18 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.nexaworks.rafiq.dto.event.ReminderEvent;
+import com.nexaworks.rafiq.dto.request.reminder.AddReminderRequest;
 import com.nexaworks.rafiq.dto.request.reminder.GetAllRemindersHistoryResponseProjection;
 import com.nexaworks.rafiq.dto.request.reminder.ReminderFilters;
+import com.nexaworks.rafiq.dto.response.reminder.AddReminderResponse;
 import com.nexaworks.rafiq.dto.response.reminder.GetAllRemindersResponse;
+import com.nexaworks.rafiq.dto.response.reminder.GetReminderByIdResponse;
 import com.nexaworks.rafiq.entities.Patient;
 import com.nexaworks.rafiq.entities.Reminder;
 import com.nexaworks.rafiq.entities.ReminderLog;
 import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 import com.nexaworks.rafiq.exception.custom.medicine.ReminderNotFound;
+import com.nexaworks.rafiq.mapper.ReminderMapper;
 import com.nexaworks.rafiq.repository.ReminderLogRepository;
 import com.nexaworks.rafiq.repository.ReminderRepository;
 import com.nexaworks.rafiq.service.patient.PatientService;
@@ -38,10 +42,13 @@ public class ReminderServiceImpl implements ReminderService {
     private final ApplicationEventPublisher eventPublisher;
     private final ReminderLogRepository reminderLogRepository;
     private final UserService userService;
+    private final ReminderMapper reminderMapper;
+    private final IMedicineService medicineService;
 
     @Override
     @Transactional
-    public Reminder createReminder(Reminder reminder) {
+    public AddReminderResponse createReminder(AddReminderRequest request) {
+        Reminder reminder = reminderMapper.toEntity(request, medicineService);
         Patient patient = patientService.getPatientProfile();
         reminder.setPatient(patient);
         log.info("Creating reminder for medicine: {}", reminder.getMedicine().getName());
@@ -51,7 +58,8 @@ public class ReminderServiceImpl implements ReminderService {
                 eventPublisher.publishEvent(new ReminderEvent(reminder));
             }
         });
-        return reminderRepository.save(reminder);
+        Reminder savedReminder = reminderRepository.save(reminder);
+        return reminderMapper.toAddReminderResponse(savedReminder);
     }
 
     @Override
@@ -92,8 +100,8 @@ public class ReminderServiceImpl implements ReminderService {
     }
 
     @Override
-    public Reminder getReminderById(UUID reminderId) {
-        return getReminder(reminderId);
+    public GetReminderByIdResponse getReminderById(UUID reminderId) {
+        return reminderMapper.toGetReminderByIdResponse(getReminder(reminderId));
     }
 
     private @NotNull Reminder getReminder(UUID reminderId) {
@@ -107,10 +115,11 @@ public class ReminderServiceImpl implements ReminderService {
 
     @Override
     @Transactional
-    public Reminder updateVibration(UUID reminderId, Boolean vibrate) {
+    public AddReminderResponse updateVibration(UUID reminderId, Boolean vibrate) {
         Reminder reminder = getReminder(reminderId);
         reminder.setVibrate(vibrate);
-        return reminderRepository.save(reminder);
+        Reminder savedReminder = reminderRepository.save(reminder);
+        return reminderMapper.toAddReminderResponse(savedReminder);
     }
 
     @Override

@@ -12,10 +12,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.nexaworks.rafiq.dto.request.user.DoctorRegistrationRequest;
+import com.nexaworks.rafiq.dto.request.user.UserRegistrationRequest;
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.*;
-import com.nexaworks.rafiq.entities.enums.Specialization;
 import com.nexaworks.rafiq.exception.custom.user.RegistrationException;
+import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.rabbit.manager.UserNotificationManager;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.doctor.DoctorService;
@@ -40,10 +42,12 @@ public class UserServiceImpl implements UserService {
     private final DoctorService doctorService;
     private final TransactionUtils transactionUtils;
     private final UserNotificationManager manager;
+    private final UserMapper userMapper;
 
     @Override
     @Transactional
-    public void registerPatient(User user) {
+    public void registerPatient(UserRegistrationRequest request) {
+        Patient user = userMapper.toUser(request);
         verifyEmailAvailability(user);
         user.getRoles().add(roleService.getRole(ROLE_PATIENT));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -54,13 +58,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void registerDoctor(User user, MultipartFile nationalId, Specialization specialization,
-            String description) throws IOException {
+    public void registerDoctor(DoctorRegistrationRequest request, MultipartFile nationalId)
+            throws IOException {
+
+        Doctor user = userMapper.toDoctor(request.user());
 
         verifyEmailAvailability(user);
         user.getRoles().add(roleService.getRole(ROLE_DOCTOR));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        doctorService.register((Doctor) user, specialization, description);
+        doctorService.register(user, request.specialization(), request.description());
 
         String otp = tokenService.generateOtpToken(user);
         transactionUtils.afterCommit(() -> manager.sendRegistrationEvent(user, otp));

@@ -17,7 +17,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @Tag(name = "Authentication", description = "Authentication endpoints for user login, logout, and token refresh")

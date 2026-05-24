@@ -1,10 +1,7 @@
 package com.nexaworks.rafiq.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.nexaworks.rafiq.dto.request.user.ChangePasswordRequest;
 import com.nexaworks.rafiq.dto.request.user.ForgetPasswordRequest;
@@ -20,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/password")
+@RequestMapping("/api/v1/password")
 @Tag(name = "Password Management", description = "Endpoints for password reset and change flows")
 public class PasswordController {
     private final PasswordService passwordService;
@@ -33,7 +30,7 @@ public class PasswordController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/change-password")
+    @PatchMapping("/change-password")
     @Operation(summary = "Change password ", description = "Completes password reset from forget-password flow.")
     @ApiResponse(responseCode = "204", description = "Password changed successfully")
     public ResponseEntity<Void> changePassword(
@@ -42,7 +39,7 @@ public class PasswordController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/reset-password")
+    @PatchMapping("/reset-password")
     @Operation(summary = "Reset password (authenticated)", description = "Allows logged-in users to change password by verifying current password.")
     @ApiResponse(responseCode = "204", description = "Password reset successfully")
     @SecurityRequirement(name = "bearerAuth")

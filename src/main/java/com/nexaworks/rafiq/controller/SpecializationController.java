@@ -19,7 +19,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/specialization")
+@RequestMapping("/api/v1/specialization")
 @RequiredArgsConstructor
 @Tag(name = "Specialization", description = "Endpoints for doctor specializations used in registration")
 public class SpecializationController {

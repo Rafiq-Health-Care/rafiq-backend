@@ -32,7 +32,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/slot")
+@RequestMapping("/api/v1/slot")
 @RequiredArgsConstructor
 @Tag(name = "Consultation Slots", description = "Manage and search doctor consultation slots")
 public class ConsultationSlotController {

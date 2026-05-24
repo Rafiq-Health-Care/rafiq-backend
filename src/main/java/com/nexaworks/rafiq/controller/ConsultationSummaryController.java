@@ -26,7 +26,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/consultation-summary")
+@RequestMapping("/api/v1/consultation-summary")
 @RequiredArgsConstructor
 @Tag(name = "Consultation summary", description = "Post-consultation summaries")
 public class ConsultationSummaryController {

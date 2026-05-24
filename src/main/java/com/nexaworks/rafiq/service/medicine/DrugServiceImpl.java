@@ -11,7 +11,6 @@ import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.medicine.DrugSearchResponse;
 import com.nexaworks.rafiq.entities.Drug;
 import com.nexaworks.rafiq.mapper.DrugMapper;
-import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.repository.DrugRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -22,13 +21,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DrugServiceImpl implements DrugService {
     private final DrugRepository drugRepository;
-    private final PageMapper pageMapper;
     private final DrugMapper drugMapper;
     @Override
     public PageResponse<DrugSearchResponse> search(String drugName, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Drug> drugs = drugRepository.searchByFullText(drugName, pageable);
-        return pageMapper.mapToDrugSearchResponsePage(drugs, drugMapper);
+        return PageResponse.of(drugs, drugMapper::toDto);
     }
 
     @Override

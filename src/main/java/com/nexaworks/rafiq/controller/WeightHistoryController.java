@@ -8,8 +8,9 @@ import com.nexaworks.rafiq.service.patient.WeightHistoryService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/weight-history")
+@RequestMapping("/api/v1/weight-history")
 @RequiredArgsConstructor
+// under development
 public class WeightHistoryController {
     private final WeightHistoryService weightHistoryService;
 

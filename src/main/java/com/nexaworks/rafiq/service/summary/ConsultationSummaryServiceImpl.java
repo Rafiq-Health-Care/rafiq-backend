@@ -62,7 +62,6 @@ public class ConsultationSummaryServiceImpl implements ConsultationSummaryServic
         validateConsultation(consultation, doctorId);
 
         ConsultationSummary entity = consultationSummaryMapper.toEntity(request);
-        entity.setDoctor(consultation.getDoctor());
         entity.setPatient(consultation.getPatient());
         entity.setConsultation(consultation);
         return consultationSummaryMapper.toResponse(consultationSummaryRepository.save(entity));

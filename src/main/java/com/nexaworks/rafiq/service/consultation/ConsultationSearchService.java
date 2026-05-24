@@ -39,7 +39,7 @@ public class ConsultationSearchService implements IConsultationSearchService {
     private final ConsultationSlotMapper consultationSlotMapper;
 
     @Override
-    @Cacheable(key = "#id", value = "consultation")
+    @Cacheable(key = "#id", value = "consultation", unless = "#result.status().name()!='UPCOMING'")
     public ConsultationResponse getConsultation(UUID id) {
         Consultation consultation = consultationRepository.findById(id)
                 .orElseThrow(() -> new SlotNotFoundException("Slot not found"));
@@ -51,7 +51,7 @@ public class ConsultationSearchService implements IConsultationSearchService {
         Specification<ConsultationSlot> spec = ScheduleSpecification.filter(filter,
                 authService.getAuthenticateUserId());
         Page<ConsultationSlot> slotPage = consultationSlotRepository.findAll(spec, pageable);
-        return consultationSlotMapper.toSchedulePageResponse(slotPage);
+        return PageResponse.of(slotPage, consultationSlotMapper::toScheduleDto);
     }
 
     @Override
@@ -60,7 +60,7 @@ public class ConsultationSearchService implements IConsultationSearchService {
         UUID patientId = authService.getAuthenticateUserId();
         Page<Consultation> consultationPage = consultationRepository
                 .findAllByPatientIdAndStatus(patientId, status, pageable);
-        return consultationMapper.toPatientPageResponse(consultationPage);
+        return PageResponse.of(consultationPage, consultationMapper::toPatientResponse);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class ConsultationSearchService implements IConsultationSearchService {
         UUID doctorId = authService.getAuthenticateUserId();
         Page<ConsultationSlot> slotPage = consultationSlotRepository.findAllDoctorUpcoming(doctorId,
                 SlotStatus.BOOKED, pageable);
-        return consultationSlotMapper.toPageResponse(slotPage);
+        return PageResponse.of(slotPage, consultationSlotMapper::toDto);
     }
 
     @Override
@@ -76,7 +76,7 @@ public class ConsultationSearchService implements IConsultationSearchService {
             Pageable pageable) {
         Page<DoctorConsultationResponse> slotPage = consultationSlotRepository
                 .getDoctorAvailableConsultation(id, SlotStatus.AVAILABLE, pageable);
-        return consultationSlotMapper.toDoctorPageResponse(slotPage);
+        return PageResponse.of(slotPage, response -> response);
     }
 
     @Override

@@ -8,11 +8,8 @@ import java.util.UUID;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.data.domain.Page;
 
-import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationSlotResponse;
-import com.nexaworks.rafiq.dto.response.consultation.DoctorConsultationResponse;
 import com.nexaworks.rafiq.dto.response.consultation.EditConsultationSlotResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ScheduleResponse;
 import com.nexaworks.rafiq.dto.response.patientProfile.PatientDto;
@@ -29,12 +26,6 @@ public interface ConsultationSlotMapper {
     @Mapping(target = "createdAt", expression = "java(toLocalDateTime(slot.getCreatedAt()))")
     @Mapping(target = "updatedAt", expression = "java(toLocalDateTime(slot.getUpdatedAt()))")
     EditConsultationSlotResponse toEditResponse(ConsultationSlot slot);
-
-    default PageResponse<ScheduleResponse> toSchedulePageResponse(Page<ConsultationSlot> slotPage) {
-        return new PageResponse<>(slotPage.getContent().stream().map(this::toScheduleDto).toList(),
-                slotPage.getNumberOfElements(), slotPage.getSize(), slotPage.getTotalPages(),
-                slotPage.isLast(), slotPage.isFirst());
-    }
 
     @Mapping(target = "slotId", source = "id")
     @Mapping(target = "durationInMinutes", source = "durationMinutes")
@@ -72,18 +63,6 @@ public interface ConsultationSlotMapper {
         }
         return consultation.getPatient().getFirstName() + " "
                 + consultation.getPatient().getLastName();
-    }
-
-    default PageResponse<DoctorConsultationResponse> toDoctorPageResponse(
-            Page<DoctorConsultationResponse> slots) {
-        return new PageResponse<>(slots.getContent(), slots.getNumberOfElements(), slots.getSize(),
-                slots.getTotalPages(), slots.isLast(), slots.isFirst());
-    }
-
-    default PageResponse<ConsultationSlotResponse> toPageResponse(Page<ConsultationSlot> upcoming) {
-        return new PageResponse<>(upcoming.getContent().stream().map(this::toDto).toList(),
-                upcoming.getNumberOfElements(), upcoming.getSize(), upcoming.getTotalPages(),
-                upcoming.isLast(), upcoming.isFirst());
     }
 
     @Mapping(target = "consultationId", expression = "java(getConsultationId(slot))")

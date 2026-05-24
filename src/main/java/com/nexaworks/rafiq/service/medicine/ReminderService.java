@@ -6,14 +6,16 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.nexaworks.rafiq.dto.request.reminder.AddReminderRequest;
 import com.nexaworks.rafiq.dto.request.reminder.GetAllRemindersHistoryResponseProjection;
 import com.nexaworks.rafiq.dto.request.reminder.ReminderFilters;
+import com.nexaworks.rafiq.dto.response.reminder.AddReminderResponse;
 import com.nexaworks.rafiq.dto.response.reminder.GetAllRemindersResponse;
-import com.nexaworks.rafiq.entities.Reminder;
+import com.nexaworks.rafiq.dto.response.reminder.GetReminderByIdResponse;
 import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 
 public interface ReminderService {
-    Reminder createReminder(Reminder reminder);
+    AddReminderResponse createReminder(AddReminderRequest request);
 
     Page<GetAllRemindersHistoryResponseProjection> getHistory(Pageable pageable,
             ReminderFilters filters);
@@ -22,9 +24,9 @@ public interface ReminderService {
 
     Page<GetAllRemindersResponse> getAllReminders(Pageable pageable);
 
-    Reminder getReminderById(UUID reminderId);
+    GetReminderByIdResponse getReminderById(UUID reminderId);
 
-    Reminder updateVibration(UUID reminderId, Boolean vibrate);
+    AddReminderResponse updateVibration(UUID reminderId, Boolean vibrate);
 
     void deleteReminder(UUID reminderId);
 

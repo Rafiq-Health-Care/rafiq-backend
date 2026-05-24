@@ -19,7 +19,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/drugs")
+@RequestMapping("/api/v1/drugs")
 @RequiredArgsConstructor
 @Tag(name = "Drug Search", description = "Endpoints for searching drugs in the medication database")
 public class DrugController {

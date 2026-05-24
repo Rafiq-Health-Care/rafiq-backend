@@ -28,7 +28,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/consultation")
+@RequestMapping("/api/v1/consultation")
 @RequiredArgsConstructor
 public class ConsultationController {
     private final IReservationService reservationService;

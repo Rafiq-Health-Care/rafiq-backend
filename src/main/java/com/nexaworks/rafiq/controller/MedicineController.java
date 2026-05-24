@@ -28,7 +28,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/medicine")
+@RequestMapping("/api/v1/medicine")
 @RequiredArgsConstructor
 @Tag(name = "Medicine Management", description = "Endpoints for managing medicines, dosage, and bulk operations")
 @ApiResponses({
@@ -39,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 public class MedicineController {
     private final IMedicineService IMedicineService;
 
+    @Idempotent(force = true)
     @PostMapping
     @Operation(summary = "Add medicine", description = "Adds a new medicine to user's medication list. Enables tracking and reminder scheduling.")
     @ApiResponses({@ApiResponse(responseCode = "201", description = "Medicine added successfully"),

@@ -1,8 +1,11 @@
 package com.nexaworks.rafiq.service.patient;
 
 import com.nexaworks.rafiq.dto.request.basicMedicalProfile.CreateBasicMedicalProfileRequest;
-import com.nexaworks.rafiq.entities.Patient;
+import com.nexaworks.rafiq.dto.response.patientProfile.CompletePatientProfile;
+import com.nexaworks.rafiq.dto.response.patientProfile.PatientProfileResponse;
 
 public interface PatientProfileService {
-    Patient completePatientProfile(CreateBasicMedicalProfileRequest request);
+    PatientProfileResponse completePatientProfile(CreateBasicMedicalProfileRequest request);
+
+    CompletePatientProfile getCompletePatientProfile();
 }

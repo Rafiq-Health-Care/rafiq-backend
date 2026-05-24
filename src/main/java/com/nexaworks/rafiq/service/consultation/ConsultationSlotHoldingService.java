@@ -70,8 +70,8 @@ public class ConsultationSlotHoldingService implements IConsultationSlotHoldingS
 
         if (holder != null && holder.equals(userId.toString())) {
             RLock lock = redissonClient.getLock(lockKey(slotId));
-            if (lock.isLocked() && lock.isHeldByCurrentThread()) {
-                lock.unlock();
+            if (lock.isLocked()) {
+                lock.forceUnlock();
             }
             redisTemplate.delete(holderKey(slotId)); // clean up holder record
             log.info("Slot [{}] released by user [{}]", slotId, userId);
