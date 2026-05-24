@@ -15,6 +15,7 @@ import com.nexaworks.rafiq.exception.ExceptionUtils;
 import com.nexaworks.rafiq.exception.custom.general.MailSenderException;
 import com.nexaworks.rafiq.exception.model.ErrorResponse;
 
+import io.sentry.Sentry;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
@@ -63,6 +64,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex,
             HttpServletRequest request) {
+        Sentry.captureException(ex);
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         return ResponseEntity.status(status)
                 .body(exceptionUtils.getErrorResponse(ex, request, status));
