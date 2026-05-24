@@ -31,7 +31,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/reminder")
+@RequestMapping("/api/v1/reminder")
 @RequiredArgsConstructor
 @Tag(name = "Reminder Management", description = "Endpoints for medication reminders, history, and status tracking")
 public class ReminderController {

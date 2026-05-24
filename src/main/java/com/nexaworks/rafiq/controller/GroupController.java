@@ -30,7 +30,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/group")
+@RequestMapping("/api/v1/group")
 @RequiredArgsConstructor
 @Tag(name = "Medicine Group Management", description = "Endpoints for organizing medicines into groups")
 public class GroupController {
@@ -38,7 +38,7 @@ public class GroupController {
     private final IMedicineService medicineService;
 
     @Idempotent(force = true)
-    @PostMapping("/add")
+    @PostMapping
     @Operation(summary = "Add medicine group", description = "Creates a new group to organize medicines by category or condition.")
     @ApiResponse(responseCode = "201", description = "Group added successfully", content = @Content(schema = @Schema(implementation = AddResponse.class)))
     public ResponseEntity<AddResponse<AddGroupResponse>> addGroup(
