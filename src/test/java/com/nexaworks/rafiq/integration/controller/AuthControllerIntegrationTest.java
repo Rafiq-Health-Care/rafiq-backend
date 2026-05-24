@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Set;
 
@@ -82,20 +83,20 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
 
     private Token createOtpToken(User user, String otpValue, Instant expiryDate) {
         Token token = Token.builder().token(otpValue).user(user).tokenType(TokenType.OTP)
-                .expiryDate(expiryDate).build();
+                .expiryDate(expiryDate.atZone(ZoneId.systemDefault()).toLocalDateTime()).build();
         return tokenRepository.save(token);
     }
 
     private Token createRefreshToken(User user, String tokenValue, Instant expiryDate) {
         Token token = Token.builder().token(tokenValue).user(user).tokenType(TokenType.REFRESH)
-                .expiryDate(expiryDate).build();
+                .expiryDate(expiryDate.atZone(ZoneId.systemDefault()).toLocalDateTime()).build();
         return tokenRepository.save(token);
     }
 
     @Nested
     @DisplayName("Login")
     class Login {
-        private final String LOGIN_ENDPOINT = "/auth/login";
+        private final String LOGIN_ENDPOINT = "/api/v1/auth/login";
 
         @Nested
         @DisplayName("Should Login Successfully")
@@ -112,7 +113,6 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
                 LoginRequest loginRequest = new LoginRequest(email, password);
                 String payload = objectMapper.writeValueAsString(loginRequest);
 
-                // Act & Assert - Login with valid credentials
                 mockMvc.perform(MockMvcRequestBuilders.post(LOGIN_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isOk())
@@ -191,7 +191,6 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
                 LoginRequest loginRequest = new LoginRequest(blankEmail, password);
                 String payload = objectMapper.writeValueAsString(loginRequest);
 
-                // Act & Assert - Should return 400 for validation error
                 mockMvc.perform(MockMvcRequestBuilders.post(LOGIN_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -202,7 +201,7 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("Logout")
     class Logout {
-        private final String LOGOUT_ENDPOINT = "/auth/logout";
+        private final String LOGOUT_ENDPOINT = "/api/v1/auth/logout";
 
         @Nested
         @DisplayName("Should Logout Successfully")
@@ -294,7 +293,7 @@ public class AuthControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("Refresh")
     class Refresh {
-        private final String REFRESH_ENDPOINT = "/auth/refresh";
+        private final String REFRESH_ENDPOINT = "/api/v1/auth/refresh";
 
         @Nested
         @DisplayName("Should Refresh Successfully")
