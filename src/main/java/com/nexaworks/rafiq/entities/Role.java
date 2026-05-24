@@ -12,6 +12,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@ToString(of = "name")
+@EqualsAndHashCode(of = "name", callSuper = false)
 public class Role extends BaseEntity {
 
     private String name;

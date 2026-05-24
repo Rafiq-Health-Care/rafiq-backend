@@ -23,6 +23,7 @@ public class ReminderLog extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "reminder_id", referencedColumnName = "id", nullable = false)
     private Reminder reminder;
+
     @ManyToOne
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
     private Patient patient;

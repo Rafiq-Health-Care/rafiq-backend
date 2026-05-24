@@ -3,10 +3,7 @@ package com.nexaworks.rafiq.entities;
 import java.util.List;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Getter
@@ -14,7 +11,9 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
+@ToString(exclude = {"activeIngredients", "companies"})
 @Entity
+
 public class Drug extends BaseEntity {
     String tradeName;
     String drugGroup;

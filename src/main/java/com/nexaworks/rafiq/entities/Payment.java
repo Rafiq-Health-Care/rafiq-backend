@@ -32,7 +32,8 @@ public class Payment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id", nullable = false)
     private User patient;
-    @OneToOne(fetch = FetchType.EAGER)
+
+    @OneToOne(mappedBy = "payment", fetch = FetchType.EAGER)
     private RefundRequest refundRequest;
 
     @Column(name = "payment_intent_id", nullable = false, unique = true)

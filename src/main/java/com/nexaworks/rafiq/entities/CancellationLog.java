@@ -10,6 +10,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Entity
 @SuperBuilder
+@ToString(exclude = {"consultation", "cancelledBy"})
+@Table(name = "cancellation_log")
 public class CancellationLog extends BaseEntity {
 
     @OneToOne

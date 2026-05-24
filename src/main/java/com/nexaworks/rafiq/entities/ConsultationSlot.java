@@ -3,6 +3,8 @@ package com.nexaworks.rafiq.entities;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.hibernate.annotations.BatchSize;
+
 import com.nexaworks.rafiq.entities.enums.SlotStatus;
 
 import jakarta.persistence.*;
@@ -14,7 +16,9 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@ToString(exclude = {"doctor", "consultations"})
 @SuperBuilder
+@Table(name = "consultation_slot")
 public class ConsultationSlot extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -30,7 +34,9 @@ public class ConsultationSlot extends BaseEntity {
     @Column(name = "end_time", nullable = false)
     private LocalDateTime endTime;
 
-    @OneToMany(mappedBy = "slot", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "slot", fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE,
+            CascadeType.MERGE, CascadeType.PERSIST})
+    @BatchSize(size = 10)
     private List<Consultation> consultations;
 
     @Enumerated(EnumType.STRING)

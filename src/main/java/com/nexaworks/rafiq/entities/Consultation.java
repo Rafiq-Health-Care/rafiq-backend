@@ -13,6 +13,9 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Entity
 @SuperBuilder
+@ToString(exclude = {"slot", "patient", "consultationSummary", "consultationLog", "cancellationLog",
+        "payment"})
+@Table(name = "consultation")
 public class Consultation extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -37,12 +40,16 @@ public class Consultation extends BaseEntity {
     @OneToOne(mappedBy = "consultation", cascade = CascadeType.ALL)
     private Payment payment;
 
-    @OneToOne(mappedBy = "consultation", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "consultation", cascade = {CascadeType.REMOVE, CascadeType.MERGE,
+            CascadeType.PERSIST})
     private CancellationLog cancellationLog;
 
-    @OneToOne(mappedBy = "consultation")
+    @OneToOne(mappedBy = "consultation", cascade = {CascadeType.REMOVE, CascadeType.MERGE,
+            CascadeType.PERSIST})
     private ConsultationSummary consultationSummary;
-    @OneToOne(mappedBy = "consultation")
+
+    @OneToOne(mappedBy = "consultation", cascade = {CascadeType.REMOVE, CascadeType.MERGE,
+            CascadeType.PERSIST})
     private ConsultationLog consultationLog;
 
     @Transient

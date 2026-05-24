@@ -16,8 +16,10 @@ import lombok.experimental.SuperBuilder;
 public class MedicalCertifications extends BaseEntity {
 
     private String name;
+    @Column(columnDefinition = "TEXT")
     private String description;
     private String code;
+    // todo file mangement
     private String photo;
 
     @ManyToOne

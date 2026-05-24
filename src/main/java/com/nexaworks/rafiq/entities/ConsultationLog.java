@@ -12,6 +12,7 @@ import lombok.*;
 @AllArgsConstructor
 @Entity
 @Builder
+@ToString(exclude = "consultation")
 @Table(name = "consultation_logs")
 public class ConsultationLog {
 

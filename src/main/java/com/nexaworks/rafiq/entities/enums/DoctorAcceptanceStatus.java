@@ -1,5 +1,5 @@
 package com.nexaworks.rafiq.entities.enums;
 
-public enum Status {
+public enum DoctorAcceptanceStatus {
     IN_REVIEW, VERIFIED, REJECTED
 }

@@ -4,6 +4,7 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.util.*;
 
+import org.hibernate.annotations.BatchSize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -41,12 +42,12 @@ public class User extends BaseEntity implements UserDetails, Principal {
 
     @Column(nullable = false)
     private String firstName;
+
     private String lastName;
 
-    @Column(unique = true)
     private String phone;
 
-    @Column(name = "birth_date")
+    @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
 
     @Builder.Default
@@ -77,6 +78,7 @@ public class User extends BaseEntity implements UserDetails, Principal {
     @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
             CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
+    @BatchSize(size = 10)
     private List<Token> tokens = new ArrayList<>();
 
     @Override

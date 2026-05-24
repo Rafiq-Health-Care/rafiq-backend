@@ -16,6 +16,8 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
+@ToString(exclude = {"consultation", "doctor", "patient"})
+@EqualsAndHashCode(callSuper = false, of = {"consultation"})
 public class ConsultationSummary extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")

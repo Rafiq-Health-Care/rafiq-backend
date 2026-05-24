@@ -1,6 +1,6 @@
 package com.nexaworks.rafiq.entities;
 
-import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 import com.nexaworks.rafiq.entities.enums.*;
@@ -48,11 +48,13 @@ public class Medicine extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private MedicineType type;
 
-    private Instant startDate;
-    private Instant endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    @Column(columnDefinition = "TEXT")
     private String notes;
+    // todo file mangement
     private String photoUrl;
-    private String photoPublicId;
+
     private String name;
 
     @Column(name = "search_vector", columnDefinition = "tsvector", insertable = false, updatable = false)
@@ -69,6 +71,7 @@ public class Medicine extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", referencedColumnName = "id")
     private Group group;
+
     @OneToOne(mappedBy = "medicine", cascade = {CascadeType.REMOVE, CascadeType.MERGE,
             CascadeType.PERSIST}, orphanRemoval = true)
     private Reminder reminder;

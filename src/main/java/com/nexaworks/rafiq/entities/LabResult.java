@@ -1,10 +1,7 @@
 package com.nexaworks.rafiq.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Getter
@@ -12,7 +9,10 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
+@ToString(exclude = {"labTest"})
+@EqualsAndHashCode(callSuper = false, of = {"name"})
 @Entity
+@Table(name = "lab_result")
 public class LabResult extends BaseEntity {
 
     private String name;
