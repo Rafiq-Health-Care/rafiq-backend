@@ -22,9 +22,6 @@ public class Lab extends BaseEntity {
     @OneToMany(mappedBy = "lab", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Address> addresses;
 
-    @OneToMany(mappedBy = "lab")
-    private List<LabTest> tests;
-
     private String logo;
     private String publicId;
 
