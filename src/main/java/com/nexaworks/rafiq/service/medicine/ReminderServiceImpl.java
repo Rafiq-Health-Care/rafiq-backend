@@ -49,6 +49,7 @@ public class ReminderServiceImpl implements ReminderService {
     @Transactional
     public AddReminderResponse createReminder(AddReminderRequest request) {
         Reminder reminder = reminderMapper.toEntity(request, medicineService);
+        reminder.setStatus(ReminderStatus.UPCOMING);
         Patient patient = patientService.getPatientProfile();
         reminder.setPatient(patient);
         log.info("Creating reminder for medicine: {}", reminder.getMedicine().getName());
