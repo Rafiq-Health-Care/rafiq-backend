@@ -11,6 +11,7 @@ import com.nexaworks.rafiq.dto.request.medicine.*;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.medicine.MedicineGroupResponse;
 import com.nexaworks.rafiq.dto.response.medicine.MedicineResponse;
+import com.nexaworks.rafiq.entities.Medicine;
 
 import jakarta.validation.Valid;
 
@@ -26,6 +27,8 @@ public interface IMedicineService {
     MedicineResponse updateMedicine(UpdateMedicineRequest request, UUID medicineId);
 
     MedicineResponse updateSpecific(UUID medicineId, UpdateMedicinePatchRequest request);
+
+    Medicine getMedicineEntityById(UUID medicineId);
 
     List<UUID> bulkMedicineOperation(@Valid BulkMedicineOperationRequest request)
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException;

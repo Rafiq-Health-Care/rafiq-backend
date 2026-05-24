@@ -18,7 +18,6 @@ import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.lab.LabResponse;
 import com.nexaworks.rafiq.entities.Address;
 import com.nexaworks.rafiq.entities.Lab;
-import com.nexaworks.rafiq.entities.LabTest;
 import com.nexaworks.rafiq.entities.enums.UploadType;
 import com.nexaworks.rafiq.exception.custom.labtest.LabException;
 import com.nexaworks.rafiq.mapper.AddressMapper;
@@ -69,9 +68,7 @@ public class LabServiceImpl implements LabService {
     public void deleteLab(UUID labId) {
         Lab lab = labRepository.findById(labId)
                 .orElseThrow(() -> new LabException("Invalid Lab Id"));
-        List<LabTest> labTests = lab.getTests();
         imageService.delete(lab.getPublicId());
-        labTests.forEach(labTest -> labTest.setLab(null));
         labRepository.delete(lab);
     }
 

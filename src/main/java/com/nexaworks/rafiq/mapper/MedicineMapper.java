@@ -1,5 +1,9 @@
 package com.nexaworks.rafiq.mapper;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -25,5 +29,13 @@ public interface MedicineMapper {
     MedicinePreview toPreviewDto(Medicine entity);
     @Mapping(target = "nextReminder", expression = "java(entity.getReminder() != null ? entity.getReminder().getNextReminder() : null)")
     MedicineGroupResponse toGroupDto(Medicine entity);
+
+    default LocalDate map(Instant value) {
+        return value == null ? null : value.atZone(ZoneId.systemDefault()).toLocalDate();
+    }
+
+    default Instant map(LocalDate value) {
+        return value == null ? null : value.atStartOfDay(ZoneId.systemDefault()).toInstant();
+    }
 
 }

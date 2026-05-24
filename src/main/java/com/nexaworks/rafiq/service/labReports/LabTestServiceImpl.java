@@ -1,8 +1,7 @@
 package com.nexaworks.rafiq.service.labReports;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -27,7 +26,6 @@ import com.nexaworks.rafiq.exception.custom.labtest.LabTestException;
 import com.nexaworks.rafiq.mapper.ResultMapper;
 import com.nexaworks.rafiq.mapper.TestMapper;
 import com.nexaworks.rafiq.repository.LabTestRepository;
-import com.nexaworks.rafiq.repository.PatientRepository;
 import com.nexaworks.rafiq.service.file.ImageService;
 import com.nexaworks.rafiq.service.patient.PatientService;
 import com.nexaworks.rafiq.service.user.UserService;
@@ -44,7 +42,6 @@ public class LabTestServiceImpl implements LabTestService {
     private final LabTestRepository labTestRepository;
     private final UserService userService;
     private final ImageService imageService;
-    private final PatientRepository patientRepository;
     private final PatientService patientService;
     private final TestMapper testMapper;
     private final ResultMapper resultMapper;
@@ -62,9 +59,9 @@ public class LabTestServiceImpl implements LabTestService {
         labResultService.saveAll(entity);
     }
 
-    private static void setTestFields(LabTest labTest, String testName, Date testDate) {
+    private static void setTestFields(LabTest labTest, String testName, LocalDateTime testDate) {
         labTest.setName(testName);
-        labTest.setDate(testDate == null ? Instant.now() : testDate.toInstant());
+        labTest.setDate(testDate == null ? LocalDateTime.now() : testDate);
     }
 
     @NotNull

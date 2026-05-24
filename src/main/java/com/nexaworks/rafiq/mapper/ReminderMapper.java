@@ -16,8 +16,8 @@ public interface ReminderMapper {
 
     ReminderResponse toResponse(Reminder reminder);
 
-    @Mapping(target = "medicine", expression = "java(medicineService.getMedicineById(request.medicineId()))")
-    Reminder toEntity(AddReminderRequest request, @Context IMedicineService IMedicineService);
+    @Mapping(target = "medicine", expression = "java(medicineService.getMedicineEntityById(request.medicineId()))")
+    Reminder toEntity(AddReminderRequest request, @Context IMedicineService medicineService);
 
     @Mapping(target = "medicineId", source = "medicine.id")
     AddReminderResponse toAddReminderResponse(Reminder savedReminder);

@@ -87,6 +87,12 @@ public class MedicineService implements IMedicineService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Medicine getMedicineEntityById(UUID medicineId) {
+        return getMedicine(medicineId, userService.getUserId());
+    }
+
+    @Override
     @Transactional
     public void deleteMedicine(UUID medicineId) {
         Medicine medicine = getMedicine(medicineId, userService.getUserId());
