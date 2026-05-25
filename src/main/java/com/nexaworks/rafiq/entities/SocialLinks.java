@@ -1,8 +1,6 @@
 package com.nexaworks.rafiq.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -13,6 +11,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@Table(name = "social_links", indexes = {@Index(name = "doctor_idx", columnList = "doctor_id")})
 public class SocialLinks extends BaseEntity {
     private String facebook;
     private String twitter;

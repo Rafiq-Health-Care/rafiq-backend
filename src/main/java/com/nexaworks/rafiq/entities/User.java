@@ -27,7 +27,8 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @EqualsAndHashCode(callSuper = false, of = {"email", "phone"})
 @Table(name = "users", indexes = {@Index(columnList = "email", unique = true),
-        @Index(columnList = "phone", unique = true), @Index(columnList = "id")})
+        @Index(columnList = "phone", unique = true), @Index(columnList = "id"),
+        @Index(columnList = "email", name = "user_email_idx")})
 @Inheritance(strategy = InheritanceType.JOINED)
 public class User extends BaseEntity implements UserDetails, Principal {
 
