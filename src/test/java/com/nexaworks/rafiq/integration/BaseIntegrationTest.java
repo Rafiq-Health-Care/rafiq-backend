@@ -71,7 +71,13 @@ public abstract class BaseIntegrationTest {
                 .collect(Collectors.toList());
         Authentication authentication = new UsernamePasswordAuthenticationToken(userId, null,
                 simpleAuthorities);
-        return SecurityMockMvcRequestPostProcessors.authentication(authentication);
+        return request -> {
+            if (request.getHeader(IDEMPOTENCY_KEY_HEADER) == null) {
+                request.addHeader(IDEMPOTENCY_KEY_HEADER, UUID.randomUUID().toString());
+            }
+            return SecurityMockMvcRequestPostProcessors.authentication(authentication)
+                    .postProcessRequest(request);
+        };
     }
     @Container
     static RabbitMQContainer rabbit = new RabbitMQContainer("rabbitmq:3-management");

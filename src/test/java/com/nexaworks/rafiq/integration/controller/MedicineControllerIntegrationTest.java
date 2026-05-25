@@ -94,7 +94,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("Add Medicine")
     class AddMedicine {
-        private final String ADD_MEDICINE_ENDPOINT = "/medicines/add";
+        private final String ADD_MEDICINE_ENDPOINT = "/api/v1/medicine";
 
         @Test
         @DisplayName("Should add medicine successfully when all required fields are valid")
@@ -112,7 +112,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isCreated())
+                    .header("Idempotency-Key", UUID.randomUUID().toString()).with(withUserId(user)))
+                    .andExpect(MockMvcResultMatchers.status().isCreated())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").exists())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.patientId")
@@ -147,11 +148,13 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isCreated());
+                    .header("Idempotency-Key", UUID.randomUUID().toString()).with(withUserId(user)))
+                    .andExpect(MockMvcResultMatchers.status().isCreated());
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isConflict());
+                    .header("Idempotency-Key", UUID.randomUUID().toString()).with(withUserId(user)))
+                    .andExpect(MockMvcResultMatchers.status().isConflict());
         }
 
         @Test
@@ -174,13 +177,13 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                 Medicine medicine = Medicine.builder().patient((Patient) user).drug(tempDrug)
                         .name(tempDrug.getTradeName()).dosage("100mg")
                         .frequency(MedicineFrequency.ONCE).status(MedicineStatus.ACTIVE)
-                        .startDate(Instant.now()).build();
+                        .startDate(LocalDate.now()).build();
                 medicineRepository.save(medicine);
             }
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(withUserId(user)))
+                    .header("Idempotency-Key", UUID.randomUUID().toString()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isUnprocessableEntity());
         }
 
@@ -197,7 +200,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(withUserId(user)))
+                    .header("Idempotency-Key", UUID.randomUUID().toString()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isBadRequest());
         }
 
@@ -218,7 +221,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(ADD_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON).content(payload)
-                    .with(withUserId(user))).andExpect(MockMvcResultMatchers.status().isCreated())
+                    .header("Idempotency-Key", UUID.randomUUID().toString()).with(withUserId(user)))
+                    .andExpect(MockMvcResultMatchers.status().isCreated())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.reminderFrequency")
                             .value("CUSTOM"))
@@ -238,7 +242,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("Get All Medicines")
     class GetAllMedicines {
-        private final String GET_ALL_MEDICINES_ENDPOINT = "/medicines";
+        private final String GET_ALL_MEDICINES_ENDPOINT = "/api/v1/medicine";
 
         @Test
         @DisplayName("Should return paginated medicines when user has medicines")
@@ -252,13 +256,13 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             Medicine medicine1 = Medicine.builder().patient((Patient) user).drug(drug1)
                     .name(drug1.getTradeName()).dosage("100mg").frequency(MedicineFrequency.TWICE)
-                    .status(MedicineStatus.ACTIVE).startDate(Instant.now()).build();
+                    .status(MedicineStatus.ACTIVE).startDate(LocalDate.now()).build();
             medicineRepository.save(medicine1);
 
             Medicine medicine2 = Medicine.builder().patient((Patient) user).drug(drug2)
                     .name(drug2.getTradeName()).dosage("200mg")
                     .frequency(MedicineFrequency.THIRD_TIMES).status(MedicineStatus.ACTIVE)
-                    .startDate(Instant.now()).build();
+                    .startDate(LocalDate.now()).build();
             medicineRepository.save(medicine2);
 
             // Act & Assert
@@ -298,13 +302,13 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             // Add medicine for user1
             Medicine medicine1 = Medicine.builder().patient((Patient) user1).drug(drug)
                     .name(drug.getTradeName()).dosage("100mg").frequency(MedicineFrequency.ONCE)
-                    .status(MedicineStatus.ACTIVE).startDate(Instant.now()).build();
+                    .status(MedicineStatus.ACTIVE).startDate(LocalDate.now()).build();
             medicineRepository.save(medicine1);
 
             // Add medicine for user2
             Medicine medicine2 = Medicine.builder().patient((Patient) user2).drug(drug)
                     .name(drug.getTradeName()).dosage("200mg").frequency(MedicineFrequency.TWICE)
-                    .status(MedicineStatus.ACTIVE).startDate(Instant.now()).build();
+                    .status(MedicineStatus.ACTIVE).startDate(LocalDate.now()).build();
             medicineRepository.save(medicine2);
 
             // Act & Assert - user1 should only see their own medicine
@@ -328,7 +332,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                 Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                         .name(drug.getTradeName()).dosage((i + 1) * 100 + "mg")
                         .frequency(MedicineFrequency.ONCE).status(MedicineStatus.ACTIVE)
-                        .startDate(Instant.now()).build();
+                        .startDate(LocalDate.now()).build();
                 medicineRepository.save(medicine);
             }
 
@@ -337,7 +341,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
                     .param("page", "0").param("size", "2").with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(2))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(5))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.numberOfElements").value(2))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.totalPages").value(3))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.size").value(2));
         }
@@ -351,12 +355,12 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             Medicine activeMedicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name(drug.getTradeName()).dosage("100mg").frequency(MedicineFrequency.ONCE)
-                    .status(MedicineStatus.ACTIVE).startDate(Instant.now()).build();
+                    .status(MedicineStatus.ACTIVE).startDate(LocalDate.now()).build();
             medicineRepository.save(activeMedicine);
 
             Medicine inactiveMedicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name(drug.getTradeName()).dosage("200mg").frequency(MedicineFrequency.TWICE)
-                    .status(MedicineStatus.INACTIVE).startDate(Instant.now()).build();
+                    .status(MedicineStatus.INACTIVE).startDate(LocalDate.now()).build();
             medicineRepository.save(inactiveMedicine);
 
             // Act & Assert - Filter by ACTIVE status
@@ -372,7 +376,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("GET /medicines/{id} - Get Medicine By ID")
     class GetMedicineById {
-        private static final String GET_MEDICINE_BY_ID_ENDPOINT = "/medicines/{id}";
+        private static final String GET_MEDICINE_BY_ID_ENDPOINT = "/api/v1/medicine/{id}";
 
         @Test
         void shouldReturnMedicine_WhenMedicineExists() throws Exception {
@@ -381,8 +385,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Test Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
             medicineRepository.save(medicine);
 
             mockMvc.perform(MockMvcRequestBuilders
@@ -410,15 +413,15 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine medicine = Medicine.builder().patient((Patient) owner).drug(drug)
                     .name("Owner Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
             medicineRepository.save(medicine);
 
             Role patientRole = roleRepository.findByName("ROLE_PATIENT");
             // Create Patient directly (Patient extends User with is-a relationship)
             Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).enabled(true).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).build();
+                    .lastName("User").birthDate(LocalDate.now().minusYears(20)).gender(Gender.MALE)
+                    .roles(Set.of(patientRole)).build();
             patientRepository.save(otherPatient);
 
             mockMvc.perform(
@@ -437,8 +440,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Test Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION).group(group)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
             medicineRepository.save(medicine);
 
             mockMvc.perform(MockMvcRequestBuilders
@@ -454,7 +456,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("DELETE /medicines/{id} - Delete Medicine")
     class DeleteMedicine {
-        private static final String DELETE_MEDICINE_ENDPOINT = "/medicines/{id}";
+        private static final String DELETE_MEDICINE_ENDPOINT = "/api/v1/medicine/{id}";
 
         @Test
         void shouldDeleteMedicine_WhenMedicineExists() throws Exception {
@@ -463,8 +465,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Test Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
             medicineRepository.save(medicine);
 
             mockMvc.perform(MockMvcRequestBuilders
@@ -490,15 +491,15 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine medicine = Medicine.builder().patient((Patient) owner).drug(drug)
                     .name("Owner Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
             medicineRepository.save(medicine);
 
             Role patientRole = roleRepository.findByName("ROLE_PATIENT");
             // Create Patient directly (Patient extends User with is-a relationship)
             Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).enabled(true).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).build();
+                    .lastName("User").birthDate(LocalDate.now().minusYears(20)).gender(Gender.MALE)
+                    .roles(Set.of(patientRole)).build();
             patientRepository.save(otherPatient);
 
             mockMvc.perform(
@@ -514,8 +515,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Test Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
             medicineRepository.save(medicine);
 
             mockMvc.perform(MockMvcRequestBuilders
@@ -529,7 +529,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("PUT /medicines/{id} - Update Medicine")
     class UpdateMedicine {
-        private static final String UPDATE_MEDICINE_ENDPOINT = "/medicines/{id}";
+        private static final String UPDATE_MEDICINE_ENDPOINT = "/api/v1/medicine/{id}";
 
         @Test
         void shouldUpdateMedicine_WhenAllFieldsAreValid() throws Exception {
@@ -538,8 +538,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Old Name").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
             medicineRepository.save(medicine);
 
             UpdateMedicineRequest request = new UpdateMedicineRequest("New Name", "10mg",
@@ -579,15 +578,15 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine medicine = Medicine.builder().patient((Patient) owner).drug(drug)
                     .name("Owner Medicine").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
             medicineRepository.save(medicine);
 
             Role patientRole = roleRepository.findByName("ROLE_PATIENT");
             // Create Patient directly (Patient extends User with is-a relationship)
             Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).enabled(true).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).build();
+                    .lastName("User").birthDate(LocalDate.now().minusYears(20)).gender(Gender.MALE)
+                    .roles(Set.of(patientRole)).build();
             patientRepository.save(otherPatient);
 
             UpdateMedicineRequest request = new UpdateMedicineRequest("New Name", "10mg",
@@ -609,8 +608,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Test Medicine").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
             medicineRepository.save(medicine);
 
             mockMvc.perform(MockMvcRequestBuilders.put(UPDATE_MEDICINE_ENDPOINT, medicine.getId())
@@ -625,8 +623,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Test Medicine").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
             medicineRepository.save(medicine);
 
             UpdateMedicineRequest request = new UpdateMedicineRequest("Updated Name", "15mg",
@@ -647,7 +644,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("PATCH /medicines/{id} - Partial Update Medicine")
     class PatchMedicine {
-        private static final String PATCH_MEDICINE_ENDPOINT = "/medicines/{id}";
+        private static final String PATCH_MEDICINE_ENDPOINT = "/api/v1/medicine/{id}";
 
         @Test
         void shouldPartiallyUpdateMedicine_WhenUpdatingOnlyName() throws Exception {
@@ -656,8 +653,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Old Name").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
             medicineRepository.save(medicine);
 
             UpdateMedicinePatchRequest request = new UpdateMedicinePatchRequest(
@@ -681,8 +677,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Old Name").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
             medicineRepository.save(medicine);
 
             UpdateMedicinePatchRequest request = new UpdateMedicinePatchRequest(
@@ -722,15 +717,15 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine medicine = Medicine.builder().patient((Patient) owner).drug(drug)
                     .name("Owner Medicine").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
             medicineRepository.save(medicine);
 
             Role patientRole = roleRepository.findByName("ROLE_PATIENT");
             // Create Patient directly (Patient extends User with is-a relationship)
             Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).enabled(true).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).build();
+                    .lastName("User").birthDate(LocalDate.now().minusYears(20)).gender(Gender.MALE)
+                    .roles(Set.of(patientRole)).build();
             patientRepository.save(otherPatient);
 
             UpdateMedicinePatchRequest request = new UpdateMedicinePatchRequest(
@@ -752,8 +747,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Test Medicine").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
             medicineRepository.save(medicine);
 
             UpdateMedicinePatchRequest request = new UpdateMedicinePatchRequest(Optional.empty(),
@@ -772,7 +766,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("POST /medicines/bulk - Bulk Medicine Operations")
     class BulkMedicineOperations {
-        private static final String BULK_MEDICINE_ENDPOINT = "/medicines/bulk";
+        private static final String BULK_MEDICINE_ENDPOINT = "/api/v1/medicine/bulk";
 
         @Test
         void shouldDeleteMultipleMedicines_WhenActionIsDelete() throws Exception {
@@ -782,14 +776,12 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine medicine1 = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Medicine 1").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
 
             Medicine medicine2 = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Medicine 2").dosage("10mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
 
             medicineRepository.saveAll(List.of(medicine1, medicine2));
 
@@ -798,7 +790,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
+                    .content(objectMapper.writeValueAsString(request))
+                    .header("Idempotency-Key", UUID.randomUUID().toString()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.successCount").value(2))
@@ -814,14 +807,12 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine medicine1 = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Medicine 1").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.INACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
 
             Medicine medicine2 = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Medicine 2").dosage("10mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.INACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
 
             medicineRepository.saveAll(List.of(medicine1, medicine2));
 
@@ -831,7 +822,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
+                    .content(objectMapper.writeValueAsString(request))
+                    .header("Idempotency-Key", UUID.randomUUID().toString()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.successCount").value(2));
@@ -849,14 +841,12 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine medicine1 = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Medicine 1").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
 
             Medicine medicine2 = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Medicine 2").dosage("10mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
 
             medicineRepository.saveAll(List.of(medicine1, medicine2));
 
@@ -866,7 +856,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
+                    .content(objectMapper.writeValueAsString(request))
+                    .header("Idempotency-Key", UUID.randomUUID().toString()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.successCount").value(2));
@@ -880,8 +871,7 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
             Medicine medicine1 = Medicine.builder().patient((Patient) user).drug(drug)
                     .name("Medicine 1").dosage("5mg").frequency(MedicineFrequency.ONCE)
                     .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                    .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30))
-                    .build();
+                    .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
 
             medicineRepository.save(medicine1);
             UUID nonExistentId = UUID.randomUUID();
@@ -891,7 +881,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
+                    .content(objectMapper.writeValueAsString(request))
+                    .header("Idempotency-Key", UUID.randomUUID().toString()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.failedIds.length()").value(1))
@@ -908,7 +899,8 @@ public class MedicineControllerIntegrationTest extends BaseIntegrationTest {
 
             mockMvc.perform(MockMvcRequestBuilders.post(BULK_MEDICINE_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
+                    .content(objectMapper.writeValueAsString(request))
+                    .header("Idempotency-Key", UUID.randomUUID().toString()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isBadRequest());
         }
     }
