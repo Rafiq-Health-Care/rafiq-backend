@@ -14,7 +14,10 @@ import lombok.*;
 @Builder
 @ToString(onlyExplicitlyIncluded = true)
 @Entity
-@Table(name = "refund_request", indexes = {})
+@Table(name = "refund_request", indexes = {@Index(name = "payment_idx", columnList = "payment_id"),
+        @Index(name = "patient_idx", columnList = "patient_id"),
+        @Index(name = "status_idx", columnList = "status"),
+        @Index(name = "stripe_refund_idx", columnList = "stripe_refund_id")})
 public class RefundRequest extends BaseEntity {
 
     @ToString.Include
