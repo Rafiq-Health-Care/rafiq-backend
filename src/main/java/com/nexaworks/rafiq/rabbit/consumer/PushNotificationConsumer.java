@@ -22,7 +22,7 @@ public class PushNotificationConsumer {
     private final NotificationService<PushNotification> notificationService;
 
     public PushNotificationConsumer(
-            @Qualifier("mobile") NotificationService<PushNotification> notificationService) {
+            @Qualifier("push") NotificationService<PushNotification> notificationService) {
         this.notificationService = notificationService;
     }
 

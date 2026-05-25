@@ -17,6 +17,7 @@ import lombok.experimental.SuperBuilder;
 @Table(name = "role", indexes = {@Index(name = "role_idx", columnList = "name")})
 public class Role extends BaseEntity {
 
+    @Column(unique = true, nullable = false)
     private String name;
 
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
