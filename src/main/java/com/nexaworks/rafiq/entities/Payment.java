@@ -18,7 +18,11 @@ import lombok.*;
 @Builder
 @ToString(exclude = {"consultation", "patient", "refundRequest"})
 @EqualsAndHashCode(of = "id")
-@Table(name = "payments")
+@Table(name = "payments", indexes = {@Index(name = "payment_idx", columnList = "id"),
+        @Index(name = "consultation_idx", columnList = "consultation_id"),
+        @Index(name = "patient_idx", columnList = "patient_id"),
+        @Index(name = "status_idx", columnList = "status"),
+        @Index(name = "payment_intent_idx", columnList = "payment_intent_id")})
 public class Payment {
 
     @Id
@@ -31,7 +35,7 @@ public class Payment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id", nullable = false)
-    private User patient;
+    private Patient patient;
 
     @OneToOne(mappedBy = "payment", fetch = FetchType.EAGER)
     private RefundRequest refundRequest;
