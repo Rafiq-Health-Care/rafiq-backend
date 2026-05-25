@@ -9,6 +9,7 @@ import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.nexaworks.rafiq.exception.ExceptionUtils;
@@ -51,6 +52,13 @@ public class GlobalExceptionHandler {
             HttpServletRequest request) {
         return ResponseEntity.status(404)
                 .body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.NOT_FOUND));
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ErrorResponse> handleMissingServletRequestPart(
+            MissingServletRequestPartException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.BAD_REQUEST));
     }
 
     @ExceptionHandler(MailSenderException.class)

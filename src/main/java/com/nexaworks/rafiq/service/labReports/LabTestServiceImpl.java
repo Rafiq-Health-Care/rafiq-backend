@@ -111,13 +111,17 @@ public class LabTestServiceImpl implements LabTestService {
         List<LabResult> entity = resultMapper.toEntity(testResultRequest.tests());
         setTestFields(test, testResultRequest.name(), testResultRequest.date());
         updateLabResults(entity, test);
-        labTestRepository.save(test);
     }
 
     @Transactional
     protected void updateLabResults(List<LabResult> entity, LabTest test) {
-        labResultService.deleteAll(test.getLabResults());
+        List<LabResult> existingResults = test.getLabResults();
+        if (existingResults != null && !existingResults.isEmpty()) {
+            labResultService.deleteAll(existingResults);
+            existingResults.clear();
+        }
         entity.forEach(e -> e.setLabTest(test));
+        test.setLabResults(entity);
         labResultService.saveAll(entity);
     }
 
