@@ -10,7 +10,6 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "consultation_summary")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -18,6 +17,8 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @ToString(exclude = {"consultation", "doctor", "patient"})
 @EqualsAndHashCode(callSuper = false, of = {"consultation"})
+@Table(name = "consultation_summary", indexes = {
+        @Index(name = "consultation_idx", columnList = "consultation_id")})
 public class ConsultationSummary extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")

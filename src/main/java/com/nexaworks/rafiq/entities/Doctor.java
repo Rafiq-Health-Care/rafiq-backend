@@ -24,7 +24,9 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @ToString(exclude = {"medicalCertifications", "labTests", "consultations"})
 @Table(name = "doctor", indexes = {
-        @Index(name = "specialization_idx", columnList = "specialization")})
+        @Index(name = "specialization_idx", columnList = "specialization"),
+        @Index(name = "doctor_idx", columnList = "id"),
+        @Index(name = "doctor_acceptance_status_idx", columnList = "acceptance_status")})
 public class Doctor extends User {
     @Column(length = 1000)
     private String description;
