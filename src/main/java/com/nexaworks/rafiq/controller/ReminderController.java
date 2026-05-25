@@ -92,7 +92,7 @@ public class ReminderController {
             @PathVariable("reminder-id") UUID reminderId) {
         return ResponseEntity.ok().body(reminderService.getReminderById(reminderId));
     }
-    @PatchMapping("/{reminder-id}/{vibrate}")
+    @PatchMapping("/{reminder-id}/vibration/{vibrate}")
     @Operation(summary = "Update reminder vibration", description = "Enables or disables vibration for a specific reminder.")
     @ApiResponse(responseCode = "200", description = "Reminder vibration updated successfully", content = @Content(schema = @Schema(implementation = AddResponse.class)))
     @SecurityRequirement(name = "bearerAuth")

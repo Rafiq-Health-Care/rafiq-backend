@@ -2,7 +2,6 @@ package com.nexaworks.rafiq.integration.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -31,8 +30,6 @@ import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 import com.nexaworks.rafiq.integration.BaseIntegrationTest;
 import com.nexaworks.rafiq.repository.*;
 
-import jakarta.persistence.EntityManager;
-
 @DisplayName("Reminder Controller Integration Test Cases")
 public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
@@ -55,8 +52,6 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
     PasswordEncoder passwordEncoder;
     @Autowired
     ReminderLogRepository reminderLogRepository;
-    @Autowired
-    EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
@@ -76,7 +71,6 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             patientRole = roleRepository.save(patientRole);
         }
 
-        // Create Patient directly (Patient extends User with is-a relationship)
         Patient patient = Patient.builder().email("test@example.com")
                 .password(passwordEncoder.encode("Valid@1234")).firstName("John").lastName("Doe")
                 .phone("+12345678901").birthDate(LocalDate.of(1999, 1, 1)).gender(Gender.MALE)
@@ -92,14 +86,14 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
         Medicine medicine = Medicine.builder().patient((Patient) user).drug(drug)
                 .name("Test Medicine").dosage("10mg").frequency(MedicineFrequency.ONCE)
                 .status(MedicineStatus.ACTIVE).type(MedicineType.PRESCRIPTION)
-                .startDate(Instant.now()).endDate(Instant.now().plusSeconds(86400 * 30)).build();
+                .startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(30)).build();
         return medicineRepository.save(medicine);
     }
 
     @Nested
     @DisplayName("POST /reminder/create - Create Reminder")
     class CreateReminder {
-        private static final String CREATE_REMINDER_ENDPOINT = "/reminder/create";
+        private static final String CREATE_REMINDER_ENDPOINT = "/api/v1/reminder";
 
         @Test
         void shouldCreateReminder_Successfully() throws Exception {
@@ -110,6 +104,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
                     LocalDateTime.now().plusHours(2));
 
             mockMvc.perform(MockMvcRequestBuilders.post(CREATE_REMINDER_ENDPOINT)
+                    .header("Idempotency-Key", "unique-key2")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isCreated())
@@ -128,6 +123,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
                     LocalDateTime.now().plusHours(2));
 
             mockMvc.perform(MockMvcRequestBuilders.post(CREATE_REMINDER_ENDPOINT)
+                    .header("Idempotency-Key", "unique-key1")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -142,7 +138,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
                     LocalDateTime.now().plusHours(1));
 
             mockMvc.perform(MockMvcRequestBuilders.post(CREATE_REMINDER_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Idempotency-Key", "unique-key").contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isCreated())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.data.vibrate").value(false));
@@ -152,7 +148,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("GET /reminder/history - Get Reminder History")
     class GetReminderHistory {
-        private static final String GET_HISTORY_ENDPOINT = "/reminder/history";
+        private static final String GET_HISTORY_ENDPOINT = "/api/v1/reminder/history";
 
         @Test
         void shouldGetReminderHistory_WithFilters() throws Exception {
@@ -204,6 +200,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             // Create Patient directly (Patient extends User)
             Patient patient2 = Patient.builder().email("user2@example.com")
                     .password(passwordEncoder.encode("password")).firstName("Jane").lastName("Doe")
+                    .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.FEMALE)
                     .roles(Set.of(patientRole)).enabled(true).build();
             User user2 = patientRepository.save(patient2);
 
@@ -220,7 +217,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("POST /reminder/taken/{reminder-id} - Mark Reminder as Taken")
     class MarkReminderAsTaken {
-        private static final String MARK_TAKEN_ENDPOINT = "/reminder/taken/{reminder-id}";
+        private static final String MARK_TAKEN_ENDPOINT = "/api/v1/reminder/{reminder-id}/{status}";
 
         @Test
         void shouldMarkReminderAsTaken_Successfully() throws Exception {
@@ -234,7 +231,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
 
             LocalDateTime takenTime = LocalDateTime.now();
 
-            mockMvc.perform(MockMvcRequestBuilders.post(MARK_TAKEN_ENDPOINT, reminder.getId())
+            mockMvc.perform(MockMvcRequestBuilders
+                    .patch(MARK_TAKEN_ENDPOINT, reminder.getId(), ReminderStatus.TAKEN)
                     .param("taken-time", takenTime.toString()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNoContent());
 
@@ -247,7 +245,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             UUID nonExistentId = UUID.randomUUID();
             LocalDateTime takenTime = LocalDateTime.now();
 
-            mockMvc.perform(MockMvcRequestBuilders.post(MARK_TAKEN_ENDPOINT, nonExistentId)
+            mockMvc.perform(MockMvcRequestBuilders
+                    .patch(MARK_TAKEN_ENDPOINT, nonExistentId, ReminderStatus.TAKEN)
                     .param("taken-time", takenTime.toString()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
@@ -266,12 +265,14 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             // Create Patient directly (Patient extends User)
             Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).enabled(true).build();
+                    .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE).lastName("User")
+                    .roles(Set.of(patientRole)).enabled(true).build();
             User otherUser = patientRepository.save(otherPatient);
 
             LocalDateTime takenTime = LocalDateTime.now();
 
-            mockMvc.perform(MockMvcRequestBuilders.post(MARK_TAKEN_ENDPOINT, reminder.getId())
+            mockMvc.perform(MockMvcRequestBuilders
+                    .patch(MARK_TAKEN_ENDPOINT, reminder.getId(), ReminderStatus.TAKEN)
                     .param("taken-time", takenTime.toString()).with(withUserId(otherUser)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
@@ -280,7 +281,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("POST /reminder/missed/{reminder-id} - Mark Reminder as Missed")
     class MarkReminderAsMissed {
-        private static final String MARK_MISSED_ENDPOINT = "/reminder/missed/{reminder-id}";
+        private static final String MARK_MISSED_ENDPOINT = "/api/v1/reminder/{reminder-id}/{status}";
 
         @Test
         void shouldMarkReminderAsMissed_Successfully() throws Exception {
@@ -294,7 +295,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
 
             LocalDateTime missedTime = LocalDateTime.now();
 
-            mockMvc.perform(MockMvcRequestBuilders.post(MARK_MISSED_ENDPOINT, reminder.getId())
+            mockMvc.perform(MockMvcRequestBuilders
+                    .patch(MARK_MISSED_ENDPOINT, reminder.getId(), ReminderStatus.MISSED)
                     .param("taken-time", missedTime.toString()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNoContent());
 
@@ -307,7 +309,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             UUID nonExistentId = UUID.randomUUID();
             LocalDateTime missedTime = LocalDateTime.now();
 
-            mockMvc.perform(MockMvcRequestBuilders.post(MARK_MISSED_ENDPOINT, nonExistentId)
+            mockMvc.perform(MockMvcRequestBuilders
+                    .patch(MARK_MISSED_ENDPOINT, nonExistentId, ReminderStatus.MISSED)
                     .param("taken-time", missedTime.toString()).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
@@ -326,12 +329,14 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             // Create Patient directly (Patient extends User)
             Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).enabled(true).build();
+                    .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE).lastName("User")
+                    .roles(Set.of(patientRole)).enabled(true).build();
             User otherUser = patientRepository.save(otherPatient);
 
             LocalDateTime missedTime = LocalDateTime.now();
 
-            mockMvc.perform(MockMvcRequestBuilders.post(MARK_MISSED_ENDPOINT, reminder.getId())
+            mockMvc.perform(MockMvcRequestBuilders
+                    .patch(MARK_MISSED_ENDPOINT, reminder.getId(), ReminderStatus.MISSED)
                     .param("taken-time", missedTime.toString()).with(withUserId(otherUser)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
@@ -340,7 +345,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("GET /reminder/all - Get All Reminders")
     class GetAllReminders {
-        private static final String GET_ALL_REMINDERS_ENDPOINT = "/reminder/all";
+        private static final String GET_ALL_REMINDERS_ENDPOINT = "/api/v1/reminder";
 
         @Test
         void shouldGetAllReminders_WithPagination() throws Exception {
@@ -383,6 +388,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             // Create Patient directly (Patient extends User)
             Patient patient2 = Patient.builder().email("user2@example.com")
                     .password(passwordEncoder.encode("password")).firstName("Jane").lastName("Doe")
+                    .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.FEMALE)
                     .roles(Set.of(patientRole)).enabled(true).build();
             User user2 = patientRepository.save(patient2);
 
@@ -396,7 +402,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("GET /reminder/{reminder-id} - Get Reminder By ID")
     class GetReminderById {
-        private static final String GET_REMINDER_BY_ID_ENDPOINT = "/reminder/{reminder-id}";
+        private static final String GET_REMINDER_BY_ID_ENDPOINT = "/api/v1/reminder/{reminder-id}";
 
         @Test
         void shouldGetReminderById_Successfully() throws Exception {
@@ -438,7 +444,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             // Create Patient directly (Patient extends User)
             Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).enabled(true).build();
+                    .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE).lastName("User")
+                    .roles(Set.of(patientRole)).enabled(true).build();
             User otherUser = patientRepository.save(otherPatient);
 
             mockMvc.perform(MockMvcRequestBuilders
@@ -450,7 +457,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("PATCH /reminder/updateVibration/{vibrate}/reminder/{reminder-id} - Update Vibration")
     class UpdateVibration {
-        private static final String UPDATE_VIBRATION_ENDPOINT = "/reminder/updateVibration/{vibrate}/reminder/{reminder-id}";
+        private static final String UPDATE_VIBRATION_ENDPOINT = "/api/v1/reminder/{reminder-id}/vibration/{vibrate}";
 
         @Test
         void shouldUpdateVibration_Successfully() throws Exception {
@@ -463,7 +470,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             reminderRepository.save(reminder);
 
             mockMvc.perform(
-                    MockMvcRequestBuilders.patch(UPDATE_VIBRATION_ENDPOINT, false, reminder.getId())
+                    MockMvcRequestBuilders.patch(UPDATE_VIBRATION_ENDPOINT, reminder.getId(), false)
                             .with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
@@ -476,7 +483,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             UUID nonExistentId = UUID.randomUUID();
 
             mockMvc.perform(MockMvcRequestBuilders
-                    .patch(UPDATE_VIBRATION_ENDPOINT, true, nonExistentId).with(withUserId(user)))
+                    .patch(UPDATE_VIBRATION_ENDPOINT, nonExistentId, true).with(withUserId(user)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
 
@@ -494,11 +501,12 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             // Create Patient directly (Patient extends User)
             Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).enabled(true).build();
+                    .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE).lastName("User")
+                    .roles(Set.of(patientRole)).enabled(true).build();
             User otherUser = patientRepository.save(otherPatient);
 
             mockMvc.perform(
-                    MockMvcRequestBuilders.patch(UPDATE_VIBRATION_ENDPOINT, false, reminder.getId())
+                    MockMvcRequestBuilders.patch(UPDATE_VIBRATION_ENDPOINT, reminder.getId(), false)
                             .with(withUserId(otherUser)))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
@@ -507,7 +515,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("DELETE /reminder/{reminder-id} - Delete Reminder")
     class DeleteReminder {
-        private static final String DELETE_REMINDER_ENDPOINT = "/reminder/{reminder-id}";
+        private static final String DELETE_REMINDER_ENDPOINT = "/api/v1/reminder/{reminder-id}";
 
         @Test
         void shouldDeleteReminder_Successfully() throws Exception {
@@ -549,7 +557,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             // Create Patient directly (Patient extends User)
             Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).enabled(true).build();
+                    .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE).lastName("User")
+                    .roles(Set.of(patientRole)).enabled(true).build();
             User otherUser = patientRepository.save(otherPatient);
 
             mockMvc.perform(MockMvcRequestBuilders
@@ -561,7 +570,7 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("PATCH /reminder/disable/{reminder-id}/{disable} - Disable Reminder")
     class DisableReminder {
-        private static final String DISABLE_REMINDER_ENDPOINT = "/reminder/disable/{reminder-id}/{disable}";
+        private static final String DISABLE_REMINDER_ENDPOINT = "/api/v1/reminder/{reminder-id}/state/{disable}";
 
         @Test
         void shouldDisableReminder_Successfully() throws Exception {
@@ -625,7 +634,8 @@ public class ReminderControllerIntegrationTest extends BaseIntegrationTest {
             // Create Patient directly (Patient extends User)
             Patient otherPatient = Patient.builder().email("other@example.com")
                     .password(passwordEncoder.encode("password")).firstName("Other")
-                    .lastName("User").roles(Set.of(patientRole)).enabled(true).build();
+                    .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE).lastName("User")
+                    .roles(Set.of(patientRole)).enabled(true).build();
             User otherUser = patientRepository.save(otherPatient);
 
             mockMvc.perform(
