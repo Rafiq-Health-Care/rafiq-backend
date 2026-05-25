@@ -2,9 +2,8 @@ package com.nexaworks.rafiq.integration.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -74,7 +73,7 @@ public class PasswordControllerIntegrationTest extends BaseIntegrationTest {
         return userRepository.save(user);
     }
 
-    private Token createAccessToken(User user, String tokenValue, Instant expiryDate) {
+    private Token createAccessToken(User user, String tokenValue, LocalDateTime expiryDate) {
         Token token = Token.builder().token(tokenValue).user(user).tokenType(TokenType.ACCESS_TOKEN)
                 .expiryDate(expiryDate).build();
         return tokenRepository.save(token);
@@ -83,7 +82,7 @@ public class PasswordControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("Forget Password")
     class ForgetPassword {
-        private final String FORGET_PASSWORD_ENDPOINT = "/password/forget-password";
+        private final String FORGET_PASSWORD_ENDPOINT = "/api/v1/password/forget-password";
 
         @Nested
         @DisplayName("Should Process Forget Password Successfully")
@@ -209,7 +208,7 @@ public class PasswordControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("Change Password")
     class ChangePassword {
-        private final String CHANGE_PASSWORD_ENDPOINT = "/password/change-password";
+        private final String CHANGE_PASSWORD_ENDPOINT = "/api/v1/password/change-password";
 
         @Nested
         @DisplayName("Should Change Password Successfully")
@@ -223,7 +222,7 @@ public class PasswordControllerIntegrationTest extends BaseIntegrationTest {
                 User user = createTestUser(email, oldPassword, "Mike", "Johnson");
 
                 String accessTokenValue = "access-token-12345";
-                Instant expiryDate = Instant.now().plus(30, ChronoUnit.MINUTES);
+                LocalDateTime expiryDate = LocalDateTime.now().plusMinutes(30);
                 createAccessToken(user, accessTokenValue, expiryDate);
 
                 String newPassword = "NewPass@456";
@@ -231,7 +230,7 @@ public class PasswordControllerIntegrationTest extends BaseIntegrationTest {
                         accessTokenValue, newPassword);
                 String payload = objectMapper.writeValueAsString(changePasswordRequest);
 
-                mockMvc.perform(MockMvcRequestBuilders.post(CHANGE_PASSWORD_ENDPOINT)
+                mockMvc.perform(MockMvcRequestBuilders.patch(CHANGE_PASSWORD_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isNoContent());
 
@@ -255,7 +254,7 @@ public class PasswordControllerIntegrationTest extends BaseIntegrationTest {
                         fakeAccessToken, newPassword);
                 String payload = objectMapper.writeValueAsString(changePasswordRequest);
 
-                mockMvc.perform(MockMvcRequestBuilders.post(CHANGE_PASSWORD_ENDPOINT)
+                mockMvc.perform(MockMvcRequestBuilders.patch(CHANGE_PASSWORD_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isNotFound());
             }
@@ -267,7 +266,7 @@ public class PasswordControllerIntegrationTest extends BaseIntegrationTest {
                 User user = createTestUser(email, "OldPass@123", "Tom", "Davis");
 
                 String accessTokenValue = "expired-access-token";
-                Instant expiredDate = Instant.now().minus(1, ChronoUnit.HOURS);
+                LocalDateTime expiredDate = LocalDateTime.now().minusHours(1);
                 createAccessToken(user, accessTokenValue, expiredDate);
 
                 String newPassword = "NewPass@456";
@@ -275,7 +274,7 @@ public class PasswordControllerIntegrationTest extends BaseIntegrationTest {
                         accessTokenValue, newPassword);
                 String payload = objectMapper.writeValueAsString(changePasswordRequest);
 
-                mockMvc.perform(MockMvcRequestBuilders.post(CHANGE_PASSWORD_ENDPOINT)
+                mockMvc.perform(MockMvcRequestBuilders.patch(CHANGE_PASSWORD_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isUnauthorized());
 
@@ -291,7 +290,7 @@ public class PasswordControllerIntegrationTest extends BaseIntegrationTest {
                 User user = createTestUser(email, "OldPass@123", "Sarah", "Miller");
 
                 String accessTokenValue = "valid-access-token";
-                Instant expiryDate = Instant.now().plus(30, ChronoUnit.MINUTES);
+                LocalDateTime expiryDate = LocalDateTime.now().plusMinutes(30);
                 createAccessToken(user, accessTokenValue, expiryDate);
 
                 String shortPassword = "Short1";
@@ -300,7 +299,7 @@ public class PasswordControllerIntegrationTest extends BaseIntegrationTest {
                         accessTokenValue, shortPassword);
                 String payload = objectMapper.writeValueAsString(changePasswordRequest);
 
-                mockMvc.perform(MockMvcRequestBuilders.post(CHANGE_PASSWORD_ENDPOINT)
+                mockMvc.perform(MockMvcRequestBuilders.patch(CHANGE_PASSWORD_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
@@ -314,7 +313,7 @@ public class PasswordControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("Reset Password")
     class ResetPassword {
-        private final String RESET_PASSWORD_ENDPOINT = "/password/reset-password";
+        private final String RESET_PASSWORD_ENDPOINT = "/api/v1/password/reset-password";
 
         @Nested
         @DisplayName("Should Reset Password Successfully")
@@ -332,7 +331,7 @@ public class PasswordControllerIntegrationTest extends BaseIntegrationTest {
                         newPassword);
                 String payload = objectMapper.writeValueAsString(resetPasswordRequest);
 
-                mockMvc.perform(MockMvcRequestBuilders.post(RESET_PASSWORD_ENDPOINT)
+                mockMvc.perform(MockMvcRequestBuilders.patch(RESET_PASSWORD_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
                         .with(withUserId(user)))
                         .andExpect(MockMvcResultMatchers.status().isNoContent());
@@ -358,7 +357,7 @@ public class PasswordControllerIntegrationTest extends BaseIntegrationTest {
                         newPassword);
                 String payload = objectMapper.writeValueAsString(resetPasswordRequest);
 
-                mockMvc.perform(MockMvcRequestBuilders.post(RESET_PASSWORD_ENDPOINT)
+                mockMvc.perform(MockMvcRequestBuilders.patch(RESET_PASSWORD_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isUnauthorized());
             }
@@ -376,7 +375,7 @@ public class PasswordControllerIntegrationTest extends BaseIntegrationTest {
                         wrongOldPassword, newPassword);
                 String payload = objectMapper.writeValueAsString(resetPasswordRequest);
 
-                mockMvc.perform(MockMvcRequestBuilders.post(RESET_PASSWORD_ENDPOINT)
+                mockMvc.perform(MockMvcRequestBuilders.patch(RESET_PASSWORD_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
                         .with(withUserId(user)))
                         .andExpect(MockMvcResultMatchers.status().isNoContent());
@@ -398,7 +397,7 @@ public class PasswordControllerIntegrationTest extends BaseIntegrationTest {
                         blankNewPassword);
                 String payload = objectMapper.writeValueAsString(resetPasswordRequest);
 
-                mockMvc.perform(MockMvcRequestBuilders.post(RESET_PASSWORD_ENDPOINT)
+                mockMvc.perform(MockMvcRequestBuilders.patch(RESET_PASSWORD_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
                         .with(withUserId(user)))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
