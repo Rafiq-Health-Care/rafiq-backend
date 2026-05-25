@@ -38,7 +38,8 @@ public class Doctor extends User {
     private String nationalId;
 
     @Enumerated(EnumType.STRING)
-    private DoctorAcceptanceStatus acceptanceStatus;
+    @Builder.Default
+    private DoctorAcceptanceStatus acceptanceStatus = DoctorAcceptanceStatus.IN_REVIEW;
 
     @Enumerated(EnumType.STRING)
     private Specialization specialization;
@@ -88,4 +89,5 @@ public class Doctor extends User {
             CascadeType.PERSIST, CascadeType.MERGE})
     @BatchSize(size = 10)
     private List<ConsultationSlot> consultations;
+
 }
