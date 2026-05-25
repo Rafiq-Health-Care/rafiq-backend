@@ -18,7 +18,10 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @ToString(exclude = {"doctor", "consultations"})
 @SuperBuilder
-@Table(name = "consultation_slot")
+@Table(name = "consultation_slot", indexes = {@Index(name = "doctor_idx", columnList = "doctor_id"),
+        @Index(name = "status_idx", columnList = "status"),
+        @Index(name = "slot_idx", columnList = "id"),
+        @Index(name = "time_idx", columnList = "start_time,end_time")})
 public class ConsultationSlot extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
