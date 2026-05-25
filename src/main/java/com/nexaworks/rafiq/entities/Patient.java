@@ -22,7 +22,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "patient")
+@Table(name = "patient", indexes = {@Index(name = "patient_idx", columnList = "id")})
 public class Patient extends User {
 
     @Column(columnDefinition = "TEXT")
