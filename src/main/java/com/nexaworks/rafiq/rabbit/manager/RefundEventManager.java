@@ -32,6 +32,7 @@ public class RefundEventManager {
     public void publishRefundSucceededNotification(UUID id, String fcm, BigDecimal amount) {
         log.info("Publishing refund succeeded notification for refundId: {}", id);
         PushNotification notification = new PushNotification(ActionStatus.REFUND_SUCCESS, fcm,
+                "Your refund has been processed",
                 Map.of("amount", amount.toString(), "refundId", id.toString()));
         pushNotificationPublisher.publish(notification);
     }
@@ -39,7 +40,8 @@ public class RefundEventManager {
     public void publishRefundFailedNotification(UUID id, String notificationToken) {
         log.info("Publishing refund failed notification for refundId: {}", id);
         PushNotification notification = new PushNotification(ActionStatus.REFUND_FAILED,
-                notificationToken, Map.of("refundId", id.toString()));
+                "Refund failed please contact support", notificationToken,
+                Map.of("refundId", id.toString()));
         pushNotificationPublisher.publish(notification);
     }
 }

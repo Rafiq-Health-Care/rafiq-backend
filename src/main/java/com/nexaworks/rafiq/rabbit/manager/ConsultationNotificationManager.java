@@ -43,7 +43,8 @@ public class ConsultationNotificationManager {
         emailPublisher.publish(new EmailNotification(consultation.getDoctor().getEmail(),
                 CONSULTATION_CANCELLED_DOCTOR_HTML, "Consultation cancelled", model));
         PushNotification notification = new PushNotification(CONSULTATION_CANCELLED,
-                consultation.getPatient().getName() + "cancelled the consultation",
+                consultation.getDoctor().getNotificationToken(),
+                consultation.getPatient().getName() + " cancelled the consultation",
                 Map.of("consultationId", consultation.getId().toString()));
 
         pushPublisher.publish(notification);
@@ -55,32 +56,30 @@ public class ConsultationNotificationManager {
         emailPublisher.publish(new EmailNotification(consultation.getPatient().getEmail(),
                 CONSULTATION_CANCELLED_PATIENT_HTML, "Consultation cancelled", model));
         PushNotification notification = new PushNotification(CONSULTATION_CANCELLED,
-                consultation.getDoctor().getName() + "cancelled the consultation",
+                consultation.getPatient().getNotificationToken(),
+                consultation.getDoctor().getName() + " cancelled the consultation",
                 Map.of("consultationId", consultation.getId().toString()));
 
         pushPublisher.publish(notification);
 
     }
-    public void publishDoctorExpireNotification(String notificationToken, LocalDateTime startTime) {
-        PushNotification notification = new PushNotification(CONSULTATION_EXPIRED,
-                notificationToken, Map.of("startTime", startTime.toString()));
-        pushPublisher.publish(notification);
-    }
+
     public void publishSuccessfulReservationNotification(String notificationToken, UUID slotId) {
         PushNotification notification = new PushNotification(NEW_CONSULTATION, notificationToken,
-                Map.of("slotId", slotId.toString()));
+                "You have a new consultation", Map.of("slotId", slotId.toString()));
         pushPublisher.publish(notification);
     }
     public void publishFailedReservationNotification(String notificationToken, UUID reservationId) {
         PushNotification notification = new PushNotification(CONSULTATION_FAILED, notificationToken,
-                Map.of("slotId", reservationId.toString()));
+                "Your consultation has failed", Map.of("slotId", reservationId.toString()));
         pushPublisher.publish(notification);
     }
 
     public void publishReminderNotification(UUID consultationId, String fcm,
             LocalDateTime startTime) {
-        PushNotification notification = new PushNotification(CONSULTATION_COMING_UP, fcm, Map.of(
-                "startTime", startTime.toString(), "consultationId", consultationId.toString()));
+        PushNotification notification = new PushNotification(CONSULTATION_COMING_UP, fcm,
+                "Your consultation is coming up", Map.of("startTime", startTime.toString(),
+                        "consultationId", consultationId.toString()));
         pushPublisher.publish(notification);
     }
 }
