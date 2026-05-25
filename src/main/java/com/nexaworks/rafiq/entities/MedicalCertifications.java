@@ -13,6 +13,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@Table(name = "medical_certifications", indexes = {
+        @Index(name = "doctor_idx", columnList = "doctor_id")})
 public class MedicalCertifications extends BaseEntity {
 
     private String name;

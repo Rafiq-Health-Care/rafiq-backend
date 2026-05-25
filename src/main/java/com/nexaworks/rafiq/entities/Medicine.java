@@ -18,7 +18,9 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @Table(name = "medicine", indexes = {
         @Index(columnList = "search_vector", name = "medicine_search_vector_idx"),
-        @Index(columnList = "patient_id", name = "patient_medicine_idx")})
+        @Index(columnList = "patient_id", name = "patient_medicine_idx"),
+        @Index(columnList = "group_id", name = "group_medicine_idx"),
+        @Index(columnList = "id", name = "medicine_idx")})
 public class Medicine extends BaseEntity {
 
     @NotNull
