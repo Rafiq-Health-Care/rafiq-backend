@@ -12,7 +12,7 @@ import lombok.experimental.SuperBuilder;
 @ToString(exclude = {"labTest"})
 @EqualsAndHashCode(callSuper = false, of = {"name"})
 @Entity
-@Table(name = "lab_result")
+@Table(name = "lab_result", indexes = {@Index(name = "lab_test_idx", columnList = "lab_test_id")})
 public class LabResult extends BaseEntity {
 
     private String name;

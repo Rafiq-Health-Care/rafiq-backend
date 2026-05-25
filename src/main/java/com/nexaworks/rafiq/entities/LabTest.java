@@ -14,7 +14,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @ToString(exclude = {"labResults", "patient", "doctor"})
 @Entity
-@Table(name = "lab_test")
+@Table(name = "lab_test", indexes = {@Index(name = "patient_idx", columnList = "patient_id")})
 public class LabTest extends BaseEntity {
 
     private String name;
