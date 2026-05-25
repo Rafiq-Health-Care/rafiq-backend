@@ -1,4 +1,4 @@
-CREATE TABLE drug_company (
+CREATE TABLE IF NOT EXISTS drug_company (
     drug_id UUID NOT NULL,
     company_id UUID NOT NULL,
     CONSTRAINT pk_drug_company PRIMARY KEY (drug_id, company_id),

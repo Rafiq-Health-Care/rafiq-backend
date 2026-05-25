@@ -1,4 +1,4 @@
-CREATE TABLE consultation_summary (
+CREATE TABLE IF NOT EXISTS consultation_summary (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     summary TEXT,
     recovery_plan TEXT,
@@ -7,7 +7,7 @@ CREATE TABLE consultation_summary (
     doctor_id UUID NOT NULL,
     patient_id UUID NOT NULL,
     consultation_id UUID NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ,
     created_by UUID NOT NULL,
     updated_by UUID,
@@ -20,5 +20,4 @@ CREATE TABLE consultation_summary (
     CONSTRAINT fk_consultation_summary_consultation FOREIGN KEY (consultation_id) REFERENCES consultation (id)
 );
 
-CREATE INDEX idx_consultation_summary_patient ON consultation_summary (patient_id);
-CREATE INDEX idx_consultation_summary_doctor ON consultation_summary (doctor_id);
+CREATE INDEX IF NOT EXISTS idx_consultation_summary_consultation ON consultation_summary (consultation_id);

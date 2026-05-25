@@ -1,4 +1,4 @@
-CREATE VIEW doctor_search_view AS
+CREATE OR REPLACE VIEW doctor_search_view AS
 SELECT
     d.id AS doctor_id,
     d.personal_photo AS personal_photo,

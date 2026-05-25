@@ -1,8 +1,8 @@
-CREATE TABLE active_ingredient (
+CREATE TABLE IF NOT EXISTS active_ingredient (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255),
     description VARCHAR(255),
-    created_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ,
     created_by UUID NOT NULL,
     updated_by UUID,

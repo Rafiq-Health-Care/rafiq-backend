@@ -3,7 +3,7 @@ DECLARE
     system_id UUID := '00000000-0000-0000-0000-000000000001';
     doctor_user_id UUID := '20000000-0000-0000-0000-000000000001';
     patient_user_id UUID := '20000000-0000-0000-0000-000000000002';
-    bcrypt_password VARCHAR(100) := '$2b$10$EL.uiZ6uRCplpozEfPSt0uBnP3sEyVXliIU7iV8Y28x3z0afmzhSe';
+    bcrypt_password VARCHAR(100) := '$2b$10$YkCtKCSkx4qLGptFgukZeO/cMfFGW9AVOBeLUTX1E1K388UBeJVWy';
 BEGIN
     INSERT INTO role (id, name, created_at, created_by, deleted)
     VALUES
@@ -19,6 +19,7 @@ BEGIN
         password,
         first_name,
         last_name,
+        birth_date,
         active,
         locked,
         enabled,
@@ -33,6 +34,7 @@ BEGIN
             bcrypt_password,
             'Seed',
             'Doctor',
+            DATE '1990-01-01',
             TRUE,
             FALSE,
             TRUE,
@@ -46,6 +48,7 @@ BEGIN
             bcrypt_password,
             'Seed',
             'Patient',
+            DATE '1990-01-01',
             TRUE,
             FALSE,
             TRUE,

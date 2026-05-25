@@ -1,4 +1,4 @@
-CREATE TABLE user_roles (
+CREATE TABLE IF NOT EXISTS user_roles (
     user_id UUID NOT NULL,
     role_id UUID NOT NULL,
     CONSTRAINT pk_user_roles PRIMARY KEY (user_id, role_id),

@@ -1,11 +1,11 @@
-CREATE TABLE medical_certifications (
+CREATE TABLE IF NOT EXISTS medical_certifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255),
-    description VARCHAR(255),
+    description TEXT,
     code VARCHAR(255),
     photo VARCHAR(255),
     doctor_id UUID NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ,
     created_by UUID NOT NULL,
     updated_by UUID,
@@ -14,3 +14,5 @@ CREATE TABLE medical_certifications (
     deleted_at TIMESTAMPTZ,
     CONSTRAINT fk_medical_certifications_doctor FOREIGN KEY (doctor_id) REFERENCES doctor (id)
 );
+
+CREATE INDEX IF NOT EXISTS idx_medical_certifications_doctor ON medical_certifications (doctor_id);

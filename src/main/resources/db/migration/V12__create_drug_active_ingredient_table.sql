@@ -1,4 +1,4 @@
-CREATE TABLE drug_active_ingredient (
+CREATE TABLE IF NOT EXISTS drug_active_ingredient (
     drug_id UUID NOT NULL,
     active_ingredient_id UUID NOT NULL,
     CONSTRAINT pk_drug_active_ingredient PRIMARY KEY (drug_id, active_ingredient_id),
