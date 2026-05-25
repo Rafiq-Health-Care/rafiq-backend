@@ -3,13 +3,16 @@ package com.nexaworks.rafiq.rabbit.consumer;
 import static com.nexaworks.rafiq.rabbit.constant.RabbitMQConstant.*;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.stereotype.Component;
 
+import com.nexaworks.rafiq.rabbit.dlqprocessor.EmailDLQProcessor;
 import com.nexaworks.rafiq.rabbit.notificaiton.EmailNotification;
 import com.nexaworks.rafiq.service.notification.NotificationService;
 import com.rabbitmq.client.Channel;
@@ -20,10 +23,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class EmailNotificationConsumer {
     private final NotificationService<EmailNotification> notificationService;
+    private final EmailDLQProcessor emailDLQProcessor;
 
     public EmailNotificationConsumer(
-            @Qualifier("email") NotificationService<EmailNotification> notificationService) {
+            @Qualifier("email") NotificationService<EmailNotification> notificationService,
+            EmailDLQProcessor emailDLQProcessor) {
         this.notificationService = notificationService;
+        this.emailDLQProcessor = emailDLQProcessor;
     }
 
     @RabbitListener(queues = EMAIL_NOTIFICATION_QUEUE)
@@ -39,9 +45,13 @@ public class EmailNotificationConsumer {
     }
     @RabbitListener(queues = {EMAIL_DLQ})
     public void handleEmailDLQ(EmailNotification emailNotification, Channel channel,
-            @Header(AmqpHeaders.DELIVERY_TAG) long tag) throws IOException {
+            @Header(AmqpHeaders.DELIVERY_TAG) long tag, @Headers Map<String, Object> headers)
+            throws IOException {
         log.error("Email notification permanently failed, inspect manually: {}", emailNotification);
-        // todo handle failed email
+
+        String failureReason = ConsumerUtils.getFailureReason(headers);
+        emailDLQProcessor.processMessage(failureReason, emailNotification, channel, headers);
+
         channel.basicAck(tag, false);
     }
 

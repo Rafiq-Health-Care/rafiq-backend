@@ -31,18 +31,18 @@ public class UserNotificationManager {
     }
 
     public void sendResetPasswordEvent(User user, String token) {
-        emailPublisher.publish(new EmailNotification(user.getEmail(), EMAIL_TEMPLATE,
+        emailPublisher.publish(EmailNotification.of(user.getEmail(), EMAIL_TEMPLATE,
                 "Reset Password", emailContentService.createResetPasswordEmail(token,
                         user.getFirstName(), RESET_PASSWORD_URL)));
     }
 
     public void sendNewOtpEvent(User user, String otp) {
-        otpEmailPublisher.publish(
-                new EmailNotification(user.getEmail(), OTP_NOTIFICATION_TEMPLATE, "New OTP",
+        otpEmailPublisher
+                .publish(EmailNotification.of(user.getEmail(), OTP_NOTIFICATION_TEMPLATE, "New OTP",
                         emailContentService.createOtpEmail(otp, user.getFirstName(), DEFAULT_URL)));
     }
     public void sendRegistrationEvent(User user, String otp) {
-        otpEmailPublisher.publish(new EmailNotification(user.getEmail(), OTP_NOTIFICATION_TEMPLATE,
+        otpEmailPublisher.publish(EmailNotification.of(user.getEmail(), OTP_NOTIFICATION_TEMPLATE,
                 "Verify your email address",
                 emailContentService.createOtpEmail(otp, user.getFirstName(), DEFAULT_URL)));
     }

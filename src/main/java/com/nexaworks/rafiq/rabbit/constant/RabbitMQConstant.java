@@ -15,6 +15,14 @@ public class RabbitMQConstant {
     public static final String SMS_DLQ = "notification.sms.dlq";
     public static final String PUSH_DLQ = "notification.push.dlq";
 
+    public static final String EMAIL_RETRY_QUEUE = "notification.email.retry";
+    public static final String SMS_RETRY_QUEUE = "notification.sms.retry";
+    public static final String PUSH_RETRY_QUEUE = "notification.push.retry";
+    public static final String EMAIL_RETRY_ROUTING_KEY = "notification.email.retry";
+    public static final String SMS_RETRY_ROUTING_KEY = "notification.sms.retry";
+    public static final String PUSH_RETRY_ROUTING_KEY = "notification.push.retry";
+    public static final String NOTIFICATION_RETRY_EXCHANGE = "notification.retry.exchange";
+
     public static final String NOTIFICATION_DLQ_EXCHANGE = "notification.dlq.exchange";
 
     public static final String REFUND_REQUEST_EXCHANGE = "refund.request.exchange";

@@ -40,9 +40,9 @@ public class ConsultationNotificationManager {
         Map<String, Object> model = emailContentService.createConsultationCancelledForDoctor(
                 consultation.getDoctor().getName(), consultation.getPatient().getName(),
                 consultation.getId(), consultation.getCancellationLog().getReason());
-        emailPublisher.publish(new EmailNotification(consultation.getDoctor().getEmail(),
+        emailPublisher.publish(EmailNotification.of(consultation.getDoctor().getEmail(),
                 CONSULTATION_CANCELLED_DOCTOR_HTML, "Consultation cancelled", model));
-        PushNotification notification = new PushNotification(CONSULTATION_CANCELLED,
+        PushNotification notification = PushNotification.of(CONSULTATION_CANCELLED,
                 consultation.getDoctor().getNotificationToken(),
                 consultation.getPatient().getName() + " cancelled the consultation",
                 Map.of("consultationId", consultation.getId().toString()));
@@ -53,9 +53,9 @@ public class ConsultationNotificationManager {
         Map<String, Object> model = emailContentService.createConsultationCancelledForPatient(
                 consultation.getPatient().getName(), consultation.getDoctor().getName(),
                 consultation.getId(), consultation.getCancellationLog().getReason());
-        emailPublisher.publish(new EmailNotification(consultation.getPatient().getEmail(),
+        emailPublisher.publish(EmailNotification.of(consultation.getPatient().getEmail(),
                 CONSULTATION_CANCELLED_PATIENT_HTML, "Consultation cancelled", model));
-        PushNotification notification = new PushNotification(CONSULTATION_CANCELLED,
+        PushNotification notification = PushNotification.of(CONSULTATION_CANCELLED,
                 consultation.getPatient().getNotificationToken(),
                 consultation.getDoctor().getName() + " cancelled the consultation",
                 Map.of("consultationId", consultation.getId().toString()));
@@ -65,19 +65,19 @@ public class ConsultationNotificationManager {
     }
 
     public void publishSuccessfulReservationNotification(String notificationToken, UUID slotId) {
-        PushNotification notification = new PushNotification(NEW_CONSULTATION, notificationToken,
+        PushNotification notification = PushNotification.of(NEW_CONSULTATION, notificationToken,
                 "You have a new consultation", Map.of("slotId", slotId.toString()));
         pushPublisher.publish(notification);
     }
     public void publishFailedReservationNotification(String notificationToken, UUID reservationId) {
-        PushNotification notification = new PushNotification(CONSULTATION_FAILED, notificationToken,
+        PushNotification notification = PushNotification.of(CONSULTATION_FAILED, notificationToken,
                 "Your consultation has failed", Map.of("slotId", reservationId.toString()));
         pushPublisher.publish(notification);
     }
 
     public void publishReminderNotification(UUID consultationId, String fcm,
             LocalDateTime startTime) {
-        PushNotification notification = new PushNotification(CONSULTATION_COMING_UP, fcm,
+        PushNotification notification = PushNotification.of(CONSULTATION_COMING_UP, fcm,
                 "Your consultation is coming up", Map.of("startTime", startTime.toString(),
                         "consultationId", consultationId.toString()));
         pushPublisher.publish(notification);
