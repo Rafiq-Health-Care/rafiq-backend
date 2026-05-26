@@ -39,12 +39,10 @@ public class ConsultationProcessingService implements IConsultationProcessingSer
         consultationRepository.save(consultation);
         transactionUtils.afterCommit(() -> {
             log.info("Consultation with id: {} is confirmed", id);
-            preparationScheduler.scheduleReminder(id,
-                    consultation.getPatient().getNotificationToken(),
+            preparationScheduler.scheduleReminder(consultation,
                     consultation.getSlot().getStartTime());
             notificationManager.publishSuccessfulReservationNotification(
-                    consultation.getSlot().getDoctor().getNotificationToken(),
-                    consultation.getSlot().getId());
+                    consultation.getSlot().getDoctor(), consultation.getSlot().getId());
         });
 
     }
@@ -61,8 +59,8 @@ public class ConsultationProcessingService implements IConsultationProcessingSer
         consultationRepository.save(consultation);
         transactionUtils.afterCommit(() -> {
             log.info("Consultation with id: {} is cancelled", id);
-            notificationManager.publishFailedReservationNotification(
-                    consultation.getPatient().getNotificationToken(), consultation.getId());
+            notificationManager.publishFailedReservationNotification(consultation.getPatient(),
+                    consultation.getId());
         });
 
     }
