@@ -14,6 +14,7 @@ import com.nexaworks.rafiq.dto.client.cloundinary.UploadResults;
 import com.nexaworks.rafiq.dto.request.doctor.DoctorFilter;
 import com.nexaworks.rafiq.dto.request.doctor.EducationItemRequest;
 import com.nexaworks.rafiq.dto.request.doctor.ExperienceItemRequest;
+import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.doctor.DoctorSearchResponse;
 import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.entities.DoctorSearchView;
@@ -46,7 +47,6 @@ public class DoctorServiceImpl implements DoctorService {
         Doctor doctor = doctorRepository.findById(doctorId).orElseThrow(
                 () -> new UserNotFoundException("Doctor not found with id: " + doctorId));
         doctor.setNationalId(uploadResults.url());
-        doctor.setPublicId(uploadResults.publicId());
     }
 
     @Override
@@ -60,7 +60,8 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     @Transactional
-    public Doctor replaceEducation(List<EducationItemRequest> education) {
+    public com.nexaworks.rafiq.dto.response.doctor.DoctorProfileResponse replaceEducation(
+            List<EducationItemRequest> education) {
         Doctor doctor = requireAuthenticatedDoctor();
         if (education == null) {
             throw new UserException("Education payload is required");
@@ -74,12 +75,14 @@ public class DoctorServiceImpl implements DoctorService {
         List<Education> persisted = education.stream().map(doctorMapper::toEducationEntity)
                 .toList();
         doctor.setEducation(new ArrayList<>(persisted));
-        return doctorRepository.save(doctor);
+        Doctor saved = doctorRepository.save(doctor);
+        return doctorMapper.toProfileResponse(saved);
     }
 
     @Override
     @Transactional
-    public Doctor replaceExperience(List<ExperienceItemRequest> experience) {
+    public com.nexaworks.rafiq.dto.response.doctor.DoctorProfileResponse replaceExperience(
+            List<ExperienceItemRequest> experience) {
         Doctor doctor = requireAuthenticatedDoctor();
         if (experience == null) {
             throw new UserException("Experience payload is required");
@@ -93,32 +96,37 @@ public class DoctorServiceImpl implements DoctorService {
         List<Experience> persisted = experience.stream().map(doctorMapper::toExperienceEntity)
                 .toList();
         doctor.setExperience(new ArrayList<>(persisted));
-        return doctorRepository.save(doctor);
+        Doctor saved = doctorRepository.save(doctor);
+        return doctorMapper.toProfileResponse(saved);
     }
 
     @Override
     @Transactional
-    public Doctor setPrice(BigDecimal price) {
+    public com.nexaworks.rafiq.dto.response.doctor.DoctorProfileResponse setPrice(
+            BigDecimal price) {
         Doctor doctor = requireAuthenticatedDoctor();
         doctor.setPrice(price);
-        return doctorRepository.save(doctor);
+        Doctor saved = doctorRepository.save(doctor);
+        return doctorMapper.toProfileResponse(saved);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Doctor getDoctorById(UUID id) {
-        return doctorRepository.findById(id)
+    public com.nexaworks.rafiq.dto.response.doctor.DoctorProfileResponse getDoctorById(UUID id) {
+        Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Doctor not found with id: " + id));
+        return doctorMapper.toProfileResponse(doctor);
     }
 
     @Override
-    public Page<DoctorSearchResponse> search(DoctorFilter filter, Pageable pageable) {
+    public PageResponse<DoctorSearchResponse> search(DoctorFilter filter, Pageable pageable) {
         Page<DoctorSearchView> results = doctorSearchViewRepository
                 .findAll(DoctorSpecification.search(filter), pageable);
 
-        return results.map(v -> new DoctorSearchResponse(v.getPersonalPhoto(), v.getFirstName(),
-                v.getLastName(), v.getSpecialization(), v.getNextAvailable(), v.getPrice(),
-                v.getRating(), v.getExperienceYears(), v.getDoctorId()));
+        return PageResponse.of(results,
+                v -> new DoctorSearchResponse(v.getPersonalPhoto(), v.getFirstName(),
+                        v.getLastName(), v.getSpecialization(), v.getNextAvailable(), v.getPrice(),
+                        v.getRating(), v.getExperienceYears(), v.getDoctorId()));
     }
 
     private Doctor requireAuthenticatedDoctor() {

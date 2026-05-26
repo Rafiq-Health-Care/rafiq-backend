@@ -1,8 +1,7 @@
 package com.nexaworks.rafiq.service.labReports;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,11 +18,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.nexaworks.rafiq.dto.client.cloundinary.UploadResults;
 import com.nexaworks.rafiq.dto.request.labTest.TestResultRequest;
+import com.nexaworks.rafiq.dto.response.common.PageResponse;
+import com.nexaworks.rafiq.dto.response.labTest.TestResponse;
 import com.nexaworks.rafiq.entities.*;
 import com.nexaworks.rafiq.entities.enums.UploadType;
 import com.nexaworks.rafiq.exception.custom.labtest.LabTestException;
+import com.nexaworks.rafiq.mapper.ResultMapper;
+import com.nexaworks.rafiq.mapper.TestMapper;
 import com.nexaworks.rafiq.repository.LabTestRepository;
-import com.nexaworks.rafiq.repository.PatientRepository;
 import com.nexaworks.rafiq.service.file.ImageService;
 import com.nexaworks.rafiq.service.patient.PatientService;
 import com.nexaworks.rafiq.service.user.UserService;
@@ -40,14 +42,16 @@ public class LabTestServiceImpl implements LabTestService {
     private final LabTestRepository labTestRepository;
     private final UserService userService;
     private final ImageService imageService;
-    private final PatientRepository patientRepository;
     private final PatientService patientService;
+    private final TestMapper testMapper;
+    private final ResultMapper resultMapper;
 
     @Override
     @Transactional
-    public void addTest(UUID testId, String testName, Date testDate, List<LabResult> entity) {
-        LabTest labTest = getLabTest(Optional.of(testId));
-        setTestFields(labTest, testName, testDate);
+    public void addTest(TestResultRequest request) {
+        LabTest labTest = getLabTest(Optional.ofNullable(request.testId()));
+        setTestFields(labTest, request.name(), request.date());
+        List<LabResult> entity = resultMapper.toEntity(request.tests());
         Patient patient = patientService.getPatientProfile();
         labTest.setPatient(patient);
         labTestRepository.save(labTest);
@@ -55,9 +59,9 @@ public class LabTestServiceImpl implements LabTestService {
         labResultService.saveAll(entity);
     }
 
-    private static void setTestFields(LabTest labTest, String testName, Date testDate) {
+    private static void setTestFields(LabTest labTest, String testName, LocalDateTime testDate) {
         labTest.setName(testName);
-        labTest.setDate(testDate == null ? Instant.now() : testDate.toInstant());
+        labTest.setDate(testDate == null ? LocalDateTime.now() : testDate);
     }
 
     @NotNull
@@ -67,19 +71,21 @@ public class LabTestServiceImpl implements LabTestService {
     }
 
     @Override
-    public Page<LabTest> getAll(int page, int size, String sort, String direction) {
+    public PageResponse<TestResponse> getAll(int page, int size, String sort, String direction) {
         Sort sorting = Sort.by(
                 Sort.Direction.fromString(direction.equalsIgnoreCase("desc") ? "desc" : "asc"),
                 sort);
 
         Pageable pageable = PageRequest.of(page, size, sorting);
         UUID patientId = userService.getUserId();
-        return labTestRepository.findAllByPatientId(patientId, pageable);
+        Page<LabTest> tests = labTestRepository.findAllByPatientId(patientId, pageable);
+        return PageResponse.of(tests, testMapper::toResponse);
     }
 
     @Override
-    public LabTest getTest(UUID testId) {
-        return validateOwnership(testId);
+    public com.nexaworks.rafiq.dto.response.labTest.TestResultsResponse getTest(UUID testId) {
+        LabTest test = validateOwnership(testId);
+        return testMapper.mapToTestResponse(test);
     }
 
     @Override
@@ -100,17 +106,22 @@ public class LabTestServiceImpl implements LabTestService {
 
     @Override
     @Transactional
-    public void update(UUID testId, TestResultRequest testResultRequest, List<LabResult> entity) {
+    public void update(UUID testId, TestResultRequest testResultRequest) {
         LabTest test = validateOwnership(testId);
+        List<LabResult> entity = resultMapper.toEntity(testResultRequest.tests());
         setTestFields(test, testResultRequest.name(), testResultRequest.date());
         updateLabResults(entity, test);
-        labTestRepository.save(test);
     }
 
     @Transactional
     protected void updateLabResults(List<LabResult> entity, LabTest test) {
-        labResultService.deleteAll(test.getLabResults());
+        List<LabResult> existingResults = test.getLabResults();
+        if (existingResults != null && !existingResults.isEmpty()) {
+            labResultService.deleteAll(existingResults);
+            existingResults.clear();
+        }
         entity.forEach(e -> e.setLabTest(test));
+        test.setLabResults(entity);
         labResultService.saveAll(entity);
     }
 

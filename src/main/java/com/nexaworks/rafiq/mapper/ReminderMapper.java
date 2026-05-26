@@ -9,15 +9,15 @@ import com.nexaworks.rafiq.dto.response.reminder.AddReminderResponse;
 import com.nexaworks.rafiq.dto.response.reminder.GetReminderByIdResponse;
 import com.nexaworks.rafiq.dto.response.reminder.ReminderResponse;
 import com.nexaworks.rafiq.entities.Reminder;
-import com.nexaworks.rafiq.service.medicine.MedicineService;
+import com.nexaworks.rafiq.service.medicine.IMedicineService;
 
-@Mapper(componentModel = "spring", uses = MedicineService.class)
+@Mapper(componentModel = "spring", uses = IMedicineService.class)
 public interface ReminderMapper {
 
     ReminderResponse toResponse(Reminder reminder);
 
-    @Mapping(target = "medicine", expression = "java(medicineService.getMedicineById(request.medicineId()))")
-    Reminder toEntity(AddReminderRequest request, @Context MedicineService medicineService);
+    @Mapping(target = "medicine", expression = "java(medicineService.getMedicineEntityById(request.medicineId()))")
+    Reminder toEntity(AddReminderRequest request, @Context IMedicineService medicineService);
 
     @Mapping(target = "medicineId", source = "medicine.id")
     AddReminderResponse toAddReminderResponse(Reminder savedReminder);

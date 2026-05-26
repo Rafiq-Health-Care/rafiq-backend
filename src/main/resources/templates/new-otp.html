@@ -7,73 +7,145 @@
     <title>New OTP - Rafiq</title>
     <style>
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: #f5f7fa;
             margin: 0;
             padding: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(13, 110, 253, 0.10), transparent 28%),
+                radial-gradient(circle at top right, rgba(86, 163, 255, 0.14), transparent 24%),
+                linear-gradient(180deg, #eef5ff 0%, #f8fbff 100%);
             color: #333;
+        }
+
+        .page-shell {
+            padding: 32px 16px;
         }
 
         .email-wrapper {
             max-width: 600px;
-            margin: 40px auto;
+            margin: 0 auto;
             background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border-radius: 24px;
+            box-shadow: 0 24px 70px rgba(13, 110, 253, 0.16);
             overflow: hidden;
+            border: 1px solid rgba(13, 110, 253, 0.08);
         }
 
         .header {
-            background-color: #0d6efd;
-            padding: 24px;
-            text-align: center;
+            background: linear-gradient(135deg, #0d6efd 0%, #2b7bff 55%, #56a3ff 100%);
+            padding: 32px 30px 28px;
             color: #ffffff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            inset: auto -46px -70px auto;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .header-row {
+            display: table;
+            width: 100%;
+        }
+
+        .brand-mark {
+            display: inline-block;
+            width: 56px;
+            height: 56px;
+            border-radius: 19px;
+            background: rgba(255, 255, 255, 0.16);
+            text-align: center;
+            vertical-align: middle;
+            line-height: 56px;
+            font-size: 24px;
+            margin-right: 14px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+        }
+
+        .header-copy {
+            display: table-cell;
+            vertical-align: middle;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.16);
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
         }
 
         .header h1 {
             margin: 0;
-            font-size: 22px;
+            font-size: 25px;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
         }
 
         .content {
-            padding: 30px;
+            padding: 36px 32px 36px;
             text-align: center;
         }
 
+        .hero-graphic {
+            margin: 0 auto 20px;
+            width: 96px;
+            height: 96px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, #edf4ff 0%, #dcebff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 14px 30px rgba(13, 110, 253, 0.12);
+        }
+
         .content h2 {
-            color: #0d6efd;
-            font-size: 20px;
-            margin-bottom: 16px;
+            color: #0f3d91;
+            font-size: 22px;
+            margin: 0 0 12px;
+            letter-spacing: -0.01em;
         }
 
         .content p {
-            font-size: 16px;
+            font-size: 15.5px;
             line-height: 1.6;
-            margin-bottom: 20px;
+            margin: 0 0 14px;
+            color: #4b5563;
         }
 
         .otp-box {
             display: inline-block;
-            background-color: #0d6efd;
+            background: linear-gradient(135deg, #0d6efd 0%, #1f74ff 100%);
             color: #ffffff;
             font-size: 24px;
-            letter-spacing: 6px;
-            padding: 14px 28px;
-            border-radius: 10px;
+            letter-spacing: 7px;
+            padding: 16px 28px;
+            border-radius: 14px;
             font-weight: bold;
-            margin-top: 20px;
+            margin: 8px 0 18px;
+            box-shadow: 0 14px 28px rgba(13, 110, 253, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.18);
         }
 
         .cta-button {
             display: inline-block;
-            background-color: #0d6efd;
+            background: linear-gradient(135deg, #0d6efd 0%, #1f74ff 100%);
             color: #ffffff;
             text-decoration: none;
             font-weight: 600;
-            padding: 12px 28px;
-            border-radius: 8px;
-            margin-top: 24px;
+            padding: 13px 28px;
+            border-radius: 999px;
+            margin-top: 18px;
             font-size: 16px;
+            box-shadow: 0 14px 28px rgba(13, 110, 253, 0.18);
         }
 
         .cta-button:hover {
@@ -81,42 +153,136 @@
         }
 
         .footer {
-            background-color: #f0f2f5;
+            background: #f7f9fc;
             text-align: center;
             font-size: 13px;
-            color: #777;
-            padding: 16px;
+            color: #6b7280;
+            padding: 20px 20px;
+            border-top: 1px solid rgba(148, 163, 184, 0.18);
         }
 
         .footer p {
             margin: 6px 0;
         }
+
+        .footer strong {
+            color: #0f3d91;
+        }
+
+        .content p,
+        .footer p {
+            overflow-wrap: anywhere;
+        }
+
+        .hero-graphic svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media screen and (max-width: 600px) {
+            .page-shell {
+                padding: 12px 8px;
+            }
+
+            .header-row,
+            .header-copy {
+                display: block;
+            }
+
+            .header {
+                padding: 22px 18px 20px;
+                text-align: center;
+            }
+
+            .brand-mark {
+                display: block;
+                margin: 0 auto 12px;
+            }
+
+            .content {
+                padding: 22px 16px 24px;
+            }
+
+            .header h1 {
+                font-size: 21px;
+            }
+
+            .hero-graphic {
+                width: 80px;
+                height: 80px;
+                margin-bottom: 16px;
+                border-radius: 24px;
+            }
+
+            .content h2 {
+                font-size: 19px;
+            }
+
+            .content p {
+                font-size: 14px;
+            }
+
+            .otp-box {
+                display: block;
+                width: 100%;
+                box-sizing: border-box;
+                font-size: 20px;
+                letter-spacing: 4px;
+                padding: 13px 14px;
+                margin: 10px 0 16px;
+            }
+
+            .cta-button {
+                display: block;
+                width: 100%;
+                box-sizing: border-box;
+                text-align: center;
+                font-size: 15px;
+                padding: 13px 16px;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="email-wrapper">
-    <div class="header">
-        <h1>Your New OTP Code</h1>
-    </div>
+<div class="page-shell">
+    <div class="email-wrapper">
+        <div class="header">
+            <div class="header-row">
+                <div class="brand-mark">R</div>
+                <div class="header-copy">
+                    <div class="eyebrow">One-time password</div>
+                    <h1>Your New OTP Code</h1>
+                </div>
+            </div>
+        </div>
 
-    <div class="content">
-        <h2>Hello <span th:text="${name}">User</span>,</h2>
-        <p>We’ve received a request to generate a new one-time password (OTP) for your account.</p>
+        <div class="content">
+            <div class="hero-graphic" aria-hidden="true">
+                <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="9" y="9" width="34" height="34" rx="11" fill="#0D6EFD" fill-opacity="0.12"/>
+                    <path d="M17 23C17 18 20.8 14 26 14C31.2 14 35 18 35 23V27C35 32 31.2 36 26 36C20.8 36 17 32 17 27V23Z" stroke="#0D6EFD" stroke-width="2.8"/>
+                    <path d="M21.5 23.5C21.5 21.1 23.4 19.2 25.8 19.2H26.2C28.6 19.2 30.5 21.1 30.5 23.5" stroke="#0D6EFD" stroke-width="2.8" stroke-linecap="round"/>
+                    <circle cx="26" cy="27.2" r="2.2" fill="#0D6EFD"/>
+                </svg>
+            </div>
+            <h2>Hello <span th:text="${name}">User</span>,</h2>
+            <p>We’ve received a request to generate a new one-time password (OTP) for your account.</p>
 
-        <div class="otp-box" th:text="${otp}">123456</div>
+            <div class="otp-box" th:text="${otp}">123456</div>
 
-        <p>This OTP is valid for <strong>5 minutes</strong>. Please do not share it with anyone.</p>
+            <p>This OTP is valid for <strong>5 minutes</strong>. Please do not share it with anyone.</p>
 
-        <a th:href="${url}" class="cta-button" th:if="${url != null}">Verify Now</a>
+            <a th:href="${url}" class="cta-button" th:if="${url != null}">Verify Now</a>
 
-        <p style="margin-top: 30px; font-size: 14px; color: #666;">
-            Didn’t request this code? You can safely ignore this email.
-        </p>
-    </div>
+            <p style="margin-top: 24px; font-size: 14px; color: #666;">
+                Didn’t request this code? You can safely ignore this email.
+            </p>
+        </div>
 
-    <div class="footer">
-        <p>&copy; <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2025</span> Rafiq. All rights reserved.</p>
-        <p>This is an automated message — please do not reply.</p>
+        <div class="footer">
+            <p>&copy; <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2025</span> <strong>Rafiq</strong>. All rights reserved.</p>
+            <p>This is an automated message — please do not reply.</p>
+        </div>
     </div>
 </div>
 </body>

@@ -16,7 +16,6 @@ public interface ConsultationSummaryMapper {
 
     @BeanMapping(ignoreUnmappedSourceProperties = "consultationId")
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "doctor", ignore = true)
     @Mapping(target = "patient", ignore = true)
     @Mapping(target = "consultation", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
@@ -29,12 +28,10 @@ public interface ConsultationSummaryMapper {
     ConsultationSummary toEntity(CreateConsultationSummaryRequest request);
 
     @Mapping(target = "consultationId", source = "consultation.id")
-    @Mapping(target = "doctorId", source = "doctor.id")
     @Mapping(target = "patientId", source = "patient.id")
     ConsultationSummaryResponse toResponse(ConsultationSummary entity);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "doctor", ignore = true)
     @Mapping(target = "patient", ignore = true)
     @Mapping(target = "consultation", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

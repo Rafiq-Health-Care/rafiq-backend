@@ -1,13 +1,10 @@
 package com.nexaworks.rafiq.entities;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Getter
@@ -15,18 +12,18 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
+@ToString(exclude = {"labResults", "patient", "doctor"})
 @Entity
+@Table(name = "lab_test", indexes = {@Index(name = "patient_idx", columnList = "patient_id")})
 public class LabTest extends BaseEntity {
+
     private String name;
     private String description;
     private String code;
+    // todo refactor this to extract only don't save pdf
     private String pdf;
     private String publicId;
     private String fileType;
-
-    @ManyToOne
-    @JoinColumn(name = "lab_id", nullable = true)
-    private Lab lab;
 
     @ManyToOne
     @JoinColumn(name = "doctor_id", nullable = true)
@@ -36,8 +33,9 @@ public class LabTest extends BaseEntity {
     @JoinColumn(name = "patient_id", nullable = true)
     private Patient patient;
 
-    @OneToMany(mappedBy = "labTest", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "labTest", cascade = {CascadeType.REMOVE, CascadeType.MERGE,
+            CascadeType.PERSIST})
     private List<LabResult> labResults;
 
-    private Instant date;
+    private LocalDateTime date;
 }

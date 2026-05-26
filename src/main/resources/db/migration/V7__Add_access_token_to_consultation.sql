@@ -1,1 +1,0 @@
-ALTER TABLE consultation ADD COLUMN access_token TEXT;

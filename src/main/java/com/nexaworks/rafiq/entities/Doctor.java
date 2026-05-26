@@ -7,10 +7,12 @@ import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import com.nexaworks.rafiq.entities.enums.DoctorAcceptanceStatus;
 import com.nexaworks.rafiq.entities.enums.Specialization;
-import com.nexaworks.rafiq.entities.enums.Status;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -20,19 +22,30 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@ToString(exclude = {"medicalCertifications", "labTests", "consultations"})
 @Table(name = "doctor", indexes = {
-        @Index(name = "specialization_idx", columnList = "specialization")})
+        @Index(name = "specialization_idx", columnList = "specialization"),
+        @Index(name = "doctor_idx", columnList = "id"),
+        @Index(name = "doctor_acceptance_status_idx", columnList = "acceptance_status")})
 public class Doctor extends User {
+    @Column(length = 1000)
     private String description;
-    private String hospitalName;
+
+    @Column(name = "personal_photo")
     private String personalPhoto;
+
+    @Column(name = "national_id") // national id photo
     private String nationalId;
-    private String hospitalId;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private DoctorAcceptanceStatus acceptanceStatus = DoctorAcceptanceStatus.IN_REVIEW;
 
     @Enumerated(EnumType.STRING)
     private Specialization specialization;
 
-    @OneToMany(mappedBy = "doctor", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "doctor", cascade = {CascadeType.REMOVE, CascadeType.PERSIST,
+            CascadeType.MERGE}, orphanRemoval = true, fetch = FetchType.LAZY)
     @BatchSize(size = 10)
     private List<MedicalCertifications> medicalCertifications;
 
@@ -40,17 +53,14 @@ public class Doctor extends User {
     @BatchSize(size = 10)
     private List<LabTest> labTests;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "social_links_id", referencedColumnName = "id")
+    @OneToOne(mappedBy = "doctor", cascade = {CascadeType.REMOVE, CascadeType.MERGE,
+            CascadeType.PERSIST})
     private SocialLinks socialLinks;
 
-    private String publicId;
-
-    @Enumerated(EnumType.STRING)
-    private Status status;
     @Column(nullable = false, precision = 10, scale = 2)
     @Builder.Default
     private BigDecimal price = BigDecimal.valueOf(1000);
+
     @Column(columnDefinition = "TEXT")
     private String biography;
 
@@ -65,8 +75,19 @@ public class Doctor extends User {
     @Column(name = "experience_years")
     private int experienceYears;
 
-    private BigDecimal rating;
+    @DecimalMax(value = "5.0", inclusive = true)
+    @DecimalMin(value = "0.0", inclusive = true)
+    @Column(nullable = false, precision = 3, scale = 2)
+    @Builder.Default
+    private BigDecimal rating = BigDecimal.valueOf(5);
+
     @Column(name = "balance", nullable = false, precision = 10, scale = 2)
     @Builder.Default
     private BigDecimal balance = BigDecimal.valueOf(0);
+
+    @OneToMany(mappedBy = "doctor", fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE,
+            CascadeType.PERSIST, CascadeType.MERGE})
+    @BatchSize(size = 10)
+    private List<ConsultationSlot> consultations;
+
 }

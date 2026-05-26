@@ -3,6 +3,7 @@ package com.nexaworks.rafiq.service.consultation;
 import java.util.UUID;
 
 import org.jspecify.annotations.NonNull;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.retry.annotation.Backoff;
@@ -43,6 +44,7 @@ public class ConsultationCancellationService implements IConsultationCancellatio
     private final RefundEventManager eventManager;
     private final TransactionUtils transactionUtils;
     @Override
+    @CacheEvict(value = "consultation", key = "'consultation:' + #id")
     @Transactional(rollbackFor = Exception.class)
     @Retryable(retryFor = {
             PessimisticLockingFailureException.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))

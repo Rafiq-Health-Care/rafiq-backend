@@ -6,8 +6,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
@@ -75,7 +74,7 @@ class PasswordServiceImplTest {
         testToken = new Token();
         testToken.setToken("test-token");
         testToken.setUser(testUser);
-        testToken.setExpiryDate(Instant.now().plus(1, ChronoUnit.HOURS));
+        testToken.setExpiryDate(LocalDateTime.now().plusHours(1));
     }
 
     @AfterEach
@@ -168,7 +167,7 @@ class PasswordServiceImplTest {
             // Arrange
             ChangePasswordRequest request = new ChangePasswordRequest("expired-token",
                     "newPassword123");
-            testToken.setExpiryDate(Instant.now().minus(1, ChronoUnit.HOURS));
+            testToken.setExpiryDate(LocalDateTime.now().minusHours(1));
             when(tokenService.getToken(request.accessToken())).thenReturn(testToken);
 
             // Act & Assert

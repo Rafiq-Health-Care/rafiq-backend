@@ -13,13 +13,18 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Entity
 @SuperBuilder
+@ToString(exclude = {"slot", "patient", "consultationSummary", "consultationLog", "cancellationLog",
+        "payment"})
+@Table(name = "consultation", indexes = {@Index(name = "patient_idx", columnList = "patient_id"),
+        @Index(name = "slot_idx", columnList = "slot_id"),
+        @Index(name = "status_idx", columnList = "status")})
 public class Consultation extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "slot_id", nullable = false)
     private ConsultationSlot slot;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
 
@@ -37,12 +42,16 @@ public class Consultation extends BaseEntity {
     @OneToOne(mappedBy = "consultation", cascade = CascadeType.ALL)
     private Payment payment;
 
-    @OneToOne(mappedBy = "consultation", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "consultation", cascade = {CascadeType.REMOVE, CascadeType.MERGE,
+            CascadeType.PERSIST})
     private CancellationLog cancellationLog;
 
-    @OneToOne(mappedBy = "consultation")
+    @OneToOne(mappedBy = "consultation", cascade = {CascadeType.REMOVE, CascadeType.MERGE,
+            CascadeType.PERSIST})
     private ConsultationSummary consultationSummary;
-    @OneToOne(mappedBy = "consultation")
+
+    @OneToOne(mappedBy = "consultation", cascade = {CascadeType.REMOVE, CascadeType.MERGE,
+            CascadeType.PERSIST})
     private ConsultationLog consultationLog;
 
     @Transient

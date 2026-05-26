@@ -12,7 +12,10 @@ import lombok.*;
 @AllArgsConstructor
 @Entity
 @Builder
-@Table(name = "consultation_logs")
+@ToString(exclude = "consultation")
+@Table(name = "consultation_logs", indexes = {
+        @Index(name = "consultation_idx", columnList = "consultation_id"),
+        @Index(name = "consultation_log_idx", columnList = "id")})
 public class ConsultationLog {
 
     @Id

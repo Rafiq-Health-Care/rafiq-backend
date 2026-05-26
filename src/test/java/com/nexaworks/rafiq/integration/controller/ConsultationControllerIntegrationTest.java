@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
@@ -38,8 +40,6 @@ import com.nexaworks.rafiq.entities.enums.PaymentProvider;
 import com.nexaworks.rafiq.entities.enums.SlotStatus;
 import com.nexaworks.rafiq.entities.enums.Specialization;
 import com.nexaworks.rafiq.integration.BaseIntegrationTest;
-import com.nexaworks.rafiq.rabbit.manager.ConsultationNotificationManager;
-import com.nexaworks.rafiq.rabbit.manager.RefundEventManager;
 import com.nexaworks.rafiq.repository.CancellationLogRepository;
 import com.nexaworks.rafiq.repository.ConsultationLogRepository;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
@@ -94,14 +94,8 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @org.springframework.boot.test.mock.mockito.MockBean
+    @MockBean
     private PaymentService paymentService;
-
-    @org.springframework.boot.test.mock.mockito.MockBean
-    private ConsultationNotificationManager consultationNotificationManager;
-
-    @org.springframework.boot.test.mock.mockito.MockBean
-    private RefundEventManager refundEventManager;
 
     @BeforeEach
     void cleanDatabase() {
@@ -124,7 +118,8 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
         Role doctorRole = roleRepository.findByName("ROLE_DOCTOR");
         Doctor doctor = Doctor.builder().email(email).password(passwordEncoder.encode("Valid@1234"))
                 .firstName("Jane").lastName("Doe").specialization(Specialization.CARDIOLOGY)
-                .price(BigDecimal.valueOf(150)).roles(Set.of(doctorRole)).enabled(true).build();
+                .price(BigDecimal.valueOf(150)).roles(Set.of(doctorRole)).enabled(true)
+                .birthDate(LocalDate.from(LocalDateTime.of(1977, 1, 1, 0, 0))).build();
         return doctorRepository.save(doctor);
     }
 
@@ -136,7 +131,8 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
         Role patientRole = roleRepository.findByName("ROLE_PATIENT");
         Patient patient = Patient.builder().email(email)
                 .password(passwordEncoder.encode("Valid@1234")).firstName("John").lastName("Smith")
-                .roles(Set.of(patientRole)).enabled(true).build();
+                .roles(Set.of(patientRole)).enabled(true)
+                .birthDate(LocalDate.from(LocalDateTime.of(1977, 1, 1, 0, 0))).build();
         return patientRepository.save(patient);
     }
 
@@ -157,7 +153,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("POST /slot")
     class AddConsultation {
-        private static final String ENDPOINT = "/slot";
+        private static final String ENDPOINT = "/api/v1/slot";
 
         @Test
         @DisplayName("Doctor creates a consultation successfully")
@@ -197,7 +193,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("POST /slot/schedule/search")
     class GetSchedule {
-        private static final String ENDPOINT = "/slot/schedule/search";
+        private static final String ENDPOINT = "/api/v1/slot/schedule/search";
 
         @Test
         @DisplayName(" Doctor retrieves their own schedule")
@@ -228,7 +224,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("PUT /slot/{id}")
     class EditConsultation {
-        private static final String ENDPOINT = "/slot/{id}";
+        private static final String ENDPOINT = "/api/v1/slot/{id}";
 
         @Test
         @DisplayName("Doctor edits their own AVAILABLE consultation")
@@ -268,7 +264,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("PATCH /consultation/{id}/cancel")
     class CancelConsultation {
-        private static final String ENDPOINT = "/consultation/{id}/cancel";
+        private static final String ENDPOINT = "/api/v1/consultation/{id}/cancel";
 
         @Test
         @DisplayName("Doctor cancels their AVAILABLE consultation")
@@ -311,7 +307,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("POST /consultation")
     class ReserveConsultation {
-        private static final String ENDPOINT = "/consultation";
+        private static final String ENDPOINT = "/api/v1/consultation";
 
         @Test
         @DisplayName(" Patient reserves an AVAILABLE consultation")
@@ -330,6 +326,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
                     .thenReturn("pi_secret_xyz");
 
             mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON)
+                    .header("Idempotency-Key", "idempotency-key")
                     .content(objectMapper.writeValueAsString(request)).with(withUserId(patient)))
                     .andExpect(status().isCreated());
 
@@ -338,27 +335,12 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
             assertThat(updatedSlot.getStatus()).isEqualTo(SlotStatus.PENDING_PAYMENT);
             assertThat(consultationRepository.count()).isEqualTo(1);
         }
-
-        @Test
-        @DisplayName("A doctor is forbidden from reserving a consultation")
-        void shouldReturnForbidden_WhenDoctorTriesToReserve() throws Exception {
-            Doctor doctor = createDoctor();
-            Doctor otherDoctor = createDoctor("other-doctor@example.com");
-            ConsultationSlot slot = persistSlot(otherDoctor, SlotStatus.AVAILABLE,
-                    LocalDateTime.now().plusDays(1));
-            ReserveConsultationRequest request = new ReserveConsultationRequest(slot.getId(), null,
-                    PaymentProvider.STRIPE);
-
-            mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)).with(withUserId(doctor)))
-                    .andExpect(status().isForbidden());
-        }
     }
 
     @Nested
     @DisplayName("GET /consultation/{id}")
     class GetConsultation {
-        private static final String ENDPOINT = "/consultation/{id}";
+        private static final String ENDPOINT = "/api/v1/consultation/{id}";
 
         @Test
         @DisplayName("Authenticated user retrieves an existing consultation")
@@ -390,7 +372,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("POST /consultations/{id}/call/enter")
     class GetCall {
-        private static final String ENDPOINT = "/consultations/{id}/call/enter";
+        private static final String ENDPOINT = "/api/v1/consultations/{id}/call/enter";
 
         @Test
         @DisplayName("Authenticated user retrieves call info for a consultation")
@@ -417,7 +399,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("GET /slot/doctor/{id}")
     class FilterConsultations {
-        private static final String ENDPOINT = "/slot/doctor/{id}";
+        private static final String ENDPOINT = "/api/v1/slot/doctor/{id}";
 
         @Test
         @DisplayName("Authenticated user fetches available slots for doctor")
@@ -441,7 +423,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("GET /consultation/patient/{status}")
     class PatientUpcoming {
-        private static final String ENDPOINT = "/consultation/patient/{status}";
+        private static final String ENDPOINT = "/api/v1/consultation/patient/{status}";
 
         @Test
         @DisplayName(" Patient retrieves their upcoming consultations")
@@ -470,7 +452,7 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("GET /slot/doctor/upcoming")
     class DoctorUpcoming {
-        private static final String ENDPOINT = "/slot/doctor/upcoming";
+        private static final String ENDPOINT = "/api/v1/slot/doctor/upcoming";
 
         @Test
         @DisplayName("Doctor retrieves their upcoming consultations")

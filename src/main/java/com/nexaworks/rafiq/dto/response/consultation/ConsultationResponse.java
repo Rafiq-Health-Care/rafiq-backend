@@ -1,15 +1,18 @@
 package com.nexaworks.rafiq.dto.response.consultation;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.nexaworks.rafiq.dto.response.doctor.DoctorDto;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Full details of a consultation")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public record ConsultationResponse(
 
         @Schema(description = "Unique identifier of the consultation", example = "123e4567-e89b-12d3-a456-426614174000") UUID consultationId,
@@ -32,5 +35,7 @@ public record ConsultationResponse(
 
         @Schema(description = "Cancellation reason, null if not cancelled", example = "Patient is unavailable") String reason,
 
-        @Schema(description = "Whether the consultation was cancelled by the patient", example = "true") boolean cancelByPatient) {
+        @Schema(description = "Whether the consultation was cancelled by the patient", example = "true") boolean cancelByPatient)
+        implements
+            Serializable {
 }

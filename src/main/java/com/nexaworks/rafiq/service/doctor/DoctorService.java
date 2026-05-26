@@ -4,13 +4,14 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.nexaworks.rafiq.dto.client.cloundinary.UploadResults;
 import com.nexaworks.rafiq.dto.request.doctor.DoctorFilter;
 import com.nexaworks.rafiq.dto.request.doctor.EducationItemRequest;
 import com.nexaworks.rafiq.dto.request.doctor.ExperienceItemRequest;
+import com.nexaworks.rafiq.dto.response.common.PageResponse;
+import com.nexaworks.rafiq.dto.response.doctor.DoctorProfileResponse;
 import com.nexaworks.rafiq.dto.response.doctor.DoctorSearchResponse;
 import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.entities.enums.Specialization;
@@ -21,13 +22,13 @@ public interface DoctorService {
 
     void register(Doctor user, Specialization specialization, String description);
 
-    Doctor replaceEducation(List<EducationItemRequest> education);
+    DoctorProfileResponse replaceEducation(List<EducationItemRequest> education);
 
-    Doctor replaceExperience(List<ExperienceItemRequest> experience);
+    DoctorProfileResponse replaceExperience(List<ExperienceItemRequest> experience);
 
-    Doctor setPrice(BigDecimal price);
+    DoctorProfileResponse setPrice(BigDecimal price);
 
-    Doctor getDoctorById(UUID id);
+    DoctorProfileResponse getDoctorById(UUID id);
 
-    Page<DoctorSearchResponse> search(DoctorFilter filter, Pageable pageable);
+    PageResponse<DoctorSearchResponse> search(DoctorFilter filter, Pageable pageable);
 }

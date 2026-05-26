@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 @Tag(name = "Consultation Calls", description = "Manage video/audio calls for consultations")
 @RestController
-@RequestMapping("/consultations/{id}/call")
+@RequestMapping("/api/v1/consultations/{id}/call")
 @RequiredArgsConstructor
 public class ConsultationCallController {
     private final ConsultationCallService consultationCallService;

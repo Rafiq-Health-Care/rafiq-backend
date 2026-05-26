@@ -8,9 +8,7 @@ import java.util.UUID;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.data.domain.Page;
 
-import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationResponse;
 import com.nexaworks.rafiq.dto.response.consultation.PatientConsultationResponse;
 import com.nexaworks.rafiq.dto.response.doctor.DoctorDto;
@@ -33,14 +31,6 @@ public interface ConsultationMapper {
     @Mapping(target = "reason", expression = "java(getCancellationReason(consultation))")
     @Mapping(target = "cancelByPatient", expression = "java(isCancelledByPatient(consultation))")
     ConsultationResponse toDto(Consultation consultation);
-
-    default PageResponse<PatientConsultationResponse> toPatientPageResponse(
-            Page<Consultation> upcoming) {
-        return new PageResponse<>(
-                upcoming.getContent().stream().map(this::toPatientResponse).toList(),
-                upcoming.getNumberOfElements(), upcoming.getSize(), upcoming.getTotalPages(),
-                upcoming.isLast(), upcoming.isFirst());
-    }
 
     @Mapping(target = "consultationId", source = "id")
     @Mapping(target = "doctorName", expression = "java(getDoctorName(consultation))")

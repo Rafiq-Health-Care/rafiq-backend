@@ -1,6 +1,6 @@
 package com.nexaworks.rafiq.service.user;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -47,7 +47,7 @@ public class PasswordServiceImpl implements PasswordService {
     @Transactional
     public void changePassword(ChangePasswordRequest changePasswordRequest) {
         Token token = tokenService.getToken(changePasswordRequest.accessToken());
-        if (token.getExpiryDate().isBefore(Instant.now())) {
+        if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
             throw new TokenInvalidException("Invalid Access Token");
         }
         User user = token.getUser();

@@ -21,8 +21,8 @@ public class SpecializationControllerIntegrationTest extends BaseIntegrationTest
     @Test
     @DisplayName("Get Specialization List")
     public void getSpecializationList() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/specialization")).andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/specialization"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(greaterThan(0)))
                 .andExpect(jsonPath("$[0]").isString());
     }

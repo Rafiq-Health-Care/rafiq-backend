@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.medicine.DrugSearchResponse;
-import com.nexaworks.rafiq.mapper.DrugMapper;
-import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.service.medicine.DrugService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,13 +19,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/drugs")
+@RequestMapping("/api/v1/drugs")
 @RequiredArgsConstructor
 @Tag(name = "Drug Search", description = "Endpoints for searching drugs in the medication database")
 public class DrugController {
     private final DrugService drugService;
-    private final PageMapper pageMapper;
-    private final DrugMapper drugMapper;
+
     @GetMapping
     @Operation(summary = "Search drugs", description = "Searches the drug database by name. Returns paginated results for medication lookup.")
     @ApiResponse(responseCode = "200", description = "Drugs retrieved successfully", content = @Content(schema = @Schema(implementation = PageResponse.class)))
@@ -36,7 +33,7 @@ public class DrugController {
             @RequestParam(name = "drug") String drugName,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size) {
-        return ResponseEntity.ok().body(pageMapper
-                .mapToDrugSearchResponsePage(drugService.search(drugName, page, size), drugMapper));
+        PageResponse<DrugSearchResponse> response = drugService.search(drugName, page, size);
+        return ResponseEntity.ok().body(response);
     }
 }

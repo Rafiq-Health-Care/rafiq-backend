@@ -1,6 +1,6 @@
 package com.nexaworks.rafiq.service.user;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -94,7 +94,7 @@ public class TokenServiceImpl implements TokenService {
         Token token = tokenRepository.findByToken(otp)
                 .orElseThrow(() -> new TokenNotFoundException("Invalid Token"));
         if (!token.getUser().getEmail().equals(email)
-                || token.getExpiryDate().isBefore(Instant.now())) {
+                || token.getExpiryDate().isBefore(LocalDateTime.now())) {
             throw new TokenInvalidException("Invalid OTP");
         }
         return token.getUser();
@@ -123,8 +123,8 @@ public class TokenServiceImpl implements TokenService {
             throw new UserException(
                     "You have reached the maximum number of OTPs allowed. Please try again later.");
         }
-        tokens.stream().filter(token -> token.getExpiryDate().isAfter(Instant.now()))
-                .forEach(token -> token.setExpiryDate(Instant.now()));
+        tokens.stream().filter(token -> token.getExpiryDate().isAfter(LocalDateTime.now()))
+                .forEach(token -> token.setExpiryDate(LocalDateTime.now()));
 
         String otp = generateOtpToken(user.get());
         log.info("Generated new OTP for {}", user.get().getEmail());
@@ -134,7 +134,7 @@ public class TokenServiceImpl implements TokenService {
 
     private Token buildToken(User user, String token, TokenType tokenType, Long EXPIRATION) {
         return Token.builder().token(token).user(user).tokenType(tokenType)
-                .expiryDate(Instant.now().plusSeconds(EXPIRATION)).build();
+                .expiryDate(LocalDateTime.now().plusSeconds(EXPIRATION)).build();
     }
 
 }

@@ -1,6 +1,6 @@
 package com.nexaworks.rafiq.service.authentication;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.security.authentication.AuthenticationManager;
@@ -54,7 +54,7 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse refresh(HttpServletResponse response, HttpServletRequest request) {
         Token token = tokenService.getToken(authSessionManager.getCookie(request, "refreshToken"));
 
-        if (token.getExpiryDate().isBefore(Instant.now())) {
+        if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
             throw new TokenInvalidException("Invalid Refresh Token");
         }
         User user = token.getUser();

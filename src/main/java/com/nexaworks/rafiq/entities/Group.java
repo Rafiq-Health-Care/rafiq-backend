@@ -2,13 +2,8 @@ package com.nexaworks.rafiq.entities;
 
 import java.util.List;
 
-import com.nexaworks.rafiq.entities.enums.Color;
-
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Getter
@@ -16,15 +11,15 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
+@ToString(exclude = {"medicines", "patient"})
 @Entity
-@Table(name = "groups")
+@Table(name = "groups", indexes = {@Index(name = "patient_idx", columnList = "patient_id"),
+        @Index(name = "group_idx", columnList = "id")})
 public class Group extends BaseEntity {
     private String name;
     private String description;
-    private String iconPublicId;
-    private String iconUrl;
-    @Enumerated(EnumType.STRING)
-    private Color color;
+    private String iconId;
+    private String color;
     @OneToMany(mappedBy = "group", cascade = {CascadeType.REMOVE, CascadeType.PERSIST,
             CascadeType.MERGE}, fetch = FetchType.LAZY)
     private List<Medicine> medicines;

@@ -20,6 +20,12 @@ import com.nexaworks.rafiq.entities.ConsultationSummary;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.Specialization;
+import com.nexaworks.rafiq.exception.custom.auth.AuthorizationException;
+import com.nexaworks.rafiq.exception.custom.consultation.ConsultationInvalidException;
+import com.nexaworks.rafiq.exception.custom.consultation.ConsultationNotFoundException;
+import com.nexaworks.rafiq.exception.custom.consultation.ConsultationSummaryIsAlreadyCreated;
+import com.nexaworks.rafiq.exception.custom.consultation.ConsultationSummaryNotFoundException;
+import com.nexaworks.rafiq.exception.custom.general.InvalidRequestException;
 import com.nexaworks.rafiq.mapper.ConsultationSummaryMapper;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.repository.ConsultationSummaryRepository;
@@ -51,27 +57,31 @@ public class ConsultationSummaryServiceImpl implements ConsultationSummaryServic
         User user = authService.getAuthenticateUser();
         UUID doctorId = user.getId();
         Consultation consultation = consultationRepository.findById(request.consultationId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Consultation not found"));
-        if (consultation.getStatus() != ConsultationStatus.COMPLETED) {
-            throw new IllegalArgumentException(
-                    "Consultation must be completed before adding a summary");
-        }
-        if (!consultation.getDoctor().getId().equals(doctorId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "You are not the doctor for this consultation");
-        }
-        if (consultation.getPatient() == null) {
-            throw new IllegalArgumentException("Consultation has no patient");
-        }
-        if (consultationSummaryRepository.findByConsultationId(consultation.getId()).isPresent()) {
-            throw new IllegalArgumentException("Summary already exists for this consultation");
-        }
+                .orElseThrow(() -> new ConsultationNotFoundException("Consultation not found"));
+
+        validateConsultation(consultation, doctorId);
+
         ConsultationSummary entity = consultationSummaryMapper.toEntity(request);
-        entity.setDoctor(consultation.getDoctor());
         entity.setPatient(consultation.getPatient());
         entity.setConsultation(consultation);
         return consultationSummaryMapper.toResponse(consultationSummaryRepository.save(entity));
+    }
+
+    private void validateConsultation(Consultation consultation, UUID doctorId) {
+        if (consultation.getStatus() != ConsultationStatus.COMPLETED) {
+            throw new ConsultationInvalidException(
+                    "Consultation must be completed before adding a summary");
+        }
+        if (!consultation.getDoctor().getId().equals(doctorId)) {
+            throw new AuthorizationException("You are not the doctor for this consultation");
+        }
+        if (consultation.getPatient() == null) {
+            throw new ConsultationInvalidException("Consultation has no patient");
+        }
+        if (consultationSummaryRepository.findByConsultationId(consultation.getId()).isPresent()) {
+            throw new ConsultationSummaryIsAlreadyCreated(
+                    "Summary already exists for this consultation");
+        }
     }
 
     @Override
@@ -87,12 +97,10 @@ public class ConsultationSummaryServiceImpl implements ConsultationSummaryServic
     @Transactional
     public ConsultationSummaryResponse update(UUID id, UpdateConsultationSummaryRequest request) {
         User user = authService.getAuthenticateUser();
-        ConsultationSummary summary = consultationSummaryRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Consultation summary not found"));
+        ConsultationSummary summary = consultationSummaryRepository.findById(id).orElseThrow(
+                () -> new ConsultationSummaryNotFoundException("Consultation summary not found"));
         if (!summary.getDoctor().getId().equals(user.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Only the authoring doctor can update this summary");
+            throw new AuthorizationException("Only the authoring doctor can update this summary");
         }
         consultationSummaryMapper.updateEntity(request, summary);
         return consultationSummaryMapper.toResponse(consultationSummaryRepository.save(summary));
@@ -103,14 +111,12 @@ public class ConsultationSummaryServiceImpl implements ConsultationSummaryServic
     public void delete(UUID id) {
         User user = authService.getAuthenticateUser();
         UUID userId = user.getId();
-        ConsultationSummary summary = consultationSummaryRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Consultation summary not found"));
+        ConsultationSummary summary = consultationSummaryRepository.findById(id).orElseThrow(
+                () -> new ConsultationSummaryNotFoundException("Consultation summary not found"));
         boolean doctor = summary.getDoctor().getId().equals(userId);
         boolean patient = summary.getPatient().getId().equals(userId);
         if (!doctor && !patient) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Only the patient or authoring doctor can delete this summary");
+            throw new AuthorizationException("Only the authoring doctor can update this summary");
         }
         summary.delete(String.valueOf(userId));
         consultationSummaryRepository.save(summary);
@@ -125,10 +131,10 @@ public class ConsultationSummaryServiceImpl implements ConsultationSummaryServic
         boolean doctorRole = hasAuthority(user, "ROLE_DOCTOR");
 
         if (patientIdParam != null && patientRole) {
-            throw new IllegalArgumentException("patientId must not be sent by patients");
+            throw new InvalidRequestException("patientId must not be sent by patients");
         }
         if (doctorRole && patientIdParam == null) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+            throw new AuthorizationException(
                     "Doctors must provide patientId to list consultation summaries");
         }
         ConsultationSummaryFilter listFilter = new ConsultationSummaryFilter(specialization);
@@ -142,23 +148,21 @@ public class ConsultationSummaryServiceImpl implements ConsultationSummaryServic
             boolean gateOk = consultationRepository.existsByDoctorAndPatientAndStatusNotIn(
                     user.getId(), patientIdParam, LIST_GATE_EXCLUDED_STATUSES);
             if (!gateOk) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                        "No qualifying consultation with this patient");
+                throw new AuthorizationException("No qualifying consultation with this patient");
             }
             Specification<ConsultationSummary> spec = ConsultationSummarySpecification
                     .filter(listFilter, patientIdParam);
             return consultationSummaryRepository.findAll(spec, pageable)
                     .map(consultationSummaryMapper::toResponse);
         }
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unsupported role");
+        throw new AuthorizationException("Unsupported role");
     }
 
     private void assertParticipantOrThrow(ConsultationSummary summary) {
         UUID userId = authService.getAuthenticateUserId();
         if (!summary.getPatient().getId().equals(userId)
                 && !summary.getDoctor().getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "You cannot access this consultation summary");
+            throw new AuthorizationException("You cannot access this consultation summary");
         }
     }
 }

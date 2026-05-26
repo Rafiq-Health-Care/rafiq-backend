@@ -1,0 +1,50 @@
+CREATE TABLE IF NOT EXISTS doctor (
+    id UUID PRIMARY KEY,
+    description VARCHAR(1000),
+    personal_photo VARCHAR(255),
+    national_id VARCHAR(255),
+    acceptance_status VARCHAR(255) DEFAULT 'IN_REVIEW',
+    specialization VARCHAR(255),
+    price NUMERIC(10, 2) NOT NULL DEFAULT 1000,
+    biography TEXT,
+    education JSONB,
+    experience JSONB,
+    experience_years INTEGER NOT NULL DEFAULT 0,
+    rating NUMERIC(3, 2) NOT NULL DEFAULT 5,
+    balance NUMERIC(10, 2) NOT NULL DEFAULT 0,
+    CONSTRAINT chk_doctor_acceptance_status CHECK (acceptance_status IN ('IN_REVIEW', 'VERIFIED', 'REJECTED') OR acceptance_status IS NULL),
+    CONSTRAINT chk_doctor_specialization CHECK (
+        specialization IN (
+            'INTERNAL_MEDICINE', 'CARDIOLOGY', 'ENDOCRINOLOGY', 'GASTROENTEROLOGY', 'HEMATOLOGY',
+            'INFECTIOUS_DISEASE', 'NEPHROLOGY', 'ONCOLOGY', 'PULMONOLOGY', 'RHEUMATOLOGY',
+            'GENERAL_SURGERY', 'CARDIAC_SURGERY', 'COLORECTAL_SURGERY', 'NEUROSURGERY',
+            'ORTHOPEDIC_SURGERY', 'PLASTIC_SURGERY', 'THORACIC_SURGERY', 'TRANSPLANT_SURGERY',
+            'VASCULAR_SURGERY', 'UROLOGICAL_SURGERY', 'OPHTHALMOLOGY', 'OTOLARYNGOLOGY', 'DENTISTRY',
+            'ORAL_MAXILLOFACIAL_SURGERY', 'NEUROLOGY', 'PSYCHIATRY', 'PSYCHOLOGY', 'OBSTETRICS',
+            'GYNECOLOGY', 'OBSTETRICS_GYNECOLOGY', 'PEDIATRICS', 'PEDIATRIC_SURGERY', 'NEONATOLOGY',
+            'REPRODUCTIVE_MEDICINE', 'DERMATOLOGY', 'ORTHOPEDICS', 'RHEUMATOLOGY_IMMUNOLOGY',
+            'RADIOLOGY', 'NUCLEAR_MEDICINE', 'PATHOLOGY', 'CLINICAL_LABORATORY', 'EMERGENCY_MEDICINE',
+            'CRITICAL_CARE', 'ANESTHESIOLOGY', 'PAIN_MANAGEMENT', 'FAMILY_MEDICINE', 'GENERAL_PRACTICE',
+            'GERIATRICS', 'IMMUNOLOGY', 'ALLERGY', 'OCCUPATIONAL_MEDICINE', 'SPORTS_MEDICINE',
+            'PALLIATIVE_CARE', 'PHYSICAL_MEDICINE', 'REHABILITATION', 'VENEREOLOGY',
+            'TROPICAL_MEDICINE', 'AVIATION_MEDICINE', 'FORENSIC_MEDICINE'
+        ) OR specialization IS NULL
+    ),
+    CONSTRAINT fk_doctor_user FOREIGN KEY (id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'fk_social_links_doctor'
+    ) THEN
+        ALTER TABLE social_links
+            ADD CONSTRAINT fk_social_links_doctor FOREIGN KEY (doctor_id) REFERENCES doctor (id) ON DELETE CASCADE;
+    END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_doctor_specialization ON doctor (specialization);
+CREATE INDEX IF NOT EXISTS idx_doctor_id ON doctor (id);
+CREATE INDEX IF NOT EXISTS idx_doctor_acceptance_status ON doctor (acceptance_status);
