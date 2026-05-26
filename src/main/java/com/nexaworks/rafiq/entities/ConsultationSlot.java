@@ -24,7 +24,7 @@ import lombok.experimental.SuperBuilder;
         @Index(name = "time_idx", columnList = "start_time,end_time")})
 public class ConsultationSlot extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "doctor_id", nullable = false)
     private Doctor doctor;
 
