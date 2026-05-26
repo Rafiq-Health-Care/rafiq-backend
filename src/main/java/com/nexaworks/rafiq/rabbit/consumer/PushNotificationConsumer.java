@@ -34,14 +34,13 @@ public class PushNotificationConsumer {
         this.pushDLQProcessor = pushDLQProcessor;
     }
 
-    @RabbitListener(queues = SMS_NOTIFICATION_QUEUE)
+    @RabbitListener(queues = PUSH_NOTIFICATION_QUEUE)
     public void handleSMSNotification(PushNotification pushNotification, Channel channel,
             @Header(AmqpHeaders.DELIVERY_TAG) long tag, @Headers Map<String, Object> headers)
             throws IOException {
-        log.info("Received SMS notification: {}", pushNotification);
+        log.info("Received push notification: {}", pushNotification);
         try {
             notificationService.sendNotification(pushNotification);
-            channel.basicAck(tag, false);
         } catch (Exception e) {
             log.error("Failed to send email notification", e);
             int currentDeathCount = getDeathCount(headers);

@@ -7,11 +7,18 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @Component
 public class TransactionUtils {
     public void afterCommit(Runnable action) {
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                action.run();
-            }
-        });
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionSynchronizationManager
+                    .registerSynchronization(new TransactionSynchronization() {
+                        @Override
+                        public void afterCompletion(int status) {
+                            if (status == TransactionSynchronization.STATUS_COMMITTED) {
+                                action.run();
+                            }
+                        }
+                    });
+        } else {
+            action.run();
+        }
     }
 }
