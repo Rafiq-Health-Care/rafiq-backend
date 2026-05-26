@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class EmailNotificationConfiguration {
+public class NotificationConfiguration {
 
     @Bean(name = "emailDLQ")
     public Queue emailDLQ() {
@@ -22,6 +22,7 @@ public class EmailNotificationConfiguration {
     public Queue pushDLQ() {
         return new Queue(PUSH_DLQ, true);
     }
+
 
     @Bean(name = "notificationDLQExchange")
     public DirectExchange notificationDLQExchange() {
@@ -92,5 +93,22 @@ public class EmailNotificationConfiguration {
     public Binding otpBinding(@Qualifier("notificationExchange") TopicExchange exchange,
             @Qualifier("otpQueue") Queue queue) {
         return BindingBuilder.bind(queue).to(exchange).with(OTP_ROUTING_KEY);
+    }
+    @Bean(name = "emailretry")
+    public Queue emailRetry() {
+        return QueueBuilder.durable(EMAIL_RETRY_QUEUE)
+                .withArgument("x-dead-letter-exchange", NOTIFICATION_EXCHANGE)
+                .withArgument("x-dead-letter-routing-key", ROUTING_KEY_EMAIL)
+                .ttl(60000)
+                .build();
+    }
+    @Bean(name = "retry-exchange")
+    public DirectExchange retryExchange() {
+        return new DirectExchange(NOTIFICATION_RETRY_EXCHANGE);
+    }
+    @Bean(name = "emailretryBinding")
+    public Binding emailretryBinding(@Qualifier("retry-exchange") DirectExchange exchange,
+            @Qualifier("emailretry") Queue queue) {
+        return BindingBuilder.bind(queue).to(exchange).with(EMAIL_RETRY_ROUTING_KEY);
     }
 }
