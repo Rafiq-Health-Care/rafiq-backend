@@ -1,7 +1,5 @@
 package com.nexaworks.rafiq.rabbit.consumer;
 
-import static com.nexaworks.rafiq.rabbit.constant.RabbitMQConstant.NOTIFICATION_DLQ_EXCHANGE;
-
 import java.io.IOException;
 import java.time.Instant;
 import java.util.HashMap;
@@ -66,7 +64,7 @@ public class ConsumerUtils {
         return DLQAction.DISCARD;
     }
     static void handleFailed(Channel channel, @Headers Map<String, Object> headers, Exception e,
-            int newDeathCount, String notificationQueue, String routingKeyPush, String string,
+            int newDeathCount, String notificationQueue, String routingKeyPush, String exchange,
             byte[] messageBytes) throws IOException {
         Map<String, Object> newHeaders = new HashMap<>(headers);
         newHeaders.put("x-retry-count", newDeathCount);
@@ -74,7 +72,7 @@ public class ConsumerUtils {
         newHeaders.put("x-last-redriven-at", Instant.now().toString());
         newHeaders.put("x-original-queue", notificationQueue);
 
-        channel.basicPublish(NOTIFICATION_DLQ_EXCHANGE, routingKeyPush,
+        channel.basicPublish(exchange, routingKeyPush,
                 new AMQP.BasicProperties.Builder().headers(newHeaders).deliveryMode(2).build(),
                 messageBytes);
     }

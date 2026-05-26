@@ -50,7 +50,8 @@ public class EmailNotificationConsumer {
                     newDeathCount, e.getMessage());
 
             handleFailed(channel, headers, e, newDeathCount, EMAIL_NOTIFICATION_QUEUE,
-                    ROUTING_KEY_EMAIL, notification.toString(), notification.toString().getBytes());
+                    ROUTING_KEY_EMAIL, NOTIFICATION_DLQ_EXCHANGE,
+                    notification.toString().getBytes());
 
         }
         channel.basicAck(tag, false);

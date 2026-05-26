@@ -45,7 +45,7 @@ public class PushNotificationConsumer {
             log.warn("[PUSH-DLQ] Transient failure, redriving to retry queue (attempt {}): {}",
                     newDeathCount, e.getMessage());
             handleFailed(channel, headers, e, newDeathCount, PUSH_NOTIFICATION_QUEUE,
-                    ROUTING_KEY_PUSH, pushNotification.toString(),
+                    ROUTING_KEY_PUSH, NOTIFICATION_DLQ_EXCHANGE,
                     pushNotification.toString().getBytes());
         }
         channel.basicAck(tag, false);
