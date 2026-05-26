@@ -4,6 +4,8 @@
 spring:
   application:
     name: rafiq
+  profiles:
+    active: dev
   # --- Datasource -----------------------------------------------------------
   datasource:
     url: ${DATASOURCE_URL}
@@ -20,7 +22,7 @@ spring:
   # --- JPA / Hibernate ------------------------------------------------------
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     defer-datasource-initialization: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
@@ -197,3 +199,6 @@ sentry:
   dsn: https://ae1a1982e94b88ae5230753a1b2767b7@o4511429007572992.ingest.us.sentry.io/4511429008752640
   environment: dev
   tracesSampleRate: 1.0
+app:
+  firebase:
+    config-file: firebase.json
