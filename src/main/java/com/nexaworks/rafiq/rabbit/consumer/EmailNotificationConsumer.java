@@ -1,8 +1,11 @@
 package com.nexaworks.rafiq.rabbit.consumer;
 
 import static com.nexaworks.rafiq.rabbit.constant.RabbitMQConstant.*;
+import static com.nexaworks.rafiq.rabbit.consumer.ConsumerUtils.getDeathCount;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -15,6 +18,7 @@ import org.springframework.stereotype.Component;
 import com.nexaworks.rafiq.rabbit.dlqprocessor.EmailDLQProcessor;
 import com.nexaworks.rafiq.rabbit.notificaiton.EmailNotification;
 import com.nexaworks.rafiq.service.notification.NotificationService;
+import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 
 import lombok.extern.slf4j.Slf4j;
@@ -34,14 +38,45 @@ public class EmailNotificationConsumer {
 
     @RabbitListener(queues = EMAIL_NOTIFICATION_QUEUE)
     public void handleEmailNotification(EmailNotification notification, Channel channel,
-            @Header(AmqpHeaders.DELIVERY_TAG) long tag) throws IOException {
-        handle(notification, channel, tag);
+            @Header(AmqpHeaders.DELIVERY_TAG) long tag, @Headers Map<String, Object> headers)
+            throws IOException {
+        try {
+            notificationService.sendNotification(notification);
+            channel.basicAck(tag, false);
+        } catch (Exception e) {
+            log.error("Failed to send email notification", e);
+            int currentDeathCount = getDeathCount(headers);
+            int newDeathCount = currentDeathCount + 1;
+
+            log.warn("[EMAIL-DLQ] Transient failure, redriving to retry queue (attempt {}): {}",
+                    newDeathCount, e.getMessage());
+
+            Map<String, Object> newHeaders = new HashMap<>(headers);
+            newHeaders.put("x-retry-count", newDeathCount);
+            newHeaders.put("x-last-failure-reason", e.getMessage());
+            newHeaders.put("x-last-redriven-at", Instant.now().toString());
+            newHeaders.put("x-original-queue", EMAIL_NOTIFICATION_QUEUE);
+
+            channel.basicPublish(NOTIFICATION_DLQ_EXCHANGE, ROUTING_KEY_EMAIL,
+                    new AMQP.BasicProperties.Builder().headers(newHeaders).deliveryMode(2).build(),
+                    notification.toString().getBytes());
+
+        }
+        channel.basicAck(tag, false);
     }
 
     @RabbitListener(queues = OTP_QUEUE)
     public void handleOtpNotification(EmailNotification notification, Channel channel,
             @Header(AmqpHeaders.DELIVERY_TAG) long tag) throws IOException {
-        handle(notification, channel, tag);
+        log.info("Received OTP notification: {}", notification);
+        try {
+            notificationService.sendNotification(notification);
+            channel.basicAck(tag, false);
+        } catch (Exception e) {
+            log.error("Failed to send OTP notification {}", e.getMessage());
+            channel.basicNack(tag, false, false);
+        }
+
     }
     @RabbitListener(queues = {EMAIL_DLQ})
     public void handleEmailDLQ(EmailNotification emailNotification, Channel channel,
@@ -53,17 +88,6 @@ public class EmailNotificationConsumer {
         emailDLQProcessor.processMessage(failureReason, emailNotification, channel, headers);
 
         channel.basicAck(tag, false);
-    }
-
-    private void handle(EmailNotification emailNotification, Channel channel, long tag)
-            throws IOException {
-        try {
-            notificationService.sendNotification(emailNotification);
-            channel.basicAck(tag, false);
-        } catch (Exception e) {
-            log.error("Failed to send email notification", e);
-            channel.basicNack(tag, false, false);
-        }
     }
 
 }
