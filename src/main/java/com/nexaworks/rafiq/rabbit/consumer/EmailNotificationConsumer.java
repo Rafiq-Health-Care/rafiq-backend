@@ -2,10 +2,9 @@ package com.nexaworks.rafiq.rabbit.consumer;
 
 import static com.nexaworks.rafiq.rabbit.constant.RabbitMQConstant.*;
 import static com.nexaworks.rafiq.rabbit.consumer.ConsumerUtils.getDeathCount;
+import static com.nexaworks.rafiq.rabbit.consumer.ConsumerUtils.handleFailed;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Component;
 import com.nexaworks.rafiq.rabbit.dlqprocessor.EmailDLQProcessor;
 import com.nexaworks.rafiq.rabbit.notificaiton.EmailNotification;
 import com.nexaworks.rafiq.service.notification.NotificationService;
-import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 
 import lombok.extern.slf4j.Slf4j;
@@ -51,15 +49,8 @@ public class EmailNotificationConsumer {
             log.warn("[EMAIL-DLQ] Transient failure, redriving to retry queue (attempt {}): {}",
                     newDeathCount, e.getMessage());
 
-            Map<String, Object> newHeaders = new HashMap<>(headers);
-            newHeaders.put("x-retry-count", newDeathCount);
-            newHeaders.put("x-last-failure-reason", e.getMessage());
-            newHeaders.put("x-last-redriven-at", Instant.now().toString());
-            newHeaders.put("x-original-queue", EMAIL_NOTIFICATION_QUEUE);
-
-            channel.basicPublish(NOTIFICATION_DLQ_EXCHANGE, ROUTING_KEY_EMAIL,
-                    new AMQP.BasicProperties.Builder().headers(newHeaders).deliveryMode(2).build(),
-                    notification.toString().getBytes());
+            handleFailed(channel, headers, e, newDeathCount, EMAIL_NOTIFICATION_QUEUE,
+                    ROUTING_KEY_EMAIL, notification.toString(), notification.toString().getBytes());
 
         }
         channel.basicAck(tag, false);
