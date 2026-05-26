@@ -23,7 +23,6 @@ public class NotificationConfiguration {
         return new Queue(PUSH_DLQ, true);
     }
 
-
     @Bean(name = "notificationDLQExchange")
     public DirectExchange notificationDLQExchange() {
         return new DirectExchange(NOTIFICATION_DLQ_EXCHANGE);
@@ -98,9 +97,13 @@ public class NotificationConfiguration {
     public Queue emailRetry() {
         return QueueBuilder.durable(EMAIL_RETRY_QUEUE)
                 .withArgument("x-dead-letter-exchange", NOTIFICATION_EXCHANGE)
-                .withArgument("x-dead-letter-routing-key", ROUTING_KEY_EMAIL)
-                .ttl(60000)
-                .build();
+                .withArgument("x-dead-letter-routing-key", ROUTING_KEY_EMAIL).ttl(60000).build();
+    }
+    @Bean("pushretry")
+    public Queue pushRetry() {
+        return QueueBuilder.durable(PUSH_RETRY_QUEUE)
+                .withArgument("x-dead-letter-exchange", NOTIFICATION_EXCHANGE)
+                .withArgument("x-dead-letter-routing-key", ROUTING_KEY_PUSH).ttl(60000).build();
     }
     @Bean(name = "retry-exchange")
     public DirectExchange retryExchange() {
@@ -110,5 +113,10 @@ public class NotificationConfiguration {
     public Binding emailretryBinding(@Qualifier("retry-exchange") DirectExchange exchange,
             @Qualifier("emailretry") Queue queue) {
         return BindingBuilder.bind(queue).to(exchange).with(EMAIL_RETRY_ROUTING_KEY);
+    }
+    @Bean(name = "pushretryBinding")
+    public Binding pushretryBinding(@Qualifier("retry-exchange") DirectExchange exchange,
+            @Qualifier("pushretry") Queue queue) {
+        return BindingBuilder.bind(queue).to(exchange).with(PUSH_RETRY_ROUTING_KEY);
     }
 }
