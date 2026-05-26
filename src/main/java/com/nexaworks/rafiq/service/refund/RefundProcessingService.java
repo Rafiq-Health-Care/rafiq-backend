@@ -63,8 +63,8 @@ public class RefundProcessingService implements IRefundProcessingService {
         refund.setStatus(RefundStatus.FAILED);
         refundRepository.save(refund);
         log.info("Refund {} marked as FAILED", refundId);
-        transactionUtils.afterCommit(() -> refundEventManager.publishRefundFailedNotification(
-                refund.getId(), refund.getPatient().getNotificationToken()));
+        transactionUtils.afterCommit(() -> refundEventManager
+                .publishRefundFailedNotification(refund.getId(), refund.getPatient()));
     }
 
     private @NonNull RefundRequest getRefundRequest(String refundId) {

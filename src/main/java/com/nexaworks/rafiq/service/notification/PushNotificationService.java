@@ -24,17 +24,33 @@ public class PushNotificationService implements NotificationService<PushNotifica
             FirebaseMessagingException.class}, backoff = @Backoff(delay = 10000))
     public void sendNotification(PushNotification notificationDetails)
             throws FirebaseMessagingException {
-        log.info("Sending SMS notification");
+
+        log.info("Sending push notification");
+
+        if (notificationDetails.ft() == null || notificationDetails.ft().isBlank()) {
+
+            log.warn("Skipping push notification because token is missing. NotificationId={}",
+                    notificationDetails.notificationId());
+
+            return;
+        }
+
         try {
+
             Message message = Message.builder().setToken(notificationDetails.ft())
                     .setNotification(
                             Notification.builder().setTitle(notificationDetails.action().getTitle())
                                     .setBody(notificationDetails.body()).build())
                     .putAllData(notificationDetails.data()).build();
+
             String response = FirebaseMessaging.getInstance().send(message);
+
             log.info("Push notification response: {}", response);
+
         } catch (FirebaseMessagingException e) {
+
             log.error("Failed to send push notification: {}", e.getMessage());
+
             throw e;
         }
     }

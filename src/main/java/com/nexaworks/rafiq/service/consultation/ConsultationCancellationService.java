@@ -10,6 +10,8 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.nexaworks.rafiq.dto.event.ConsultationCancelled;
 import com.nexaworks.rafiq.entities.CancellationLog;
@@ -59,7 +61,7 @@ public class ConsultationCancellationService implements IConsultationCancellatio
             consultationRepository.save(consultation);
             log.info("Consultation cancelled {} by {}", consultation.getId(),
                     currentUser.getEmail());
-            if (cancelledByPatient) {
+            if (!cancelledByPatient) {
                 transactionUtils.afterCommit(() -> {
                     notificationManager.sendDoctorCancelledEvent(consultation);
                 });
@@ -72,16 +74,23 @@ public class ConsultationCancellationService implements IConsultationCancellatio
         log.info("Consultation cancelled {} by {}", consultation.getId(), currentUser.getEmail());
 
         if (consultation.getPayment() == null) {
-            transactionUtils.afterCommit(() -> notify(id, cancelledByPatient, consultation));
             return;
         }
 
         UUID refundId = refundService.refund(consultation, !cancelledByPatient);
 
-        transactionUtils.afterCommit(() -> {
-            eventManager.publishRefundRequestEvent(refundId);
-            notify(id, cancelledByPatient, consultation);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                log.info("Refund request sent for consultation {}", consultation.getId());
+                eventManager.publishRefundRequestEvent(refundId);
+                ConsultationCancellationService.this.notify(id, cancelledByPatient, consultation);
+            }
         });
+        // transactionUtils.afterCommit(() -> {
+        //// eventManager.publishRefundRequestEvent(refundId);
+        // notify(id, cancelledByPatient, consultation);
+        // });
     }
 
     private @NonNull Consultation validateAndGetConsultation(UUID id, User currentUser) {
@@ -100,10 +109,10 @@ public class ConsultationCancellationService implements IConsultationCancellatio
         return consultation;
     }
 
-    private void notify(UUID id, boolean cancelledByPatient, Consultation consultation) {
+    public void notify(UUID id, boolean cancelledByPatient, Consultation consultation) {
         messagingTemplate.convertAndSend("/topic/consultation",
                 new ConsultationCancelled(id, SlotStatus.AVAILABLE));
-        if (cancelledByPatient) {
+        if (!cancelledByPatient) {
             notificationManager.sendPatientCancelledEvent(consultation);
         } else {
             notificationManager.sendDoctorCancelledEvent(consultation);

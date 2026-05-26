@@ -1,8 +1,15 @@
 package com.nexaworks.rafiq.rabbit.consumer;
 
+import java.io.IOException;
+import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.messaging.handler.annotation.Headers;
+
 import com.nexaworks.rafiq.rabbit.enums.DLQAction;
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
 
 public class ConsumerUtils {
     public static int getDeathCount(Map<String, Object> headers) {
@@ -55,5 +62,18 @@ public class ConsumerUtils {
             return DLQAction.ALERT;
 
         return DLQAction.DISCARD;
+    }
+    public static void handleFailed(Channel channel, @Headers Map<String, Object> headers, String e,
+            int newDeathCount, String notificationQueue, String routingKeyPush, String exchange,
+            byte[] messageBytes) throws IOException {
+        Map<String, Object> newHeaders = new HashMap<>(headers);
+        newHeaders.put("x-retry-count", newDeathCount);
+        newHeaders.put("x-last-failure-reason", e);
+        newHeaders.put("x-last-redriven-at", Instant.now().toString());
+        newHeaders.put("x-original-queue", notificationQueue);
+
+        channel.basicPublish(exchange, routingKeyPush,
+                new AMQP.BasicProperties.Builder().headers(newHeaders).deliveryMode(2).build(),
+                messageBytes);
     }
 }
