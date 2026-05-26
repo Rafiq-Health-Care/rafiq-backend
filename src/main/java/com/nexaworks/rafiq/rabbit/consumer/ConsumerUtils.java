@@ -63,12 +63,12 @@ public class ConsumerUtils {
 
         return DLQAction.DISCARD;
     }
-    static void handleFailed(Channel channel, @Headers Map<String, Object> headers, Exception e,
+    public static void handleFailed(Channel channel, @Headers Map<String, Object> headers, String e,
             int newDeathCount, String notificationQueue, String routingKeyPush, String exchange,
             byte[] messageBytes) throws IOException {
         Map<String, Object> newHeaders = new HashMap<>(headers);
         newHeaders.put("x-retry-count", newDeathCount);
-        newHeaders.put("x-last-failure-reason", e.getMessage());
+        newHeaders.put("x-last-failure-reason", e);
         newHeaders.put("x-last-redriven-at", Instant.now().toString());
         newHeaders.put("x-original-queue", notificationQueue);
 

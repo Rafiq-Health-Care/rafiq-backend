@@ -49,7 +49,7 @@ public class EmailNotificationConsumer {
             log.warn("[EMAIL-DLQ] Transient failure, redriving to retry queue (attempt {}): {}",
                     newDeathCount, e.getMessage());
 
-            handleFailed(channel, headers, e, newDeathCount, EMAIL_NOTIFICATION_QUEUE,
+            handleFailed(channel, headers, e.getMessage(), newDeathCount, EMAIL_NOTIFICATION_QUEUE,
                     ROUTING_KEY_EMAIL, NOTIFICATION_DLQ_EXCHANGE,
                     notification.toString().getBytes());
 
