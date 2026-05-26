@@ -52,7 +52,7 @@ public class RefundProcessingService implements IRefundProcessingService {
         log.info("Refund {} completed — payment {} marked as REFUNDED", refundId,
                 refund.getPayment().getId());
         transactionUtils.afterCommit(() -> refundEventManager.publishRefundSucceededNotification(
-                refund.getId(), refund.getPatient().getNotificationToken(), refund.getAmount()));
+                refund.getId(), refund.getPatient(), refund.getAmount()));
     }
 
     @Override
