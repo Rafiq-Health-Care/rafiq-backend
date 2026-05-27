@@ -16,15 +16,10 @@ import com.nexaworks.rafiq.dto.response.doctor.DoctorSearchResponse;
 import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.entities.enums.Specialization;
 
-public interface DoctorService {
+public interface IDoctorPersistenceService {
 
-    void updateNationalId(UploadResults uploadResults, UUID uuid);
 
     void register(Doctor user, Specialization specialization, String description);
-
-    DoctorProfileResponse replaceEducation(List<EducationItemRequest> education);
-
-    DoctorProfileResponse replaceExperience(List<ExperienceItemRequest> experience);
 
     DoctorProfileResponse setPrice(BigDecimal price);
 

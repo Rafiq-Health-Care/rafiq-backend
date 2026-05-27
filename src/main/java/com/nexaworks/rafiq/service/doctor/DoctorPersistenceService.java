@@ -35,19 +35,13 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class DoctorServiceImpl implements DoctorService {
+public class DoctorPersistenceService implements IDoctorPersistenceService {
     private final DoctorRepository doctorRepository;
     private final AuthService authService;
     private final DoctorMapper doctorMapper;
     private final DoctorSearchViewRepository doctorSearchViewRepository;
 
-    @Override
-    @Transactional
-    public void updateNationalId(UploadResults uploadResults, UUID doctorId) {
-        Doctor doctor = doctorRepository.findById(doctorId).orElseThrow(
-                () -> new UserNotFoundException("Doctor not found with id: " + doctorId));
-        doctor.setNationalId(uploadResults.url());
-    }
+
 
     @Override
     @Transactional
@@ -58,47 +52,6 @@ public class DoctorServiceImpl implements DoctorService {
         log.info("Doctor registered successfully");
     }
 
-    @Override
-    @Transactional
-    public com.nexaworks.rafiq.dto.response.doctor.DoctorProfileResponse replaceEducation(
-            List<EducationItemRequest> education) {
-        Doctor doctor = requireAuthenticatedDoctor();
-        if (education == null) {
-            throw new UserException("Education payload is required");
-        }
-        List<Education> existing = doctor.getEducation();
-        if (existing != null && !existing.isEmpty()) {
-            log.warn(
-                    "Replacing entire education list for doctor {} ({} existing entries discarded)",
-                    doctor.getId(), existing.size());
-        }
-        List<Education> persisted = education.stream().map(doctorMapper::toEducationEntity)
-                .toList();
-        doctor.setEducation(new ArrayList<>(persisted));
-        Doctor saved = doctorRepository.save(doctor);
-        return doctorMapper.toProfileResponse(saved);
-    }
-
-    @Override
-    @Transactional
-    public com.nexaworks.rafiq.dto.response.doctor.DoctorProfileResponse replaceExperience(
-            List<ExperienceItemRequest> experience) {
-        Doctor doctor = requireAuthenticatedDoctor();
-        if (experience == null) {
-            throw new UserException("Experience payload is required");
-        }
-        List<Experience> existing = doctor.getExperience();
-        if (existing != null && !existing.isEmpty()) {
-            log.warn(
-                    "Replacing entire experience list for doctor {} ({} existing entries discarded)",
-                    doctor.getId(), existing.size());
-        }
-        List<Experience> persisted = experience.stream().map(doctorMapper::toExperienceEntity)
-                .toList();
-        doctor.setExperience(new ArrayList<>(persisted));
-        Doctor saved = doctorRepository.save(doctor);
-        return doctorMapper.toProfileResponse(saved);
-    }
 
     @Override
     @Transactional
