@@ -1,13 +1,17 @@
 package com.nexaworks.rafiq.service.feedback;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.dto.feedback.AddFeedbackRequest;
+import com.nexaworks.rafiq.dto.response.feedback.FeedbackResponse;
 import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.Feedback;
+import com.nexaworks.rafiq.exception.custom.consultation.ConsultationNotFoundException;
+import com.nexaworks.rafiq.mapper.FeedbackMapper;
 import com.nexaworks.rafiq.repository.FeedbackRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.service.consultation.IConsultationSearchService;
@@ -22,6 +26,7 @@ public class FeedbackService implements IFeedbackService {
     private final FeedbackRepository feedbackRepository;
     private final IConsultationSearchService consultationSearchService;
     private final AuthService authService;
+    private final FeedbackMapper feedbackMapper;
 
     @Override
     @Transactional
@@ -37,5 +42,21 @@ public class FeedbackService implements IFeedbackService {
     @Override
     public void deleteFeedback(UUID feedbackId) {
         feedbackRepository.deleteByIdAndPatientId(feedbackId, authService.getAuthenticateUserId());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<FeedbackResponse> getFeedbackByDoctorId(UUID doctorId) {
+        return feedbackMapper
+                .toResponseList(feedbackRepository.findAllByDoctorIdOrderByCreatedAtDesc(doctorId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public FeedbackResponse getFeedbackByConsultationId(UUID consultationId) {
+        Feedback feedback = feedbackRepository.findByConsultationId(consultationId)
+                .orElseThrow(() -> new ConsultationNotFoundException(
+                        "Feedback not found for consultation id: " + consultationId));
+        return feedbackMapper.toResponse(feedback);
     }
 }
