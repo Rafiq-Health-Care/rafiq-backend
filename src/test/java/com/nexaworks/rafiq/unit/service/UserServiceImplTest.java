@@ -39,7 +39,7 @@ import com.nexaworks.rafiq.exception.custom.user.TokenNotFoundException;
 import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.rabbit.manager.UserNotificationManager;
 import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.doctor.DoctorServiceImpl;
+import com.nexaworks.rafiq.service.doctor.DoctorPersistenceService;
 import com.nexaworks.rafiq.service.patient.PatientServiceImpl;
 import com.nexaworks.rafiq.service.user.RoleServiceImpl;
 import com.nexaworks.rafiq.service.user.TokenServiceImpl;
@@ -70,7 +70,7 @@ public class UserServiceImplTest {
     AuthSessionManager authSessionManager;
 
     @Mock
-    DoctorServiceImpl doctorService;
+    DoctorPersistenceService doctorService;
 
     @Mock
     PatientServiceImpl patientService;
