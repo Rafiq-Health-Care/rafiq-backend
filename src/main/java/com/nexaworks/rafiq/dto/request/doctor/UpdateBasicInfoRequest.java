@@ -7,9 +7,9 @@ import com.nexaworks.rafiq.entities.enums.Specialization;
 import com.nexaworks.rafiq.entities.enums.SubSpecialization;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record UpdateBasicInfoRequest(@NotBlank String firstName, @NotBlank String lastName,
-        @NotBlank Specialization specialization,
-        @NotBlank Set<SubSpecialization> subSpecializations, @NotBlank Set<Language> languages,
-        @NotBlank String description) {
+        @NotNull Specialization specialization, @NotNull Set<SubSpecialization> subSpecializations,
+        @NotNull Set<Language> languages, @NotBlank String description) {
 }

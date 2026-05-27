@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.entities;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -74,7 +75,8 @@ public class Doctor extends User {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private List<Experience> experience;
+    @Builder.Default
+    private List<Experience> experience = new ArrayList<>();
 
     @Column(name = "experience_years")
     private int experienceYears;

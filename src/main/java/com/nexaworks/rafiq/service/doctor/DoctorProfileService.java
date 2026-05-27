@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.service.doctor;
 
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
@@ -57,6 +58,9 @@ public class DoctorProfileService implements IDoctorProfileService {
                 .startDate(request.startDate()).endDate(request.endDate())
                 .description(request.description() == null ? "" : request.description())
                 .current(request.currentJob()).build();
+        if (doctor.getExperience() == null) {
+            doctor.setExperience(new ArrayList<>());
+        }
         doctor.getExperience().add(experience);
         doctorRepository.save(doctor);
     }
