@@ -1,8 +1,6 @@
 package com.nexaworks.rafiq.service.doctor;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -10,18 +8,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.nexaworks.rafiq.dto.client.cloundinary.UploadResults;
 import com.nexaworks.rafiq.dto.request.doctor.DoctorFilter;
-import com.nexaworks.rafiq.dto.request.doctor.EducationItemRequest;
-import com.nexaworks.rafiq.dto.request.doctor.ExperienceItemRequest;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
+import com.nexaworks.rafiq.dto.response.doctor.DoctorProfileResponse;
 import com.nexaworks.rafiq.dto.response.doctor.DoctorSearchResponse;
 import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.entities.DoctorSearchView;
-import com.nexaworks.rafiq.entities.Education;
-import com.nexaworks.rafiq.entities.Experience;
 import com.nexaworks.rafiq.entities.enums.Specialization;
-import com.nexaworks.rafiq.exception.custom.user.UserException;
 import com.nexaworks.rafiq.exception.custom.user.UserNotFoundException;
 import com.nexaworks.rafiq.mapper.DoctorMapper;
 import com.nexaworks.rafiq.repository.DoctorRepository;
@@ -41,8 +34,6 @@ public class DoctorPersistenceService implements IDoctorPersistenceService {
     private final DoctorMapper doctorMapper;
     private final DoctorSearchViewRepository doctorSearchViewRepository;
 
-
-
     @Override
     @Transactional
     public void register(Doctor doctor, Specialization specialization, String description) {
@@ -52,23 +43,27 @@ public class DoctorPersistenceService implements IDoctorPersistenceService {
         log.info("Doctor registered successfully");
     }
 
-
     @Override
     @Transactional
-    public com.nexaworks.rafiq.dto.response.doctor.DoctorProfileResponse setPrice(
-            BigDecimal price) {
+    public void setPrice(BigDecimal price) {
         Doctor doctor = requireAuthenticatedDoctor();
         doctor.setPrice(price);
-        Doctor saved = doctorRepository.save(doctor);
-        return doctorMapper.toProfileResponse(saved);
+        doctorRepository.save(doctor);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public com.nexaworks.rafiq.dto.response.doctor.DoctorProfileResponse getDoctorById(UUID id) {
-        Doctor doctor = doctorRepository.findById(id)
+    public DoctorProfileResponse getDoctorById(UUID id) {
+        Doctor doctor = doctorRepository.findProfileInfoById(id)
                 .orElseThrow(() -> new UserNotFoundException("Doctor not found with id: " + id));
-        return doctorMapper.toProfileResponse(doctor);
+
+        return new DoctorProfileResponse(doctor.getId(), doctor.getFirstName(),
+                doctor.getLastName(), doctor.getPersonalPhoto(), doctor.getBiography(),
+                doctor.getDescription(), doctor.getPrice(), doctor.getSpecialization(),
+                doctor.getSubSpecializations(), doctor.getEducation(), doctor.getExperience(),
+                doctorRepository.findNextAvailableByDoctorId(id),
+                doctorRepository.countCompletedConsultationsByDoctorId(id), doctor.getRating(),
+                doctor.getExperienceYears());
     }
 
     @Override
