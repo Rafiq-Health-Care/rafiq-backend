@@ -1,5 +1,7 @@
 package com.nexaworks.rafiq.entities;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -13,6 +15,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Education {
+    private UUID id;
     private String degree;
     private String university;
     private Integer startYear;

@@ -23,6 +23,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
@@ -34,9 +35,11 @@ import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.ConsultationSlot;
 import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.entities.Patient;
+import com.nexaworks.rafiq.entities.Payment;
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.PaymentProvider;
+import com.nexaworks.rafiq.entities.enums.PaymentStatus;
 import com.nexaworks.rafiq.entities.enums.SlotStatus;
 import com.nexaworks.rafiq.entities.enums.Specialization;
 import com.nexaworks.rafiq.integration.BaseIntegrationTest;
@@ -146,8 +149,20 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
     private Consultation persistConsultation(ConsultationSlot slot, Patient patient,
             ConsultationStatus status) {
         Consultation consultation = Consultation.builder().slot(slot).patient(patient)
-                .status(status).build();
+                .doctor(slot.getDoctor()).status(status).build();
         return consultationRepository.save(consultation);
+    }
+
+    private Payment persistPayment(Consultation consultation, Patient patient) {
+        Payment payment = Payment.builder().consultation(consultation).patient(patient)
+                .paymentIntentId("pi_test_" + consultation.getId())
+                .clientSecret("secret_" + consultation.getId()).amount(BigDecimal.valueOf(150))
+                .currency("USD").status(PaymentStatus.SUCCEEDED)
+                .paymentProvider(PaymentProvider.STRIPE).build();
+        Payment savedPayment = paymentRepository.saveAndFlush(payment);
+        consultation.setPayment(savedPayment);
+        consultationRepository.saveAndFlush(consultation);
+        return savedPayment;
     }
 
     @Nested
@@ -267,20 +282,22 @@ public class ConsultationControllerIntegrationTest extends BaseIntegrationTest {
         private static final String ENDPOINT = "/api/v1/consultation/{id}/cancel";
 
         @Test
-        @DisplayName("Doctor cancels their AVAILABLE consultation")
-        void shouldCancelAvailableConsultation_WhenDoctorIsOwner() throws Exception {
+        @DisplayName("Patient cancels their UPCOMING consultation")
+        @Transactional
+        void shouldCancelUpcomingConsultation_WhenPatientIsOwner() throws Exception {
             Doctor doctor = createDoctor();
             Patient patient = createPatient();
             ConsultationSlot slot = persistSlot(doctor, SlotStatus.BOOKED,
                     LocalDateTime.now().plusDays(1));
             Consultation consultation = persistConsultation(slot, patient,
                     ConsultationStatus.UPCOMING);
+            persistPayment(consultation, patient);
 
             CancelConsultationRequest request = new CancelConsultationRequest(
                     "scheduling conflict");
             mockMvc.perform(patch(ENDPOINT, consultation.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)).with(withUserId(doctor)))
+                    .content(objectMapper.writeValueAsString(request)).with(withUserId(patient)))
                     .andExpect(status().isOk());
 
             Consultation cancelled = consultationRepository.findById(consultation.getId())

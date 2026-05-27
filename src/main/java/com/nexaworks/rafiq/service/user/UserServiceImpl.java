@@ -20,7 +20,7 @@ import com.nexaworks.rafiq.exception.custom.user.RegistrationException;
 import com.nexaworks.rafiq.mapper.UserMapper;
 import com.nexaworks.rafiq.rabbit.manager.UserNotificationManager;
 import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.doctor.DoctorService;
+import com.nexaworks.rafiq.service.doctor.IDoctorPersistenceService;
 import com.nexaworks.rafiq.service.patient.PatientService;
 import com.nexaworks.rafiq.utils.AuthSessionManager;
 import com.nexaworks.rafiq.utils.TransactionUtils;
@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
     private final TokenService tokenService;
     private final AuthSessionManager authSessionManager;
     private final PatientService patientService;
-    private final DoctorService doctorService;
+    private final IDoctorPersistenceService doctorService;
     private final TransactionUtils transactionUtils;
     private final UserNotificationManager manager;
     private final UserMapper userMapper;

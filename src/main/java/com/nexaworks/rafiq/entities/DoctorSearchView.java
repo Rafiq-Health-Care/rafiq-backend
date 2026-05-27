@@ -6,10 +6,9 @@ import java.util.UUID;
 
 import org.hibernate.annotations.Immutable;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.nexaworks.rafiq.entities.enums.Gender;
+
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,7 +43,8 @@ public class DoctorSearchView {
     @Column(name = "experience_years")
     private int experienceYears;
 
-    private String gender;
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
 
     @Column(name = "next_available")
     private LocalDateTime nextAvailable;

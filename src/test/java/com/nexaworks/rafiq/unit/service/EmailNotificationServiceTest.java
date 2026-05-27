@@ -55,7 +55,7 @@ public class EmailNotificationServiceTest {
                 .thenReturn("<html>email</html>");
         doNothing().when(javaMailSender).send(any(MimeMessage.class));
 
-        emailNotificationService.sendNotification(new EmailNotification("test@example.com",
+        emailNotificationService.sendNotification(EmailNotification.of("test@example.com",
                 "testTemplate", "Test Email", Map.of("username", "Elbialy")));
 
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
@@ -76,7 +76,7 @@ public class EmailNotificationServiceTest {
 
         assertThrows(MailSenderException.class,
                 () -> emailNotificationService
-                        .sendNotification(new EmailNotification("test@example.com", "testTemplate",
+                        .sendNotification(EmailNotification.of("test@example.com", "testTemplate",
                                 "Test Email", Map.of("username", "Elbialy"))));
 
         verify(javaMailSender, times(4)).send(any(MimeMessage.class));
@@ -94,7 +94,7 @@ public class EmailNotificationServiceTest {
 
         assertThrows(MailSenderException.class,
                 () -> emailNotificationService
-                        .sendNotification(new EmailNotification("test@example.com", "testTemplate",
+                        .sendNotification(EmailNotification.of("test@example.com", "testTemplate",
                                 "Test Email", Map.of("username", "Elbialy"))));
 
         verify(templateEngine, times(4)).process(eq("testTemplate"), any(Context.class));
@@ -115,7 +115,7 @@ public class EmailNotificationServiceTest {
         }).doThrow(new MailException("Simulated mail failure again") {
         }).doNothing().when(javaMailSender).send(any(MimeMessage.class));
 
-        emailNotificationService.sendNotification(new EmailNotification("test@example.com",
+        emailNotificationService.sendNotification(EmailNotification.of("test@example.com",
                 "testTemplate", "Test Email", Map.of("username", "Elbialy")));
 
         verify(javaMailSender, times(3)).send(any(MimeMessage.class));
@@ -137,7 +137,7 @@ public class EmailNotificationServiceTest {
         }).doAnswer(invocation -> "<html>email</html>").when(templateEngine).process(anyString(),
                 any(Context.class));
 
-        emailNotificationService.sendNotification(new EmailNotification("test@example.com",
+        emailNotificationService.sendNotification(EmailNotification.of("test@example.com",
                 "testTemplate", "Test Email", Map.of("username", "Elbialy")));
 
         verify(templateEngine, times(3)).process(eq("testTemplate"), any(Context.class));
