@@ -57,6 +57,9 @@ public class Consultation extends BaseEntity {
     @JoinColumn(name = "doctor_id", nullable = false)
     private Doctor doctor;
 
+    @OneToOne(mappedBy = "consultation", cascade = {CascadeType.REMOVE, CascadeType.MERGE,})
+    private Feedback feedback;
+
     @Transient
     public boolean isCancelled() {
         return status == ConsultationStatus.CANCELLED;

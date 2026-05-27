@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.entities;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -70,4 +71,15 @@ public class Patient extends User {
             CascadeType.MERGE}, fetch = FetchType.LAZY)
     @BatchSize(size = 10)
     private List<Consultation> consultations;
+    @OneToMany(mappedBy = "patient", fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE,
+            CascadeType.MERGE})
+    @BatchSize(size = 10)
+    private List<Feedback> feedbacks;
+
+    public void addFeedback(Feedback feedback) {
+        if (this.feedbacks == null) {
+            this.feedbacks = new ArrayList<>();
+        }
+        this.feedbacks.add(feedback);
+    }
 }
