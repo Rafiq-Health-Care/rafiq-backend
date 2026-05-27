@@ -1,14 +1,18 @@
 package com.nexaworks.rafiq.entities;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import com.nexaworks.rafiq.entities.enums.DoctorAcceptanceStatus;
+import com.nexaworks.rafiq.entities.enums.Language;
 import com.nexaworks.rafiq.entities.enums.Specialization;
+import com.nexaworks.rafiq.entities.enums.SubSpecialization;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMax;
@@ -90,4 +94,22 @@ public class Doctor extends User {
     @BatchSize(size = 10)
     private List<ConsultationSlot> consultations;
 
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "doctor_sub_specialization", joinColumns = @JoinColumn(name = "doctor_id"), indexes = {
+            @Index(name = "idx_doctor_sub_spec", columnList = "doctor_id, sub_specialization"),
+            @Index(name = "idx_sub_spec", columnList = "sub_specialization") // ← for filtering
+                                                                             // alone
+    })
+    @Enumerated(EnumType.STRING)
+    @Column(name = "sub_specialization", nullable = false)
+    private Set<SubSpecialization> subSpecializations = new HashSet<>();
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "doctor_languages", joinColumns = @JoinColumn(name = "doctor_id"), indexes = {
+            @Index(name = "idx_doctor_language", columnList = "doctor_id, language"),
+            @Index(name = "idx_language", columnList = "language") // ← for filtering alone
+    })
+    @Enumerated(EnumType.STRING)
+    @Column(name = "language", nullable = false)
+    private Set<Language> languages = new HashSet<>();
 }
