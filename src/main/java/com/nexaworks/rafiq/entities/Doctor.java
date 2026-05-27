@@ -92,7 +92,12 @@ public class Doctor extends User {
     @OneToMany(mappedBy = "doctor", fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE,
             CascadeType.PERSIST, CascadeType.MERGE})
     @BatchSize(size = 10)
-    private List<ConsultationSlot> consultations;
+    private List<ConsultationSlot> consultationSlots;
+
+    @OneToMany(mappedBy = "doctor", fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE,
+            CascadeType.PERSIST, CascadeType.MERGE})
+    @BatchSize(size = 10)
+    private List<Consultation> consultations;
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "doctor_sub_specialization", joinColumns = @JoinColumn(name = "doctor_id"), indexes = {
