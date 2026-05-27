@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.consultation.*;
+import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 
 public interface IConsultationSearchService {
@@ -23,4 +24,6 @@ public interface IConsultationSearchService {
     PageResponse<DoctorConsultationResponse> getDoctorAvailableSlots(UUID id, Pageable pageable);
 
     ConsultationSlotResponse getConsultationSlot(UUID id);
+
+    Consultation getConsultationEntity(UUID consultationId);
 }
