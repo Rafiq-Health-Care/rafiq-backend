@@ -330,10 +330,6 @@ public enum SubSpecialization {
         this.specialization = specialization;
     }
 
-    public Specialization getSpecialization() {
-        return specialization;
-    }
-
     public boolean belongsTo(Specialization specialization) {
         return this.specialization == specialization;
     }
