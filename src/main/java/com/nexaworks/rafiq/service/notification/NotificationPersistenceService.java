@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
@@ -28,12 +29,14 @@ public class NotificationPersistenceService implements INotificationPersistenceS
     private final NotificationMapper mapper;
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void saveNotification(PushNotification notification, User user) {
+        log.info("Saving notification {}", notification);
         Notification savedNotification = Notification.builder().id(notification.notificationId())
                 .user(user).title(notification.action().getTitle()).message(notification.body())
                 .data(notification.data()).build();
         notificationRepository.save(savedNotification);
+        log.info("Notification saved successfully");
     }
 
     @Override

@@ -26,7 +26,6 @@ import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.repository.ConsultationSlotRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.service.payment.PaymentService;
-import com.nexaworks.rafiq.utils.TransactionUtils;
 import com.stripe.exception.StripeException;
 
 import lombok.RequiredArgsConstructor;
@@ -41,7 +40,6 @@ public class ReservationService implements IReservationService {
     private final AuthService authService;
     private final SimpMessagingTemplate messagingTemplate;
     private final PaymentService paymentService;
-    private final TransactionUtils transactionUtils;
 
     @Override
     @Transactional
@@ -60,7 +58,7 @@ public class ReservationService implements IReservationService {
 
         checkPatientOverlapping(slot.getStartTime(), slot.getEndTime(), patient);
         Consultation consultation = Consultation.builder().slot(slot).patient(patient)
-                .notes(request.notes()).build();
+                .doctor(slot.getDoctor()).notes(request.notes()).build();
 
         log.info("Consultation {} is reserved by {}", slot.getId(), patient.getId());
 
