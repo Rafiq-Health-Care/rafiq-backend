@@ -28,7 +28,6 @@ import com.nexaworks.rafiq.repository.CancellationLogRepository;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.service.refund.IRefundService;
-import com.nexaworks.rafiq.utils.TransactionUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +43,6 @@ public class ConsultationCancellationService implements IConsultationCancellatio
     private final IRefundService refundService;
     private final ConsultationNotificationManager notificationManager;
     private final RefundEventManager eventManager;
-    private final TransactionUtils transactionUtils;
     @Override
     @CacheEvict(value = "consultation", key = "'consultation:' + #id")
     @Transactional(rollbackFor = Exception.class)
@@ -55,27 +53,9 @@ public class ConsultationCancellationService implements IConsultationCancellatio
 
         Consultation consultation = validateAndGetConsultation(id, currentUser);
 
-        if (consultation.getStatus().equals(ConsultationStatus.PENDING)) {
-            boolean cancelledByPatient = cancelBookedConsultation(reason, consultation,
-                    currentUser);
-            consultationRepository.save(consultation);
-            log.info("Consultation cancelled {} by {}", consultation.getId(),
-                    currentUser.getEmail());
-            if (!cancelledByPatient) {
-                transactionUtils.afterCommit(() -> {
-                    notificationManager.sendDoctorCancelledEvent(consultation);
-                });
-            }
-            return;
-        }
-
         boolean cancelledByPatient = cancelBookedConsultation(reason, consultation, currentUser);
 
         log.info("Consultation cancelled {} by {}", consultation.getId(), currentUser.getEmail());
-
-        if (consultation.getPayment() == null) {
-            return;
-        }
 
         UUID refundId = refundService.refund(consultation, !cancelledByPatient);
 
@@ -87,10 +67,6 @@ public class ConsultationCancellationService implements IConsultationCancellatio
                 ConsultationCancellationService.this.notify(id, cancelledByPatient, consultation);
             }
         });
-        // transactionUtils.afterCommit(() -> {
-        //// eventManager.publishRefundRequestEvent(refundId);
-        // notify(id, cancelledByPatient, consultation);
-        // });
     }
 
     private @NonNull Consultation validateAndGetConsultation(UUID id, User currentUser) {
@@ -112,7 +88,7 @@ public class ConsultationCancellationService implements IConsultationCancellatio
     public void notify(UUID id, boolean cancelledByPatient, Consultation consultation) {
         messagingTemplate.convertAndSend("/topic/consultation",
                 new ConsultationCancelled(id, SlotStatus.AVAILABLE));
-        if (!cancelledByPatient) {
+        if (cancelledByPatient) {
             notificationManager.sendPatientCancelledEvent(consultation);
         } else {
             notificationManager.sendDoctorCancelledEvent(consultation);
