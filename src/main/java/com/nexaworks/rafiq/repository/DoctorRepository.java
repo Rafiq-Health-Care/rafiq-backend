@@ -7,7 +7,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.entities.enums.Specialization;
@@ -23,4 +25,7 @@ public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
 
     Page<Doctor> findAll(Specification<Doctor> search, Pageable pageable);
 
+    @Modifying
+    @Query("UPDATE Doctor d SET d.biography = :biography WHERE d.id = :userId")
+    void updateBiography(@Param("userId") UUID userId, @Param("biography") String biography);
 }
