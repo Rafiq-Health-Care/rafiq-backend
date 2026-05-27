@@ -32,6 +32,7 @@ public class ConsultationNotificationManager {
 
     public void sendPatientCancelledEvent(Consultation consultation) {
 
+        log.info("Sending patient cancelled event for consultation: {}", consultation.getId());
         PushNotification notification = PushNotification.of(CONSULTATION_CANCELLED,
                 consultation.getDoctor().getNotificationToken(),
                 consultation.getPatient().getName() + " cancelled the consultation",
@@ -44,7 +45,7 @@ public class ConsultationNotificationManager {
     public void sendDoctorCancelledEvent(Consultation consultation) {
         PushNotification notification = PushNotification.of(CONSULTATION_CANCELLED,
                 consultation.getPatient().getNotificationToken(),
-                consultation.getDoctor().getName() + " cancelled the consultation",
+                consultation.getPatient().getName() + " cancelled the consultation",
                 Map.of("consultationId", consultation.getId().toString()));
 
         notificationPersistenceService.saveNotification(notification, consultation.getDoctor());
