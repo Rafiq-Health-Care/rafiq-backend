@@ -27,10 +27,9 @@ public class DoctorController {
 
     @PutMapping("/price")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<DoctorProfileResponse> setPrice(
-            @Valid @RequestBody EditConsultationInfoRequest request) {
-        DoctorProfileResponse response = doctorService.setPrice(request.price());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Void> setPrice(@Valid @RequestBody EditConsultationInfoRequest request) {
+        doctorService.setPrice(request.price());
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}")
