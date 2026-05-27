@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.nexaworks.rafiq.dto.response.doctor.DoctorStatsDTO;
 import com.nexaworks.rafiq.entities.Doctor;
 
 import jakarta.persistence.LockModeType;
@@ -33,18 +34,25 @@ public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
     Optional<Doctor> findProfileInfoById(UUID id);
 
     @Query("""
-                SELECT MIN(cs.startTime)
-                FROM ConsultationSlot cs
-                WHERE cs.doctor.id = :id
-                  AND cs.startTime > CURRENT_TIMESTAMP
+                SELECT d
+                FROM Doctor d
+                LEFT JOIN FETCH d.subSpecializations
+                LEFT JOIN FETCH d.education
+                LEFT JOIN FETCH d.experience
+                WHERE d.id = :id
             """)
-    java.time.LocalDateTime findNextAvailableByDoctorId(UUID id);
+    Optional<Doctor> findProfileById(UUID id);
 
     @Query("""
-                SELECT COUNT(c)
-                FROM Consultation c
-                WHERE c.doctor.id = :id
-                  AND c.status = com.nexaworks.rafiq.entities.enums.ConsultationStatus.COMPLETED
+                SELECT new com.nexaworks.rafiq.dto.response.doctor.DoctorStatsDTO(
+                    MIN(cs.startTime),
+                    COUNT(DISTINCT c.id)
+                )
+                FROM Doctor d
+                LEFT JOIN d.consultationSlots cs ON cs.startTime > CURRENT_TIMESTAMP
+                LEFT JOIN d.consultations c ON c.status = com.nexaworks.rafiq.entities.enums.ConsultationStatus.COMPLETED
+                WHERE d.id = :id
+                GROUP BY d.id
             """)
-    Long countCompletedConsultationsByDoctorId(UUID id);
+    Optional<DoctorStatsDTO> findStatsByDoctorId(UUID id);
 }

@@ -12,6 +12,7 @@ import com.nexaworks.rafiq.dto.request.doctor.DoctorFilter;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.doctor.DoctorProfileResponse;
 import com.nexaworks.rafiq.dto.response.doctor.DoctorSearchResponse;
+import com.nexaworks.rafiq.dto.response.doctor.DoctorStatsDTO;
 import com.nexaworks.rafiq.entities.Doctor;
 import com.nexaworks.rafiq.entities.DoctorSearchView;
 import com.nexaworks.rafiq.entities.enums.Specialization;
@@ -54,16 +55,10 @@ public class DoctorPersistenceService implements IDoctorPersistenceService {
     @Override
     @Transactional(readOnly = true)
     public DoctorProfileResponse getDoctorById(UUID id) {
-        Doctor doctor = doctorRepository.findProfileInfoById(id)
+        Doctor doctor = doctorRepository.findProfileById(id)
                 .orElseThrow(() -> new UserNotFoundException("Doctor not found with id: " + id));
-
-        return new DoctorProfileResponse(doctor.getId(), doctor.getFirstName(),
-                doctor.getLastName(), doctor.getPersonalPhoto(), doctor.getBiography(),
-                doctor.getDescription(), doctor.getPrice(), doctor.getSpecialization(),
-                doctor.getSubSpecializations(), doctor.getEducation(), doctor.getExperience(),
-                doctorRepository.findNextAvailableByDoctorId(id),
-                doctorRepository.countCompletedConsultationsByDoctorId(id), doctor.getRating(),
-                doctor.getExperienceYears());
+        DoctorStatsDTO doctorStatsDTO = doctorRepository.findStatsByDoctorId(id).orElse(null);
+        return doctorMapper.toProfileResponse(doctor, doctorStatsDTO);
     }
 
     @Override
