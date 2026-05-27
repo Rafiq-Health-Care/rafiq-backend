@@ -119,4 +119,16 @@ public class Doctor extends User {
     @Enumerated(EnumType.STRING)
     @Column(name = "language", nullable = false)
     private Set<Language> languages = new HashSet<>();
+
+    @OneToMany(mappedBy = "doctor", fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE,
+            CascadeType.MERGE})
+    @BatchSize(size = 10)
+    private List<Feedback> feedbacks;
+
+    public void addFeedback(Feedback feedback) {
+        if (this.feedbacks == null) {
+            this.feedbacks = new ArrayList<>();
+        }
+        this.feedbacks.add(feedback);
+    }
 }

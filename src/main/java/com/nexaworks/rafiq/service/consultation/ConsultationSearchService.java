@@ -16,6 +16,7 @@ import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.entities.ConsultationSlot;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
 import com.nexaworks.rafiq.entities.enums.SlotStatus;
+import com.nexaworks.rafiq.exception.custom.consultation.ConsultationNotFoundException;
 import com.nexaworks.rafiq.exception.custom.consultation.SlotNotFoundException;
 import com.nexaworks.rafiq.mapper.ConsultationMapper;
 import com.nexaworks.rafiq.mapper.ConsultationSlotMapper;
@@ -84,6 +85,14 @@ public class ConsultationSearchService implements IConsultationSearchService {
         ConsultationSlot slot = consultationSlotRepository.findById(id)
                 .orElseThrow(() -> new SlotNotFoundException("Slot not found"));
         return consultationSlotMapper.toDto(slot);
+    }
+
+    @Override
+    public Consultation getConsultationEntity(UUID consultationId) {
+        return consultationRepository
+                .findConsultationByIdAndPatientId(consultationId,
+                        authService.getAuthenticateUserId())
+                .orElseThrow(() -> new ConsultationNotFoundException("Consultation not found"));
     }
 
 }

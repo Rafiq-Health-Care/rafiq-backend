@@ -60,4 +60,6 @@ public interface ConsultationRepository
     boolean existsByDoctorAndPatientAndStatusNotIn(@Param("doctorId") UUID doctorId,
             @Param("patientId") UUID patientId,
             @Param("excludedStatuses") Collection<ConsultationStatus> excludedStatuses);
+
+    Optional<Consultation> findConsultationByIdAndPatientId(UUID id, UUID patientId);
 }
