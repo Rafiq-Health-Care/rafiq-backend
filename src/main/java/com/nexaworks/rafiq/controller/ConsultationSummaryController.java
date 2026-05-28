@@ -13,9 +13,9 @@ import com.nexaworks.rafiq.dto.request.summary.UpdateConsultationSummaryRequest;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.summary.ConsultationSummaryResponse;
 import com.nexaworks.rafiq.entities.enums.Specialization;
+import com.nexaworks.rafiq.idempotency.annotation.Idempotent;
 import com.nexaworks.rafiq.service.summary.ConsultationSummaryService;
 
-import dev.once.annotation.Idempotent;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

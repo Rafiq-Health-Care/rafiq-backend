@@ -16,11 +16,11 @@ import com.nexaworks.rafiq.dto.response.consultation.ConsultationResponse;
 import com.nexaworks.rafiq.dto.response.consultation.PatientConsultationResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ReserveConsultationResponse;
 import com.nexaworks.rafiq.entities.enums.ConsultationStatus;
+import com.nexaworks.rafiq.idempotency.annotation.Idempotent;
 import com.nexaworks.rafiq.service.consultation.IConsultationCancellationService;
 import com.nexaworks.rafiq.service.consultation.IConsultationSearchService;
 import com.nexaworks.rafiq.service.consultation.IReservationService;
 
-import dev.once.annotation.Idempotent;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

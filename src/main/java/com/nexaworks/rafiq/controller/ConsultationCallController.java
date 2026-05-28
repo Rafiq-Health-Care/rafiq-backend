@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.nexaworks.rafiq.dto.response.consultation.CallResponse;
+import com.nexaworks.rafiq.idempotency.annotation.Idempotent;
 import com.nexaworks.rafiq.service.consultation.ConsultationCallService;
 
-import dev.once.annotation.Idempotent;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

@@ -17,11 +17,11 @@ import com.nexaworks.rafiq.dto.response.consultation.ConsultationSlotResponse;
 import com.nexaworks.rafiq.dto.response.consultation.DoctorConsultationResponse;
 import com.nexaworks.rafiq.dto.response.consultation.EditConsultationSlotResponse;
 import com.nexaworks.rafiq.dto.response.consultation.ScheduleResponse;
+import com.nexaworks.rafiq.idempotency.annotation.Idempotent;
 import com.nexaworks.rafiq.service.consultation.IConsultationSearchService;
 import com.nexaworks.rafiq.service.consultation.IConsultationSlotHoldingService;
 import com.nexaworks.rafiq.service.consultation.IConsultationSlotService;
 
-import dev.once.annotation.Idempotent;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
