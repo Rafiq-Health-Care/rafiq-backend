@@ -34,7 +34,6 @@ public class WrapperFilter extends OncePerRequestFilter {
         } finally {
             String key = (String) request.getAttribute("idempotency_key");
             if (key != null) {
-                logger.info("idempotency key: " + key + "g");
                 byte[] body = responseWrapper.getContent();
                 Map<String, String> headers = new HashMap<>();
                 responseWrapper.getHeaderNames()
