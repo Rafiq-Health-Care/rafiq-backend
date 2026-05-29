@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Profile;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.Uploader;
-import com.nexaworks.rafiq.config.FirebaseConfig;
 import com.nexaworks.rafiq.scheduler.ExpirationScheduler;
 import com.nexaworks.rafiq.service.call.RtcProvider;
 
@@ -50,11 +49,7 @@ public class IntegrationTestExternalMocks {
     public ExpirationScheduler expirationSchedulerMock() {
         return Mockito.mock(ExpirationScheduler.class);
     }
-    @Bean
-    @Primary
-    public FirebaseConfig firebaseConfig() {
-        return Mockito.mock(FirebaseConfig.class);
-    }
+
     @Bean
     @Primary
     public RedissonClient redissonClient() {
