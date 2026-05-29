@@ -14,7 +14,7 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @ToString(of = "name")
 @EqualsAndHashCode(of = "name", callSuper = false)
-@Table(name = "role", indexes = {@Index(name = "role_idx", columnList = "name")})
+@Table(name = "role", indexes = {@Index(name = "idx_role_name", columnList = "name")})
 public class Role extends BaseEntity {
 
     @Column(unique = true, nullable = false)

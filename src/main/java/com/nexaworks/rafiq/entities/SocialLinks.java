@@ -11,7 +11,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "social_links", indexes = {@Index(name = "doctor_idx", columnList = "doctor_id")})
+@Table(name = "social_links", indexes = {
+        @Index(name = "idx_social_links_doctor", columnList = "doctor_id")})
 public class SocialLinks extends BaseEntity {
     private String facebook;
     private String twitter;

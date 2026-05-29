@@ -18,10 +18,11 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @ToString(exclude = {"doctor", "consultations"})
 @SuperBuilder
-@Table(name = "consultation_slot", indexes = {@Index(name = "doctor_idx", columnList = "doctor_id"),
-        @Index(name = "status_idx", columnList = "status"),
-        @Index(name = "slot_idx", columnList = "id"),
-        @Index(name = "time_idx", columnList = "start_time,end_time")})
+@Table(name = "consultation_slot", indexes = {
+        @Index(name = "idx_consultation_slot_doctor", columnList = "doctor_id"),
+        @Index(name = "idx_consultation_slot_status", columnList = "status"),
+        @Index(name = "idx_consultation_slot_id", columnList = "id"),
+        @Index(name = "idx_consultation_slot_time", columnList = "start_time,end_time")})
 public class ConsultationSlot extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.EAGER)

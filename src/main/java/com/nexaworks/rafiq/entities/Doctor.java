@@ -29,9 +29,9 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @ToString(exclude = {"medicalCertifications", "labTests", "consultations"})
 @Table(name = "doctor", indexes = {
-        @Index(name = "specialization_idx", columnList = "specialization"),
-        @Index(name = "doctor_idx", columnList = "id"),
-        @Index(name = "doctor_acceptance_status_idx", columnList = "acceptance_status")})
+        @Index(name = "idx_doctor_specialization", columnList = "specialization"),
+        @Index(name = "idx_doctor_id", columnList = "id"),
+        @Index(name = "idx_doctor_acceptance_status", columnList = "acceptance_status")})
 public class Doctor extends User {
     @Column(length = 1000)
     private String description;
@@ -104,9 +104,7 @@ public class Doctor extends User {
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "doctor_sub_specialization", joinColumns = @JoinColumn(name = "doctor_id"), indexes = {
             @Index(name = "idx_doctor_sub_spec", columnList = "doctor_id, sub_specialization"),
-            @Index(name = "idx_sub_spec", columnList = "sub_specialization") // ← for filtering
-                                                                             // alone
-    })
+            @Index(name = "idx_sub_spec", columnList = "sub_specialization")})
     @Enumerated(EnumType.STRING)
     @Column(name = "sub_specialization", nullable = false)
     private Set<SubSpecialization> subSpecializations = new HashSet<>();
@@ -114,8 +112,7 @@ public class Doctor extends User {
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "doctor_languages", joinColumns = @JoinColumn(name = "doctor_id"), indexes = {
             @Index(name = "idx_doctor_language", columnList = "doctor_id, language"),
-            @Index(name = "idx_language", columnList = "language") // ← for filtering alone
-    })
+            @Index(name = "idx_language", columnList = "language")})
     @Enumerated(EnumType.STRING)
     @Column(name = "language", nullable = false)
     private Set<Language> languages = new HashSet<>();

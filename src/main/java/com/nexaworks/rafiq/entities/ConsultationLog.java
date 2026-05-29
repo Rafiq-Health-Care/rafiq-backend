@@ -14,8 +14,8 @@ import lombok.*;
 @Builder
 @ToString(exclude = "consultation")
 @Table(name = "consultation_logs", indexes = {
-        @Index(name = "consultation_idx", columnList = "consultation_id"),
-        @Index(name = "consultation_log_idx", columnList = "id")})
+        @Index(name = "idx_consultation_logs_consultation", columnList = "consultation_id"),
+        @Index(name = "idx_consultation_logs_id", columnList = "id")})
 public class ConsultationLog {
 
     @Id

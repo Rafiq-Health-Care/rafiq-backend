@@ -17,10 +17,10 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Entity
 @Table(name = "medicine", indexes = {
-        @Index(columnList = "search_vector", name = "medicine_search_vector_idx"),
-        @Index(columnList = "patient_id", name = "patient_medicine_idx"),
-        @Index(columnList = "group_id", name = "group_medicine_idx"),
-        @Index(columnList = "id", name = "medicine_idx")})
+        @Index(columnList = "search_vector", name = "idx_medicine_search_vector"),
+        @Index(columnList = "patient_id", name = "idx_medicine_patient"),
+        @Index(columnList = "group_id", name = "idx_medicine_group"),
+        @Index(columnList = "id", name = "idx_medicine_id")})
 public class Medicine extends BaseEntity {
 
     @NotNull

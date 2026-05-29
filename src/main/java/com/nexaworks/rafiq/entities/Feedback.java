@@ -9,7 +9,10 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "feedback")
+@Table(name = "feedback", indexes = {
+        @Index(name = "idx_feedback_patient", columnList = "patient_id"),
+        @Index(name = "idx_feedback_doctor", columnList = "doctor_id"),
+        @Index(name = "idx_feedback_consultation", columnList = "consultation_id")})
 public class Feedback extends BaseEntity {
 
     private String feedback;

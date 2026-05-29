@@ -17,8 +17,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "token", indexes = {@Index(name = "token_idx", columnList = "token"),
-        @Index(name = "user_idx", columnList = "user_id")})
+@Table(name = "token", indexes = {@Index(name = "idx_token_token", columnList = "token"),
+        @Index(name = "idx_token_user", columnList = "user_id")})
 public class Token extends BaseEntity {
 
     @NotBlank

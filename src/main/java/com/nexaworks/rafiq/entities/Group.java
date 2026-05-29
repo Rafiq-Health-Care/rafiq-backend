@@ -13,8 +13,8 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @ToString(exclude = {"medicines", "patient"})
 @Entity
-@Table(name = "groups", indexes = {@Index(name = "patient_idx", columnList = "patient_id"),
-        @Index(name = "group_idx", columnList = "id")})
+@Table(name = "groups", indexes = {@Index(name = "idx_groups_patient", columnList = "patient_id"),
+        @Index(name = "idx_groups_id", columnList = "id")})
 public class Group extends BaseEntity {
     private String name;
     private String description;

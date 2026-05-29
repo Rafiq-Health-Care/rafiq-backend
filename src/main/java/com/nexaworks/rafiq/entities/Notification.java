@@ -15,8 +15,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "notification", indexes = {@Index(name = "user_idx", columnList = "user_id"),
-        @Index(name = "notification_idx", columnList = "id")})
+@Table(name = "notification", indexes = {
+        @Index(name = "idx_notification_user", columnList = "user_id"),
+        @Index(name = "idx_notification_id", columnList = "id")})
 @Entity
 public class Notification {
     @Id

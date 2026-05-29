@@ -26,9 +26,9 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Entity
 @EqualsAndHashCode(callSuper = false, of = {"email", "phone"})
-@Table(name = "users", indexes = {@Index(columnList = "email", unique = true),
-        @Index(columnList = "phone", unique = true), @Index(columnList = "id"),
-        @Index(columnList = "email", name = "user_email_idx")})
+@Table(name = "users", indexes = {@Index(name = "idx_users_email", columnList = "email"),
+        @Index(name = "idx_users_phone", columnList = "phone"),
+        @Index(name = "idx_users_id", columnList = "id")})
 @Inheritance(strategy = InheritanceType.JOINED)
 public class User extends BaseEntity implements UserDetails, Principal {
 
@@ -46,6 +46,7 @@ public class User extends BaseEntity implements UserDetails, Principal {
 
     private String lastName;
 
+    @Column(unique = true)
     private String phone;
 
     @Column(name = "birth_date", nullable = false)

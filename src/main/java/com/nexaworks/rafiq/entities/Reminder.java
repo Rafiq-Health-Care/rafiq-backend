@@ -18,10 +18,11 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Entity
 @ToString(exclude = {"reminderLogs", "patient", "medicine", "group"})
-@Table(name = "reminder", indexes = {@Index(name = "patient_idx", columnList = "patient_id"),
-        @Index(name = "medicine_idx", columnList = "medicine_id"),
-        @Index(name = "status_idx", columnList = "status"),
-        @Index(name = "reminder_idx", columnList = "id")})
+@Table(name = "reminder", indexes = {
+        @Index(name = "idx_reminder_patient", columnList = "patient_id"),
+        @Index(name = "idx_reminder_medicine", columnList = "medicine_id"),
+        @Index(name = "idx_reminder_status", columnList = "status"),
+        @Index(name = "idx_reminder_id", columnList = "id")})
 public class Reminder extends BaseEntity {
 
     @Column(nullable = false, columnDefinition = "boolean default true")

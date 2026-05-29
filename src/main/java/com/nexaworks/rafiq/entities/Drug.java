@@ -13,7 +13,9 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @ToString(exclude = {"activeIngredients", "companies"})
 @Entity
-
+@Table(name = "drug", indexes = {
+        @Index(name = "idx_drug_search_vector", columnList = "search_vector"),
+        @Index(name = "idx_drug_trade_name_trgm", columnList = "trade_name")})
 public class Drug extends BaseEntity {
     String tradeName;
     String drugGroup;

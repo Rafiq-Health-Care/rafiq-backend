@@ -15,7 +15,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "reminder_log", indexes = {@Index(name = "reminder_idx", columnList = "reminder_id")})
+@Table(name = "reminder_log", indexes = {
+        @Index(name = "idx_reminder_log_reminder", columnList = "reminder_id")})
 public class ReminderLog extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ReminderStatus status;

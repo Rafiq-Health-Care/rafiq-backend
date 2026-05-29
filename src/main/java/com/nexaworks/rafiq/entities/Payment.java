@@ -18,11 +18,11 @@ import lombok.*;
 @Builder
 @ToString(exclude = {"consultation", "patient", "refundRequest"})
 @EqualsAndHashCode(of = "id")
-@Table(name = "payments", indexes = {@Index(name = "payment_idx", columnList = "id"),
-        @Index(name = "consultation_idx", columnList = "consultation_id"),
-        @Index(name = "patient_idx", columnList = "patient_id"),
-        @Index(name = "status_idx", columnList = "status"),
-        @Index(name = "payment_intent_idx", columnList = "payment_intent_id")})
+@Table(name = "payments", indexes = {@Index(name = "idx_payments_id", columnList = "id"),
+        @Index(name = "idx_payments_consultation", columnList = "consultation_id"),
+        @Index(name = "idx_payments_patient", columnList = "patient_id"),
+        @Index(name = "idx_payments_status", columnList = "status"),
+        @Index(name = "idx_payments_payment_intent", columnList = "payment_intent_id")})
 public class Payment {
 
     @Id

@@ -14,7 +14,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Entity
 @Table(name = "medical_certifications", indexes = {
-        @Index(name = "doctor_idx", columnList = "doctor_id")})
+        @Index(name = "idx_medical_certifications_doctor", columnList = "doctor_id")})
 public class MedicalCertifications extends BaseEntity {
 
     private String name;

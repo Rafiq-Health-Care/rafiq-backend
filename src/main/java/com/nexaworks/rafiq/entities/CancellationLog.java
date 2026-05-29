@@ -12,7 +12,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @ToString(exclude = {"consultation", "cancelledBy"})
 @Table(name = "cancellation_log", indexes = {
-        @Index(name = "consultation_idx", columnList = "consultation_id")})
+        @Index(name = "idx_cancellation_log_consultation", columnList = "consultation_id")})
 public class CancellationLog extends BaseEntity {
 
     @OneToOne

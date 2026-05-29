@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = false, of = {"street", "city", "state", "country", "postalCode",
         "latitude", "longitude"})
 @ToString(exclude = {"user", "lab"})
-@Table(name = "address", indexes = {@Index(name = "user_idx", columnList = "user_id")})
+@Table(name = "address", indexes = {@Index(name = "idx_address_user", columnList = "user_id")})
 public class Address extends BaseEntity {
     private String street;
     private String city;
