@@ -11,6 +11,18 @@ spring:
       - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
   main:
     allow-bean-definition-overriding: true
+  jpa:
+    properties:
+      hibernate:
+        cache:
+          use_second_level_cache: false
+          use_query_cache: false
+          region:
+            factory_class: org.hibernate.cache.internal.NoCachingRegionFactory
+        format_sql: false
+        use_sql_comments: false
+    hibernate:
+      ddl-auto: create-drop
 
   cache:
     type: none
@@ -28,13 +40,7 @@ spring:
       connection-timeout: 10000
       idle-timeout: 30000
 
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    properties:
-      hibernate:
-        format_sql: false
-        use_sql_comments: false
+
 
   flyway:
     enabled: false
