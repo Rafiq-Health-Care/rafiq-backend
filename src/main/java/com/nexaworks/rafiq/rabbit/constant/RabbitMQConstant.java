@@ -32,6 +32,16 @@ public class RabbitMQConstant {
     public static final String REFUND_REQUEST_DLQ_QUEUE = "refund.request.dlq.queue";
     public static final String REFUND_REQUEST_DLQ_EXCHANGE = "refund.request.dlq.exchange";
 
+    public static final String PAYOUT_REQUEST_EXCHANGE = "payout.request.exchange";
+    public static final String PAYOUT_REQUEST_QUEUE = "payout.request.queue";
+    public static final String PAYOUT_REQUEST_ROUTING_KEY = "payout.request";
+    public static final String PAYOUT_REQUEST_DLQ_EXCHANGE = "payout.request.dlq.exchange";
+    public static final String PAYOUT_REQUEST_DLQ_QUEUE = "payout.request.dlq.queue";
+    public static final String PAYOUT_REQUEST_DLQ_ROUTING_KEY = "payout.request.dlq";
+    public static final String PAYOUT_RETRY_EXCHANGE = "payout.retry.exchange";
+    public static final String PAYOUT_RETRY_QUEUE = "payout.retry.queue";
+    public static final String PAYOUT_RETRY_ROUTING_KEY = "payout.retry";
+
     public static final String OTP_QUEUE = "notification.otp";
     public static final String OTP_ROUTING_KEY = "notification.otp";
 }
