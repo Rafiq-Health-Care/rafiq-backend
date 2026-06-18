@@ -122,6 +122,8 @@ public class Doctor extends User {
     @BatchSize(size = 10)
     private List<Feedback> feedbacks;
 
+    private String stripeCustomerId;
+
     public void addFeedback(Feedback feedback) {
         if (this.feedbacks == null) {
             this.feedbacks = new ArrayList<>();
