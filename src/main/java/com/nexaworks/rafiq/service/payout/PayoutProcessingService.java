@@ -5,6 +5,7 @@ import java.time.Instant;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nexaworks.rafiq.dto.response.payment.PayoutResponse;
 import com.nexaworks.rafiq.entities.Payout;
 import com.nexaworks.rafiq.entities.enums.PayoutStatus;
 import com.nexaworks.rafiq.repository.PayoutRepository;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class PayoutProcessingService {
     private final PayoutRepository payoutRepository;
+    private final PayoutProvider payoutProvider;
 
     @Transactional
     public void process(Payout payout) {
@@ -38,9 +40,10 @@ public class PayoutProcessingService {
             payoutRepository.save(payout);
             log.info("Updated payout {} status to PROCESSING", payout.getId());
 
-            // TODO: Call Stripe payout API
-            // String payoutIntentId = stripePayoutService.createPayout(payout);
-            // payout.setPayoutIntentId(payoutIntentId);
+            PayoutResponse response = payoutProvider.payout(payout.getAmount(),
+                    payout.getDoctor().getStripeCustomerId(), payout.getId().toString());
+            payout.setStatus(response.status());
+            payout.setPayoutIntentId(response.transferId());
 
             payoutRepository.save(payout);
             log.info("Successfully processed payout {} with status PAID", payout.getId());
