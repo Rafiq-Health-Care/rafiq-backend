@@ -1,6 +1,5 @@
 package com.nexaworks.rafiq.dto.response.consultation;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -15,12 +14,8 @@ public record ConsultationSlotResponse(
         @Schema(description = "Unique identifier of the slot", example = "789e1234-e89b-12d3-a456-426614174999") UUID slotId,
 
         @Schema(description = "Start time of the consultation", example = "2025-06-01T09:00:00") LocalDateTime startTime,
-
-        @Schema(description = "Duration in minutes", example = "30") int durationInMinutes,
-
+        LocalDateTime endTime,
         @Schema(description = "Current status of the consultation", example = "BOOKED") ConsultationStatus status,
-
-        @Schema(description = "Price of the consultation", example = "99.99") BigDecimal price,
 
         @Schema(description = "Patient assigned to this consultation") PatientDto patient,
 
@@ -30,5 +25,6 @@ public record ConsultationSlotResponse(
 
         @Schema(description = "Cancellation reason, null if not cancelled", example = "Patient is unavailable") String reason,
 
-        @Schema(description = "Whether the consultation was cancelled by the patient", example = "true") boolean cancelByPatient) {
+        @Schema(description = "Whether the consultation was cancelled by the patient", example = "true") boolean cancelByPatient,
+        String notes) {
 }

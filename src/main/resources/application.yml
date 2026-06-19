@@ -2,6 +2,19 @@
 # Application — shared configuration (all profiles)
 # ---------------------------------------------------------------------------
 spring:
+  data:
+    redis:
+      repositories:
+        enabled: false
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      lettuce:
+        pool:
+                  max-active: 10
+                  max-idle: 5
+                  min-idle: 1
   application:
     name: rafiq
   profiles:
@@ -60,17 +73,7 @@ spring:
     clean-disabled: true
 
   # --- Redis ----------------------------------------------------------------
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
-      database: ${REDIS_DATABASE:0}
-      lettuce:
-        pool:
-          max-active: 10
-          max-idle: 5
-          min-idle: 1
+
 
   # --- RabbitMQ -------------------------------------------------------------
   rabbitmq:

@@ -75,6 +75,7 @@ public interface ConsultationSlotMapper {
     @Mapping(target = "cancelledAt", expression = "java(getCancelledAt(slot))")
     @Mapping(target = "reason", expression = "java(getCancellationReason(slot))")
     @Mapping(target = "cancelByPatient", expression = "java(isCancelledByPatient(slot))")
+    @Mapping(target = "notes", expression = "java(getNotes(slot))")
     ConsultationSlotResponse toDto(ConsultationSlot slot);
 
     default LocalDateTime toLocalDateTime(Instant instant) {
@@ -129,5 +130,9 @@ public interface ConsultationSlotMapper {
         }
         return new PatientDto(consultation.getPatient().getId(),
                 consultation.getPatient().getFirstName(), consultation.getPatient().getLastName());
+    }
+    default String getNotes(ConsultationSlot slot) {
+        Consultation consultation = getActiveConsultation(slot);
+        return consultation == null ? null : consultation.getNotes();
     }
 }

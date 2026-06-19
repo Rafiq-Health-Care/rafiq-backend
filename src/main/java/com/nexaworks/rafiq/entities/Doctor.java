@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -123,6 +124,8 @@ public class Doctor extends User {
     private List<Feedback> feedbacks;
 
     private String stripeCustomerId;
+    @Formula(value = "(select count(*) from feedback where feedback.doctor_id = id)")
+    private int feedbackCount;
 
     public void addFeedback(Feedback feedback) {
         if (this.feedbacks == null) {
