@@ -67,9 +67,7 @@ public interface ConsultationSlotMapper {
 
     @Mapping(target = "consultationId", expression = "java(getConsultationId(slot))")
     @Mapping(target = "slotId", source = "id")
-    @Mapping(target = "durationInMinutes", source = "durationMinutes")
     @Mapping(target = "status", expression = "java(getConsultationStatus(slot))")
-    @Mapping(target = "price", expression = "java(getPrice(slot))")
     @Mapping(target = "patient", expression = "java(getPatientDto(slot))")
     @Mapping(target = "bookedAt", expression = "java(getBookedAt(slot))")
     @Mapping(target = "cancelledAt", expression = "java(getCancelledAt(slot))")
