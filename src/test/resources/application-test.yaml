@@ -71,6 +71,9 @@ spring:
     listener:
       simple:
         auto-startup: false
+sentry:
+  enabled: false
+  dsn: ""
 
 # ---------------------------------------------------------------------------
 # RabbitMQ
