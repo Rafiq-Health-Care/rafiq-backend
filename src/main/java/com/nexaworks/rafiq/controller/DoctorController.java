@@ -43,7 +43,8 @@ public class DoctorController {
     }
 
     @GetMapping("/complete")
-    public ResponseEntity<Void> completeStripeConnect(@RequestParam String accountId) {
+    public ResponseEntity<Void> completeStripeConnect(@RequestParam String accountId)
+            throws StripeException {
         accountManagement.complete(accountId);
         return ResponseEntity.ok().build();
     }
