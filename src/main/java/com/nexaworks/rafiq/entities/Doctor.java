@@ -124,6 +124,7 @@ public class Doctor extends User {
     private List<Feedback> feedbacks;
 
     private String stripeCustomerId;
+    private Boolean payoutEnabled;
     @Formula(value = "(select count(*) from feedback where feedback.doctor_id = id)")
     private int feedbackCount;
 
