@@ -18,7 +18,7 @@ spring:
   application:
     name: rafiq
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   # --- Datasource -----------------------------------------------------------
   datasource:
     url: ${DATASOURCE_URL}
