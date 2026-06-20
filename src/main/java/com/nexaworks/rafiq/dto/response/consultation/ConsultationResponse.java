@@ -22,6 +22,7 @@ public record ConsultationResponse(
         @Schema(description = "Start time of the consultation", example = "2025-06-01T09:00:00") LocalDateTime startTime,
 
         @Schema(description = "Duration in minutes", example = "30") int durationInMinutes,
+        double rate, long reviewCount,
 
         @Schema(description = "Current status of the consultation", example = "BOOKED") ConsultationStatus status,
 

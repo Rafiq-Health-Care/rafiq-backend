@@ -46,6 +46,7 @@ public class DoctorProfileService implements IDoctorProfileService {
         doctor.setDescription(request.description());
         doctor.setLanguages(request.languages());
         doctor.setSubSpecializations(request.subSpecializations());
+        doctor.setExperienceYears(request.yearsOfExperience());
         doctorRepository.save(doctor);
     }
 

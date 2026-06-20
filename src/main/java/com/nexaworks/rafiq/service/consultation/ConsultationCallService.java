@@ -10,6 +10,7 @@ import com.nexaworks.rafiq.entities.Consultation;
 import com.nexaworks.rafiq.exception.custom.consultation.ConsultationNotFoundException;
 import com.nexaworks.rafiq.repository.ConsultationRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
+import com.nexaworks.rafiq.service.payout.PayoutService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ public class ConsultationCallService implements IConsultationCallService {
     private final ConsultationPreparationService preparationService;
     private final ConsultationLogService consultationLogService;
     private final AuthService authService;
+    private final PayoutService payoutService;
     @Override
     public CallResponse enterCall(UUID consultationId) {
         log.info("Getting call for consultation: {}", consultationId);
@@ -32,6 +34,11 @@ public class ConsultationCallService implements IConsultationCallService {
             accessToken = preparationService.prepare(consultationId);
         }
         consultationLogService.logEnter(consultation);
+
+        if (authService.getAuthenticateUserId().equals(consultation.getDoctor().getId())) {
+            payoutService.initiatePayout(consultation);
+        }
+
         log.info("Returning call for consultation: {}", consultationId);
         return new CallResponse(consultationId, accessToken);
     }

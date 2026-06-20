@@ -30,6 +30,8 @@ public interface ConsultationMapper {
     @Mapping(target = "cancelledAt", expression = "java(getCancelledAt(consultation))")
     @Mapping(target = "reason", expression = "java(getCancellationReason(consultation))")
     @Mapping(target = "cancelByPatient", expression = "java(isCancelledByPatient(consultation))")
+    @Mapping(target = "rate", expression = "java(getRate(consultation.getDoctor()))")
+    @Mapping(target = "reviewCount", expression = "java(consultation.getDoctor().getFeedbackCount())")
     ConsultationResponse toDto(Consultation consultation);
 
     @Mapping(target = "consultationId", source = "id")
@@ -108,5 +110,8 @@ public interface ConsultationMapper {
     default UUID getDoctorId(Consultation consultation) {
         Doctor doctor = consultation.getDoctor();
         return doctor == null ? null : doctor.getId();
+    }
+    default double getRate(Doctor doctor) {
+        return doctor.getRating().doubleValue();
     }
 }

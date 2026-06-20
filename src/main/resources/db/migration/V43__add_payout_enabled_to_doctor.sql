@@ -1,0 +1,1 @@
+ALTER TABLE doctor ADD COLUMN payout_enabled BOOLEAN;

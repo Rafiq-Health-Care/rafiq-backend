@@ -2,6 +2,19 @@
 # Application — shared configuration (all profiles)
 # ---------------------------------------------------------------------------
 spring:
+  data:
+    redis:
+      repositories:
+        enabled: false
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      lettuce:
+        pool:
+                  max-active: 10
+                  max-idle: 5
+                  min-idle: 1
   application:
     name: rafiq
   profiles:
@@ -60,17 +73,7 @@ spring:
     clean-disabled: true
 
   # --- Redis ----------------------------------------------------------------
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
-      database: ${REDIS_DATABASE:0}
-      lettuce:
-        pool:
-          max-active: 10
-          max-idle: 5
-          min-idle: 1
+
 
   # --- RabbitMQ -------------------------------------------------------------
   rabbitmq:
@@ -194,11 +197,12 @@ management:
 logging:
   level:
     root: INFO
-
 sentry:
-  dsn: https://ae1a1982e94b88ae5230753a1b2767b7@o4511429007572992.ingest.us.sentry.io/4511429008752640
-  environment: dev
-  tracesSampleRate: 1.0
+  dsn: ${SENTRY_DSN}
+  environment: ${SENTRY_ENVIRONMENT:dev}
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:1.0}
+
 app:
   firebase:
-    config-file: firebase.json
+    config-base64: ${FIREBASE_CONFIG}
+

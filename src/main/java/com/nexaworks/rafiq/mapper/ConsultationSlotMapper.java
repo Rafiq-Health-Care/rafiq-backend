@@ -67,14 +67,13 @@ public interface ConsultationSlotMapper {
 
     @Mapping(target = "consultationId", expression = "java(getConsultationId(slot))")
     @Mapping(target = "slotId", source = "id")
-    @Mapping(target = "durationInMinutes", source = "durationMinutes")
     @Mapping(target = "status", expression = "java(getConsultationStatus(slot))")
-    @Mapping(target = "price", expression = "java(getPrice(slot))")
     @Mapping(target = "patient", expression = "java(getPatientDto(slot))")
     @Mapping(target = "bookedAt", expression = "java(getBookedAt(slot))")
     @Mapping(target = "cancelledAt", expression = "java(getCancelledAt(slot))")
     @Mapping(target = "reason", expression = "java(getCancellationReason(slot))")
     @Mapping(target = "cancelByPatient", expression = "java(isCancelledByPatient(slot))")
+    @Mapping(target = "notes", expression = "java(getNotes(slot))")
     ConsultationSlotResponse toDto(ConsultationSlot slot);
 
     default LocalDateTime toLocalDateTime(Instant instant) {
@@ -129,5 +128,9 @@ public interface ConsultationSlotMapper {
         }
         return new PatientDto(consultation.getPatient().getId(),
                 consultation.getPatient().getFirstName(), consultation.getPatient().getLastName());
+    }
+    default String getNotes(ConsultationSlot slot) {
+        Consultation consultation = getActiveConsultation(slot);
+        return consultation == null ? null : consultation.getNotes();
     }
 }
