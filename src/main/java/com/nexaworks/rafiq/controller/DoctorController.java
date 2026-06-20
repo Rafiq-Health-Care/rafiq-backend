@@ -1,5 +1,6 @@
 package com.nexaworks.rafiq.controller;
 
+import java.net.URI;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
@@ -11,7 +12,9 @@ import com.nexaworks.rafiq.dto.request.doctor.*;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.doctor.DoctorProfileResponse;
 import com.nexaworks.rafiq.dto.response.doctor.DoctorSearchResponse;
+import com.nexaworks.rafiq.service.doctor.IAccountManagement;
 import com.nexaworks.rafiq.service.doctor.IDoctorPersistenceService;
+import com.stripe.exception.StripeException;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -24,12 +27,19 @@ import lombok.RequiredArgsConstructor;
 public class DoctorController {
 
     private final IDoctorPersistenceService doctorService;
+    private final IAccountManagement accountManagement;
 
     @PutMapping("/price")
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<Void> setPrice(@Valid @RequestBody EditConsultationInfoRequest request) {
         doctorService.setPrice(request.price());
         return ResponseEntity.ok().build();
+    }
+    @PostMapping("/stripe-connect")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public ResponseEntity<?> stripeConnect() throws StripeException {
+        String url = accountManagement.createAccount();
+        return ResponseEntity.status(302).location(URI.create(url)).build();
     }
 
     @GetMapping("/{id}")
