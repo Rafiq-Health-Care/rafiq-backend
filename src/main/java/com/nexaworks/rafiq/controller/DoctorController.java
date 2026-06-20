@@ -42,6 +42,11 @@ public class DoctorController {
         return ResponseEntity.status(302).location(URI.create(url)).build();
     }
 
+    @GetMapping("/complete")
+    public ResponseEntity<Void> completeStripeConnect(@RequestParam String accountId) {
+        accountManagement.complete(accountId);
+        return ResponseEntity.ok().build();
+    }
     @GetMapping("/{id}")
     public ResponseEntity<DoctorProfileResponse> getDoctorById(@PathVariable UUID id) {
         DoctorProfileResponse response = doctorService.getDoctorById(id);
