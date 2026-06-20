@@ -1,8 +1,10 @@
 package com.nexaworks.rafiq.service.doctor;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.nexaworks.rafiq.entities.Doctor;
+import com.nexaworks.rafiq.repository.DoctorRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Account;
@@ -20,7 +22,9 @@ public class AccountManagement implements IAccountManagement {
     public static final String APP_REFRESH_STRIPE_ACCOUNT = "https://rafiq-consultation-app.vercel.app/refresh-stripe-account";
     public static final String ACCOUNT_LINK_SUCCESS = "https://rafiq-consultation-app.vercel.app/stripe-account-link-success";
     private final AuthService authService;
+    private final DoctorRepository doctorRepository;
     @Override
+    @Transactional
     public String createAccount() throws StripeException {
         Doctor doctor = (Doctor) authService.getAuthenticateUser();
 
@@ -37,6 +41,7 @@ public class AccountManagement implements IAccountManagement {
         Account account = Account.create(accountCreateParams);
         log.info("Account created: {}", doctor.getEmail());
         doctor.setStripeCustomerId(account.getId());
+        doctorRepository.save(doctor);
 
         AccountLinkCreateParams params = AccountLinkCreateParams.builder()
                 .setAccount(account.getId()).setRefreshUrl(APP_REFRESH_STRIPE_ACCOUNT)
@@ -44,5 +49,16 @@ public class AccountManagement implements IAccountManagement {
                 .setType(AccountLinkCreateParams.Type.ACCOUNT_ONBOARDING).build();
 
         return AccountLink.create(params).getUrl();
+    }
+
+    @Override
+    @Transactional
+    public void complete(String accountId) throws StripeException {
+        Doctor doctor = doctorRepository.findDoctorsByStripeCustomerId(accountId);
+        Account account = Account.retrieve(accountId);
+        boolean ready = Boolean.TRUE.equals(account.getChargesEnabled())
+                && Boolean.TRUE.equals(account.getPayoutsEnabled());
+        doctor.setPayoutEnabled(ready);
+        doctorRepository.save(doctor);
     }
 }

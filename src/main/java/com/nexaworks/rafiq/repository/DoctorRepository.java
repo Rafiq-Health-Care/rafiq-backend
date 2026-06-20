@@ -51,4 +51,6 @@ public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
                 WHERE d.id = :id
             """)
     Optional<DoctorStatsDTO> findStatsByDoctorId(UUID id);
+
+    Doctor findDoctorsByStripeCustomerId(String stripeCustomerId);
 }

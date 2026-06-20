@@ -5,5 +5,5 @@ import com.stripe.exception.StripeException;
 public interface IAccountManagement {
     String createAccount() throws StripeException;
 
-    void complete(String accountId);
+    void complete(String accountId) throws StripeException;
 }
