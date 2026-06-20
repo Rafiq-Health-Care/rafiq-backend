@@ -4,34 +4,41 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.nexaworks.rafiq.entities.enums.PaymentProvider;
 import com.nexaworks.rafiq.entities.enums.PaymentStatus;
 
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "payments")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"consultation", "patient", "refundRequest"})
+@EqualsAndHashCode(of = "id")
+@Table(name = "payments", indexes = {@Index(name = "idx_payments_id", columnList = "id"),
+        @Index(name = "idx_payments_consultation", columnList = "consultation_id"),
+        @Index(name = "idx_payments_patient", columnList = "patient_id"),
+        @Index(name = "idx_payments_status", columnList = "status"),
+        @Index(name = "idx_payments_payment_intent", columnList = "payment_intent_id")})
 public class Payment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "consultation_id", nullable = false)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinColumn(name = "consultation_id", nullable = false, unique = true)
     private Consultation consultation;
-
-    @OneToOne(mappedBy = "payment")
-    private PaymentJob paymentJob;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id", nullable = false)
-    private User patient;
+    private Patient patient;
+
+    @OneToOne(mappedBy = "payment", fetch = FetchType.EAGER)
+    private RefundRequest refundRequest;
 
     @Column(name = "payment_intent_id", nullable = false, unique = true)
     private String paymentIntentId;
@@ -47,7 +54,8 @@ public class Payment {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PaymentStatus status;
+    @Builder.Default
+    private PaymentStatus status = PaymentStatus.PENDING;
 
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
@@ -60,6 +68,9 @@ public class Payment {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentProvider paymentProvider;
 
     @PrePersist
     protected void onCreate() {

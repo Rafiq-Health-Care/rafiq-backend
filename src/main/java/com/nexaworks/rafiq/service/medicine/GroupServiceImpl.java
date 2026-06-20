@@ -10,13 +10,19 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nexaworks.rafiq.dto.request.group.AddGroupRequest;
 import com.nexaworks.rafiq.dto.request.group.UpdateGroupRequest;
+import com.nexaworks.rafiq.dto.response.Group.AddGroupResponse;
+import com.nexaworks.rafiq.dto.response.Group.GroupDetailsResponse;
+import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.entities.Group;
 import com.nexaworks.rafiq.entities.Medicine;
 import com.nexaworks.rafiq.entities.Patient;
-import com.nexaworks.rafiq.exception.custom.GroupIsAlreadyExistsException;
-import com.nexaworks.rafiq.exception.custom.GroupNotFoundException;
-import com.nexaworks.rafiq.exception.custom.MedicineNotFound;
+import com.nexaworks.rafiq.exception.custom.medicine.GroupIsAlreadyExistsException;
+import com.nexaworks.rafiq.exception.custom.medicine.GroupNotFoundException;
+import com.nexaworks.rafiq.exception.custom.medicine.MedicineNotFound;
+import com.nexaworks.rafiq.mapper.GroupMapper;
+import com.nexaworks.rafiq.mapper.MedicineMapper;
 import com.nexaworks.rafiq.repository.GroupRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.service.patient.PatientService;
@@ -31,6 +37,8 @@ public class GroupServiceImpl implements GroupService {
     private final GroupRepository groupRepository;
     private final PatientService patientService;
     private final AuthService authService;
+    private final GroupMapper groupMapper;
+    private final MedicineMapper medicineMapper;
 
     @Override
     public Group getGroupById(UUID groupId) {
@@ -45,29 +53,39 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public Group addGroup(Group group) {
+    public AddGroupResponse addGroup(AddGroupRequest request) {
         Patient patient = (Patient) authService.getAuthenticateUser();
+        Group group = groupMapper.toEntity(request);
         if (groupRepository.existsGroupByName_AndPatient(group.getName(), patient)) {
             throw new GroupIsAlreadyExistsException(
                     "Group with name " + group.getName() + " already exists");
         }
         group.setPatient(patient);
-        return groupRepository.save(group);
+        Group saved = groupRepository.save(group);
+        return groupMapper.toDto(saved);
     }
 
     @Override
-    public Page<Group> getGroups(int page, int size, String direction, String sort) {
+    public GroupDetailsResponse getGroupResponse(UUID id) {
+        Group group = getGroupById(id);
+        return groupMapper.toResponse(group, medicineMapper);
+    }
+
+    @Override
+    public PageResponse<AddGroupResponse> getGroups(int page, int size, String direction,
+            String sort) {
         Sort sortOrder = direction.equalsIgnoreCase("asc")
                 ? Sort.by(sort).ascending()
                 : Sort.by(sort).descending();
         Pageable pageable = PageRequest.of(page, size, sortOrder);
         UUID patientId = authService.getAuthenticateUserId();
-        return groupRepository.findByPatientId(patientId, pageable);
+        Page<Group> groups = groupRepository.findByPatientId(patientId, pageable);
+        return PageResponse.of(groups, groupMapper::toDto);
     }
 
     @Override
     @Transactional
-    public Group updateGroupById(UpdateGroupRequest request, UUID id) {
+    public AddGroupResponse updateGroupById(UpdateGroupRequest request, UUID id) {
         Group existingGroup = getGroupById(id);
         Optional.ofNullable(request.name()).ifPresent(name -> {
             if (groupRepository.existsGroupByPatient_IdAndName(
@@ -79,7 +97,8 @@ public class GroupServiceImpl implements GroupService {
         });
         Optional.ofNullable(request.description()).ifPresent(existingGroup::setDescription);
         Optional.ofNullable(request.color()).ifPresent(existingGroup::setColor);
-        return groupRepository.save(existingGroup);
+        Group updatedGroup = groupRepository.save(existingGroup);
+        return groupMapper.toDto(updatedGroup);
     }
 
     @Override

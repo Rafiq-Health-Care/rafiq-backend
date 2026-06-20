@@ -1,6 +1,6 @@
 package com.nexaworks.rafiq.entities;
 
-import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 import com.nexaworks.rafiq.entities.enums.*;
@@ -17,9 +17,10 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Entity
 @Table(name = "medicine", indexes = {
-        @Index(columnList = "search_vector", name = "medicine_search_vector_idx"),
-        @Index(columnList = "patient_id", name = "patient_medicine_idx"),
-        @Index(columnList = "doctor_id", name = "doctor_medicine_idx")})
+        @Index(columnList = "search_vector", name = "idx_medicine_search_vector"),
+        @Index(columnList = "patient_id", name = "idx_medicine_patient"),
+        @Index(columnList = "group_id", name = "idx_medicine_group"),
+        @Index(columnList = "id", name = "idx_medicine_id")})
 public class Medicine extends BaseEntity {
 
     @NotNull
@@ -49,11 +50,13 @@ public class Medicine extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private MedicineType type;
 
-    private Instant startDate;
-    private Instant endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    @Column(columnDefinition = "TEXT")
     private String notes;
+    // todo file mangement
     private String photoUrl;
-    private String photoPublicId;
+
     private String name;
 
     @Column(name = "search_vector", columnDefinition = "tsvector", insertable = false, updatable = false)
@@ -64,16 +67,13 @@ public class Medicine extends BaseEntity {
     private Drug drug;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doctor_id", referencedColumnName = "id")
-    private Doctor doctor;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
     private Patient patient;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", referencedColumnName = "id")
     private Group group;
+
     @OneToOne(mappedBy = "medicine", cascade = {CascadeType.REMOVE, CascadeType.MERGE,
             CascadeType.PERSIST}, orphanRemoval = true)
     private Reminder reminder;

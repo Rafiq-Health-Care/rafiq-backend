@@ -10,19 +10,20 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.nexaworks.rafiq.dto.request.user.DoctorRegistrationRequest;
+import com.nexaworks.rafiq.dto.request.user.UserRegistrationRequest;
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.*;
-import com.nexaworks.rafiq.entities.enums.Specialization;
-import com.nexaworks.rafiq.exception.custom.RegistrationException;
+import com.nexaworks.rafiq.exception.custom.user.RegistrationException;
+import com.nexaworks.rafiq.mapper.UserMapper;
+import com.nexaworks.rafiq.rabbit.manager.UserNotificationManager;
 import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.doctor.DoctorService;
+import com.nexaworks.rafiq.service.doctor.IDoctorPersistenceService;
 import com.nexaworks.rafiq.service.patient.PatientService;
-import com.nexaworks.rafiq.service.rabbit.MessageService;
 import com.nexaworks.rafiq.utils.AuthSessionManager;
+import com.nexaworks.rafiq.utils.TransactionUtils;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -38,46 +39,37 @@ public class UserServiceImpl implements UserService {
     private final TokenService tokenService;
     private final AuthSessionManager authSessionManager;
     private final PatientService patientService;
-    private final DoctorService doctorService;
-    private final MessageService messageService;
+    private final IDoctorPersistenceService doctorService;
+    private final TransactionUtils transactionUtils;
+    private final UserNotificationManager manager;
+    private final UserMapper userMapper;
 
     @Override
     @Transactional
-    public void registerPatient(User user) {
+    public void registerPatient(UserRegistrationRequest request) {
+        Patient user = userMapper.toUser(request);
         verifyEmailAvailability(user);
         user.getRoles().add(roleService.getRole(ROLE_PATIENT));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         patientService.register((Patient) user);
         String otp = tokenService.generateOtpToken(user);
-
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                messageService.sendRegistrationEvent(user, otp);
-
-            }
-        });
+        transactionUtils.afterCommit(() -> manager.sendRegistrationEvent(user, otp));
     }
 
     @Override
     @Transactional
-    public void registerDoctor(User user, MultipartFile nationalId, Specialization specialization,
-            String description) throws IOException {
+    public void registerDoctor(DoctorRegistrationRequest request, MultipartFile nationalId)
+            throws IOException {
+
+        Doctor user = userMapper.toDoctor(request.user());
 
         verifyEmailAvailability(user);
         user.getRoles().add(roleService.getRole(ROLE_DOCTOR));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        doctorService.register((Doctor) user, specialization, description);
+        doctorService.register(user, request.specialization(), request.description());
 
         String otp = tokenService.generateOtpToken(user);
-
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                messageService.sendNewOtpEvent(user, otp);
-                // TODO handle national Id uploading
-            }
-        });
+        transactionUtils.afterCommit(() -> manager.sendRegistrationEvent(user, otp));
     }
 
     @Override

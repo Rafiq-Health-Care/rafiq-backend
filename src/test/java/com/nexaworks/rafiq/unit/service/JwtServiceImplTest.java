@@ -11,17 +11,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.exception.custom.UserException;
-import com.nexaworks.rafiq.repository.UserRepository;
+import com.nexaworks.rafiq.exception.custom.user.UserException;
 import com.nexaworks.rafiq.service.authentication.JwtServiceImpl;
-import com.nexaworks.rafiq.service.user.TokenServiceImpl;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -29,10 +26,6 @@ import io.jsonwebtoken.Jwts;
 @DisplayName("JwtServiceImpl Test")
 public class JwtServiceImplTest {
 
-    @Mock
-    UserRepository userRepository;
-    @Mock
-    TokenServiceImpl tokenServiceImpl;
     @InjectMocks
     JwtServiceImpl jwtService;
 

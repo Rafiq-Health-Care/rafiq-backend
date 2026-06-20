@@ -23,15 +23,19 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import com.nexaworks.rafiq.dto.request.group.AddGroupRequest;
 import com.nexaworks.rafiq.dto.request.group.UpdateGroupRequest;
+import com.nexaworks.rafiq.dto.response.Group.AddGroupResponse;
+import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.entities.Drug;
 import com.nexaworks.rafiq.entities.Group;
 import com.nexaworks.rafiq.entities.Medicine;
 import com.nexaworks.rafiq.entities.Patient;
-import com.nexaworks.rafiq.entities.enums.Color;
-import com.nexaworks.rafiq.exception.custom.GroupIsAlreadyExistsException;
-import com.nexaworks.rafiq.exception.custom.GroupNotFoundException;
-import com.nexaworks.rafiq.exception.custom.MedicineNotFound;
+import com.nexaworks.rafiq.exception.custom.medicine.GroupIsAlreadyExistsException;
+import com.nexaworks.rafiq.exception.custom.medicine.GroupNotFoundException;
+import com.nexaworks.rafiq.exception.custom.medicine.MedicineNotFound;
+import com.nexaworks.rafiq.mapper.GroupMapper;
+import com.nexaworks.rafiq.mapper.MedicineMapper;
 import com.nexaworks.rafiq.repository.GroupRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
 import com.nexaworks.rafiq.service.medicine.GroupServiceImpl;
@@ -48,6 +52,12 @@ public class GroupServiceImplTest {
 
     @Mock
     private AuthService authService;
+
+    @Mock
+    private GroupMapper groupMapper;
+
+    @Mock
+    private MedicineMapper medicineMapper;
 
     @InjectMocks
     private GroupServiceImpl groupService;
@@ -135,25 +145,30 @@ public class GroupServiceImplTest {
         @DisplayName("Should add group successfully when name is unique")
         void addGroup_ShouldAddGroupSuccessfully_WhenNameIsUnique() {
             // Arrange
+            AddGroupRequest request = new AddGroupRequest("Vitamins", "Vitamin supplements",
+                    "#0000FF");
             Group group = Group.builder().name("Vitamins").description("Vitamin supplements")
-                    .color(Color.BLUE).build();
+                    .color("#0000FF").build();
 
             Group savedGroup = Group.builder().id(groupId).name("Vitamins")
-                    .description("Vitamin supplements").color(Color.BLUE).patient(patient).build();
+                    .description("Vitamin supplements").color("#0000FF").patient(patient).build();
+            AddGroupResponse response = new AddGroupResponse(groupId, patientId,
+                    "Vitamin supplements", "#0000FF", "Vitamins", null, null, null, 0);
 
             when(authService.getAuthenticateUser()).thenReturn(patient);
+            when(groupMapper.toEntity(request)).thenReturn(group);
             when(groupRepository.existsGroupByName_AndPatient("Vitamins", patient))
                     .thenReturn(false);
             when(groupRepository.save(any(Group.class))).thenReturn(savedGroup);
+            when(groupMapper.toDto(savedGroup)).thenReturn(response);
 
             // Act
-            Group result = groupService.addGroup(group);
+            AddGroupResponse result = groupService.addGroup(request);
 
             // Assert
             assertThat(result).isNotNull();
-            assertThat(result.getId()).isEqualTo(groupId);
-            assertThat(result.getName()).isEqualTo("Vitamins");
-            assertThat(result.getPatient()).isEqualTo(patient);
+            assertThat(result.groupId()).isEqualTo(groupId);
+            assertThat(result.name()).isEqualTo("Vitamins");
             verify(authService, times(1)).getAuthenticateUser();
             verify(groupRepository, times(1)).existsGroupByName_AndPatient("Vitamins", patient);
             verify(groupRepository, times(1)).save(any(Group.class));
@@ -163,16 +178,18 @@ public class GroupServiceImplTest {
         @DisplayName("Should throw GroupIsAlreadyExistsException when group name already exists")
         void addGroup_ShouldThrowGroupIsAlreadyExistsException_WhenGroupNameAlreadyExists() {
             // Arrange
+            AddGroupRequest request = new AddGroupRequest("Vitamins", "Vitamin supplements", null);
             Group group = Group.builder().name("Vitamins").description("Vitamin supplements")
                     .build();
 
             when(authService.getAuthenticateUser()).thenReturn(patient);
+            when(groupMapper.toEntity(request)).thenReturn(group);
             when(groupRepository.existsGroupByName_AndPatient("Vitamins", patient))
                     .thenReturn(true);
 
             // Act & Assert
             assertThatExceptionOfType(GroupIsAlreadyExistsException.class)
-                    .isThrownBy(() -> groupService.addGroup(group))
+                    .isThrownBy(() -> groupService.addGroup(request))
                     .withMessageContaining("Group with name Vitamins already exists");
 
             verify(authService, times(1)).getAuthenticateUser();
@@ -201,14 +218,19 @@ public class GroupServiceImplTest {
             when(authService.getAuthenticateUserId()).thenReturn(patientId);
             when(groupRepository.findByPatientId(eq(patientId), any(Pageable.class)))
                     .thenReturn(groupPage);
+            when(groupMapper.toDto(any(Group.class))).thenAnswer(invocation -> {
+                Group g = invocation.getArgument(0);
+                return new AddGroupResponse(g.getId(), patientId, null, null, g.getName(), null,
+                        null, null, 0);
+            });
 
             // Act
-            Page<Group> result = groupService.getGroups(0, 10, "asc", "name");
+            PageResponse<AddGroupResponse> result = groupService.getGroups(0, 10, "asc", "name");
 
             // Assert
             assertThat(result).isNotNull();
-            assertThat(result.getTotalElements()).isEqualTo(2);
-            assertThat(result.getContent().size()).isEqualTo(2);
+            assertThat(result.numberOfElements()).isEqualTo(2);
+            assertThat(result.content().size()).isEqualTo(2);
             verify(authService, times(1)).getAuthenticateUserId();
             verify(groupRepository, times(1)).findByPatientId(eq(patientId), any(Pageable.class));
         }
@@ -229,14 +251,19 @@ public class GroupServiceImplTest {
             when(authService.getAuthenticateUserId()).thenReturn(patientId);
             when(groupRepository.findByPatientId(eq(patientId), any(Pageable.class)))
                     .thenReturn(groupPage);
+            when(groupMapper.toDto(any(Group.class))).thenAnswer(invocation -> {
+                Group g = invocation.getArgument(0);
+                return new AddGroupResponse(g.getId(), patientId, null, null, g.getName(), null,
+                        null, null, 0);
+            });
 
             // Act
-            Page<Group> result = groupService.getGroups(0, 10, "desc", "name");
+            PageResponse<AddGroupResponse> result = groupService.getGroups(0, 10, "desc", "name");
 
             // Assert
             assertThat(result).isNotNull();
-            assertThat(result.getTotalElements()).isEqualTo(2);
-            assertThat(result.getContent().size()).isEqualTo(2);
+            assertThat(result.numberOfElements()).isEqualTo(2);
+            assertThat(result.content().size()).isEqualTo(2);
             verify(authService, times(1)).getAuthenticateUserId();
             verify(groupRepository, times(1)).findByPatientId(eq(patientId), any(Pageable.class));
         }
@@ -254,12 +281,12 @@ public class GroupServiceImplTest {
                     .thenReturn(groupPage);
 
             // Act
-            Page<Group> result = groupService.getGroups(0, 10, "asc", "name");
+            PageResponse<AddGroupResponse> result = groupService.getGroups(0, 10, "asc", "name");
 
             // Assert
             assertThat(result).isNotNull();
-            assertThat(result.getTotalElements()).isEqualTo(0);
-            assertThat(result.getContent().size()).isEqualTo(0);
+            assertThat(result.numberOfElements()).isEqualTo(0);
+            assertThat(result.content().size()).isEqualTo(0);
             verify(authService, times(1)).getAuthenticateUserId();
             verify(groupRepository, times(1)).findByPatientId(eq(patientId), any(Pageable.class));
         }
@@ -274,28 +301,30 @@ public class GroupServiceImplTest {
         void updateGroupById_ShouldUpdateGroupSuccessfully_WhenRequestIsValid() {
             // Arrange
             Group existingGroup = Group.builder().id(groupId).name("Old Name")
-                    .description("Old Description").color(Color.BLUE).patient(patient).build();
+                    .description("Old Description").color("#0000FF").patient(patient).build();
 
             UpdateGroupRequest request = new UpdateGroupRequest("New Name", "New Description",
-                    Color.RED);
+                    "#FF0000");
 
             Group updatedGroup = Group.builder().id(groupId).name("New Name")
-                    .description("New Description").color(Color.RED).patient(patient).build();
+                    .description("New Description").color("#FF0000").patient(patient).build();
 
             when(groupRepository.findById(groupId)).thenReturn(Optional.of(existingGroup));
             when(patientService.getPatientProfile()).thenReturn(patient);
             when(groupRepository.existsGroupByPatient_IdAndName(patientId, "New Name"))
                     .thenReturn(false);
             when(groupRepository.save(any(Group.class))).thenReturn(updatedGroup);
+            when(groupMapper.toDto(updatedGroup)).thenReturn(new AddGroupResponse(groupId,
+                    patientId, "New Description", "#0000FF", "New Name", null, null, null, 0));
 
             // Act
-            Group result = groupService.updateGroupById(request, groupId);
+            AddGroupResponse result = groupService.updateGroupById(request, groupId);
 
             // Assert
             assertThat(result).isNotNull();
-            assertThat(result.getName()).isEqualTo("New Name");
-            assertThat(result.getDescription()).isEqualTo("New Description");
-            assertThat(result.getColor()).isEqualTo(Color.RED);
+            assertThat(result.name()).isEqualTo("New Name");
+            assertThat(result.description()).isEqualTo("New Description");
+            assertThat(result.color()).isEqualTo("#0000FF");
             verify(groupRepository, times(1)).save(any(Group.class));
         }
 
@@ -307,7 +336,7 @@ public class GroupServiceImplTest {
                     .description("Old Description").patient(patient).build();
 
             UpdateGroupRequest request = new UpdateGroupRequest("Existing Name", "New Description",
-                    Color.RED);
+                    "#FF0000");
 
             when(groupRepository.findById(groupId)).thenReturn(Optional.of(existingGroup));
             when(patientService.getPatientProfile()).thenReturn(patient);
@@ -326,7 +355,7 @@ public class GroupServiceImplTest {
         void updateGroupById_ShouldUpdateOnlyProvidedFields_WhenPartialUpdateRequest() {
             // Arrange
             Group existingGroup = Group.builder().id(groupId).name("Old Name")
-                    .description("Old Description").color(Color.BLUE).patient(patient).build();
+                    .description("Old Description").color("#0000FF").patient(patient).build();
 
             UpdateGroupRequest request = new UpdateGroupRequest(null, "Updated Description", null);
 
@@ -334,14 +363,19 @@ public class GroupServiceImplTest {
             when(patientService.getPatientProfile()).thenReturn(patient);
             when(groupRepository.save(any(Group.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
+            when(groupMapper.toDto(any(Group.class))).thenAnswer(invocation -> {
+                Group g = invocation.getArgument(0);
+                return new AddGroupResponse(g.getId(), patientId, g.getDescription(), g.getColor(),
+                        g.getName(), null, null, null, 0);
+            });
 
             // Act
-            Group result = groupService.updateGroupById(request, groupId);
+            AddGroupResponse result = groupService.updateGroupById(request, groupId);
 
             // Assert
             assertThat(result).isNotNull();
-            assertThat(result.getName()).isEqualTo("Old Name"); // Should remain unchanged
-            assertThat(result.getDescription()).isEqualTo("Updated Description");
+            assertThat(result.name()).isEqualTo("Old Name"); // Should remain unchanged
+            assertThat(result.description()).isEqualTo("Updated Description");
             verify(groupRepository, times(1)).save(any(Group.class));
         }
     }

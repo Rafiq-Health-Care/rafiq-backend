@@ -1,72 +1,62 @@
 package com.nexaworks.rafiq.controller;
 
-import java.util.List;
+import java.net.URI;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import com.nexaworks.rafiq.dto.request.doctor.DoctorFilter;
-import com.nexaworks.rafiq.dto.request.doctor.EducationItemRequest;
-import com.nexaworks.rafiq.dto.request.doctor.ExperienceItemRequest;
-import com.nexaworks.rafiq.dto.request.doctor.SetDoctorPriceRequest;
+import com.nexaworks.rafiq.dto.request.doctor.*;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.doctor.DoctorProfileResponse;
 import com.nexaworks.rafiq.dto.response.doctor.DoctorSearchResponse;
-import com.nexaworks.rafiq.entities.Doctor;
-import com.nexaworks.rafiq.mapper.DoctorMapper;
-import com.nexaworks.rafiq.service.doctor.DoctorService;
+import com.nexaworks.rafiq.service.doctor.IAccountManagement;
+import com.nexaworks.rafiq.service.doctor.IDoctorPersistenceService;
+import com.stripe.exception.StripeException;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/doctors")
+@RequestMapping("/api/v1/doctors")
 @RequiredArgsConstructor
 @Tag(name = "Doctor", description = "Doctor profile and catalog")
 public class DoctorController {
 
-    private final DoctorService doctorService;
-    private final DoctorMapper doctorMapper;
+    private final IDoctorPersistenceService doctorService;
+    private final IAccountManagement accountManagement;
 
-    @PutMapping("/me/education")
+    @PutMapping("/price")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<DoctorProfileResponse> replaceEducation(
-            @Valid @RequestBody List<@Valid EducationItemRequest> education) {
-        Doctor doctor = doctorService.replaceEducation(education);
-        return ResponseEntity.ok(doctorMapper.toProfileResponse(doctor));
+    public ResponseEntity<Void> setPrice(@Valid @RequestBody EditConsultationInfoRequest request) {
+        doctorService.setPrice(request.price());
+        return ResponseEntity.ok().build();
+    }
+    @PostMapping("/stripe-connect")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public ResponseEntity<?> stripeConnect() throws StripeException {
+        String url = accountManagement.createAccount();
+        return ResponseEntity.status(302).location(URI.create(url)).build();
     }
 
-    @PutMapping("/me/experience")
-    @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<DoctorProfileResponse> replaceExperience(
-            @Valid @RequestBody List<@Valid ExperienceItemRequest> experience) {
-        Doctor doctor = doctorService.replaceExperience(experience);
-        return ResponseEntity.ok(doctorMapper.toProfileResponse(doctor));
+    @GetMapping("/complete")
+    public ResponseEntity<Void> completeStripeConnect(@RequestParam String accountId)
+            throws StripeException {
+        accountManagement.complete(accountId);
+        return ResponseEntity.ok().build();
     }
-
-    @PutMapping("/me/price")
-    @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<DoctorProfileResponse> setPrice(
-            @Valid @RequestBody SetDoctorPriceRequest request) {
-        Doctor doctor = doctorService.setPrice(request.price());
-        return ResponseEntity.ok(doctorMapper.toProfileResponse(doctor));
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<DoctorProfileResponse> getDoctorById(@PathVariable UUID id) {
-        Doctor doctor = doctorService.getDoctorById(id);
-        return ResponseEntity.ok(doctorMapper.toProfileResponse(doctor));
+        DoctorProfileResponse response = doctorService.getDoctorById(id);
+        return ResponseEntity.ok(response);
     }
     @PostMapping("/search")
     public ResponseEntity<PageResponse<DoctorSearchResponse>> searchDoctor(
             @RequestBody DoctorFilter filter, Pageable pageable) {
-        Page<DoctorSearchResponse> response = doctorService.search(filter, pageable);
-        return ResponseEntity.ok(doctorMapper.toSearchPageResponse(response));
+        return ResponseEntity.ok(doctorService.search(filter, pageable));
     }
 
 }

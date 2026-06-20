@@ -12,8 +12,12 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@ToString(of = "name")
+@EqualsAndHashCode(of = "name", callSuper = false)
+@Table(name = "role", indexes = {@Index(name = "idx_role_name", columnList = "name")})
 public class Role extends BaseEntity {
 
+    @Column(unique = true, nullable = false)
     private String name;
 
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)

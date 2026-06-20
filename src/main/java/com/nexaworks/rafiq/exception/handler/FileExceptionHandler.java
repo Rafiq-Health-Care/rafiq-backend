@@ -6,8 +6,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.nexaworks.rafiq.exception.ExceptionUtils;
-import com.nexaworks.rafiq.exception.custom.EmptyFileException;
-import com.nexaworks.rafiq.exception.custom.FileUploadException;
+import com.nexaworks.rafiq.exception.custom.file.EmptyFileException;
+import com.nexaworks.rafiq.exception.custom.file.FileException;
+import com.nexaworks.rafiq.exception.custom.file.FileUploadException;
 import com.nexaworks.rafiq.exception.model.ErrorResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,6 +28,13 @@ public class FileExceptionHandler {
 
     @ExceptionHandler(FileUploadException.class)
     public ResponseEntity<ErrorResponse> handleFileUpload(FileUploadException ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.BAD_REQUEST));
+    }
+
+    @ExceptionHandler(FileException.class)
+    public ResponseEntity<ErrorResponse> handleFileException(FileException ex,
             HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(exceptionUtils.getErrorResponse(ex, request, HttpStatus.BAD_REQUEST));

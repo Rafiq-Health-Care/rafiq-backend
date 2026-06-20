@@ -5,18 +5,18 @@ import java.time.LocalDateTime;
 import com.nexaworks.rafiq.entities.enums.ReminderStatus;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
+@ToString(exclude = {"reminder", "patient"})
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@Table(name = "reminder_log", indexes = {
+        @Index(name = "idx_reminder_log_reminder", columnList = "reminder_id")})
 public class ReminderLog extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ReminderStatus status;
@@ -24,6 +24,7 @@ public class ReminderLog extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "reminder_id", referencedColumnName = "id", nullable = false)
     private Reminder reminder;
+
     @ManyToOne
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
     private Patient patient;

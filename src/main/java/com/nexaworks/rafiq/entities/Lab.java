@@ -15,14 +15,12 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@Deprecated
 public class Lab extends BaseEntity {
     private String name;
 
     @OneToMany(mappedBy = "lab", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Address> addresses;
-
-    @OneToMany(mappedBy = "lab")
-    private List<LabTest> tests;
 
     private String logo;
     private String publicId;

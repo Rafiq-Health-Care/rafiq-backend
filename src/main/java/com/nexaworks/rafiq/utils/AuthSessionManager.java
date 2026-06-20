@@ -1,12 +1,14 @@
 package com.nexaworks.rafiq.utils;
 
+import java.util.Objects;
+
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.Role;
 import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
+import com.nexaworks.rafiq.exception.custom.user.TokenInvalidException;
 import com.nexaworks.rafiq.service.authentication.JwtService;
 import com.nexaworks.rafiq.service.user.TokenService;
 
@@ -31,7 +33,7 @@ public class AuthSessionManager {
         addTokenToCookie(response, jwt, "jwt", 60 * 60 * 24 * 7);
         addTokenToCookie(response, refreshToken, "refreshToken", 60 * 60 * 24 * 30);
         return new LoginResponse(user.getRoles().stream().map(Role::getName)
-                .filter(role -> !role.equals("ROLE_USER")).findFirst());
+                .filter(Objects::nonNull).findFirst().get());
     }
 
     public void addTokenToCookie(HttpServletResponse response, String token, String cookieName,

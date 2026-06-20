@@ -1,9 +1,16 @@
+# ---------------------------------------------------------------------------
+# Profile: prod — overrides for production
+# ---------------------------------------------------------------------------
 spring:
+  config:
+    import: optional:file:.env.prod[.properties]
+
   devtools:
     livereload:
       enabled: false
     restart:
       enabled: false
+
   jpa:
     show-sql: false
     properties:

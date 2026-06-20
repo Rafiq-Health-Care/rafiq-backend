@@ -6,8 +6,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
@@ -27,12 +26,13 @@ import com.nexaworks.rafiq.dto.request.user.ForgetPasswordRequest;
 import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
+import com.nexaworks.rafiq.exception.custom.user.TokenInvalidException;
+import com.nexaworks.rafiq.rabbit.manager.UserNotificationManager;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
-import com.nexaworks.rafiq.service.rabbit.MessageService;
 import com.nexaworks.rafiq.service.user.PasswordServiceImpl;
 import com.nexaworks.rafiq.service.user.TokenService;
+import com.nexaworks.rafiq.utils.TransactionUtils;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PasswordServiceImpl Unit Tests")
@@ -45,13 +45,16 @@ class PasswordServiceImplTest {
     private TokenService tokenService;
 
     @Mock
-    private MessageService messageService;
+    private UserNotificationManager messageService;
 
     @Mock
     private AuthService authService;
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private TransactionUtils transactionUtils;
 
     @InjectMocks
     private PasswordServiceImpl passwordService;
@@ -71,7 +74,7 @@ class PasswordServiceImplTest {
         testToken = new Token();
         testToken.setToken("test-token");
         testToken.setUser(testUser);
-        testToken.setExpiryDate(Instant.now().plus(1, ChronoUnit.HOURS));
+        testToken.setExpiryDate(LocalDateTime.now().plusHours(1));
     }
 
     @AfterEach
@@ -102,6 +105,11 @@ class PasswordServiceImplTest {
             when(userRepository.findByEmail(request.email())).thenReturn(Optional.of(testUser));
             when(tokenService.generateAccessToken(Optional.of(testUser)))
                     .thenReturn(generatedToken);
+            doAnswer(invocation -> {
+                Runnable runnable = invocation.getArgument(0);
+                runnable.run();
+                return null;
+            }).when(transactionUtils).afterCommit(any(Runnable.class));
 
             // Act
             passwordService.forgetPassword(request);
@@ -159,7 +167,7 @@ class PasswordServiceImplTest {
             // Arrange
             ChangePasswordRequest request = new ChangePasswordRequest("expired-token",
                     "newPassword123");
-            testToken.setExpiryDate(Instant.now().minus(1, ChronoUnit.HOURS));
+            testToken.setExpiryDate(LocalDateTime.now().minusHours(1));
             when(tokenService.getToken(request.accessToken())).thenReturn(testToken);
 
             // Act & Assert

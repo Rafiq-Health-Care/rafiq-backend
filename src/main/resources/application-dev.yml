@@ -1,9 +1,23 @@
+# ---------------------------------------------------------------------------
+# Profile: dev — overrides for local development
+# ---------------------------------------------------------------------------
 spring:
+  config:
+    import: optional:file:.env.dev[.properties]
+
   devtools:
     livereload:
-      enabled: true
+      enabled: false
     restart:
-      enabled: true
+      enabled: false
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:pass}
+      database: ${REDIS_DATABASE:0}
+
   jpa:
     show-sql: true
     properties:

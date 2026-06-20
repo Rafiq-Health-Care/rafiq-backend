@@ -17,25 +17,40 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "reminder", indexes = {@Index(name = "patient_idx", columnList = "patient_id"),
-        @Index(name = "medicine_idx", columnList = "medicine_id")})
+@ToString(exclude = {"reminderLogs", "patient", "medicine", "group"})
+@Table(name = "reminder", indexes = {
+        @Index(name = "idx_reminder_patient", columnList = "patient_id"),
+        @Index(name = "idx_reminder_medicine", columnList = "medicine_id"),
+        @Index(name = "idx_reminder_status", columnList = "status"),
+        @Index(name = "idx_reminder_id", columnList = "id")})
 public class Reminder extends BaseEntity {
 
-    private boolean vibrate;
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    @Builder.Default
+    private boolean vibrate = true;
+
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ReminderStatus status;
+
     private LocalDateTime nextReminder;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
     @Builder.Default
     private Boolean disable = false;
+
     @OneToOne
     @JoinColumn(name = "medicine_id", referencedColumnName = "id", nullable = false)
     private Medicine medicine;
+
     @ManyToOne
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
     private Patient patient;
+
     @ManyToOne
     @JoinColumn(name = "group_id", referencedColumnName = "id")
     private Group group;
+
     @OneToMany(mappedBy = "reminder", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     @BatchSize(size = 100)
     private List<ReminderLog> reminderLogs;

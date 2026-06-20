@@ -10,10 +10,13 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Entity
 @SuperBuilder
+@ToString(exclude = {"consultation", "cancelledBy"})
+@Table(name = "cancellation_log", indexes = {
+        @Index(name = "idx_cancellation_log_consultation", columnList = "consultation_id")})
 public class CancellationLog extends BaseEntity {
 
     @OneToOne
-    @JoinColumn(name = "consultation_id", nullable = false)
+    @JoinColumn(name = "consultation_id", nullable = false, unique = true)
     private Consultation consultation;
 
     @Column(nullable = false, columnDefinition = "TEXT")

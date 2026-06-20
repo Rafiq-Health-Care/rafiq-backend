@@ -1,6 +1,7 @@
 package com.nexaworks.rafiq.service.authentication;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -17,9 +18,9 @@ import org.springframework.stereotype.Service;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.TokenType;
-import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
-import com.nexaworks.rafiq.exception.custom.UserException;
-import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
+import com.nexaworks.rafiq.exception.custom.user.TokenInvalidException;
+import com.nexaworks.rafiq.exception.custom.user.UserException;
+import com.nexaworks.rafiq.exception.custom.user.UserNotFoundException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.user.TokenService;
 
@@ -70,11 +71,11 @@ public class JwtServiceImpl implements JwtService {
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
-    private Instant getExpirationDate(String s) {
+    private LocalDateTime getExpirationDate(String s) {
         Claims claims = Jwts.parser().verifyWith(getKey()).build().parseSignedClaims(s)
                 .getPayload();
         Date expiration = claims.getExpiration();
-        return expiration.toInstant();
+        return expiration.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
     @Override

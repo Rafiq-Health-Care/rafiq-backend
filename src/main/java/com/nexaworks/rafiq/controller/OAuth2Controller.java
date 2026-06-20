@@ -1,8 +1,5 @@
 package com.nexaworks.rafiq.controller;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/oauth2")
+@RequestMapping("/api/v1/oauth2")
 @Tag(name = "OAuth2 Authentication", description = "Social login endpoints for Google and other OAuth2 providers")
 public class OAuth2Controller {
 
@@ -32,8 +29,7 @@ public class OAuth2Controller {
     @Operation(summary = "Google OAuth2 login", description = "Authenticates user via Google. Auto-creates account if new user.")
     @ApiResponse(responseCode = "200", description = "Login successful", content = @Content(schema = @Schema(implementation = LoginResponse.class)))
     public ResponseEntity<LoginResponse> oAuth2(@RequestBody OAuthRequest request,
-            HttpServletResponse response, @Qualifier("googleOAuth2") OAuth2Service google)
-            throws GeneralSecurityException, IOException {
+            HttpServletResponse response, @Qualifier("googleOAuth2") OAuth2Service google) {
         return ResponseEntity.ok().body(google.oAuth2(request.idToken(), response));
     }
 }

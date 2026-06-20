@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,13 +17,13 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
 import com.nexaworks.rafiq.entities.enums.TokenType;
-import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
-import com.nexaworks.rafiq.exception.custom.TokenNotFoundException;
-import com.nexaworks.rafiq.exception.custom.UserException;
-import com.nexaworks.rafiq.exception.custom.UserNotFoundException;
+import com.nexaworks.rafiq.exception.custom.user.TokenInvalidException;
+import com.nexaworks.rafiq.exception.custom.user.TokenNotFoundException;
+import com.nexaworks.rafiq.exception.custom.user.UserException;
+import com.nexaworks.rafiq.exception.custom.user.UserNotFoundException;
+import com.nexaworks.rafiq.rabbit.manager.UserNotificationManager;
 import com.nexaworks.rafiq.repository.TokenRepository;
 import com.nexaworks.rafiq.repository.UserRepository;
-import com.nexaworks.rafiq.service.rabbit.MessageService;
 import com.nexaworks.rafiq.service.user.TokenServiceImpl;
 
 @DisplayName("TokenService Test Cases")
@@ -34,7 +35,7 @@ public class TokenServiceTest {
     UserRepository userRepository;
 
     @Mock
-    MessageService messageService;
+    UserNotificationManager messageService;
 
     @InjectMocks
     @Spy
@@ -81,7 +82,7 @@ public class TokenServiceTest {
         verify(tokenRepository, times(1)).save(any(Token.class));
         verify(tokenRepository).save(argThat(savedToken -> savedToken.getUser().equals(user)
                 && savedToken.getTokenType() == TokenType.ACCESS_TOKEN
-                && savedToken.getExpiryDate().isAfter(java.time.Instant.now())));
+                && savedToken.getExpiryDate().isAfter(LocalDateTime.now())));
     }
 
     @DisplayName("Generate access token should throw exception when user is null")
@@ -101,7 +102,7 @@ public class TokenServiceTest {
         token.setUser(user);
         token.setToken("123456");
         token.setTokenType(TokenType.OTP);
-        token.setExpiryDate(java.time.Instant.now().plusSeconds(3600));
+        token.setExpiryDate(LocalDateTime.now().plusHours(1));
         when(tokenRepository.findByToken(anyString())).thenReturn(Optional.of(token));
         User verifiedUser = tokenService.verifyOtp(user.getEmail(), "123456");
         assertNotNull(verifiedUser);
@@ -125,7 +126,7 @@ public class TokenServiceTest {
         token.setUser(user);
         token.setToken("123456");
         token.setTokenType(TokenType.OTP);
-        token.setExpiryDate(java.time.Instant.now());
+        token.setExpiryDate(LocalDateTime.now());
         when(tokenRepository.findByToken(anyString())).thenReturn(Optional.of(token));
         assertThrows(TokenInvalidException.class,
                 () -> tokenService.verifyOtp(user.getEmail(), "123456"));
@@ -141,7 +142,7 @@ public class TokenServiceTest {
         token.setUser(user);
         token.setToken("123456");
         token.setTokenType(TokenType.OTP);
-        token.setExpiryDate(java.time.Instant.now());
+        token.setExpiryDate(LocalDateTime.now());
         when(tokenRepository.findByToken(anyString())).thenReturn(Optional.of(token));
         assertThrows(TokenInvalidException.class,
                 () -> tokenService.verifyOtp("elbialy@gmail.com", "123456"));
@@ -189,7 +190,7 @@ public class TokenServiceTest {
         verify(tokenRepository, times(1)).save(any(Token.class));
         verify(tokenRepository).save(argThat(savedToken -> savedToken.getUser().equals(user)
                 && savedToken.getTokenType() == TokenType.OTP
-                && savedToken.getExpiryDate().isAfter(java.time.Instant.now())));
+                && savedToken.getExpiryDate().isAfter(LocalDateTime.now())));
     }
 
     @DisplayName("Generate otp token should throw user exception if the user is null")

@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.nexaworks.rafiq.exception.ExceptionUtils;
-import com.nexaworks.rafiq.exception.custom.LabException;
+import com.nexaworks.rafiq.exception.custom.labtest.LabException;
 import com.nexaworks.rafiq.exception.model.ErrorResponse;
 
 import jakarta.servlet.http.HttpServletRequest;

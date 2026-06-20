@@ -4,6 +4,7 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.util.*;
 
+import org.hibernate.annotations.BatchSize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,7 +25,10 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "users", indexes = {@Index(columnList = "email", unique = true)})
+@EqualsAndHashCode(callSuper = false, of = {"email", "phone"})
+@Table(name = "users", indexes = {@Index(name = "idx_users_email", columnList = "email"),
+        @Index(name = "idx_users_phone", columnList = "phone"),
+        @Index(name = "idx_users_id", columnList = "id")})
 @Inheritance(strategy = InheritanceType.JOINED)
 public class User extends BaseEntity implements UserDetails, Principal {
 
@@ -34,13 +38,18 @@ public class User extends BaseEntity implements UserDetails, Principal {
     private String email;
 
     @JsonIgnore
+    @Column(nullable = false)
     private String password;
 
-    @NotBlank
+    @Column(nullable = false)
     private String firstName;
+
     private String lastName;
+
+    @Column(unique = true)
     private String phone;
 
+    @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
 
     @Builder.Default
@@ -52,6 +61,7 @@ public class User extends BaseEntity implements UserDetails, Principal {
     @Builder.Default
     private boolean enabled = false;
 
+    @Column(name = "notification_token")
     private String notificationToken;
 
     @Enumerated(EnumType.STRING)
@@ -70,6 +80,7 @@ public class User extends BaseEntity implements UserDetails, Principal {
     @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
             CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
+    @BatchSize(size = 10)
     private List<Token> tokens = new ArrayList<>();
 
     @Override

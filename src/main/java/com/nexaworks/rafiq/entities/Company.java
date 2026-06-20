@@ -4,10 +4,8 @@ import java.util.List;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.Table;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Getter
@@ -16,6 +14,8 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder
 @Entity
+@ToString(exclude = "drugs")
+@Table(name = "company")
 public class Company extends BaseEntity {
     String name;
     String country;

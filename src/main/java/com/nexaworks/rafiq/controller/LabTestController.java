@@ -14,9 +14,6 @@ import com.nexaworks.rafiq.dto.request.labTest.TestResultRequest;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.labTest.TestResponse;
 import com.nexaworks.rafiq.dto.response.labTest.TestResultsResponse;
-import com.nexaworks.rafiq.mapper.PageMapper;
-import com.nexaworks.rafiq.mapper.ResultMapper;
-import com.nexaworks.rafiq.mapper.TestMapper;
 import com.nexaworks.rafiq.service.file.PdfExtractorService;
 import com.nexaworks.rafiq.service.labReports.LabTestService;
 
@@ -30,16 +27,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/lab-test")
+@RequestMapping("/api/v1/lab-test")
 @RequiredArgsConstructor
 @Tag(name = "Lab Test Management", description = "Endpoints for lab test results, uploads, and PDF extraction")
 public class LabTestController {
     private final PdfExtractorService pdfExtractorService;
     private final LabTestService labTestService;
-    private final ResultMapper resultMapper;
-    private final PageMapper pageMapper;
-    private final TestMapper testMapper;
-
+    // todo refactor this
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Upload lab test PDF", description = "Extracts and parses lab test data from a PDF file.")
     @ApiResponse(responseCode = "200", description = "PDF extracted successfully")
@@ -56,8 +50,7 @@ public class LabTestController {
     public ResponseEntity<Void> testResults(
             @RequestBody @Valid TestResultRequest testResultRequest) {
 
-        labTestService.addTest(testResultRequest.testId(), testResultRequest.name(),
-                testResultRequest.date(), resultMapper.toEntity(testResultRequest.tests()));
+        labTestService.addTest(testResultRequest);
         return ResponseEntity.ok().build();
     }
 
@@ -70,8 +63,7 @@ public class LabTestController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "sort", defaultValue = "name") String sort,
             @RequestParam(value = "direction", defaultValue = "asc") String direction) {
-        return ResponseEntity.ok().body(
-                pageMapper.mapToTestResponse(labTestService.getAll(page, size, sort, direction)));
+        return ResponseEntity.ok().body(labTestService.getAll(page, size, sort, direction));
     }
 
     @GetMapping("/{test-id}")
@@ -79,8 +71,7 @@ public class LabTestController {
     @ApiResponse(responseCode = "200", description = "Test retrieved successfully", content = @Content(schema = @Schema(implementation = TestResultsResponse.class)))
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<TestResultsResponse> getTest(@PathVariable("test-id") UUID testId) {
-        return ResponseEntity.ok()
-                .body(testMapper.mapToTestResponse(labTestService.getTest(testId)));
+        return ResponseEntity.ok().body(labTestService.getTest(testId));
     }
 
     @DeleteMapping("/{test-id}")
@@ -106,8 +97,7 @@ public class LabTestController {
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> updateTest(@RequestBody @Valid TestResultRequest testResultRequest,
             @PathVariable("test-id") UUID testId) {
-        labTestService.update(testId, testResultRequest,
-                resultMapper.toEntity(testResultRequest.tests()));
+        labTestService.update(testId, testResultRequest);
         return ResponseEntity.ok().build();
     }
 }

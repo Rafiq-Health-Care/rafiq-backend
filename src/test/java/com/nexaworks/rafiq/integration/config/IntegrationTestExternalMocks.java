@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.mockito.Mockito;
+import org.redisson.api.RedissonClient;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -12,6 +13,7 @@ import org.springframework.context.annotation.Profile;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.Uploader;
+import com.nexaworks.rafiq.scheduler.ExpirationScheduler;
 import com.nexaworks.rafiq.service.call.RtcProvider;
 
 @TestConfiguration(proxyBeanMethods = false)
@@ -40,5 +42,17 @@ public class IntegrationTestExternalMocks {
         Mockito.when(mock.generateToken(Mockito.anyString(), Mockito.anyInt()))
                 .thenReturn("integration-test-mock-rtc-token");
         return mock;
+    }
+
+    @Bean
+    @Primary
+    public ExpirationScheduler expirationSchedulerMock() {
+        return Mockito.mock(ExpirationScheduler.class);
+    }
+
+    @Bean
+    @Primary
+    public RedissonClient redissonClient() {
+        return Mockito.mock(RedissonClient.class);
     }
 }

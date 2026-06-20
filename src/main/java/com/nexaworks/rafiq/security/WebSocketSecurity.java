@@ -17,6 +17,7 @@ public class WebSocketSecurity {
     AuthorizationManager<Message<?>> messageAuthorizationManager() {
         return MessageMatcherDelegatingAuthorizationManager.builder()
                 .simpTypeMatchers(SimpMessageType.CONNECT).authenticated()
+                .simpSubscribeDestMatchers("/topic/consultation").authenticated()
                 .simpSubscribeDestMatchers("/topic/test").hasRole("DOCTOR")
                 .simpSubscribeDestMatchers("/topic/test", "/queue/**", "/user/**").authenticated()
                 .simpDestMatchers("/app/**").authenticated().anyMessage().denyAll().build();

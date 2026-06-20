@@ -12,8 +12,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.nexaworks.rafiq.dto.request.lab.AddLabRequest;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.lab.LabResponse;
-import com.nexaworks.rafiq.mapper.AddressMapper;
-import com.nexaworks.rafiq.mapper.PageMapper;
 import com.nexaworks.rafiq.service.lab.LabService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,11 +26,10 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/labs")
 @RequiredArgsConstructor
+@Deprecated
 @Tag(name = "Lab Management", description = "Endpoints for managing lab facilities and their information")
 public class LabController {
     private final LabService labService;
-    private final AddressMapper addressMapper;
-    private final PageMapper pageMapper;
 
     @PostMapping(value = "/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Add lab", description = "Creates a new lab with address and logo. Admin/doctor functionality.")
@@ -40,7 +37,7 @@ public class LabController {
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> addLab(@RequestPart("lab") @Valid AddLabRequest request,
             @RequestPart("logo") MultipartFile file) throws IOException {
-        labService.addLab(request.name(), addressMapper.toEntity(request.addresses()), file);
+        labService.addLab(request, file);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -53,8 +50,7 @@ public class LabController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "sort", defaultValue = "name") String sort,
             @RequestParam(value = "direction", defaultValue = "asc") String direction) {
-        return ResponseEntity.ok()
-                .body(pageMapper.mapToLabPage(labService.getAll(page, size, sort, direction)));
+        return ResponseEntity.ok().body(labService.getAll(page, size, sort, direction));
     }
 
     @PutMapping("/{lab-id}")
@@ -64,8 +60,7 @@ public class LabController {
     public ResponseEntity<Void> updateLab(@RequestPart("lab") @Valid AddLabRequest request,
             @RequestPart("logo") MultipartFile file, @PathVariable("lab-id") UUID labId)
             throws IOException {
-        labService.updateLab(request.name(), addressMapper.toEntity(request.addresses()), file,
-                labId);
+        labService.updateLab(request, file, labId);
         return ResponseEntity.ok().build();
     }
 

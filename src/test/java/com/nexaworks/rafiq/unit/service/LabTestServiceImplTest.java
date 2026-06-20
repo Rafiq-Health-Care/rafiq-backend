@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,12 +16,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.nexaworks.rafiq.dto.request.labTest.TestRequest;
+import com.nexaworks.rafiq.dto.request.labTest.TestResultRequest;
+import com.nexaworks.rafiq.entities.LabResult;
 import com.nexaworks.rafiq.entities.LabTest;
 import com.nexaworks.rafiq.entities.Patient;
-import com.nexaworks.rafiq.exception.custom.LabTestException;
+import com.nexaworks.rafiq.exception.custom.labtest.LabTestException;
+import com.nexaworks.rafiq.mapper.ResultMapper;
+import com.nexaworks.rafiq.mapper.TestMapper;
 import com.nexaworks.rafiq.repository.LabTestRepository;
 import com.nexaworks.rafiq.repository.PatientRepository;
-import com.nexaworks.rafiq.service.file.ImageService;
 import com.nexaworks.rafiq.service.labReports.LabResultServiceImpl;
 import com.nexaworks.rafiq.service.labReports.LabTestServiceImpl;
 import com.nexaworks.rafiq.service.patient.PatientServiceImpl;
@@ -35,9 +39,6 @@ public class LabTestServiceImplTest {
     LabTestRepository labTestRepository;
 
     @Mock
-    ImageService imageService;
-
-    @Mock
     PatientRepository patientRepository;
 
     @Mock
@@ -45,6 +46,12 @@ public class LabTestServiceImplTest {
 
     @Mock
     UserServiceImpl userService;
+
+    @Mock
+    TestMapper testMapper;
+
+    @Mock
+    ResultMapper resultMapper;
 
     @InjectMocks
     LabTestServiceImpl labTestService;
@@ -58,16 +65,20 @@ public class LabTestServiceImplTest {
     @Test
     void addTest_ShouldSaveLabTestAndLabResults_WhenTestIsAdded() {
         LabTest labTest = LabTest.builder().id(UUID.randomUUID()).build();
+        TestResultRequest request = new TestResultRequest("test", LocalDateTime.now(),
+                List.of(new TestRequest("CBC", 10.0, "mg", "normal")), labTest.getId());
         // Create Patient directly (Patient extends User)
         Patient patient = Patient.builder().id(UUID.randomUUID()).build();
+        List<LabResult> results = new ArrayList<>();
 
         when(patientService.getPatientProfile()).thenReturn(patient);
         when(labTestRepository.findById(labTest.getId()))
                 .thenReturn(java.util.Optional.of(labTest));
         when(labTestRepository.save(labTest)).thenReturn(labTest);
-        when(labResultService.saveAll(labTest.getLabResults())).thenReturn(labTest.getLabResults());
+        when(resultMapper.toEntity(request.tests())).thenReturn(results);
+        when(labResultService.saveAll(results)).thenReturn(results);
 
-        labTestService.addTest(labTest.getId(), "test", new Date(), new ArrayList<>());
+        labTestService.addTest(request);
 
         verify(labTestRepository, times(1)).findById(labTest.getId());
         verify(labTestRepository, times(1)).save(labTest);
@@ -82,12 +93,16 @@ public class LabTestServiceImplTest {
         // Create Patient directly (Patient extends User)
         Patient patient = Patient.builder().id(UUID.randomUUID()).build();
         LabTest labTest = LabTest.builder().id(UUID.randomUUID()).build();
+        TestResultRequest request = new TestResultRequest("test", LocalDateTime.now(),
+                List.of(new TestRequest("CBC", 10.0, "mg", "normal")), labTest.getId());
+        List<LabResult> results = new ArrayList<>();
         when(patientService.getPatientProfile()).thenReturn(patient);
         when(labTestRepository.findById(labTest.getId())).thenReturn(java.util.Optional.empty());
-        when(labTestRepository.save(any())).thenReturn(any());
-        when(labResultService.saveAll(labTest.getLabResults())).thenReturn(labTest.getLabResults());
+        when(labTestRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(resultMapper.toEntity(request.tests())).thenReturn(results);
+        when(labResultService.saveAll(results)).thenReturn(results);
 
-        labTestService.addTest(labTest.getId(), "test", new Date(), new ArrayList<>());
+        labTestService.addTest(request);
 
         verify(labTestRepository, times(1)).findById(labTest.getId());
         verify(labTestRepository, times(1)).save(any());

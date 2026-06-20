@@ -2,8 +2,8 @@ package com.nexaworks.rafiq.integration.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -64,19 +64,16 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // Delete in correct order to avoid foreign key constraint violations
         labResultRepository.deleteAll();
         labTestRepository.deleteAll();
-        userRepository.deleteAll(); // Delete users first (they reference patient profiles)
-        patientRepository.deleteAll(); // Then delete patient profiles
+        userRepository.deleteAll();
+        patientRepository.deleteAll();
 
-        // Create test user with patient profile
         testUser = createTestPatient("patient@example.com", "TestPass@123", "John", "Doe");
     }
 
-    private User createTestPatient(String email, String password, String firstName,
+    private Patient createTestPatient(String email, String password, String firstName,
             String lastName) {
-        // Get or create PATIENT role
         Role patientRole = roleRepository.findByName("ROLE_PATIENT");
         if (patientRole == null) {
             patientRole = new Role();
@@ -84,25 +81,24 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
             patientRole = roleRepository.save(patientRole);
         }
 
-        // Create Patient directly (Patient extends User with is-a relationship)
         Patient patient = Patient.builder().email(email).password(passwordEncoder.encode(password))
-                .firstName(firstName).lastName(lastName).phone("+12345678901")
-                .birthDate(LocalDate.of(1990, 1, 1)).gender(Gender.MALE).roles(Set.of(patientRole))
-                .enabled(true).description("Test patient").build();
+                .firstName(firstName).lastName(lastName).birthDate(LocalDate.of(1990, 1, 1))
+                .gender(Gender.MALE).roles(Set.of(patientRole)).enabled(true)
+                .description("Test patient").build();
 
         return patientRepository.save(patient);
     }
 
     private LabTest createLabTest(String name, User user) {
         LabTest labTest = LabTest.builder().name(name).description("Test description")
-                .patient((Patient) user).date(Instant.now()).build();
+                .patient((Patient) user).date(LocalDateTime.now()).build();
         return labTestRepository.save(labTest);
     }
 
     @Nested
     @DisplayName("Upload Lab Test")
     class UploadLabTest {
-        private final String UPLOAD_ENDPOINT = "/lab-test/upload";
+        private final String UPLOAD_ENDPOINT = "/api/v1/lab-test/upload";
 
         @Nested
         @DisplayName("Should Upload Successfully")
@@ -217,7 +213,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("Test Results")
     class TestResults {
-        private final String TEST_RESULTS_ENDPOINT = "/lab-test/test-results";
+        private final String TEST_RESULTS_ENDPOINT = "/api/v1/lab-test/test-results";
 
         @Nested
         @DisplayName("Should Save Test Results Successfully")
@@ -236,7 +232,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 tests.add(new TestRequest("WBC Count", 7500.0, "cells/μL", "Normal"));
 
                 TestResultRequest request = new TestResultRequest("Complete Blood Count",
-                        new Date(), tests, testId);
+                        LocalDateTime.now(), tests, testId);
                 String payload = objectMapper.writeValueAsString(request);
 
                 // Act & Assert - Save test results with authentication
@@ -266,8 +262,8 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 List<TestRequest> tests = List
                         .of(new TestRequest("Glucose", 95.0, "mg/dL", "Normal"));
 
-                TestResultRequest request = new TestResultRequest("Glucose Test", new Date(), tests,
-                        testId);
+                TestResultRequest request = new TestResultRequest("Glucose Test",
+                        LocalDateTime.now(), tests, testId);
                 String payload = objectMapper.writeValueAsString(request);
 
                 // Act & Assert
@@ -289,7 +285,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
 
                 List<TestRequest> emptyTests = new ArrayList<>();
 
-                TestResultRequest request = new TestResultRequest("Empty Test", new Date(),
+                TestResultRequest request = new TestResultRequest("Empty Test", LocalDateTime.now(),
                         emptyTests, testId);
                 String payload = objectMapper.writeValueAsString(request);
 
@@ -316,8 +312,8 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 List<TestRequest> tests = List
                         .of(new TestRequest("Hemoglobin", 14.5, "g/dL", "Normal"));
 
-                TestResultRequest request = new TestResultRequest("Blood Test", new Date(), tests,
-                        labTest.getId());
+                TestResultRequest request = new TestResultRequest("Blood Test", LocalDateTime.now(),
+                        tests, labTest.getId());
                 String payload = objectMapper.writeValueAsString(request);
 
                 // Act & Assert - Without authentication
@@ -337,7 +333,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 List<TestRequest> tests = List
                         .of(new TestRequest("Hemoglobin", 14.5, "g/dL", "Normal"));
 
-                TestResultRequest request = new TestResultRequest("", new Date(), tests,
+                TestResultRequest request = new TestResultRequest("", LocalDateTime.now(), tests,
                         labTest.getId());
                 String payload = objectMapper.writeValueAsString(request);
 
@@ -360,7 +356,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 // Create JSON manually with null name
                 String payload = String.format(
                         "{\"name\":null,\"date\":\"%s\",\"tests\":[{\"testName\":\"Hemoglobin\",\"result\":14.5,\"unit\":\"g/dL\",\"status\":\"Normal\"}],\"testId\":\"%s\"}",
-                        new Date().getTime(), labTest.getId().toString());
+                        LocalDateTime.now(), labTest.getId().toString());
 
                 // Act & Assert
                 mockMvc.perform(MockMvcRequestBuilders.post(TEST_RESULTS_ENDPOINT)
@@ -376,8 +372,8 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 LabTest labTest = createLabTest("Test", testUser);
                 List<TestRequest> tests = List.of(new TestRequest("", 14.5, "g/dL", "Normal"));
 
-                TestResultRequest request = new TestResultRequest("Blood Test", new Date(), tests,
-                        labTest.getId());
+                TestResultRequest request = new TestResultRequest("Blood Test", LocalDateTime.now(),
+                        tests, labTest.getId());
                 String payload = objectMapper.writeValueAsString(request);
 
                 // Act & Assert
@@ -395,8 +391,8 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 List<TestRequest> tests = List
                         .of(new TestRequest("Hemoglobin", 14.5, "", "Normal"));
 
-                TestResultRequest request = new TestResultRequest("Blood Test", new Date(), tests,
-                        labTest.getId());
+                TestResultRequest request = new TestResultRequest("Blood Test", LocalDateTime.now(),
+                        tests, labTest.getId());
                 String payload = objectMapper.writeValueAsString(request);
 
                 // Act & Assert
@@ -413,8 +409,8 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 LabTest labTest = createLabTest("Test", testUser);
                 List<TestRequest> tests = List.of(new TestRequest("Hemoglobin", 14.5, "g/dL", ""));
 
-                TestResultRequest request = new TestResultRequest("Blood Test", new Date(), tests,
-                        labTest.getId());
+                TestResultRequest request = new TestResultRequest("Blood Test", LocalDateTime.now(),
+                        tests, labTest.getId());
                 String payload = objectMapper.writeValueAsString(request);
 
                 // Act & Assert
@@ -429,7 +425,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("Get All Tests")
     class GetAllTests {
-        private final String GET_ALL_ENDPOINT = "/lab-test";
+        private final String GET_ALL_ENDPOINT = "/api/v1/lab-test";
 
         @Nested
         @DisplayName("Should Get All Tests Successfully")
@@ -522,7 +518,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("Get Test By ID")
     class GetTestById {
-        private final String GET_BY_ID_ENDPOINT = "/lab-test/{test-id}";
+        private final String GET_BY_ID_ENDPOINT = "/api/v1/lab-test/{test-id}";
 
         @Nested
         @DisplayName("Should Get Test Successfully")
@@ -540,10 +536,10 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                         new TestRequest("Hemoglobin", 14.5, "g/dL", "Normal"),
                         new TestRequest("WBC", 7500.0, "cells/μL", "Normal"));
                 TestResultRequest request = new TestResultRequest("Complete Blood Count",
-                        new Date(), tests, testId);
+                        LocalDateTime.now(), tests, testId);
                 String payload = objectMapper.writeValueAsString(request);
 
-                mockMvc.perform(MockMvcRequestBuilders.post("/lab-test/test-results")
+                mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/lab-test/test-results")
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
                         .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk());
@@ -608,13 +604,11 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
             @Test
             @DisplayName("Should return 400 Bad Request when test belongs to different user")
             void shouldReturnBadRequestWhenTestBelongsToDifferentUser() throws Exception {
-                // Arrange - Create another user and test
                 User otherUser = createTestPatient("other@example.com", "OtherPass@123", "Other",
                         "User");
                 LabTest otherUserTest = createLabTest("Other User Test", otherUser);
                 UUID otherUserTestId = otherUserTest.getId();
 
-                // Act & Assert - Try to access other user's test
                 mockMvc.perform(MockMvcRequestBuilders.get(GET_BY_ID_ENDPOINT, otherUserTestId)
                         .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -625,7 +619,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("Delete Test By ID")
     class DeleteTestById {
-        private final String DELETE_BY_ID_ENDPOINT = "/lab-test/{test-id}";
+        private final String DELETE_BY_ID_ENDPOINT = "/api/v1/lab-test/{test-id}";
 
         @Nested
         @DisplayName("Should Delete Test Successfully")
@@ -661,11 +655,11 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 // Add results
                 List<TestRequest> tests = List
                         .of(new TestRequest("Hemoglobin", 14.5, "g/dL", "Normal"));
-                TestResultRequest request = new TestResultRequest("Test with Results", new Date(),
-                        tests, testId);
+                TestResultRequest request = new TestResultRequest("Test with Results",
+                        LocalDateTime.now(), tests, testId);
                 String payload = objectMapper.writeValueAsString(request);
 
-                mockMvc.perform(MockMvcRequestBuilders.post("/lab-test/test-results")
+                mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/lab-test/test-results")
                         .contentType(MediaType.APPLICATION_JSON).content(payload)
                         .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk());
@@ -738,7 +732,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("Delete All Tests")
     class DeleteAllTests {
-        private final String DELETE_ALL_ENDPOINT = "/lab-test";
+        private final String DELETE_ALL_ENDPOINT = "/api/v1/lab-test";
 
         @Nested
         @DisplayName("Should Delete All Tests Successfully")
@@ -818,7 +812,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("Update Test")
     class UpdateTest {
-        private final String UPDATE_ENDPOINT = "/lab-test/update/{test-id}";
+        private final String UPDATE_ENDPOINT = "/api/v1/lab-test/update/{test-id}";
 
         @Nested
         @DisplayName("Should Update Test Successfully")
@@ -834,11 +828,11 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 // Add initial results
                 List<TestRequest> initialTests = List
                         .of(new TestRequest("Hemoglobin", 14.5, "g/dL", "Normal"));
-                TestResultRequest initialRequest = new TestResultRequest("Initial Test", new Date(),
-                        initialTests, testId);
+                TestResultRequest initialRequest = new TestResultRequest("Initial Test",
+                        LocalDateTime.now(), initialTests, testId);
                 String initialPayload = objectMapper.writeValueAsString(initialRequest);
 
-                mockMvc.perform(MockMvcRequestBuilders.post("/lab-test/test-results")
+                mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/lab-test/test-results")
                         .contentType(MediaType.APPLICATION_JSON).content(initialPayload)
                         .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk());
@@ -849,7 +843,7 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 updatedTests.add(new TestRequest("WBC Count", 8000.0, "cells/μL", "High"));
 
                 TestResultRequest updateRequest = new TestResultRequest("Updated Test Name",
-                        new Date(), updatedTests, testId);
+                        LocalDateTime.now(), updatedTests, testId);
                 String updatePayload = objectMapper.writeValueAsString(updateRequest);
 
                 // Act & Assert - Update test
@@ -877,18 +871,18 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 List<TestRequest> initialTests = List
                         .of(new TestRequest("Hemoglobin", 14.5, "g/dL", "Normal"));
                 TestResultRequest initialRequest = new TestResultRequest("Test to Update",
-                        new Date(), initialTests, testId);
+                        LocalDateTime.now(), initialTests, testId);
                 String initialPayload = objectMapper.writeValueAsString(initialRequest);
 
-                mockMvc.perform(MockMvcRequestBuilders.post("/lab-test/test-results")
+                mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/lab-test/test-results")
                         .contentType(MediaType.APPLICATION_JSON).content(initialPayload)
                         .with(withUserId(testUser)))
                         .andExpect(MockMvcResultMatchers.status().isOk());
 
                 // Prepare update with empty results
                 List<TestRequest> emptyTests = new ArrayList<>();
-                TestResultRequest updateRequest = new TestResultRequest("Updated Name", new Date(),
-                        emptyTests, testId);
+                TestResultRequest updateRequest = new TestResultRequest("Updated Name",
+                        LocalDateTime.now(), emptyTests, testId);
                 String updatePayload = objectMapper.writeValueAsString(updateRequest);
 
                 // Act & Assert
@@ -914,8 +908,8 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 UUID testId = labTest.getId();
                 List<TestRequest> tests = List
                         .of(new TestRequest("Hemoglobin", 14.5, "g/dL", "Normal"));
-                TestResultRequest request = new TestResultRequest("Updated", new Date(), tests,
-                        testId);
+                TestResultRequest request = new TestResultRequest("Updated", LocalDateTime.now(),
+                        tests, testId);
                 String payload = objectMapper.writeValueAsString(request);
 
                 // Act & Assert
@@ -931,8 +925,8 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 UUID nonExistentId = UUID.randomUUID();
                 List<TestRequest> tests = List
                         .of(new TestRequest("Hemoglobin", 14.5, "g/dL", "Normal"));
-                TestResultRequest request = new TestResultRequest("Updated", new Date(), tests,
-                        nonExistentId);
+                TestResultRequest request = new TestResultRequest("Updated", LocalDateTime.now(),
+                        tests, nonExistentId);
                 String payload = objectMapper.writeValueAsString(request);
 
                 // Act & Assert
@@ -953,8 +947,8 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
 
                 List<TestRequest> tests = List
                         .of(new TestRequest("Hemoglobin", 14.5, "g/dL", "Normal"));
-                TestResultRequest request = new TestResultRequest("Updated", new Date(), tests,
-                        otherUserTestId);
+                TestResultRequest request = new TestResultRequest("Updated", LocalDateTime.now(),
+                        tests, otherUserTestId);
                 String payload = objectMapper.writeValueAsString(request);
 
                 // Act & Assert
@@ -972,7 +966,8 @@ public class LabTestControllerIntegrationTest extends BaseIntegrationTest {
                 UUID testId = labTest.getId();
                 List<TestRequest> tests = List
                         .of(new TestRequest("Hemoglobin", 14.5, "g/dL", "Normal"));
-                TestResultRequest request = new TestResultRequest("", new Date(), tests, testId);
+                TestResultRequest request = new TestResultRequest("", LocalDateTime.now(), tests,
+                        testId);
                 String payload = objectMapper.writeValueAsString(request);
 
                 // Act & Assert

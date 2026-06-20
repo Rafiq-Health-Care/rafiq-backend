@@ -18,10 +18,8 @@ import com.nexaworks.rafiq.dto.response.medicine.AddResponse;
 import com.nexaworks.rafiq.dto.response.reminder.AddReminderResponse;
 import com.nexaworks.rafiq.dto.response.reminder.GetAllRemindersResponse;
 import com.nexaworks.rafiq.dto.response.reminder.GetReminderByIdResponse;
-import com.nexaworks.rafiq.entities.Reminder;
 import com.nexaworks.rafiq.entities.enums.ReminderStatus;
-import com.nexaworks.rafiq.mapper.ReminderMapper;
-import com.nexaworks.rafiq.service.medicine.MedicineService;
+import com.nexaworks.rafiq.idempotency.annotation.Idempotent;
 import com.nexaworks.rafiq.service.medicine.ReminderService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,23 +31,20 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/reminder")
+@RequestMapping("/api/v1/reminder")
 @RequiredArgsConstructor
 @Tag(name = "Reminder Management", description = "Endpoints for medication reminders, history, and status tracking")
 public class ReminderController {
     private final ReminderService reminderService;
-    private final ReminderMapper reminderMapper;
-    private final MedicineService medicineService;
 
-    @PostMapping("/create")
+    @Idempotent(force = true)
+    @PostMapping
     @Operation(summary = "Create reminder", description = "Creates a scheduled reminder for medication intake.")
     @ApiResponse(responseCode = "201", description = "Reminder created successfully", content = @Content(schema = @Schema(implementation = AddResponse.class)))
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<AddResponse<AddReminderResponse>> createReminder(
             @RequestBody AddReminderRequest request) {
-        Reminder reminder = reminderMapper.toEntity(request, medicineService);
-        Reminder savedReminder = reminderService.createReminder(reminder);
-        AddReminderResponse response = reminderMapper.toAddReminderResponse(savedReminder);
+        AddReminderResponse response = reminderService.createReminder(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new AddResponse<>(true, "Reminder created successfully", response));
     }
@@ -66,26 +61,18 @@ public class ReminderController {
                         reminders.getSize(), reminders.getTotalPages(), reminders.isFirst(),
                         reminders.isLast()));
     }
-    @PostMapping("/taken/{reminder-id}")
+    @PatchMapping("/{reminder-id}/{status}")
     @Operation(summary = "Mark reminder as taken", description = "Records that medication was taken at specified time.")
     @ApiResponse(responseCode = "204", description = "Reminder marked as taken")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> assignMedicineAsTaken(
             @PathVariable(name = "reminder-id") UUID reminderId,
-            @RequestParam(value = "taken-time") LocalDateTime takenTime) {
-        reminderService.updateReminderStatus(reminderId, ReminderStatus.TAKEN, takenTime);
+            @RequestParam(value = "taken-time") LocalDateTime takenTime,
+            @PathVariable ReminderStatus status) {
+        reminderService.updateReminderStatus(reminderId, status, takenTime);
         return ResponseEntity.noContent().build();
     }
-    @PostMapping("/missed/{reminder-id}")
-    @Operation(summary = "Mark reminder as missed", description = "Records that medication was missed for adherence tracking.")
-    @ApiResponse(responseCode = "204", description = "Reminder marked as missed")
-    @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<Void> assignMedicineAsMissed(@PathVariable("reminder-id") UUID reminderId,
-            @RequestParam(value = "taken-time") LocalDateTime takenTime) {
-        reminderService.updateReminderStatus(reminderId, ReminderStatus.MISSED, takenTime);
-        return ResponseEntity.noContent().build();
-    }
-    @GetMapping("/all")
+    @GetMapping
     @Operation(summary = "Get all reminders", description = "Retrieves all active reminders for medications.")
     @ApiResponse(responseCode = "200", description = "Reminders retrieved successfully", content = @Content(schema = @Schema(implementation = PageResponse.class)))
     @SecurityRequirement(name = "bearerAuth")
@@ -103,20 +90,17 @@ public class ReminderController {
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<GetReminderByIdResponse> getReminderById(
             @PathVariable("reminder-id") UUID reminderId) {
-        return ResponseEntity.ok().body(reminderMapper
-                .toGetReminderByIdResponse(reminderService.getReminderById(reminderId)));
+        return ResponseEntity.ok().body(reminderService.getReminderById(reminderId));
     }
-    @PatchMapping("updateVibration/{vibrate}/reminder/{reminder-id}")
+    @PatchMapping("/{reminder-id}/vibration/{vibrate}")
     @Operation(summary = "Update reminder vibration", description = "Enables or disables vibration for a specific reminder.")
     @ApiResponse(responseCode = "200", description = "Reminder vibration updated successfully", content = @Content(schema = @Schema(implementation = AddResponse.class)))
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<AddResponse<AddReminderResponse>> updateVibration(
-            @PathVariable("vibrate") Boolean vibrate,
-            @PathVariable("reminder-id") UUID reminderId) {
+            @PathVariable Boolean vibrate, @PathVariable("reminder-id") UUID reminderId) {
         return ResponseEntity.ok()
                 .body(new AddResponse<>(true, "Reminder vibration updated successfully",
-                        reminderMapper.toAddReminderResponse(
-                                reminderService.updateVibration(reminderId, vibrate))));
+                        reminderService.updateVibration(reminderId, vibrate)));
 
     }
     @DeleteMapping("/{reminder-id}")
@@ -127,12 +111,12 @@ public class ReminderController {
         reminderService.deleteReminder(reminderId);
         return ResponseEntity.noContent().build();
     }
-    @PatchMapping("/disable/{reminder-id}/{disable}")
+    @PatchMapping("/{reminder-id}/state/{disable}")
     @Operation(summary = "Disable or enable reminder", description = "Temporarily disables or re-enables a reminder without deleting it.")
     @ApiResponse(responseCode = "204", description = "Reminder status updated successfully")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> disableReminder(@PathVariable("reminder-id") UUID reminderId,
-            @PathVariable("disable") Boolean disable) {
+            @PathVariable Boolean disable) {
         reminderService.disableReminder(reminderId, disable);
         return ResponseEntity.noContent().build();
     }

@@ -3,10 +3,7 @@ package com.nexaworks.rafiq.entities;
 import java.util.List;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Getter
@@ -14,7 +11,11 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
+@ToString(exclude = {"activeIngredients", "companies"})
 @Entity
+@Table(name = "drug", indexes = {
+        @Index(name = "idx_drug_search_vector", columnList = "search_vector"),
+        @Index(name = "idx_drug_trade_name_trgm", columnList = "trade_name")})
 public class Drug extends BaseEntity {
     String tradeName;
     String drugGroup;

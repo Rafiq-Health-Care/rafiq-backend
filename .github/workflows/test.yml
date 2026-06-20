@@ -18,6 +18,7 @@ jobs:
   test:
     environment: development
     runs-on: ubuntu-latest
+    timeout-minutes: 40
 
     steps:
       - name: Checkout code
@@ -32,6 +33,11 @@ jobs:
 
       - name: Make mvnw executable
         run: chmod +x ./mvnw
+
+      - name: Pre-pull Testcontainers images
+        run: |
+          docker pull postgres:15
+          docker pull rabbitmq:3-management
 
       - name: Run Tests
         run: ./mvnw clean verify -B

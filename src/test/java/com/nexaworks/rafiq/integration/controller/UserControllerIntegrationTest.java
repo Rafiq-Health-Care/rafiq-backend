@@ -53,7 +53,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("Patient Registration")
     class PatientRegistration {
-        private final String REGISTER_PATIENT_ENDPOINT = "/user/register/patient";
+        private final String REGISTER_PATIENT_ENDPOINT = "/api/v1/user/register/patient";
 
         @Nested
         @DisplayName("Should Register Patient Successfully")
@@ -71,10 +71,10 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert HTTP response
                 mockMvc.perform(MockMvcRequestBuilders.post(REGISTER_PATIENT_ENDPOINT)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
                         .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isCreated());
 
-                // Verify persistence through the service layer
                 assertTrue(userRepository.findByEmail(email).isPresent(),
                         "User should be persisted after registration");
             }
@@ -96,6 +96,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert HTTP response 400
                 mockMvc.perform(MockMvcRequestBuilders.post(REGISTER_PATIENT_ENDPOINT)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
                         .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
@@ -116,6 +117,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert HTTP response 400
                 mockMvc.perform(MockMvcRequestBuilders.post(REGISTER_PATIENT_ENDPOINT)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
                         .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
@@ -136,6 +138,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert HTTP response 400
                 mockMvc.perform(MockMvcRequestBuilders.post(REGISTER_PATIENT_ENDPOINT)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
                         .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
@@ -157,10 +160,10 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert HTTP response 400
                 mockMvc.perform(MockMvcRequestBuilders.post(REGISTER_PATIENT_ENDPOINT)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
                         .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
-                // Ensure no user persisted with the invalid age
                 assertTrue(userRepository.findByEmail(email).isEmpty(),
                         "User should not be created for invalid age");
             }
@@ -178,6 +181,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert HTTP response 400
                 mockMvc.perform(MockMvcRequestBuilders.post(REGISTER_PATIENT_ENDPOINT)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
                         .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
@@ -195,9 +199,9 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
                         "Doe", "+12345678901", "male", LocalDate.of(1994, 1, 1));
 
                 String payload = objectMapper.writeValueAsString(invalidRequest);
-
                 // Act & Assert HTTP response 400
                 mockMvc.perform(MockMvcRequestBuilders.post(REGISTER_PATIENT_ENDPOINT)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
                         .contentType(MediaType.APPLICATION_JSON).content(payload))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
@@ -219,6 +223,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Register first patient
                 mockMvc.perform(MockMvcRequestBuilders.post(REGISTER_PATIENT_ENDPOINT)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
                         .contentType(MediaType.APPLICATION_JSON).content(firstPayload))
                         .andExpect(MockMvcResultMatchers.status().isCreated());
 
@@ -235,6 +240,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert - Second registration should fail with 409
                 mockMvc.perform(MockMvcRequestBuilders.post(REGISTER_PATIENT_ENDPOINT)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
                         .contentType(MediaType.APPLICATION_JSON).content(duplicatePayload))
                         .andExpect(MockMvcResultMatchers.status().isConflict());
 
@@ -248,7 +254,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("Doctor Registration")
     class DoctorRegistration {
-        private final String REGISTER_DOCTOR_ENDPOINT = "/user/register/doctor";
+        private final String REGISTER_DOCTOR_ENDPOINT = "/api/v1/user/register/doctor";
 
         @Nested
         @DisplayName("Should Register Doctor Successfully")
@@ -276,7 +282,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert HTTP response
                 mockMvc.perform(MockMvcRequestBuilders.multipart(REGISTER_DOCTOR_ENDPOINT)
-                        .file(doctorData).file(nationalId))
+                        .file(doctorData).file(nationalId)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString()))
                         .andExpect(MockMvcResultMatchers.status().isCreated());
 
                 // Verify persistence
@@ -310,7 +317,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert HTTP response 400
                 mockMvc.perform(MockMvcRequestBuilders.multipart(REGISTER_DOCTOR_ENDPOINT)
-                        .file(doctorData).file(nationalId))
+                        .file(doctorData).file(nationalId)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString()))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
                 // Ensure no user persisted with the invalid email
@@ -339,7 +347,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert HTTP response 400
                 mockMvc.perform(MockMvcRequestBuilders.multipart(REGISTER_DOCTOR_ENDPOINT)
-                        .file(doctorData).file(nationalId))
+                        .file(doctorData).file(nationalId)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString()))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
                 // Ensure no user persisted with the invalid password
@@ -368,7 +377,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert HTTP response 400
                 mockMvc.perform(MockMvcRequestBuilders.multipart(REGISTER_DOCTOR_ENDPOINT)
-                        .file(doctorData).file(nationalId))
+                        .file(doctorData).file(nationalId)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString()))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
                 // Ensure no user persisted with the invalid phone
@@ -396,7 +406,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert HTTP response 400
                 mockMvc.perform(MockMvcRequestBuilders.multipart(REGISTER_DOCTOR_ENDPOINT)
-                        .file(doctorData).file(nationalId))
+                        .file(doctorData).file(nationalId)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString()))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
                 // Ensure no user persisted with the invalid age
@@ -426,7 +437,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert HTTP response 400
                 mockMvc.perform(MockMvcRequestBuilders.multipart(REGISTER_DOCTOR_ENDPOINT)
-                        .file(doctorData).file(nationalId))
+                        .file(doctorData).file(nationalId)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString()))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
                 // Ensure no user persisted with the invalid gender
@@ -455,7 +467,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert HTTP response 400
                 mockMvc.perform(MockMvcRequestBuilders.multipart(REGISTER_DOCTOR_ENDPOINT)
-                        .file(doctorData).file(nationalId))
+                        .file(doctorData).file(nationalId)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString()))
                         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
                 // Ensure no user persisted with blank first name
@@ -484,7 +497,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Register first doctor
                 mockMvc.perform(MockMvcRequestBuilders.multipart(REGISTER_DOCTOR_ENDPOINT)
-                        .file(firstDoctorData).file(firstNationalId))
+                        .file(firstDoctorData).file(firstNationalId)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString()))
                         .andExpect(MockMvcResultMatchers.status().isCreated());
 
                 // Verify first user was created
@@ -508,7 +522,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
                 // Act & Assert - Second registration should fail with 409
                 mockMvc.perform(MockMvcRequestBuilders.multipart(REGISTER_DOCTOR_ENDPOINT)
-                        .file(duplicateDoctorData).file(duplicateNationalId))
+                        .file(duplicateDoctorData).file(duplicateNationalId)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString()))
                         .andExpect(MockMvcResultMatchers.status().isConflict());
 
                 // Ensure only one user exists
@@ -532,7 +547,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("User Verification")
     class UserVerification {
-        private final String VERIFICATION_ENDPOINT = "/user/verification";
+        private final String VERIFICATION_ENDPOINT = "/api/v1/user/verification";
 
         @Test
         @DisplayName("Should verify user with valid email and OTP")
@@ -544,7 +559,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
             String payload = objectMapper.writeValueAsString(request);
 
-            mockMvc.perform(MockMvcRequestBuilders.post("/user/register/patient")
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/user/register/patient")
+                    .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
                     .contentType(MediaType.APPLICATION_JSON).content(payload))
                     .andExpect(MockMvcResultMatchers.status().isCreated());
 
@@ -561,7 +577,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             String verificationPayload = objectMapper.writeValueAsString(verificationRequest);
 
             // Act & Assert - Verify the user
-            mockMvc.perform(MockMvcRequestBuilders.post(VERIFICATION_ENDPOINT)
+            mockMvc.perform(MockMvcRequestBuilders.patch(VERIFICATION_ENDPOINT)
+                    .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
                     .contentType(MediaType.APPLICATION_JSON).content(verificationPayload))
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andExpect(MockMvcResultMatchers.jsonPath("$.role").exists())
@@ -584,7 +601,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             String payload = objectMapper.writeValueAsString(request);
 
             // Act & Assert
-            mockMvc.perform(MockMvcRequestBuilders.post(VERIFICATION_ENDPOINT)
+            mockMvc.perform(MockMvcRequestBuilders.patch(VERIFICATION_ENDPOINT)
+                    .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
                     .contentType(MediaType.APPLICATION_JSON).content(payload))
                     .andExpect(MockMvcResultMatchers.status().isNotFound());
         }
@@ -593,7 +611,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
     @Nested
     @DisplayName("New OTP")
     class NewOtp {
-        private final String NEW_OTP_ENDPOINT = "/user/new-otp";
+        private final String NEW_OTP_ENDPOINT = "/api/v1/user/new-otp";
 
         @Test
         @DisplayName("Should generate new OTP for existing user")
@@ -605,7 +623,8 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
             String payload = objectMapper.writeValueAsString(request);
 
-            mockMvc.perform(MockMvcRequestBuilders.post("/user/register/patient")
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/user/register/patient")
+                    .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
                     .contentType(MediaType.APPLICATION_JSON).content(payload))
                     .andExpect(MockMvcResultMatchers.status().isCreated());
 

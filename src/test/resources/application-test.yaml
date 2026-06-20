@@ -1,5 +1,37 @@
-# Profile `test`: merged with application.yml. BaseIntegrationTest overrides datasource via Testcontainers.
+# Profile: test
+# Merged with application.yml. BaseIntegrationTest overrides datasource via Testcontainers.
+
+# ---------------------------------------------------------------------------
+# Spring Configuration
+# ---------------------------------------------------------------------------
 spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+  main:
+    allow-bean-definition-overriding: true
+  jpa:
+    properties:
+      hibernate:
+        cache:
+          use_second_level_cache: false
+          use_query_cache: false
+          region:
+            factory_class: org.hibernate.cache.internal.NoCachingRegionFactory
+        format_sql: false
+        use_sql_comments: false
+    hibernate:
+      ddl-auto: create-drop
+
+  cache:
+    type: none
+
+  data:
+    redis:
+      repositories:
+        enabled: false
+
   datasource:
     hikari:
       maximum-pool-size: 5
@@ -7,28 +39,29 @@ spring:
       max-lifetime: 60000
       connection-timeout: 10000
       idle-timeout: 30000
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    properties:
-      hibernate:
-        format_sql: false
-        use_sql_comments: false
+
+
+
   flyway:
     enabled: false
+
   batch:
     jdbc:
       initialize-schema: never
     job:
       enabled: false
+
   sql:
     init:
       mode: never
+
   lifecycle:
     timeout-per-shutdown-phase: 20s
+
   test:
     database:
       replace: none
+
   rabbitmq:
     host: ${RABBITMQ_HOST}
     port: ${RABBITMQ_PORT}
@@ -38,41 +71,74 @@ spring:
     listener:
       simple:
         auto-startup: false
+sentry:
+  enabled: false
+  dsn: ""
 
+# ---------------------------------------------------------------------------
+# RabbitMQ
+# ---------------------------------------------------------------------------
 RABBITMQ_HOST: localhost
 RABBITMQ_PORT: 5672
 RABBITMQ_USERNAME: guest
 RABBITMQ_PASSWORD: guest
 RABBITMQ_VIRTUAL_HOST: /
 
-# Satisfy ${...} placeholders in application.yml (no real secrets required for integration tests).
+# ---------------------------------------------------------------------------
+# JobRunr
+# ---------------------------------------------------------------------------
+jobrunr:
+  dashboard:
+    enabled: false
+
+# ---------------------------------------------------------------------------
+# Datasource
+# Placeholder values — overridden at runtime by Testcontainers.
+# ---------------------------------------------------------------------------
 DATASOURCE_URL: "jdbc:postgresql://127.0.0.1:5432/unused_until_testcontainers"
 DATASOURCE_USERNAME: unused
 DATASOURCE_PASSWORD: unused
 
-# Base64-encoded 32-byte key (JJWT rejects <256-bit keys; JwtServiceImpl uses Decoders.BASE64.decode).
+# ---------------------------------------------------------------------------
+# JWT
+# Base64-encoded 32-byte key. JJWT requires ≥256-bit keys;
+# JwtServiceImpl decodes via Decoders.BASE64.decode().
+# ---------------------------------------------------------------------------
 JWT_SECRET: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
 JWT_EXPIRATION: 3600000
 REFRESH_EXPIRATION: 600000000
 OTP_EXPIRATION: 300000
 ACCESS_TOKEN_EXPIRATION: 360000
 
+# ---------------------------------------------------------------------------
+# OAuth2
+# ---------------------------------------------------------------------------
 GOOGLE_CLIENT_ID: test-google-client-id
 FACEBOOK_CLIENT_ID: test-facebook-client-id
 FACEBOOK_CLIENT_SECRET: test-facebook-client-secret
 
+# ---------------------------------------------------------------------------
+# Mail
+# ---------------------------------------------------------------------------
 MAIL_HOST: 127.0.0.1
 MAIL_PORT: 1025
 MAIL_USERNAME: "test@example.com"
 MAIL_PASSWORD: test-mail-password
 MAIL_PROTOCOL: smtp
 
+# ---------------------------------------------------------------------------
+# External Services
+# ---------------------------------------------------------------------------
 GOOGLE_GENAI_API_KEY: test-google-genai-api-key
 
 CLOUDINARY_CLOUD_NAME: test-cloud
 CLOUDINARY_API_KEY: test-cloudinary-key
 CLOUDINARY_API_SECRET: test-cloudinary-secret
 
-# Agora placeholders (RtcProvider is mocked in IntegrationTestExternalMocks; SDK is not used).
+# Agora — RtcProvider is mocked in IntegrationTestExternalMocks; SDK is never invoked.
 AGORA_APP_ID: "00000000000000000000000000000000"
 AGORA_APP_CERTIFICATE: "00000000000000000000000000000000"
+
+# Stripe
+STRIPE_API_SECRET: sk_test_integration_placeholder
+STRIPE_WEBHOOK_SECRET: whsec

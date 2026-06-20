@@ -1,11 +1,25 @@
+# ---------------------------------------------------------------------------
+# Application — shared configuration (all profiles)
+# ---------------------------------------------------------------------------
 spring:
-  # Application config (devtools + SQL logging: application-dev.yml / application-prod.yml)
+  data:
+    redis:
+      repositories:
+        enabled: false
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      lettuce:
+        pool:
+                  max-active: 10
+                  max-idle: 5
+                  min-idle: 1
   application:
     name: rafiq
-  config:
-    import: optional:file:.env.test[.properties]
-
-  # Database config
+  profiles:
+    active: dev
+  # --- Datasource -----------------------------------------------------------
   datasource:
     url: ${DATASOURCE_URL}
     username: ${DATASOURCE_USERNAME}
@@ -17,46 +31,51 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
-   # JPA config
+
+  # --- JPA / Hibernate ------------------------------------------------------
   jpa:
     hibernate:
       ddl-auto: validate
     defer-datasource-initialization: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-  # Flyway config - must run before JPA validation
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        cache:
+          use_second_level_cache: true
+          use_query_cache: false
+          region.factory_class: org.redisson.hibernate.RedissonRegionFactory
+          redisson:
+            config: ${REDISSON_CONFIG:redisson-dev.yaml}
+            default-query-results-region.expiration.time_to_live: 60000
+            roles:
+              expiration:
+                time_to_live: 60000
+                max_idle_time: 2000
+              eviction:
+                max_entries: 1000
+                mode: LRU
+
+  # --- Flyway ---------------------------------------------------------------
   flyway:
-    baseline-on-migrate: true
     enabled: true
-    locations: classpath:db/migration,classpath:com/nexaworks/rafiq/db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+    baseline-description: Initial DB
+    locations:
+      - classpath:db/migration
+      - classpath:com/nexaworks/rafiq/db/migration
     user: ${DATASOURCE_USERNAME}
     password: ${DATASOURCE_PASSWORD}
-    baseline-description: Initial DB
-    baseline-version: 0
-
-    # Allow out-of-order migrations if some were missed
     out-of-order: true
-    # Validate migrations on startup
     validate-on-migrate: true
-    # Clean disabled for safety (set to false in production)
     clean-disabled: true
-  # File upload config
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 20MB
-  # OAuth2 config
-  security:
-    oauth2:
-      client:
-        registration:
-          # Google
-          google:
-            client-id: ${GOOGLE_CLIENT_ID}
-          # Facebook
-          facebook:
-            client-id: ${FACEBOOK_CLIENT_ID}
-            client-secret: ${FACEBOOK_CLIENT_SECRET}
- # RabbitMQ config
+
+  # --- Redis ----------------------------------------------------------------
+
+
+  # --- RabbitMQ -------------------------------------------------------------
   rabbitmq:
     host: ${RABBITMQ_HOST}
     port: ${RABBITMQ_PORT}
@@ -69,7 +88,7 @@ spring:
         retry:
           enabled: false
 
-  # Mail config
+  # --- Mail -----------------------------------------------------------------
   mail:
     host: ${MAIL_HOST}
     port: ${MAIL_PORT}
@@ -81,40 +100,38 @@ spring:
         smtp:
           auth: true
           starttls:
-            enable: false
+            enable: true
           connectiontimeout: 5000
           timeout: 3000
           writetimeout: 5000
           trust: "*"
-  # AI config
+
+  # --- Multipart ------------------------------------------------------------
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+
+  # --- OAuth2 ---------------------------------------------------------------
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+          facebook:
+            client-id: ${FACEBOOK_CLIENT_ID}
+            client-secret: ${FACEBOOK_CLIENT_SECRET}
+
+  # --- Google AI ------------------------------------------------------------
   ai:
     google:
       genai:
         api-key: ${GOOGLE_GENAI_API_KEY}
-  # Cloudinary config
-cloudinary:
-  cloud-name: ${CLOUDINARY_CLOUD_NAME}
-  api-key: ${CLOUDINARY_API_KEY}
-  api-secret: ${CLOUDINARY_API_SECRET}
-  # JWT config
-jwt:
-  secret: ${JWT_SECRET}
-  expiration: ${JWT_EXPIRATION}
-  # Refresh token config
-refresh:
-  expiration: ${REFRESH_EXPIRATION}
-  # OTP config
-otp:
-  expiration: ${OTP_EXPIRATION}
-  # Access token config
-access:
-  token:
-    expiration: ${ACCESS_TOKEN_EXPIRATION}
-  # Agora config
-agora:
-   app-id: ${AGORA_APP_ID}
-   app-certificate: ${AGORA_APP_CERTIFICATE}
-  # Server config
+
+# ---------------------------------------------------------------------------
+# Server
+# ---------------------------------------------------------------------------
 server:
   port: 8030
   tomcat:
@@ -122,6 +139,70 @@ server:
       max: 200
       min-spare: 10
     accept-count: 100
+
+# ---------------------------------------------------------------------------
+# Security — JWT & tokens
+# ---------------------------------------------------------------------------
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION}
+
+refresh:
+  expiration: ${REFRESH_EXPIRATION}
+
+otp:
+  expiration: ${OTP_EXPIRATION}
+
+access:
+  token:
+    expiration: ${ACCESS_TOKEN_EXPIRATION}
+
+# ---------------------------------------------------------------------------
+# External Services
+# ---------------------------------------------------------------------------
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
+
+agora:
+  app-id: ${AGORA_APP_ID}
+  app-certificate: ${AGORA_APP_CERTIFICATE}
+
+stripe:
+  api-key: ${STRIPE_API_SECRET}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+
+# ---------------------------------------------------------------------------
+# JobRunr
+# ---------------------------------------------------------------------------
+jobrunr:
+  job-scheduler:
+    enabled: true
+  background-job-server:
+    enabled: true
+  dashboard:
+    enabled: true
+    port: 4040
+
+# ---------------------------------------------------------------------------
+# Observability
+# ---------------------------------------------------------------------------
+management:
+  endpoints:
+    web:
+      exposure:
+        include: caches,health,metrics
+
 logging:
   level:
     root: INFO
+sentry:
+  dsn: ${SENTRY_DSN}
+  environment: ${SENTRY_ENVIRONMENT:dev}
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:1.0}
+
+app:
+  firebase:
+    config-base64: ${FIREBASE_CONFIG}
+

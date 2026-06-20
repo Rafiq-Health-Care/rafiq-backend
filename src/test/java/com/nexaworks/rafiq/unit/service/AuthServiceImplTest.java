@@ -5,8 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,7 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.nexaworks.rafiq.dto.response.auth.LoginResponse;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
+import com.nexaworks.rafiq.exception.custom.user.TokenInvalidException;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.authentication.AuthServiceImpl;
 import com.nexaworks.rafiq.service.authentication.JwtService;
@@ -86,7 +85,7 @@ class AuthServiceImplTest {
         testToken = new Token();
         testToken.setToken("test-token");
         testToken.setUser(testUser);
-        testToken.setExpiryDate(Instant.now().plus(1, ChronoUnit.HOURS));
+        testToken.setExpiryDate(LocalDateTime.now().plusHours(1));
     }
 
     @Nested
@@ -99,7 +98,7 @@ class AuthServiceImplTest {
             // Arrange
             String email = "test@example.com";
             String password = "password123";
-            LoginResponse expectedResponse = new LoginResponse(Optional.of("ROLE_USER"));
+            LoginResponse expectedResponse = new LoginResponse("ROLE_USER");
 
             when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                     .thenReturn(authentication);
@@ -127,7 +126,7 @@ class AuthServiceImplTest {
         void shouldRefreshTokenSuccessfullyWithValidRefreshToken() {
             // Arrange
             String refreshToken = "valid-refresh-token";
-            LoginResponse expectedResponse = new LoginResponse(Optional.of("ROLE_USER"));
+            LoginResponse expectedResponse = new LoginResponse("ROLE_USER");
 
             when(authSessionManager.getCookie(request, "refreshToken")).thenReturn(refreshToken);
             when(tokenService.getToken(refreshToken)).thenReturn(testToken);
@@ -148,7 +147,7 @@ class AuthServiceImplTest {
         void shouldThrowExceptionWhenRefreshTokenIsExpired() {
             // Arrange
             String refreshToken = "expired-refresh-token";
-            testToken.setExpiryDate(Instant.now().minus(1, ChronoUnit.HOURS));
+            testToken.setExpiryDate(LocalDateTime.now().minusHours(1));
 
             when(authSessionManager.getCookie(request, "refreshToken")).thenReturn(refreshToken);
             when(tokenService.getToken(refreshToken)).thenReturn(testToken);

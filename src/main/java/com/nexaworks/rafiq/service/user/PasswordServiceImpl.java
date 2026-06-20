@@ -1,23 +1,22 @@
 package com.nexaworks.rafiq.service.user;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.nexaworks.rafiq.dto.request.user.ChangePasswordRequest;
 import com.nexaworks.rafiq.dto.request.user.ForgetPasswordRequest;
 import com.nexaworks.rafiq.dto.request.user.ResetPasswordRequest;
 import com.nexaworks.rafiq.entities.Token;
 import com.nexaworks.rafiq.entities.User;
-import com.nexaworks.rafiq.exception.custom.TokenInvalidException;
+import com.nexaworks.rafiq.exception.custom.user.TokenInvalidException;
+import com.nexaworks.rafiq.rabbit.manager.UserNotificationManager;
 import com.nexaworks.rafiq.repository.UserRepository;
 import com.nexaworks.rafiq.service.authentication.AuthService;
-import com.nexaworks.rafiq.service.rabbit.MessageService;
+import com.nexaworks.rafiq.utils.TransactionUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,8 +29,8 @@ public class PasswordServiceImpl implements PasswordService {
     private final TokenService tokenService;
     private final AuthService authService;
     private final PasswordEncoder passwordEncoder;
-    private final MessageService messageService;
-
+    private final TransactionUtils transactionUtils;
+    private final UserNotificationManager manager;
     @Override
     @Transactional
     public void forgetPassword(ForgetPasswordRequest forgetPasswordRequest) {
@@ -41,19 +40,14 @@ public class PasswordServiceImpl implements PasswordService {
             return;
         }
         String token = tokenService.generateAccessToken(user);
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                messageService.sendResetPasswordEvent(user.get(), token);
-            }
-        });
+        transactionUtils.afterCommit(() -> manager.sendResetPasswordEvent(user.get(), token));
     }
 
     @Override
     @Transactional
     public void changePassword(ChangePasswordRequest changePasswordRequest) {
         Token token = tokenService.getToken(changePasswordRequest.accessToken());
-        if (token.getExpiryDate().isBefore(Instant.now())) {
+        if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
             throw new TokenInvalidException("Invalid Access Token");
         }
         User user = token.getUser();
