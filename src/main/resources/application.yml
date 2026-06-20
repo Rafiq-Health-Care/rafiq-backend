@@ -204,4 +204,5 @@ sentry:
   tracesSampleRate: 1.0
 app:
   firebase:
-    config-file: firebase.json
+    config-base64: ${FIREBASE_CONFIG}
+
