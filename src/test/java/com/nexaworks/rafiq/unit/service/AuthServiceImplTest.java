@@ -98,7 +98,7 @@ class AuthServiceImplTest {
             // Arrange
             String email = "test@example.com";
             String password = "password123";
-            LoginResponse expectedResponse = new LoginResponse("ROLE_USER");
+            LoginResponse expectedResponse = new LoginResponse("ROLE_USER", UUID.randomUUID());
 
             when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                     .thenReturn(authentication);
@@ -126,7 +126,7 @@ class AuthServiceImplTest {
         void shouldRefreshTokenSuccessfullyWithValidRefreshToken() {
             // Arrange
             String refreshToken = "valid-refresh-token";
-            LoginResponse expectedResponse = new LoginResponse("ROLE_USER");
+            LoginResponse expectedResponse = new LoginResponse("ROLE_USER", UUID.randomUUID());
 
             when(authSessionManager.getCookie(request, "refreshToken")).thenReturn(refreshToken);
             when(tokenService.getToken(refreshToken)).thenReturn(testToken);
