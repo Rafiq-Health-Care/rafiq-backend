@@ -43,19 +43,9 @@ spring:
       hibernate:
         format_sql: false
         cache:
-          use_second_level_cache: true
+          use_second_level_cache: false
           use_query_cache: false
-          region.factory_class: org.redisson.hibernate.RedissonRegionFactory
-          redisson:
-            config: ${REDISSON_CONFIG:redisson-dev.yaml}
-            default-query-results-region.expiration.time_to_live: 60000
-            roles:
-              expiration:
-                time_to_live: 60000
-                max_idle_time: 2000
-              eviction:
-                max_entries: 1000
-                mode: LRU
+
 
   # --- Flyway ---------------------------------------------------------------
   flyway:
