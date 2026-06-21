@@ -11,5 +11,5 @@ import com.nexaworks.rafiq.entities.enums.ReminderFrequency;
 
 public record MedicineGroupResponse(UUID id, String name, String dosage,
         MedicineFrequency frequency, ReminderFrequency reminderFrequency, List<Day> customDays,
-        MedicineStatus status, LocalDateTime nextReminder) {
+        MedicineStatus status, LocalDateTime nextReminder, String groupName, String color) {
 }
