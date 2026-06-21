@@ -225,7 +225,7 @@ public class UserServiceImplTest {
         when(tokenService.verifyOtp(anyString(), anyString())).thenReturn(user);
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(authSessionManager.createLoginSession(any(HttpServletResponse.class), eq(user)))
-                .thenReturn(new LoginResponse("ROLE_USER"));
+                .thenReturn(new LoginResponse("ROLE_USER", UUID.randomUUID()));
 
         LoginResponse response = userService.verifyUserEmail("john.doe@example.com", "123456",
                 new MockHttpServletResponse());
