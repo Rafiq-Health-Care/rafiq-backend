@@ -1,4 +1,6 @@
 package com.nexaworks.rafiq.dto.response.auth;
 
-public record LoginResponse(String role) {
+import java.util.UUID;
+
+public record LoginResponse(String role, UUID userId) {
 }
