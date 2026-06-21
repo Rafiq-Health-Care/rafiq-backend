@@ -8,8 +8,6 @@ import java.util.Map;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,7 +36,6 @@ public class RedisConfig {
     }
 
     @Bean
-    @ConditionalOnBean(RedisConnectionFactory.class)
     public RedisCacheManager cacheManager(RedisConnectionFactory cf) {
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(10))
@@ -59,7 +56,6 @@ public class RedisConfig {
     }
 
     @Bean(destroyMethod = "shutdown")
-    @ConditionalOnMissingBean(RedissonClient.class)
     @ConditionalOnProperty(prefix = "app.redis", name = "enabled", havingValue = "true", matchIfMissing = true)
     public RedissonClient redissonClient() throws IOException {
         Config config = Config
@@ -68,7 +64,6 @@ public class RedisConfig {
     }
 
     @Bean
-    @ConditionalOnBean(RedisConnectionFactory.class)
     public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory cf) {
         return new StringRedisTemplate(cf);
     }

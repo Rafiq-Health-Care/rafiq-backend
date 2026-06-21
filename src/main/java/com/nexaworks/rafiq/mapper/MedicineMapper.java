@@ -28,6 +28,8 @@ public interface MedicineMapper {
 
     MedicinePreview toPreviewDto(Medicine entity);
     @Mapping(target = "nextReminder", expression = "java(entity.getReminder() != null ? entity.getReminder().getNextReminder() : null)")
+    @Mapping(target = "groupName", expression = "java(entity.getGroup() != null ? entity.getGroup().getName() : null)")
+    @Mapping(target = "color", expression = "java(entity.getGroup() != null ? entity.getGroup().getColor() : null)")
     MedicineGroupResponse toGroupDto(Medicine entity);
 
     default LocalDate map(Instant value) {

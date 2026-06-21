@@ -33,7 +33,7 @@ public class AuthSessionManager {
         addTokenToCookie(response, jwt, "jwt", 60 * 60 * 24 * 7);
         addTokenToCookie(response, refreshToken, "refreshToken", 60 * 60 * 24 * 30);
         return new LoginResponse(user.getRoles().stream().map(Role::getName)
-                .filter(Objects::nonNull).findFirst().get());
+                .filter(Objects::nonNull).findFirst().get(), user.getId());
     }
 
     public void addTokenToCookie(HttpServletResponse response, String token, String cookieName,
