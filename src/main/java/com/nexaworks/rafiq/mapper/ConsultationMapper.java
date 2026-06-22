@@ -71,9 +71,6 @@ public interface ConsultationMapper {
     }
 
     default BigDecimal getPrice(Consultation consultation) {
-        if (consultation.getPayment() != null) {
-            return consultation.getPayment().getAmount();
-        }
         Doctor doctor = consultation.getDoctor();
         return doctor == null ? null : doctor.getPrice();
     }

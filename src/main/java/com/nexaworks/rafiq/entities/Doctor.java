@@ -60,7 +60,7 @@ public class Doctor extends User {
     private List<LabTest> labTests;
 
     @OneToOne(mappedBy = "doctor", cascade = {CascadeType.REMOVE, CascadeType.MERGE,
-            CascadeType.PERSIST})
+            CascadeType.PERSIST}, fetch = FetchType.LAZY)
     private SocialLinks socialLinks;
 
     @Column(nullable = false, precision = 10, scale = 2)

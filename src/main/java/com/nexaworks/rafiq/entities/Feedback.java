@@ -27,7 +27,7 @@ public class Feedback extends BaseEntity {
     @JoinColumn(name = "doctor_id")
     private Doctor doctor;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "consultation_id")
     private Consultation consultation;
 

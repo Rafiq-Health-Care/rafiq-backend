@@ -22,7 +22,7 @@ public class SocialLinks extends BaseEntity {
     private String whatsapp;
     private String website;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id", nullable = false)
     private Doctor doctor;
 }

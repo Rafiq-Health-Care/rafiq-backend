@@ -36,7 +36,6 @@ public record ConsultationResponse(
 
         @Schema(description = "Cancellation reason, null if not cancelled", example = "Patient is unavailable") String reason,
 
-        @Schema(description = "Whether the consultation was cancelled by the patient", example = "true") boolean cancelByPatient)
-        implements
-            Serializable {
+        @Schema(description = "Whether the consultation was cancelled by the patient", example = "true") boolean cancelByPatient,
+        String notes) implements Serializable {
 }
