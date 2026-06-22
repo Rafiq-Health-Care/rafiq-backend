@@ -121,7 +121,6 @@ public class ConsultationSlotController {
         return ResponseEntity.ok(response);
     }
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('DOCTOR')")
     @Operation(summary = "Get consultation slot by ID", responses = {
             @ApiResponse(responseCode = "200", description = "Slot retrieved", content = @Content(schema = @Schema(implementation = ConsultationSlotResponse.class))),
             @ApiResponse(responseCode = "403", description = "Access denied"),
