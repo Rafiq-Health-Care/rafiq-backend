@@ -65,7 +65,6 @@ public class ConsultationController {
         return ResponseEntity.ok().build();
     }
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('PATIENT')")
     @Operation(summary = "Get consultation by ID", responses = {
             @ApiResponse(responseCode = "200", description = "Consultation retrieved"),
             @ApiResponse(responseCode = "403", description = "Access denied"),
