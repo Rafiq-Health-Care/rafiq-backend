@@ -52,6 +52,9 @@ public class ConsultationCancellationService implements IConsultationCancellatio
         User currentUser = authService.getAuthenticateUser();
 
         Consultation consultation = validateAndGetConsultation(id, currentUser);
+        if (consultation.getStatus() == ConsultationStatus.CANCELLED) {
+            return;
+        }
 
         boolean cancelledByPatient = cancelBookedConsultation(reason, consultation, currentUser);
 
@@ -81,6 +84,10 @@ public class ConsultationCancellationService implements IConsultationCancellatio
         if (!consultation.getDoctor().getId().equals(currentUser.getId())
                 && !consultation.getPatient().getId().equals(currentUser.getId())) {
             throw new AuthorizationException("You are not authorized to cancel this consultation");
+        }
+        if (consultation.getStatus() == ConsultationStatus.PENDING) {
+            consultation.setStatus(ConsultationStatus.CANCELLED);
+            consultationRepository.save(consultation);
         }
         return consultation;
     }
