@@ -14,7 +14,6 @@ CREATE TABLE IF NOT EXISTS refund_request (
     deleted_by VARCHAR(255),
     deleted_at TIMESTAMPTZ,
     CONSTRAINT uq_refund_request_payment UNIQUE (payment_id),
-    CONSTRAINT uq_refund_request_patient UNIQUE (patient_id),
     CONSTRAINT uq_refund_request_consultation UNIQUE (consultation_id),
     CONSTRAINT chk_refund_request_status CHECK (
         status IN ('PENDING', 'COMPLETED', 'FAILED', 'PROCESSING')
