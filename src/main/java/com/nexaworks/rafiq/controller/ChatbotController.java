@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/chat")
+@RequestMapping("/api/v1/chat")
 public class ChatbotController {
 
     private final MedicalChatbotServiceImp chatbotService;
