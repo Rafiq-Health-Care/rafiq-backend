@@ -1,5 +1,7 @@
 package com.nexaworks.rafiq.exception.handler;
 
+import java.time.LocalDateTime;
+
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -12,7 +14,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import com.nexaworks.rafiq.dto.response.common.ApiErrorResponse;
 import com.nexaworks.rafiq.exception.ExceptionUtils;
+import com.nexaworks.rafiq.exception.custom.chatbot.ChatbotException;
 import com.nexaworks.rafiq.exception.custom.general.MailSenderException;
 import com.nexaworks.rafiq.exception.model.ErrorResponse;
 
@@ -67,6 +71,18 @@ public class GlobalExceptionHandler {
         HttpStatus status = HttpStatus.SERVICE_UNAVAILABLE;
         return ResponseEntity.status(status)
                 .body(exceptionUtils.getErrorResponse(ex, request, status));
+    }
+
+    @ExceptionHandler(ChatbotException.class)
+    public ResponseEntity<ApiErrorResponse> handleChatbotException(ChatbotException ex) {
+        ApiErrorResponse errorBody = new ApiErrorResponse(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(errorBody);
     }
 
     @ExceptionHandler(Exception.class)
