@@ -15,7 +15,7 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:pass}
+      password: ${REDIS_PASSWORD:}
       database: ${REDIS_DATABASE:0}
 
   jpa:
@@ -27,3 +27,8 @@ spring:
 logging:
   level:
     root: INFO
+
+app:
+  rate-limit:
+    limit: ${RATE_LIMIT_REQUESTS:300}
+    window-seconds: ${RATE_LIMIT_WINDOW_SECONDS:60}

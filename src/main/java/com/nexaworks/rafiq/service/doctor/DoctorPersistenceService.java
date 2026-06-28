@@ -3,11 +3,14 @@ package com.nexaworks.rafiq.service.doctor;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nexaworks.rafiq.constant.CacheNames;
 import com.nexaworks.rafiq.dto.request.doctor.DoctorFilter;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.doctor.DoctorProfileResponse;
@@ -46,6 +49,8 @@ public class DoctorPersistenceService implements IDoctorPersistenceService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = {CacheNames.DOCTOR_PROFILE,
+            CacheNames.DOCTOR_SEARCH}, allEntries = true)
     public void setPrice(BigDecimal price) {
         Doctor doctor = requireAuthenticatedDoctor();
         doctor.setPrice(price);
@@ -54,6 +59,7 @@ public class DoctorPersistenceService implements IDoctorPersistenceService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.DOCTOR_PROFILE, key = "#id")
     public DoctorProfileResponse getDoctorById(UUID id) {
         Doctor doctor = doctorRepository.findProfileById(id)
                 .orElseThrow(() -> new UserNotFoundException("Doctor not found with id: " + id));
@@ -62,6 +68,7 @@ public class DoctorPersistenceService implements IDoctorPersistenceService {
     }
 
     @Override
+    @Cacheable(cacheNames = CacheNames.DOCTOR_SEARCH, key = "#filter.toString() + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<DoctorSearchResponse> search(DoctorFilter filter, Pageable pageable) {
         Page<DoctorSearchView> results = doctorSearchViewRepository
                 .findAll(DoctorSpecification.search(filter), pageable);

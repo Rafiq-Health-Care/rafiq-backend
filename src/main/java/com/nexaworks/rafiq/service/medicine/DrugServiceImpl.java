@@ -2,11 +2,13 @@ package com.nexaworks.rafiq.service.medicine;
 
 import java.util.UUID;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.nexaworks.rafiq.constant.CacheNames;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.medicine.DrugSearchResponse;
 import com.nexaworks.rafiq.entities.Drug;
@@ -23,6 +25,7 @@ public class DrugServiceImpl implements DrugService {
     private final DrugRepository drugRepository;
     private final DrugMapper drugMapper;
     @Override
+    @Cacheable(cacheNames = CacheNames.DRUG_SEARCH, key = "#drugName.toLowerCase() + ':' + #page + ':' + #size")
     public PageResponse<DrugSearchResponse> search(String drugName, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Drug> drugs = drugRepository.searchByFullText(drugName, pageable);

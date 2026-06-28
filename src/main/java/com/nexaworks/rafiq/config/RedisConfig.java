@@ -1,6 +1,5 @@
 package com.nexaworks.rafiq.config;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,21 +7,23 @@ import java.util.Map;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
+import org.redisson.config.SingleServerConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.*;
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.nexaworks.rafiq.dto.response.consultation.ConsultationResponse;
+import com.nexaworks.rafiq.constant.CacheNames;
 
 @Configuration
 public class RedisConfig {
@@ -46,10 +47,13 @@ public class RedisConfig {
                 .disableCachingNullValues();
 
         Map<String, RedisCacheConfiguration> cacheConfigs = new HashMap<>();
-        cacheConfigs.put("consultation",
-                defaultConfig.serializeValuesWith(RedisSerializationContext.SerializationPair
-                        .fromSerializer(new Jackson2JsonRedisSerializer<>(REDIS_MAPPER,
-                                ConsultationResponse.class))));
+        cacheConfigs.put(CacheNames.CONSULTATION, defaultConfig.entryTtl(Duration.ofMinutes(5)));
+        cacheConfigs.put(CacheNames.DOCTOR_PROFILE, defaultConfig.entryTtl(Duration.ofMinutes(10)));
+        cacheConfigs.put(CacheNames.DOCTOR_SEARCH, defaultConfig.entryTtl(Duration.ofMinutes(2)));
+        cacheConfigs.put(CacheNames.DOCTOR_AVAILABLE_SLOTS,
+                defaultConfig.entryTtl(Duration.ofSeconds(30)));
+        cacheConfigs.put(CacheNames.DRUG_SEARCH, defaultConfig.entryTtl(Duration.ofHours(6)));
+        cacheConfigs.put(CacheNames.SPECIALIZATIONS, defaultConfig.entryTtl(Duration.ofDays(1)));
 
         return RedisCacheManager.builder(cf).cacheDefaults(defaultConfig)
                 .withInitialCacheConfigurations(cacheConfigs).build();
@@ -57,9 +61,18 @@ public class RedisConfig {
 
     @Bean(destroyMethod = "shutdown")
     @ConditionalOnProperty(prefix = "app.redis", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public RedissonClient redissonClient() throws IOException {
-        Config config = Config
-                .fromYAML(new ClassPathResource("redisson-dev.yaml").getInputStream());
+    public RedissonClient redissonClient(RedisProperties redisProperties) {
+        Config config = new Config();
+        SingleServerConfig serverConfig = config.useSingleServer()
+                .setAddress(
+                        "redis://" + redisProperties.getHost() + ":" + redisProperties.getPort())
+                .setDatabase(redisProperties.getDatabase()).setConnectionPoolSize(8)
+                .setConnectionMinimumIdleSize(2).setConnectTimeout(3000).setTimeout(3000);
+
+        if (StringUtils.hasText(redisProperties.getPassword())) {
+            serverConfig.setPassword(redisProperties.getPassword());
+        }
+
         return Redisson.create(config);
     }
 

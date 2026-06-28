@@ -2,6 +2,8 @@
 # Application — shared configuration (all profiles)
 # ---------------------------------------------------------------------------
 spring:
+  cache:
+    type: redis
   data:
     redis:
       repositories:
@@ -193,6 +195,18 @@ sentry:
   traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:1.0}
 
 app:
+  redis:
+    enabled: ${REDIS_ENABLED:true}
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    limit: ${RATE_LIMIT_REQUESTS:120}
+    window-seconds: ${RATE_LIMIT_WINDOW_SECONDS:60}
+    paths:
+      - /api/v1/auth/**
+      - /api/v1/password/**
+      - /api/v1/oauth2/**
+      - /api/v1/drugs/**
+      - /api/v1/doctors/search
   firebase:
     config-base64: ${FIREBASE_CONFIG}
 

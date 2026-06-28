@@ -17,6 +17,13 @@ spring:
       hibernate:
         format_sql: false
 
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+
 logging:
   level:
     root: WARN

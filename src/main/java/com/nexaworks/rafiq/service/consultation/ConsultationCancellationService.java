@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import com.nexaworks.rafiq.constant.CacheNames;
 import com.nexaworks.rafiq.dto.event.ConsultationCancelled;
 import com.nexaworks.rafiq.entities.CancellationLog;
 import com.nexaworks.rafiq.entities.Consultation;
@@ -44,7 +45,8 @@ public class ConsultationCancellationService implements IConsultationCancellatio
     private final ConsultationNotificationManager notificationManager;
     private final RefundEventManager eventManager;
     @Override
-    @CacheEvict(value = "consultation", key = "'consultation:' + #id")
+    @CacheEvict(cacheNames = {CacheNames.CONSULTATION,
+            CacheNames.DOCTOR_AVAILABLE_SLOTS}, allEntries = true)
     @Transactional(rollbackFor = Exception.class)
     @Retryable(retryFor = {
             PessimisticLockingFailureException.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
