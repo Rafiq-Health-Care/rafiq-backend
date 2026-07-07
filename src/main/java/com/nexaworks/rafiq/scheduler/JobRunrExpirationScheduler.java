@@ -1,7 +1,7 @@
 package com.nexaworks.rafiq.scheduler;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
 import org.jobrunr.jobs.Job;
@@ -38,7 +38,8 @@ public class JobRunrExpirationScheduler implements ExpirationScheduler {
         log.info("Rescheduling expiration job for slot: {}", id);
         Job job = storageProvider.getJobById(id);
         if (job != null) {
-            job.scheduleAt(Instant.from(endTime), "user edit slot endTime");
+            job.scheduleAt(endTime.atZone(ZoneId.systemDefault()).toInstant(),
+                    "user edit slot endTime");
         }
         // deleteExpirationJob(id);
         // scheduleConsultationSlotExpiration(id, endTime);
