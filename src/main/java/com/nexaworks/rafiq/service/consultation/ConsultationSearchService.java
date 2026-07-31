@@ -9,6 +9,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nexaworks.rafiq.constant.CacheNames;
 import com.nexaworks.rafiq.dto.request.consultation.ScheduleFilter;
 import com.nexaworks.rafiq.dto.response.common.PageResponse;
 import com.nexaworks.rafiq.dto.response.consultation.*;
@@ -40,7 +41,7 @@ public class ConsultationSearchService implements IConsultationSearchService {
     private final ConsultationSlotMapper consultationSlotMapper;
 
     @Override
-    @Cacheable(key = "#id", value = "consultation", unless = "#result.status().name()!='UPCOMING'")
+    @Cacheable(cacheNames = CacheNames.CONSULTATION, key = "#id", unless = "#result.status().name()!='UPCOMING'")
     public ConsultationResponse getConsultation(UUID id) {
         Consultation consultation = consultationRepository.findById(id)
                 .orElseThrow(() -> new SlotNotFoundException("Slot not found"));
@@ -73,6 +74,7 @@ public class ConsultationSearchService implements IConsultationSearchService {
     }
 
     @Override
+    @Cacheable(cacheNames = CacheNames.DOCTOR_AVAILABLE_SLOTS, key = "#id + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PageResponse<DoctorConsultationResponse> getDoctorAvailableSlots(UUID id,
             Pageable pageable) {
         Page<DoctorConsultationResponse> slotPage = consultationSlotRepository

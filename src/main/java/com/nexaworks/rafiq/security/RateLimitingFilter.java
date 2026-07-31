@@ -2,47 +2,99 @@ package com.nexaworks.rafiq.security;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.time.LocalDateTime;
 
-import org.junit.jupiter.api.Order;
-import org.springframework.context.annotation.Profile;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.support.atomic.RedisAtomicLong;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-import io.github.bucket4j.Bandwidth;
-import io.github.bucket4j.Bucket;
-import jakarta.servlet.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nexaworks.rafiq.config.RateLimitProperties;
+import com.nexaworks.rafiq.dto.response.common.ApiErrorResponse;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
-@Order(1)
-@Profile("prod")
-public class RateLimitingFilter implements Filter {
-    private final ConcurrentMap<String, Bucket> bucketMap = new ConcurrentHashMap<>();
+@Order(Ordered.HIGHEST_PRECEDENCE + 10)
+@RequiredArgsConstructor
+@Slf4j
+public class RateLimitingFilter extends OncePerRequestFilter {
+    private static final String KEY_PREFIX = "rate-limit:";
 
-    private Bucket getBucket(String clientIp) {
-
-        Bandwidth limit = Bandwidth.builder().capacity(20).refillGreedy(1, Duration.ofSeconds(3))
-                .build();
-        return bucketMap.computeIfAbsent(clientIp, k -> Bucket.builder().addLimit(limit).build());
-    }
+    private final RedisConnectionFactory redisConnectionFactory;
+    private final RateLimitProperties properties;
+    private final ObjectMapper objectMapper;
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse,
-            FilterChain filterChain) throws IOException, ServletException {
-        HttpServletRequest request = (HttpServletRequest) servletRequest;
-        String clientIp = request.getRemoteAddr();
-        Bucket bucket = getBucket(clientIp);
-        if (bucket.tryConsume(1)) {
-            filterChain.doFilter(servletRequest, servletResponse);
-        } else {
-            HttpServletResponse response = (HttpServletResponse) servletResponse;
-            response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-            response.setContentType("application/json");
-            response.getWriter().write("{\"message\":\"Rate limit exceeded. Try again later\"}");
-            response.flushBuffer();
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException {
+        if (!properties.isEnabled() || !isLimitedPath(request)) {
+            filterChain.doFilter(request, response);
+            return;
         }
+
+        try {
+            String key = buildKey(request);
+            RedisAtomicLong counter = new RedisAtomicLong(key, redisConnectionFactory);
+            long currentCount = counter.incrementAndGet();
+            if (currentCount == 1) {
+                counter.expire(Duration.ofSeconds(properties.getWindowSeconds()));
+            }
+
+            long remaining = Math.max(0, properties.getLimit() - currentCount);
+            response.setHeader("X-RateLimit-Limit", String.valueOf(properties.getLimit()));
+            response.setHeader("X-RateLimit-Remaining", String.valueOf(remaining));
+            response.setHeader("X-RateLimit-Window-Seconds",
+                    String.valueOf(properties.getWindowSeconds()));
+
+            if (currentCount > properties.getLimit()) {
+                writeRateLimitResponse(response);
+                return;
+            }
+        } catch (DataAccessException ex) {
+            log.warn("Redis rate limiting unavailable; allowing request: {}", ex.getMessage());
+        }
+
+        filterChain.doFilter(request, response);
+    }
+
+    private boolean isLimitedPath(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return properties.getPaths().stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
+    }
+
+    private String buildKey(HttpServletRequest request) {
+        long window = System.currentTimeMillis() / (properties.getWindowSeconds() * 1000L);
+        return KEY_PREFIX + clientId(request) + ":" + request.getMethod() + ":"
+                + request.getRequestURI() + ":" + window;
+    }
+
+    private String clientId(HttpServletRequest request) {
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        if (forwardedFor != null && !forwardedFor.isBlank()) {
+            return forwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
+    }
+
+    private void writeRateLimitResponse(HttpServletResponse response) throws IOException {
+        response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+        response.setContentType("application/json");
+        objectMapper.writeValue(response.getOutputStream(),
+                new ApiErrorResponse(HttpStatus.TOO_MANY_REQUESTS.value(),
+                        "Too many requests. Please try again later.", LocalDateTime.now()));
+        response.flushBuffer();
     }
 }

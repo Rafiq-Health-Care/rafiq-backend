@@ -3,6 +3,7 @@ package com.nexaworks.rafiq.service.consultation;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.retry.annotation.Backoff;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import com.nexaworks.rafiq.constant.CacheNames;
 import com.nexaworks.rafiq.dto.request.consultation.ReserveConsultationRequest;
 import com.nexaworks.rafiq.dto.response.consultation.ConsultationEvent;
 import com.nexaworks.rafiq.entities.Consultation;
@@ -43,6 +45,7 @@ public class ReservationService implements IReservationService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = CacheNames.DOCTOR_AVAILABLE_SLOTS, allEntries = true)
     @Retryable(retryFor = {
             PessimisticLockingFailureException.class}, maxAttempts = 3, backoff = @Backoff(delay = 500))
     public String reserve(ReserveConsultationRequest request) {

@@ -3,6 +3,7 @@ package com.nexaworks.rafiq.service.consultation;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.retry.annotation.Backoff;
@@ -10,6 +11,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nexaworks.rafiq.constant.CacheNames;
 import com.nexaworks.rafiq.dto.event.ConsultationChanged;
 import com.nexaworks.rafiq.dto.request.consultation.AddConsultationRequest;
 import com.nexaworks.rafiq.dto.request.consultation.EditConsultationSlotRequest;
@@ -44,6 +46,7 @@ public class ConsultationSlotService implements IConsultationSlotService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(cacheNames = CacheNames.DOCTOR_AVAILABLE_SLOTS, allEntries = true)
     @Retryable(retryFor = {
             PessimisticLockingFailureException.class}, maxAttempts = 3, backoff = @Backoff(delay = 500))
     public ConsultationSlot add(AddConsultationRequest request) {
@@ -70,6 +73,7 @@ public class ConsultationSlotService implements IConsultationSlotService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(cacheNames = CacheNames.DOCTOR_AVAILABLE_SLOTS, allEntries = true)
     @Retryable(retryFor = {
             PessimisticLockingFailureException.class}, maxAttempts = 3, backoff = @Backoff(delay = 500))
     public EditConsultationSlotResponse editConsultation(EditConsultationSlotRequest request,

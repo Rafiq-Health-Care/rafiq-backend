@@ -63,7 +63,7 @@
 | Security | Spring Security + JWT | Authentication and authorization |
 | OAuth2 | Google, Facebook | Social login |
 | Messaging | RabbitMQ | Async notification delivery |
-| Cache / Idempotency | Redis | Request deduplication |
+| Cache / Idempotency | Redis | API caching, request deduplication, distributed counters |
 | AI | Google Gemini (GenAI) | Lab report PDF extraction |
 | File Storage | Cloudinary | Image and document uploads |
 | OCR | Tesseract / Tess4j | PDF text extraction fallback |
@@ -75,7 +75,7 @@
 | Scheduling | JobRunr | Background job scheduling |
 | Error Tracking | Sentry | Production error monitoring |
 | WebSocket | Spring WebSocket + STOMP | Real-time events to frontend |
-| Rate Limiting | Bucket4j | API rate limiting |
+| Rate Limiting | Redis fixed-window counters | API abuse protection |
 | API Docs | SpringDoc OpenAPI | Swagger UI |
 | Testing | JUnit 5 + Testcontainers | Unit and integration tests |
 | Build | Maven + Spotless | Build and code formatting |
@@ -119,7 +119,7 @@ The application follows a classic **layered architecture** with clear separation
 ### Request lifecycle
 
 1. A request arrives and passes through the **JWT filter** (validates the cookie-based token).
-2. The **rate limiting filter** (Bucket4j) enforces per-IP/user request quotas.
+2. The **rate limiting filter** uses Redis counters to enforce per-IP request quotas across application instances.
 3. For mutating endpoints, the **idempotency filter** checks whether an identical request was already processed and returns the cached response if so.
 4. Spring Security enforces **method-level authorization** (`@PreAuthorize`) for role-based access.
 5. The **controller** receives the validated request and delegates to the **service layer**.
@@ -588,7 +588,7 @@ Resource-level ownership checks are done in service methods (e.g., a doctor can 
 
 ### Rate limiting
 
-Bucket4j applies rate limits at the API level to prevent brute-force attacks and abuse. The `RateLimitingFilter` runs before the JWT filter in the chain.
+Redis-backed fixed-window counters apply rate limits to selected APIs to prevent brute-force attacks and abuse. The `RateLimitingFilter` runs before the JWT filter and returns HTTP `429` with a JSON error body plus `X-RateLimit-*` headers when the configured limit is exceeded.
 
 ### Input validation
 
@@ -723,6 +723,12 @@ RABBITMQ_PASSWORD=guest
 RABBITMQ_VIRTUAL_HOST=/
 REDIS_HOST=localhost
 REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_DATABASE=0
+REDIS_ENABLED=true
+RATE_LIMIT_ENABLED=true
+RATE_LIMIT_REQUESTS=300
+RATE_LIMIT_WINDOW_SECONDS=60
 FIREBASE_CONFIG=<base64 encoded firebase service account JSON>
 SENTRY_DSN=...
 ```
@@ -744,6 +750,62 @@ The app starts on port **8030**. Flyway runs all 43 migrations automatically on 
 
 Access Swagger UI at: `http://localhost:8030/swagger-ui.html`  
 Access JobRunr Dashboard at: `http://localhost:4040`
+
+### Redis setup and configuration
+
+The project includes a local Redis service in `docker-compose.redis.yml`.
+
+```bash
+docker compose -f docker-compose.redis.yml up -d redis
+```
+
+The default local Redis configuration is:
+
+```properties
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_DATABASE=0
+```
+
+For production, provide the same variables from your hosting platform or secret manager. Set `REDIS_ENABLED=false` only for environments that intentionally do not create the Redisson client; Redis caching and rate limiting expect Redis to be available when enabled.
+
+### Redis caching
+
+Spring Cache uses Redis (`spring.cache.type=redis`). The current cached reads are:
+
+| Cache | Data | TTL |
+|---|---|---|
+| `doctorProfile` | `GET /api/v1/doctors/{id}` profile reads | 10 minutes |
+| `doctorSearch` | `POST /api/v1/doctors/search` results | 2 minutes |
+| `doctorAvailableSlots` | available consultation slot pages | 30 seconds |
+| `drugSearch` | `GET /api/v1/drugs` search pages | 6 hours |
+| `specializations` | specialization list | 1 day |
+| `consultation` | upcoming consultation lookups | 5 minutes |
+
+Writes that change doctor pricing or consultation slot availability evict the related caches. You can observe cache behavior through Redis keys and Spring Actuator cache endpoints because `management.endpoints.web.exposure.include` includes `caches`.
+
+### Redis rate limiting
+
+Rate limiting is configured through:
+
+```properties
+RATE_LIMIT_ENABLED=true
+RATE_LIMIT_REQUESTS=120
+RATE_LIMIT_WINDOW_SECONDS=60
+```
+
+The default limited paths are:
+
+```text
+/api/v1/auth/**
+/api/v1/password/**
+/api/v1/oauth2/**
+/api/v1/drugs/**
+/api/v1/doctors/search
+```
+
+When a client exceeds the configured limit, the API returns HTTP `429 Too Many Requests` with the standard JSON error response and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `X-RateLimit-Window-Seconds` headers.
 
 ### Running tests
 
